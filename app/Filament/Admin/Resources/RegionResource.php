@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\App;
 
 class RegionResource extends Resource
 {
@@ -84,11 +85,23 @@ class RegionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable()
-                    ->sortable()
-                    ->formatStateUsing(fn($record) => $record->name['en'] ?? '')
-                    ->description(fn($record) => $record->name['ar'] ?? ''),
+            Tables\Columns\TextColumn::make('name')
+                ->searchable(query: function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('name->en', 'like', "%{$search}%")
+                            ->orWhere('name->ar', 'like', "%{$search}%");
+                    });
+                })
+                ->sortable(query: function ($query, $direction) {
+                    return $query->orderBy('name->en', $direction);
+                })
+                ->formatStateUsing(function ($record) {
+                    $locale = app()->getLocale();
+                    $name = $record->getRawOriginal('name'); // Get the raw array
+                    $decoded = json_decode($name, true);
+                    return $decoded[$locale] ?? $decoded['en'] ?? '';
+                })
+                ->label('Name'),
                     
 
                 Tables\Columns\TextColumn::make('code')

@@ -67,11 +67,17 @@ class City extends Model
     }
 
     // Accessors
-    public function getNameAttribute($value)
+    // public function getNameAttribute($value)
+    // {
+    //     $decoded = json_decode($value, true);
+    //     $locale = app()->getLocale();
+    //     return $decoded[$locale] ?? $decoded['en'] ?? '';
+    // }
+
+    public function getTranslatedNameAttribute(): string
     {
-        $decoded = json_decode($value, true);
         $locale = app()->getLocale();
-        return $decoded[$locale] ?? $decoded['en'] ?? '';
+        return $this->name[$locale] ?? $this->name['en'] ?? '';
     }
 
     public function getFullNameAttribute(): string

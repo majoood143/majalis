@@ -27,12 +27,16 @@ class CityResource extends Resource
             ->schema([
                 Forms\Components\Section::make('City Information')
                     ->schema([
-                        Forms\Components\Select::make('region_id')
-                            ->label('Region')
-                            ->options(Region::all()->pluck('name', 'id'))
-                            ->required()
-                            ->searchable()
-                            ->preload(),
+                Forms\Components\Select::make('region_id')
+                    ->label('Region')
+                    ->options(function () {
+                        return Region::all()->mapWithKeys(function ($region) {
+                            return [$region->id => $region->name];
+                        });
+                    })
+                    ->required()
+                    ->searchable()
+                    ->preload(),
 
                         Forms\Components\TextInput::make('name.en')
                             ->label('Name (English)')
@@ -92,10 +96,17 @@ class CityResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable()
-                    ->sortable()
-                    ->formatStateUsing(fn($record) => $record->name),
+            Tables\Columns\TextColumn::make('name')
+                ->label('Name')
+                ->searchable(query: function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('name->en', 'like', "%{$search}%")
+                            ->orWhere('name->ar', 'like', "%{$search}%");
+                    });
+                })
+                ->sortable(query: function ($query, $direction) {
+                    return $query->orderBy('name->en', $direction);
+                }),
 
                 Tables\Columns\TextColumn::make('region.name')
                     ->searchable()

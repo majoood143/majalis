@@ -334,4 +334,14 @@ class Hall extends Model
             ->orderBy('order')
             ->get();
     }
+
+    // In Hall model
+    public function getTranslatedNameAttribute(): string
+    {
+        $locale = app()->getLocale();
+        $nameArray = is_array($this->name) ? $this->name : json_decode($this->name, true);
+        return $nameArray[$locale] ?? $nameArray['en'] ?? 'Unnamed Hall';
+    }
+
+    
 }

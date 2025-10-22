@@ -99,7 +99,7 @@ class CreateHallFeature extends CreateRecord
         ]);
 
         // Clear cache
-        Cache::tags(['features'])->flush();
+        // Cache::tags(['features'])->flush();
     }
 
     protected function generateUniqueSlug(string $name): string

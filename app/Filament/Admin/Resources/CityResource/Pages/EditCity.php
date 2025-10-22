@@ -193,10 +193,10 @@ class EditCity extends EditRecord
         ];
     }
 
-    // protected function getTitle(): string
-    // {
-    //     return 'Edit City: ' . $this->record->name;
-    // }
+    public function getTitle(): string
+    {
+        return 'Edit City: ' . $this->record->name;
+    }
 
     public function getSubheading(): ?string
     {

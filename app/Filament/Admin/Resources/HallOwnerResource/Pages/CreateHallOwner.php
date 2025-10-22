@@ -151,7 +151,7 @@ class CreateHallOwner extends CreateRecord
         ]);
 
         // Clear cache
-        Cache::tags(['hall_owners'])->flush();
+        //Cache::tags(['hall_owners'])->flush();
 
         // Send welcome notification to owner
         $this->sendWelcomeNotification($owner);

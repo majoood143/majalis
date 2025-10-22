@@ -46,13 +46,13 @@ class EditHallFeature extends EditRecord
                 ->label('View Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
-                ->badge(fn() => $this->record->halls()->count())
+                //->badge(fn() => $this->record->halls()->count())
                 ->url(fn() => route('filament.admin.resources.halls.index', [
                     'tableFilters' => [
                         'features' => ['values' => [$this->record->id]]
                     ]
-                ]))
-                ->visible(fn() => $this->record->halls()->count() > 0),
+                    ])),
+                //->visible(fn() => $this->record->halls()->count() > 0),
 
             Actions\Action::make('regenerateSlug')
                 ->label('Regenerate Slug')
@@ -395,10 +395,11 @@ class EditHallFeature extends EditRecord
 
     public function getSubheading(): ?string
     {
-        $hallsCount = $this->record->halls()->count();
+        //$hallsCount = $this->record->halls()->count();
         $status = $this->record->is_active ? 'Active' : 'Inactive';
 
-        return "{$status} • Used by {$hallsCount} hall(s) • Order: {$this->record->order}";
+        //return "{$status} • Used by {$hallsCount} hall(s) • Order: {$this->record->order}";
+        return "{$status} • Used by  hall(s) • Order: {$this->record->order}";
     }
 
     public function hasCombinedRelationManagerTabsWithContent(): bool

@@ -119,9 +119,15 @@ class CommissionSettingResource extends Resource
                         return 'Global';
                     }),
 
-                Tables\Columns\TextColumn::make('commission_type')
-                    ->badge()
-                    ->formatStateUsing(fn($state) => ucfirst($state)),
+            Tables\Columns\TextColumn::make('commission_type')
+                ->badge()
+                ->formatStateUsing(fn($state) => $state->label())
+                ->color(fn($state) => match ($state->value) {
+                    'percentage' => 'success',
+                    'fixed' => 'info',
+                    default => 'gray',
+                })
+                ->sortable(),
 
                 Tables\Columns\TextColumn::make('commission_value')
                     ->label('Value')

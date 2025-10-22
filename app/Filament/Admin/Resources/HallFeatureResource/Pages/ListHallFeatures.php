@@ -157,7 +157,7 @@ class ListHallFeatures extends ListRecords
             'popular' => Tab::make('Most Used')
                 ->icon('heroicon-o-fire')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('halls', '>=', 5))
-                ->badge(fn() => \App\Models\HallFeature::has('halls', '>=', 5)->count())
+                //->badge(fn() => \App\Models\HallFeature::has('halls', '>=', 5)->count())
                 ->badgeColor('orange'),
         ];
     }

@@ -61,12 +61,13 @@ class Region extends Model
     }
 
     // Accessors
-    public function getNameAttribute($value)
-    {
-        $decoded = json_decode($value, true);
-        $locale = app()->getLocale();
-        return $decoded[$locale] ?? $decoded['en'] ?? '';
-    }
+    // public function getNameAttribute($value)
+    // {
+    //     $decoded = json_decode($value, true);
+    //     $locale = app()->getLocale();
+    //     return $decoded[$locale] ?? $decoded['en'] ?? '';
+    // }
+
 
     // Helper Methods
     public function getTotalHalls(): int
@@ -77,5 +78,21 @@ class Region extends Model
     public function getActiveHalls(): int
     {
         return $this->halls()->where('is_active', true)->count();
+    }
+
+    public function getTranslatedDescriptionAttribute(): ?string
+    {
+        if (!is_array($this->description)) {
+            $decoded = json_decode($this->description, true);
+            if (!$decoded) {
+                return null;
+            }
+            $descArray = $decoded;
+        } else {
+            $descArray = $this->description;
+        }
+
+        $locale = app()->getLocale();
+        return $descArray[$locale] ?? $descArray['en'] ?? $descArray['ar'] ?? null;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HallOwner extends Model
@@ -56,6 +57,21 @@ class HallOwner extends Model
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * Get all halls owned by this hall owner through their user account
+     */
+    public function halls(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Hall::class,      // Final model we want to access
+            User::class,      // Intermediate model
+            'id',             // Foreign key on User table (hall_owners.user_id -> users.id)
+            'owner_id',       // Foreign key on Hall table (users.id -> halls.owner_id)
+            'user_id',        // Local key on HallOwner table
+            'id'              // Local key on User table
+        );
     }
 
     // Scopes

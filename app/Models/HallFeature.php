@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class HallFeature extends Model
 {
@@ -28,6 +29,12 @@ class HallFeature extends Model
     ];
 
     public $translatable = ['name', 'description'];
+
+    // Relationships
+    public function halls(): BelongsToMany
+    {
+        return $this->belongsToMany(Hall::class, 'hall_feature');
+    }
 
     // Scopes
     public function scopeActive($query)
@@ -54,12 +61,21 @@ class HallFeature extends Model
     }
 
     // Accessors
-    public function getNameAttribute($value)
+    // public function getNameAttribute($value)
+    // {
+    //     $decoded = json_decode($value, true);
+    //     $locale = app()->getLocale();
+    //     return $decoded[$locale] ?? $decoded['en'] ?? '';
+    // }
+
+    public function getTranslatedNameAttribute(): string
     {
-        $decoded = json_decode($value, true);
         $locale = app()->getLocale();
-        return $decoded[$locale] ?? $decoded['en'] ?? '';
+        $nameArray = is_array($this->name) ? $this->name : json_decode($this->name, true);
+        return $nameArray[$locale] ?? $nameArray['en'] ?? 'Unnamed Feature';
     }
+
+    
 
     // Helper Methods
     public function getHallsCount(): int

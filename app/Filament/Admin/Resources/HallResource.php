@@ -34,9 +34,11 @@ class HallResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('city_id')
                                     ->label('City')
-                                    ->options(City::with('region')->get()->mapWithKeys(function ($city) {
-                                        return [$city->id => $city->name . ' (' . $city->region->name . ')'];
-                                    }))
+                                    ->options(function () {
+                                        return City::with('region')->get()->mapWithKeys(function ($city) {
+                                            return [$city->id => $city->translated_name . ' (' . $city->region->translated_name . ')'];
+                                        });
+                                    })
                                     ->required()
                                     ->searchable()
                                     ->preload(),

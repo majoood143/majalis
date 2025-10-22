@@ -129,7 +129,7 @@ class CreateExtraService extends CreateRecord
         ]);
 
         // Clear cache
-        Cache::tags(['services', 'hall_' . $service->hall_id])->flush();
+        //Cache::tags(['services', 'hall_' . $service->hall_id])->flush();
 
         // Notify hall owner about new service
         if ($service->hall && $service->hall->owner) {

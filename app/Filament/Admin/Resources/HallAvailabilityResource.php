@@ -31,7 +31,8 @@ class HallAvailabilityResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('hall_id')
                             ->label('Hall')
-                            ->options(Hall::all()->pluck('name', 'id'))
+                            ->relationship('hall', 'name')
+                            ->getOptionLabelFromRecordUsing(fn($record) => $record->translated_name ?? 'Unnamed Hall')
                             ->required()
                             ->searchable()
                             ->preload(),
@@ -92,9 +93,17 @@ class HallAvailabilityResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('hall.name')
+                    ->label('Hall')
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn($record) => $record->hall->name),
+                    ->formatStateUsing(function ($record) {
+                        if (!$record->hall) {
+                            return 'Hall Deleted';
+                        }
+                        return $record->hall->translated_name ?? 'Unnamed Hall';
+                    })
+                    ->badge()
+                    ->color(fn($record) => $record->hall ? 'success' : 'danger'),
 
                 Tables\Columns\TextColumn::make('date')
                     ->date()
@@ -108,6 +117,7 @@ class HallAvailabilityResource extends Resource
                         'afternoon' => 'warning',
                         'evening' => 'success',
                         'full_day' => 'primary',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn(string $state): string => ucfirst(str_replace('_', ' ', $state))),
 
@@ -119,7 +129,7 @@ class HallAvailabilityResource extends Resource
                     ->label('Reason')
                     ->badge()
                     ->color('danger')
-                    ->visible(fn($record) => !$record->is_available),
+                    ->visible(fn($record) => $record && !$record->is_available),
 
                 Tables\Columns\TextColumn::make('custom_price')
                     ->money('OMR')
@@ -129,7 +139,12 @@ class HallAvailabilityResource extends Resource
                 Tables\Columns\TextColumn::make('effective_price')
                     ->label('Effective Price')
                     ->money('OMR')
-                    ->formatStateUsing(fn($record) => $record->getEffectivePrice())
+                    ->formatStateUsing(function ($record) {
+                        if (!$record->hall) {
+                            return 'N/A';
+                        }
+                        return $record->getEffectivePrice();
+                    })
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -167,21 +182,27 @@ class HallAvailabilityResource extends Resource
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['from'], fn($q) => $q->whereDate('date', '>=', $data['from']))
-                            ->when($data['until'], fn($q) => $q->whereDate('date', '<=', $data['until']));
+                            ->when($data['from'], fn($query, $date) => $query->whereDate('date', '>=', $date))
+                            ->when($data['until'], fn($query, $date) => $query->whereDate('date', '<=', $date));
                     }),
-
-                Tables\Filters\TernaryFilter::make('custom_price')
-                    ->label('Has Custom Price')
-                    ->queries(
-                        true: fn($query) => $query->whereNotNull('custom_price'),
-                        false: fn($query) => $query->whereNull('custom_price'),
-                    )
-                    ->native(false),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+
+                Tables\Actions\Action::make('toggle')
+                    ->label(fn($record) => $record->is_available ? 'Block' : 'Unblock')
+                    ->icon(fn($record) => $record->is_available ? 'heroicon-o-lock-closed' : 'heroicon-o-lock-open')
+                    ->color(fn($record) => $record->is_available ? 'danger' : 'success')
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        $record->update([
+                            'is_available' => !$record->is_available,
+                            'reason' => !$record->is_available ? 'blocked' : null,
+                            'notes' => !$record->is_available ? $record->notes : null,
+                        ]);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -194,7 +215,6 @@ class HallAvailabilityResource extends Resource
                         ->requiresConfirmation()
                         ->form([
                             Forms\Components\Select::make('reason')
-                                ->label('Block Reason')
                                 ->options([
                                     'maintenance' => 'Under Maintenance',
                                     'blocked' => 'Blocked by Owner',
@@ -203,16 +223,14 @@ class HallAvailabilityResource extends Resource
                                 ])
                                 ->required(),
                             Forms\Components\Textarea::make('notes')
-                                ->label('Notes'),
+                                ->rows(3),
                         ])
                         ->action(function ($records, array $data) {
-                            $records->each(function ($record) use ($data) {
-                                $record->update([
-                                    'is_available' => false,
-                                    'reason' => $data['reason'],
-                                    'notes' => $data['notes'] ?? null,
-                                ]);
-                            });
+                            $records->each->update([
+                                'is_available' => false,
+                                'reason' => $data['reason'] ?? 'blocked',
+                                'notes' => $data['notes'] ?? null,
+                            ]);
                         }),
 
                     Tables\Actions\BulkAction::make('unblock')
@@ -243,6 +261,7 @@ class HallAvailabilityResource extends Resource
             'index' => Pages\ListHallAvailabilities::route('/'),
             'create' => Pages\CreateHallAvailability::route('/create'),
             'edit' => Pages\EditHallAvailability::route('/{record}/edit'),
+            'view' => Pages\ViewHallAvailability::route('/{record}'),
         ];
     }
 }

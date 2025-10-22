@@ -33,6 +33,8 @@ class CreateRegion extends CreateRecord
             ->causedBy(Auth::user())
             ->log('Region created');
 
-        Cache::tags(['regions'])->flush();
+        //Cache::tags(['regions'])->flush();
+        Cache::forget('regions_list');
+        Cache::forget('regions_by_country');
     }
 }
