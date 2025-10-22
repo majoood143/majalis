@@ -87,7 +87,9 @@ class RegionResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn($record) => $record->name),
+                    ->formatStateUsing(fn($record) => $record->name['en'] ?? '')
+                    ->description(fn($record) => $record->name['ar'] ?? ''),
+                    
 
                 Tables\Columns\TextColumn::make('code')
                     ->searchable()

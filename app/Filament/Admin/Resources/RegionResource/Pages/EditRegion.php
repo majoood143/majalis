@@ -43,6 +43,8 @@ class EditRegion extends EditRecord
 
     protected function afterSave(): void
     {
-        Cache::tags(['regions'])->flush();
+        //Cache::tags(['regions'])->flush();
+        Cache::forget('regions_list');
+        Cache::forget('regions_by_country');
     }
 }
