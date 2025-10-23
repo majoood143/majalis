@@ -95,4 +95,9 @@ class Region extends Model
         $locale = app()->getLocale();
         return $descArray[$locale] ?? $descArray['en'] ?? $descArray['ar'] ?? null;
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
