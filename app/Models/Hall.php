@@ -171,12 +171,12 @@ class Hall extends Model
     }
 
     // Accessors
-    public function getNameAttribute($value)
-    {
-        $decoded = json_decode($value, true);
-        $locale = app()->getLocale();
-        return $decoded[$locale] ?? $decoded['en'] ?? '';
-    }
+    // public function getNameAttribute($value)
+    // {
+    //     $decoded = json_decode($value, true);
+    //     $locale = app()->getLocale();
+    //     return $decoded[$locale] ?? $decoded['en'] ?? '';
+    // }
 
     public function getRegionAttribute()
     {
@@ -349,6 +349,16 @@ class Hall extends Model
         return is_array($this->name)
             ? ($this->name[$locale] ?? $this->name['en'] ?? 'Unnamed Hall')
             : $this->name;
+    }
+
+    public function getDescriptionEnAttribute(): string
+    {
+        return $this->getTranslation('description', 'en') ?? 'No description';
+    }
+
+    public function getDescriptionArAttribute(): string
+    {
+        return $this->getTranslation('description', 'ar') ?? 'لا يوجد وصف';
     }
 
     

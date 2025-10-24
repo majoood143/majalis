@@ -96,14 +96,16 @@ class ViewHall extends ViewRecord
 
                 Infolists\Components\Section::make('Description')
                     ->schema([
-                        Infolists\Components\TextEntry::make('description.en')
+                        Infolists\Components\TextEntry::make('description_en')
                             ->label('Description (English)')
                             ->html()
-                            ->columnSpanFull(),
+                    
+                    ->columnSpanFull(),
 
-                        Infolists\Components\TextEntry::make('description.ar')
+                        Infolists\Components\TextEntry::make('description_ar')
                             ->label('Description (Arabic)')
                             ->html()
+                   
                             ->columnSpanFull(),
                     ])
                     ->icon('heroicon-o-document-text')

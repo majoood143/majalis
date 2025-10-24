@@ -311,19 +311,19 @@ class EditHall extends EditRecord
         $record->update($data);
 
         // Sync features
-        $record->features()->sync($features);
+        //$record->features()->sync($features);
 
-        $changes = array_diff_assoc($data, $oldValues);
+        //$changes = array_diff_assoc($data, $oldValues);
 
         // Log the update
-        activity()
-            ->performedOn($record)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'old' => $oldValues,
-                'changes' => $changes,
-            ])
-            ->log('Hall updated');
+        // activity()
+        //     ->performedOn($record)
+        //     ->causedBy(Auth::user())
+        //     ->withProperties([
+        //         'old' => $oldValues,
+        //         'changes' => $changes,
+        //     ])
+        //     ->log('Hall updated');
 
         return $record;
     }
@@ -334,15 +334,15 @@ class EditHall extends EditRecord
         $oldCityId = $this->record->getOriginal('city_id');
         $newCityId = $this->record->city_id;
 
-        Cache::tags(['halls'])->flush();
+        //Cache::tags(['halls'])->flush();
 
-        if ($oldCityId) {
-            Cache::tags(['city_' . $oldCityId])->flush();
-        }
+        // if ($oldCityId) {
+        //     Cache::tags(['city_' . $oldCityId])->flush();
+        // }
 
-        if ($newCityId && $newCityId !== $oldCityId) {
-            Cache::tags(['city_' . $newCityId])->flush();
-        }
+        // if ($newCityId && $newCityId !== $oldCityId) {
+        //     Cache::tags(['city_' . $newCityId])->flush();
+        // }
 
         // Log the update
             Log::info('Hall updated', [
@@ -380,7 +380,7 @@ class EditHall extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),
