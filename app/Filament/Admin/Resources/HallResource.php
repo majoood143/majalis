@@ -224,9 +224,9 @@ class HallResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn($record) => $record->name),
+                    ->formatStateUsing(fn($record) => $record->translated_name ?? 'N/A'),
 
-                Tables\Columns\TextColumn::make('city.name')
+            Tables\Columns\TextColumn::make('city.name')
                     ->sortable()
                     ->searchable()
                     ->formatStateUsing(fn($record) => $record->city->name),

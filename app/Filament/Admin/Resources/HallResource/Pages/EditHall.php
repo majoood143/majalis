@@ -250,7 +250,9 @@ class EditHall extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         // Load features relationship
-        $data['features'] = $this->record->features->pluck('id')->toArray();
+        //$data['features'] = $this->record->features->pluck('id')->toArray();
+
+        $data['features'] = collect($this->record->features)->pluck('id')->toArray();
 
         return $data;
     }

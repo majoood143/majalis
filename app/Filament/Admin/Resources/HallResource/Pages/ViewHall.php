@@ -190,7 +190,8 @@ class ViewHall extends ViewRecord
                         Infolists\Components\TextEntry::make('features')
                             ->label('')
                             ->state(function ($record) {
-                                return $record->features->map(fn($feature) => $feature->name)->implode(', ') ?: 'No features added';
+                    return collect($record->features)->map(fn($feature) => $feature->name)->implode(', ') ?: 'No features added';
+                                //return $record->features->map(fn($feature) => $feature->name)->implode(', ') ?: 'No features added';
                             })
                             ->badge()
                             ->separator(',')
