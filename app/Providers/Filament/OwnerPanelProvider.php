@@ -17,6 +17,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\SpatieLaravelTranslatablePlugin;
 
 class OwnerPanelProvider extends PanelProvider
 {
@@ -38,6 +39,18 @@ class OwnerPanelProvider extends PanelProvider
             ->brandLogo(asset('images/logo.png'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/favicon.png'))
+
+            // ADD LOCALE CONFIGURATION
+            ->locale_get_default(config('app.locale'))
+            //->locale(config('app.locale'))
+            ->locales(['en' => 'English', 'ar' => 'العربية'])
+
+            // ADD PLUGIN CONFIGURATION
+            ->plugin(
+                SpatieLaravelTranslatablePlugin::make()
+                    ->defaultLocales(['en', 'ar'])
+            )
+
             ->discoverResources(in: app_path('Filament/Owner/Resources'), for: 'App\\Filament\\Owner\\Resources')
             ->discoverPages(in: app_path('Filament/Owner/Pages'), for: 'App\\Filament\\Owner\\Pages')
             ->pages([

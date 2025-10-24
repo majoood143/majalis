@@ -173,7 +173,7 @@ class CreateHall extends CreateRecord
         ]);
 
         // Clear cache
-        Cache::tags(['halls', 'city_' . $hall->city_id])->flush();
+        //Cache::tags(['halls', 'city_' . $hall->city_id])->flush();
 
         // Generate availability for next 3 months
         $this->generateInitialAvailability($hall);
@@ -232,7 +232,7 @@ class CreateHall extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCreateAnotherFormAction()

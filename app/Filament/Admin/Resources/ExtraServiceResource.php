@@ -27,12 +27,38 @@ class ExtraServiceResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Service Information')
                     ->schema([
-                        Forms\Components\Select::make('hall_id')
-                            ->label('Hall')
-                            ->options(Hall::all()->pluck('name', 'id'))
-                            ->required()
-                            ->searchable()
-                            ->preload(),
+                Forms\Components\Select::make('hall_id')
+                    ->label('Hall')
+                    ->options(function () {
+                        return Hall::with(['city', 'owner'])
+                            ->active()
+                            ->get()
+                            ->mapWithKeys(function ($hall) {
+                                //$locale = app()->getLocale();
+
+                                // Get hall name
+                                $hallName = $hall->name->en ?? 'Unnamed Hall';
+                                    // ? ($hall->name[$locale] ?? $hall->name['en'] ?? 'Unnamed Hall')
+                                    // : $hall->name;
+
+                                // Get city name
+                                $cityName = $hall->city->name ?? 'Unknown City';
+                                // if ($hall->city && is_array($hall->city->name)) {
+                                //     $cityName = $hall->city->name[$locale] ?? $hall->city->name['en'] ?? 'Unknown City';
+                                // }
+
+                                // Get owner name
+                                $ownerName = $hall->owner->name ?? 'No Owner';
+
+                                // Format: "Hall Name - City (Owner)"
+                                $label = "{$hallName} - {$cityName} ({$ownerName})";
+
+                                return [$hall->id => $label];
+                            });
+                    })
+                    ->required()
+                    ->searchable()
+                    ->preload(),
 
                         Forms\Components\TextInput::make('name.en')
                             ->label('Name (English)')

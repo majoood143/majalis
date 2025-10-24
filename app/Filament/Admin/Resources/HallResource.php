@@ -32,16 +32,18 @@ class HallResource extends Resource
                         Forms\Components\Tabs\Tab::make('Basic Info')
                             ->icon('heroicon-o-information-circle')
                             ->schema([
-                                Forms\Components\Select::make('city_id')
-                                    ->label('City')
-                                    ->options(function () {
-                                        return City::with('region')->get()->mapWithKeys(function ($city) {
-                                            return [$city->id => $city->translated_name . ' (' . $city->region->translated_name . ')'];
-                                        });
-                                    })
-                                    ->required()
-                                    ->searchable()
-                                    ->preload(),
+                    Forms\Components\Select::make('city_id')
+                        ->label('City')
+                        ->relationship('city', 'name')
+                        ->getOptionLabelFromRecordUsing(function ($record) {
+                            $locale = app()->getLocale();
+                            return is_array($record->name)
+                                ? ($record->name[$locale] ?? $record->name['en'] ?? 'Unnamed')
+                                : $record->name;
+                        })
+                        ->searchable()
+                        ->preload()
+                        ->required(),
 
                                 Forms\Components\Select::make('owner_id')
                                     ->label('Owner')

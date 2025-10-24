@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\App;
+use Filament\Tables\Actions\ActionGroup;
 
 class RegionResource extends Resource
 {
@@ -136,8 +137,10 @@ class RegionResource extends Resource
                     ->native(false),
             ])
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

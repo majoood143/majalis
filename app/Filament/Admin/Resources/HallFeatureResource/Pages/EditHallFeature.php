@@ -277,17 +277,17 @@ class EditHallFeature extends EditRecord
 
         $record->update($data);
 
-        $changes = array_diff_assoc($data, $oldValues);
+        //$changes = array_diff_assoc($data, $oldValues);
 
         // Log the update
-        activity()
-            ->performedOn($record)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'old' => $oldValues,
-                'changes' => $changes,
-            ])
-            ->log('Hall feature updated');
+        // activity()
+        //     ->performedOn($record)
+        //     ->causedBy(Auth::user())
+        //     ->withProperties([
+        //         'old' => $oldValues,
+        //         'changes' => $changes,
+        //     ])
+        //     ->log('Hall feature updated');
 
         return $record;
     }
@@ -295,7 +295,7 @@ class EditHallFeature extends EditRecord
     protected function afterSave(): void
     {
         // Clear cache
-        Cache::tags(['features'])->flush();
+        //Cache::tags(['features'])->flush();
 
         // Log the update
         Log::info('Hall feature updated', [
@@ -381,7 +381,7 @@ class EditHallFeature extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),

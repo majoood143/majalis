@@ -336,11 +336,19 @@ class Hall extends Model
     }
 
     // In Hall model
+    // public function getTranslatedNameAttribute(): string
+    // {
+    //     $locale = app()->getLocale();
+    //     $nameArray = is_array($this->name) ? $this->name : json_decode($this->name, true);
+    //     return $nameArray[$locale] ?? $nameArray['en'] ?? 'Unnamed Hall';
+    // }
+
     public function getTranslatedNameAttribute(): string
     {
         $locale = app()->getLocale();
-        $nameArray = is_array($this->name) ? $this->name : json_decode($this->name, true);
-        return $nameArray[$locale] ?? $nameArray['en'] ?? 'Unnamed Hall';
+        return is_array($this->name)
+            ? ($this->name[$locale] ?? $this->name['en'] ?? 'Unnamed Hall')
+            : $this->name;
     }
 
     
