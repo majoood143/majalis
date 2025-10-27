@@ -74,12 +74,12 @@ class ExtraService extends Model
     }
 
     // Accessors
-    public function getNameAttribute($value)
-    {
-        $decoded = json_decode($value, true);
-        $locale = app()->getLocale();
-        return $decoded[$locale] ?? $decoded['en'] ?? '';
-    }
+    // public function getNameAttribute($value)
+    // {
+    //     $decoded = json_decode($value, true);
+    //     $locale = app()->getLocale();
+    //     return $decoded[$locale] ?? $decoded['en'] ?? '';
+    // }
 
     public function getFormattedPriceAttribute(): string
     {

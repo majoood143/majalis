@@ -105,7 +105,7 @@ class ViewHall extends ViewRecord
                         Infolists\Components\TextEntry::make('description_ar')
                             ->label('Description (Arabic)')
                             ->html()
-                   
+                    
                             ->columnSpanFull(),
                     ])
                     ->icon('heroicon-o-document-text')

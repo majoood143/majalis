@@ -423,13 +423,50 @@ class ViewExtraService extends ViewRecord
         return "{$hall} • {$status} {$required} • {$price} / {$unit}";
     }
 
+    // protected function getRevenueStats(): array
+    // {
+    //     return [
+    //         'total_bookings' => $this->getTotalBookings($this->record),
+    //         'total_revenue' => $this->getTotalRevenue($this->record),
+    //         'average_quantity' => $this->getAverageQuantity($this->record),
+    //         'last_booked' => $this->getLastBookedDate($this->record),
+    //     ];
+    // }
+
     protected function getRevenueStats(): array
     {
+        $bookings = \App\Models\Booking::whereHas('extraServices', function ($q) {
+            $q->where('extra_service_id', $this->record->id);
+        })
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->where('payment_status', 'paid')
+            ->with('extraServices')
+            ->get();
+
+        $totalRevenue = 0;
+        $totalQuantity = 0;
+        $monthlyData = [];
+
+        foreach ($bookings as $booking) {
+            $service = $booking->extraServices->firstWhere('id', $this->record->id);
+            if ($service) {
+                $totalRevenue += $service->pivot->total_price ?? 0;
+                $totalQuantity += $service->pivot->quantity ?? 0;
+
+                $month = $booking->booking_date->format('Y-m');
+                $monthlyData[$month] = ($monthlyData[$month] ?? 0) + 1;
+            }
+        }
+
+        $mostBookedMonth = !empty($monthlyData)
+            ? array_search(max($monthlyData), $monthlyData)
+            : null;
+
         return [
-            'total_bookings' => $this->getTotalBookings($this->record),
-            'total_revenue' => $this->getTotalRevenue($this->record),
-            'average_quantity' => $this->getAverageQuantity($this->record),
-            'last_booked' => $this->getLastBookedDate($this->record),
+            'total_bookings' => $bookings->count(),
+            'total_revenue' => $totalRevenue,
+            'average_quantity' => $totalQuantity > 0 ? $totalQuantity / $bookings->count() : 0,
+            'most_booked_month' => $mostBookedMonth ? date('F Y', strtotime($mostBookedMonth . '-01')) : null,
         ];
     }
 

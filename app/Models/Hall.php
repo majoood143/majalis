@@ -203,6 +203,11 @@ class Hall extends Model
         });
     }
 
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     // Pricing Methods
     public function getPriceForSlot(string $timeSlot): float
     {

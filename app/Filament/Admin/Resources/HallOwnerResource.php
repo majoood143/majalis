@@ -14,6 +14,7 @@ use Filament\Infolists\Infolist;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Filament\Tables\Actions\ActionGroup;
 
 class HallOwnerResource extends Resource
 {
@@ -196,6 +197,7 @@ class HallOwnerResource extends Resource
                     ->native(false),
             ])
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
 
@@ -225,6 +227,7 @@ class HallOwnerResource extends Resource
                     ->visible(fn(HallOwner $record) => $record->is_verified),
 
                 Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

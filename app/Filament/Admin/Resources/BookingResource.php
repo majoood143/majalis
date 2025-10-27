@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Tables\Actions\ActionGroup;
 
 class BookingResource extends Resource
 {
@@ -229,6 +230,7 @@ class BookingResource extends Resource
                     }),
             ])
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('confirm')
@@ -249,6 +251,8 @@ class BookingResource extends Resource
                     ])
                     ->action(fn(Booking $record, array $data) => $record->cancel($data['reason']))
                     ->visible(fn(Booking $record) => in_array($record->status->value, ['pending', 'confirmed'])),
+            
+                    ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

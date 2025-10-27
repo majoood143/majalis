@@ -17,7 +17,7 @@
         }}
     >
         @if (count($childComponentContainers = $getChildComponentContainers()))
-            <ol class="relative border-gray-200 border-s dark:border-gray-700">
+            <ol class="relative border-gray-200 border-s">
                 <x-filament::grid
                     :default="$getGridColumns('default')"
                     :sm="$getGridColumns('sm')"
@@ -32,7 +32,7 @@
                             @class([
                                 'mb-4 ms-6',
                                 'fi-in-repeatable-item block',
-                                'rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10' => $isContained,
+                                'rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-950/5' => $isContained,
                             ])
                         >
                             {{ $container }}

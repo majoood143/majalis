@@ -305,7 +305,7 @@ class ListHalls extends ListRecords
             }
         }
 
-        Cache::tags(['halls'])->flush();
+        //Cache::tags(['halls'])->flush();
 
         Notification::make()
             ->success()
@@ -355,7 +355,7 @@ class ListHalls extends ListRecords
         $isFeatured = $data['action'] === 'mark_featured';
         $updated = $query->update(['is_featured' => $isFeatured]);
 
-        Cache::tags(['halls'])->flush();
+        //Cache::tags(['halls'])->flush();
 
         Notification::make()
             ->success()
