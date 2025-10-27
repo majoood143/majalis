@@ -69,7 +69,7 @@
                     </div>
                     <div>
                         <div class="text-sm text-gray-600">Price/Day</div>
-                        <div class="text-lg font-semibold text-indigo-600">{{ number_format($hall->price_per_day, 3) }} OMR</div>
+                        <div class="text-lg font-semibold text-indigo-600">{{ number_format($hall->price_per_slot, 3) }} OMR</div>
                     </div>
                     <div>
                         <div class="text-sm text-gray-600">Total Bookings</div>

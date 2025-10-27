@@ -15,18 +15,23 @@ use Exception;
 
 class BookingController extends Controller
 {
-    public function __construct(
-        protected BookingService $bookingService,
-        protected PaymentService $paymentService
-    ) {
-        $this->middleware('auth');
-    }
+    // REMOVE THE ENTIRE CONSTRUCTOR - DELETE THIS BLOCK:
+    // public function __construct(
+    //     protected BookingService $bookingService,
+    //     protected PaymentService $paymentService
+    // ) {
+    //     $this->middleware('auth');
+    // }
 
     /**
      * Store a new booking
      */
     public function store(Request $request, Hall $hall)
     {
+        // Get services from container instead
+        $bookingService = app(BookingService::class);
+        $paymentService = app(PaymentService::class);
+
         // Validation
         $validator = Validator::make($request->all(), [
             'booking_date' => 'required|date|after:today',
@@ -51,7 +56,7 @@ class BookingController extends Controller
 
         try {
             // Check availability
-            if (!$this->bookingService->checkAvailability(
+            if (!$bookingService->checkAvailability(
                 $hall->id,
                 $request->booking_date,
                 $request->time_slot
@@ -62,8 +67,10 @@ class BookingController extends Controller
             }
 
             // Validate guest count
-            if ($request->number_of_guests < $hall->capacity_min || 
-                $request->number_of_guests > $hall->capacity_max) {
+            if (
+                $request->number_of_guests < $hall->capacity_min ||
+                $request->number_of_guests > $hall->capacity_max
+            ) {
                 return back()
                     ->with('error', "Number of guests must be between {$hall->capacity_min} and {$hall->capacity_max}.")
                     ->withInput();
@@ -85,7 +92,7 @@ class BookingController extends Controller
                 'extra_services' => $request->extra_services ?? [],
             ];
 
-            $booking = $this->bookingService->createBooking($bookingData);
+            $booking = $bookingService->createBooking($bookingData);
 
             // Redirect to payment if amount > 0
             if ($booking->total_amount > 0) {
@@ -97,7 +104,6 @@ class BookingController extends Controller
             return redirect()
                 ->route('customer.booking.details', $booking)
                 ->with('success', 'Booking created successfully!');
-
         } catch (Exception $e) {
             return back()
                 ->with('error', $e->getMessage())
@@ -132,6 +138,8 @@ class BookingController extends Controller
      */
     public function processPayment(Request $request, Booking $booking)
     {
+        $paymentService = app(PaymentService::class);
+
         // Ensure user owns this booking
         if ($booking->user_id !== Auth::id()) {
             abort(403);
@@ -145,14 +153,13 @@ class BookingController extends Controller
         }
 
         try {
-            $paymentData = $this->paymentService->initiatePayment($booking);
+            $paymentData = $paymentService->initiatePayment($booking);
 
             if (isset($paymentData['redirect_url'])) {
                 return redirect($paymentData['redirect_url']);
             }
 
             return back()->with('error', 'Failed to initiate payment. Please try again.');
-
         } catch (Exception $e) {
             return back()->with('error', 'Payment processing failed: ' . $e->getMessage());
         }
@@ -190,7 +197,6 @@ class BookingController extends Controller
             return redirect()
                 ->route('customer.bookings')
                 ->with('success', 'Booking cancelled successfully.');
-
         } catch (Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Failed to cancel booking: ' . $e->getMessage());
@@ -202,6 +208,8 @@ class BookingController extends Controller
      */
     public function checkAvailability(Request $request)
     {
+        $bookingService = app(BookingService::class);
+
         $validator = Validator::make($request->all(), [
             'hall_id' => 'required|exists:halls,id',
             'booking_date' => 'required|date',
@@ -215,7 +223,7 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $available = $this->bookingService->checkAvailability(
+        $available = $bookingService->checkAvailability(
             $request->hall_id,
             $request->booking_date,
             $request->time_slot
@@ -223,8 +231,8 @@ class BookingController extends Controller
 
         return response()->json([
             'available' => $available,
-            'message' => $available 
-                ? 'This time slot is available!' 
+            'message' => $available
+                ? 'This time slot is available!'
                 : 'This time slot is not available. Please select another date or time.'
         ]);
     }

@@ -58,7 +58,7 @@
                         </select>
                         @error('time_slot')
                             <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-                        @enderror>
+                        @enderror
                     </div>
 
                     <!-- Number of Guests -->
@@ -195,7 +195,7 @@
                     <div class="space-y-2 mb-4">
                         <div class="flex justify-between text-sm">
                             <span>Hall Price</span>
-                            <span class="font-medium">{{ number_format($hall->price_per_day, 3) }} OMR</span>
+                            <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }} OMR</span>
                         </div>
                         <div x-show="selectedServices.length > 0" class="flex justify-between text-sm">
                             <span>Extra Services</span>

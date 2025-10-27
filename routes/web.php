@@ -35,3 +35,7 @@ Route::post('/logout', function () {
 })->name('logout');
 
 require __DIR__.'/auth.php';
+
+
+// Customer Routes - MUST BE LAST
+require __DIR__ . '/customer.php';

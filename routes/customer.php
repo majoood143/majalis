@@ -23,7 +23,7 @@ Route::name('customer.')->group(function () {
 });
 
 // Protected routes - Requires authentication
-Route::middleware(['auth:web'])->name('customer.')->group(function () {
+Route::middleware(['auth'])->name('customer.')->group(function () {
 
     // Customer Dashboard
     Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('dashboard');
