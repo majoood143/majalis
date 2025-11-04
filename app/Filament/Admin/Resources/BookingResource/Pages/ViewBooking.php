@@ -74,28 +74,70 @@ class ViewBooking extends ViewRecord
                 ->color('primary')
                 ->action(function () {
                     if ($this->record->invoice_path) {
-                        return response()->download(storage_path('app/' . $this->record->invoice_path));
-                    }
+                    
+                        return response()->download(storage_path('app/private/' . $this->record->invoice_path));
+                    }else{
+                      
 
                     \Filament\Notifications\Notification::make()
                         ->title('Invoice not available')
                         ->warning()
                         ->send();
+                    }
                 })
                 ->visible(fn() => !empty($this->record->invoice_path)),
+
+            // Actions\Action::make('generateInvoice')
+            //     ->icon('heroicon-o-document-plus')
+            //     ->color('gray')
+            //     ->action(function () {
+            //         $pdfService = app(\App\Services\PDFService::class);
+            //         $pdfService->generateBookingInvoice($this->record);
+            //         $this->record->refresh();
+
+            //         \Filament\Notifications\Notification::make()
+            //             ->title('Invoice generated successfully')
+            //             ->success()
+            //             ->send();
+            //     })
+            //     ->visible(fn() => empty($this->record->invoice_path) &&
+            //         $this->record->status->value === 'confirmed'),
 
             Actions\Action::make('generateInvoice')
                 ->icon('heroicon-o-document-plus')
                 ->color('gray')
                 ->action(function () {
-                    $pdfService = app(\App\Services\PDFService::class);
-                    $pdfService->generateBookingInvoice($this->record);
-                    $this->record->refresh();
+                    try {
+                        $pdfService = app(\App\Services\PDFService::class);
 
-                    \Filament\Notifications\Notification::make()
-                        ->title('Invoice generated successfully')
-                        ->success()
-                        ->send();
+                        // Generate invoice
+                        $filename = $pdfService->generateBookingInvoice($this->record);
+
+                        // Refresh to get updated data
+                        $this->record->refresh();
+
+                        // Verify it worked
+                        if (empty($this->record->invoice_path)) {
+                            throw new \Exception('Invoice was not saved properly');
+                        }
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Invoice generated successfully')
+                            ->body('Invoice saved as: ' . $filename)
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Invoice generation failed in action', [
+                            'booking_id' => $this->record->id,
+                            'error' => $e->getMessage()
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Invoice generation failed')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn() => empty($this->record->invoice_path) &&
                     $this->record->status->value === 'confirmed'),

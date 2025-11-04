@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class CreateHallImage extends CreateRecord
 {
@@ -131,7 +134,7 @@ class CreateHallImage extends CreateRecord
         }
 
         // Clear cache
-        Cache::tags(['hall_images', 'hall_' . $image->hall_id])->flush();
+        //Cache::tags(['hall_images', 'hall_' . $image->hall_id])->flush();
 
         // Optimize image if it's too large
         $this->optimizeImageIfNeeded($image);
@@ -167,15 +170,18 @@ class CreateHallImage extends CreateRecord
         // Example using Intervention Image or similar package
 
         try {
-            // $thumbnail = Image::make(Storage::disk('public')->path($image->image_path))
-            //     ->resize(300, 200, function ($constraint) {
-            //         $constraint->aspectRatio();
-            //     });
-            // 
-            // $thumbnailPath = 'halls/thumbnails/' . basename($image->image_path);
-            // Storage::disk('public')->put($thumbnailPath, $thumbnail->encode());
-            // 
-            // $image->update(['thumbnail_path' => $thumbnailPath]);
+
+            $manager = new ImageManager(new Driver());
+            $thumbnail = $manager->read(Storage::disk('public')->path($image->image_path))
+            //$thumbnail = Image::make(Storage::disk('public')->path($image->image_path))
+                ->resize(300, 200, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
+
+            $thumbnailPath = 'halls/thumbnails/' . basename($image->image_path);
+            Storage::disk('public')->put($thumbnailPath, $thumbnail->encode());
+
+            $image->update(['thumbnail_path' => $thumbnailPath]);
 
             Log::info('Thumbnail generated for image: ' . $image->id);
         } catch (\Exception $e) {
@@ -213,7 +219,7 @@ class CreateHallImage extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCreateAnotherFormAction()

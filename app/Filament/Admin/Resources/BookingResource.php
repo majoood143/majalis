@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ActionGroup;
+use Illuminate\Support\Facades\Storage;
+
 
 class BookingResource extends Resource
 {
@@ -233,6 +235,38 @@ class BookingResource extends Resource
                 ActionGroup::make([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('download_invoice')
+                    ->label('Download Invoice')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function ($record) {
+                        if (!$record->invoice_path) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('No invoice available')
+                                ->body('Please generate the invoice first.')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
+                        if (!Storage::disk('local')->exists($record->invoice_path)) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Invoice not found')
+                                ->body('The invoice file may have been deleted.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                    return response()->download(storage_path('app/private/' . $record->invoice_path,
+                        'invoice-' . $record->booking_number . '.pdf'));
+                        // return Storage::disk('local')->download(
+                        //     $record->invoice_path,
+                        //     'invoice-' . $record->booking_number . '.pdf'
+                        // );
+                    })
+                    ->visible(fn($record) => !empty($record->invoice_path)),
+
                 Tables\Actions\Action::make('confirm')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')

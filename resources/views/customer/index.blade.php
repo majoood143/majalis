@@ -121,8 +121,8 @@
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition group">
                     <!-- Image -->
                     <div class="relative h-48 overflow-hidden">
-                        @if($hall->main_image)
-                            <img src="{{ Storage::url($hall->main_image) }}" 
+                        @if($hall->featured_image)
+                            <img src="{{ Storage::url($hall->featured_image) }}" 
                                 alt="{{ $hall->name }}" 
                                 class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
                         @else
@@ -176,7 +176,7 @@
 
                         <div class="flex items-center justify-between">
                             <div>
-                                <span class="text-2xl font-bold text-indigo-600">{{ number_format($hall->price_per_day, 3) }}</span>
+                                <span class="text-2xl font-bold text-indigo-600">{{ number_format($hall->price_per_slot, 3) }}</span>
                                 <span class="text-sm text-gray-600">OMR/day</span>
                             </div>
                             <a href="{{ route('customer.halls.show', $hall->slug) }}" 

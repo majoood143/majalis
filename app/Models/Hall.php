@@ -366,7 +366,39 @@ class Hall extends Model
         return $this->getTranslation('description', 'ar') ?? 'لا يوجد وصف';
     }
 
-    
+
+    // Add these methods to your Hall model
+
+    public function getFeaturesAttribute($value)
+    {
+        if (is_null($value) || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? array_values(array_map('intval', $decoded)) : [];
+        }
+
+        if (is_array($value)) {
+            return array_values(array_map('intval', $value));
+        }
+
+        return [];
+    }
+
+    public function setFeaturesAttribute($value)
+    {
+        if (is_null($value) || $value === '') {
+            $this->attributes['features'] = json_encode([]);
+        } elseif (is_array($value)) {
+            // Filter out empty values and convert to integers
+            $cleaned = array_values(array_map('intval', array_filter($value)));
+            $this->attributes['features'] = json_encode($cleaned);
+        } else {
+            $this->attributes['features'] = $value;
+        }
+    }
 
     
 }

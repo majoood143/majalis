@@ -371,17 +371,17 @@ class EditExtraService extends EditRecord
 
         $record->update($data);
 
-        $changes = array_diff_assoc($data, $oldValues);
+        //$changes = array_diff_assoc($data, $oldValues);
 
         // Log the update
-        activity()
-            ->performedOn($record)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'old' => $oldValues,
-                'changes' => $changes,
-            ])
-            ->log('Extra service updated');
+        // activity()
+        //     ->performedOn($record)
+        //     ->causedBy(Auth::user())
+        //     ->withProperties([
+        //         'old' => $oldValues,
+        //         'changes' => $changes,
+        //     ])
+        //     ->log('Extra service updated');
 
         return $record;
     }
@@ -392,15 +392,15 @@ class EditExtraService extends EditRecord
         $oldHallId = $this->record->getOriginal('hall_id');
         $newHallId = $this->record->hall_id;
 
-        Cache::tags(['services'])->flush();
+        //Cache::tags(['services'])->flush();
 
-        if ($oldHallId) {
-            Cache::tags(['hall_' . $oldHallId])->flush();
-        }
+        // if ($oldHallId) {
+        //     Cache::tags(['hall_' . $oldHallId])->flush();
+        // }
 
-        if ($newHallId && $newHallId !== $oldHallId) {
-            Cache::tags(['hall_' . $newHallId])->flush();
-        }
+        // if ($newHallId && $newHallId !== $oldHallId) {
+        //     Cache::tags(['hall_' . $newHallId])->flush();
+        // }
 
         // Log the update
         Log::info('Extra service updated', [
@@ -506,7 +506,7 @@ class EditExtraService extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),

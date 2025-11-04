@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class ListHallImages extends ListRecords
 {
@@ -262,17 +264,19 @@ class ListHallImages extends ListRecords
 
     protected function generateThumbnail($image): void
     {
-        // Implement thumbnail generation logic
-        // Example using Intervention Image:
-        // $thumbnail = Image::make(Storage::disk('public')->path($image->image_path))
-        //     ->resize(300, 200, function ($constraint) {
-        //         $constraint->aspectRatio();
-        //     });
-        // 
-        // $thumbnailPath = 'halls/thumbnails/' . basename($image->image_path);
-        // Storage::disk('public')->put($thumbnailPath, $thumbnail->encode());
-        // 
-        // $image->update(['thumbnail_path' => $thumbnailPath]);
+        //Implement thumbnail generation logic
+        //Example using Intervention Image:
+        //$thumbnail = Image::make(Storage::disk('public')->path($image->image_path))
+        $manager = new ImageManager(new Driver());
+        $thumbnail = $manager->read(Storage::disk('public')->path($image->image_path))
+            ->resize(300, 200, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+        
+        $thumbnailPath = 'halls/thumbnails/' . basename($image->image_path);
+        Storage::disk('public')->put($thumbnailPath, $thumbnail->encode());
+        
+        $image->update(['thumbnail_path' => $thumbnailPath]);
     }
 
     protected function cleanupOrphanedFiles(): void

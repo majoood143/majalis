@@ -215,7 +215,7 @@
                     <button type="submit" 
                         :disabled="!isAvailable"
                         :class="isAvailable ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-400 cursor-not-allowed'"
-                        class="w-full mt-6 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        class="w-full mt-6  px-6 py-3 rounded-lg font-semibold transition">
                         Confirm Booking
                     </button>
 

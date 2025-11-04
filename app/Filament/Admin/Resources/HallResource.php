@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\ActionGroup;
+use Illuminate\Support\Facades\Log;
 
 class HallResource extends Resource
 {
@@ -162,8 +163,12 @@ class HallResource extends Resource
                                     ->label('Features')
                                     ->multiple()
                                     ->options(HallFeature::where('is_active', true)->pluck('name', 'id'))
+                        ->afterStateUpdated(function ($state) {
+                            Log::info('Features field updated:', ['state' => $state]);
+                        })
                                     ->searchable()
                                     ->preload()
+                                    ->live()
                                     ->columnSpanFull(),
 
                                 Forms\Components\FileUpload::make('featured_image')
@@ -246,7 +251,8 @@ class HallResource extends Resource
                     ->money('OMR')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('total_bookings')
+                Tables\Columns\TextColumn::make('bookings_count')
+                    ->counts('bookings')
                     ->label('Bookings')
                     ->badge()
                     ->color('info')

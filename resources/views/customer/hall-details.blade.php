@@ -19,8 +19,8 @@
             <!-- Image Gallery -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
                 <div class="relative h-96">
-                    @if($hall->main_image)
-                        <img src="{{ Storage::url($hall->main_image) }}" alt="{{ $hall->name }}" 
+                    @if($hall->featured_image)
+                        <img src="{{ Storage::url($hall->featured_image) }}" alt="{{ $hall->name }}" 
                             class="w-full h-full object-cover">
                     @else
                         <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500"></div>
@@ -123,7 +123,7 @@
             <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
                 <div class="text-center mb-6">
                     <div class="text-3xl font-bold text-indigo-600 mb-1">
-                        {{ number_format($hall->price_per_day, 3) }} OMR
+                        {{ number_format($hall->price_per_slot, 3) }} OMR
                     </div>
                     <div class="text-sm text-gray-600">per day</div>
                 </div>

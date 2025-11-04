@@ -3,6 +3,9 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Models\Booking;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 
 Route::get('/', function () {
@@ -33,6 +36,59 @@ Route::post('/logout', function () {
     //auth()->logout();
     return redirect('/');
 })->name('logout');
+
+Route::get('/test-pdf/{booking}', function (Booking $booking) {
+    try {
+        // Test 1: Simple PDF
+        $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>Booking: ' . $booking->booking_number . '</p>');
+        return $pdf->stream();
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage() . '<br><br>Trace: ' . $e->getTraceAsString();
+    }
+});
+
+Route::get('/test-storage', function () {
+    try {
+        $testContent = 'Test file created at ' . now();
+
+        // Test write
+        Storage::disk('local')->put('test.txt', $testContent);
+
+        // Check if exists
+        $exists = Storage::disk('local')->exists('test.txt');
+
+        // Get path
+        $path = Storage::disk('local')->path('test.txt');
+
+        return response()->json([
+            'write_successful' => true,
+            'file_exists' => $exists,
+            'full_path' => $path,
+            'file_readable' => file_exists($path),
+            'content' => Storage::disk('local')->get('test.txt')
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+});
+
+Route::get('/test-view/{booking}', function (Booking $booking) {
+    try {
+        $booking->load(['hall.owner', 'extraServices']);
+
+        return view('pdf.invoice', [
+            'booking' => $booking,
+            'hall' => $booking->hall,
+            'owner' => $booking->hall->owner,
+            'extraServices' => $booking->extraServices,
+        ]);
+    } catch (\Exception $e) {
+        return 'View Error: ' . $e->getMessage() . '<br><br>' . $e->getTraceAsString();
+    }
+});
 
 require __DIR__.'/auth.php';
 

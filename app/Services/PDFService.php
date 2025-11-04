@@ -13,9 +13,44 @@ class PDFService
     /**
      * Generate booking invoice PDF
      */
+    // public function generateBookingInvoice(Booking $booking): string
+    // {
+    //     try {
+    //         $pdf = Pdf::loadView('pdf.invoice', [
+    //             'booking' => $booking,
+    //             'hall' => $booking->hall,
+    //             'owner' => $booking->hall->owner,
+    //             'extraServices' => $booking->extraServices,
+    //         ]);
+
+    //         $filename = 'invoices/' . $booking->booking_number . '.pdf';
+
+    //         // Save to storage
+    //         Storage::put($filename, $pdf->output());
+
+    //         // Update booking with invoice path
+    //         $booking->update(['invoice_path' => $filename]);
+
+    //         Log::info('Invoice generated', ['booking_id' => $booking->id, 'filename' => $filename]);
+
+    //         return $filename;
+    //     } catch (Exception $e) {
+    //         Log::error('Invoice generation failed', [
+    //             'booking_id' => $booking->id,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //         throw $e;
+    //     }
+    // }
+
     public function generateBookingInvoice(Booking $booking): string
     {
         try {
+            // Ensure relationships are loaded
+            $booking->load(['hall.owner', 'extraServices']);
+
+            Log::info('Starting invoice generation', ['booking_id' => $booking->id]);
+
             $pdf = Pdf::loadView('pdf.invoice', [
                 'booking' => $booking,
                 'hall' => $booking->hall,
@@ -25,19 +60,38 @@ class PDFService
 
             $filename = 'invoices/' . $booking->booking_number . '.pdf';
 
-            // Save to storage
-            Storage::put($filename, $pdf->output());
+            // Create directory if it doesn't exist
+            Storage::disk('local')->makeDirectory('invoices');
+
+            // Save to storage with explicit disk
+            Storage::disk('local')->put($filename, $pdf->output());
+
+            // Verify file was created
+            if (!Storage::disk('local')->exists($filename)) {
+                throw new \Exception('PDF file was not created');
+            }
 
             // Update booking with invoice path
             $booking->update(['invoice_path' => $filename]);
 
-            Log::info('Invoice generated', ['booking_id' => $booking->id, 'filename' => $filename]);
+            // Verify update
+            $booking->refresh();
+            if (empty($booking->invoice_path)) {
+                throw new \Exception('Invoice path was not saved to database');
+            }
+
+            Log::info('Invoice generated successfully', [
+                'booking_id' => $booking->id,
+                'filename' => $filename,
+                'file_size' => Storage::disk('local')->size($filename)
+            ]);
 
             return $filename;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Invoice generation failed', [
                 'booking_id' => $booking->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             throw $e;
         }
