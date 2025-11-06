@@ -233,60 +233,58 @@ class BookingResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('download_invoice')
-                    ->label('Download Invoice')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->action(function ($record) {
-                        if (!$record->invoice_path) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('No invoice available')
-                                ->body('Please generate the invoice first.')
-                                ->warning()
-                                ->send();
-                            return;
-                        }
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('download_invoice')
+                        ->label('Download Invoice')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('success')
+                        ->action(function ($record) {
+                            if (!$record->invoice_path) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('No invoice available')
+                                    ->body('Please generate the invoice first.')
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
 
-                        if (!Storage::disk('local')->exists($record->invoice_path)) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Invoice not found')
-                                ->body('The invoice file may have been deleted.')
-                                ->danger()
-                                ->send();
-                            return;
-                        }
+                            if (!Storage::disk('local')->exists($record->invoice_path)) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Invoice not found')
+                                    ->body('The invoice file may have been deleted.')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
 
-                    return response()->download(storage_path('app/private/' . $record->invoice_path,
-                        'invoice-' . $record->booking_number . '.pdf'));
-                        // return Storage::disk('local')->download(
-                        //     $record->invoice_path,
-                        //     'invoice-' . $record->booking_number . '.pdf'
-                        // );
-                    })
-                    ->visible(fn($record) => !empty($record->invoice_path)),
+                            return response()->download(storage_path(
+                                'app/private/' . $record->invoice_path,
+                                'invoice-' . $record->booking_number . '.pdf'
+                            ));
+                        })
+                        ->visible(fn($record) => !empty($record->invoice_path)),
 
-                Tables\Actions\Action::make('confirm')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->action(fn(Booking $record) => $record->confirm())
-                    ->visible(fn(Booking $record) => $record->status->value === 'pending'),
+                    Tables\Actions\Action::make('confirm')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(fn(Booking $record) => $record->confirm())
+                        ->visible(fn(Booking $record) => $record->status->value === 'pending'),
 
-                Tables\Actions\Action::make('cancel')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->form([
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Cancellation Reason')
-                            ->required(),
-                    ])
-                    ->action(fn(Booking $record, array $data) => $record->cancel($data['reason']))
-                    ->visible(fn(Booking $record) => in_array($record->status->value, ['pending', 'confirmed'])),
-            
-                    ]),
+                    Tables\Actions\Action::make('cancel')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label('Cancellation Reason')
+                                ->required(),
+                        ])
+                        ->action(fn(Booking $record, array $data) => $record->cancel($data['reason']))
+                        ->visible(fn(Booking $record) => in_array($record->status->value, ['pending', 'confirmed'])),
+
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

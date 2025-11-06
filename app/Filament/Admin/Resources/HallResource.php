@@ -34,18 +34,18 @@ class HallResource extends Resource
                         Forms\Components\Tabs\Tab::make('Basic Info')
                             ->icon('heroicon-o-information-circle')
                             ->schema([
-                    Forms\Components\Select::make('city_id')
-                        ->label('City')
-                        ->relationship('city', 'name')
-                        ->getOptionLabelFromRecordUsing(function ($record) {
-                            $locale = app()->getLocale();
-                            return is_array($record->name)
-                                ? ($record->name[$locale] ?? $record->name['en'] ?? 'Unnamed')
-                                : $record->name;
-                        })
-                        ->searchable()
-                        ->preload()
-                        ->required(),
+                                Forms\Components\Select::make('city_id')
+                                    ->label('City')
+                                    ->relationship('city', 'name')
+                                    ->getOptionLabelFromRecordUsing(function ($record) {
+                                        $locale = app()->getLocale();
+                                        return is_array($record->name)
+                                            ? ($record->name[$locale] ?? $record->name['en'] ?? 'Unnamed')
+                                            : $record->name;
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
 
                                 Forms\Components\Select::make('owner_id')
                                     ->label('Owner')
@@ -163,13 +163,10 @@ class HallResource extends Resource
                                     ->label('Features')
                                     ->multiple()
                                     ->options(HallFeature::where('is_active', true)->pluck('name', 'id'))
-                        ->afterStateUpdated(function ($state) {
-                            Log::info('Features field updated:', ['state' => $state]);
-                        })
                                     ->searchable()
                                     ->preload()
-                                    ->live()
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->helperText('Select the features available in this hall'),
 
                                 Forms\Components\FileUpload::make('featured_image')
                                     ->image()
@@ -232,7 +229,7 @@ class HallResource extends Resource
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->translated_name ?? 'N/A'),
 
-            Tables\Columns\TextColumn::make('city.name')
+                Tables\Columns\TextColumn::make('city.name')
                     ->sortable()
                     ->searchable()
                     ->formatStateUsing(fn($record) => $record->city->name),
@@ -299,9 +296,9 @@ class HallResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
                 ]),
             ])
             ->bulkActions([

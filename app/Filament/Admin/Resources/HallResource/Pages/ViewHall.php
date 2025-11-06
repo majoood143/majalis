@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Models\HallFeature;
 
 class ViewHall extends ViewRecord
 {
@@ -33,7 +34,7 @@ class ViewHall extends ViewRecord
                     $this->record->save();
 
                     Notification::make()->success()->title('Status Updated')->send();
-                    Cache::tags(['halls'])->flush();
+                    //Cache::tags(['halls'])->flush();
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
@@ -192,7 +193,17 @@ class ViewHall extends ViewRecord
                         Infolists\Components\TextEntry::make('features')
                             ->label('')
                             ->state(function ($record) {
-                    return collect($record->features)->map(fn($feature) => $feature->name)->implode(', ') ?: 'No features added';
+
+                    // ✅ Correct - load the actual feature models
+                    if (empty($record->features)) {
+                        return 'No features added';
+                    }
+
+                    return HallFeature::whereIn('id', $record->features)
+                        ->pluck('name')
+                        ->implode(', ');
+
+                            //return collect($record->features)->map(fn($feature) => $feature->name)->implode(', ') ?: 'No features added';
                                 //return $record->features->map(fn($feature) => $feature->name)->implode(', ') ?: 'No features added';
                             })
                             ->badge()

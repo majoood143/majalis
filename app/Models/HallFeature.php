@@ -75,7 +75,7 @@ class HallFeature extends Model
         return $nameArray[$locale] ?? $nameArray['en'] ?? 'Unnamed Feature';
     }
 
-    
+
 
     // Helper Methods
     public function getHallsCount(): int

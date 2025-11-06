@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
+use App\Models\City;
+use App\Models\User;
+use App\Models\Booking;
+use App\Models\ExtraService;
+use App\Models\Review;
+use App\Models\HallAvailability;
+use App\Models\HallFeature;
 
 class Hall extends Model
 {
@@ -37,7 +44,6 @@ class Hall extends Model
         'gallery',
         'video_url',
         'virtual_tour_url',
-        'features',
         'is_active',
         'is_featured',
         'requires_approval',
@@ -49,6 +55,7 @@ class Hall extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'features',
     ];
 
     protected $casts = [
@@ -120,6 +127,12 @@ class Hall extends Model
         return $this->hasMany(HallAvailability::class);
     }
 
+    // public function features()
+    // {
+    //     return $this->belongsToMany(HallFeature::class, 'hall_features')
+    //         ->withTimestamps(); // Add this if your pivot table has timestamps
+    // }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -177,6 +190,15 @@ class Hall extends Model
     //     $locale = app()->getLocale();
     //     return $decoded[$locale] ?? $decoded['en'] ?? '';
     // }
+
+    public function getFeatureDetailsAttribute()
+    {
+        if (empty($this->features)) {
+            return collect();
+        }
+
+        return HallFeature::whereIn('id', $this->features)->get();
+    }
 
     public function getRegionAttribute()
     {
@@ -323,10 +345,10 @@ class Hall extends Model
     }
 
     // Feature Methods
-    public function hasFeature(int $featureId): bool
-    {
-        return in_array($featureId, $this->features ?? []);
-    }
+    // public function hasFeature(int $featureId): bool
+    // {
+    //     return in_array($featureId, $this->features ?? []);
+    // }
 
     public function getFeaturesList()
     {
@@ -387,18 +409,16 @@ class Hall extends Model
         return [];
     }
 
-    public function setFeaturesAttribute($value)
-    {
-        if (is_null($value) || $value === '') {
-            $this->attributes['features'] = json_encode([]);
-        } elseif (is_array($value)) {
-            // Filter out empty values and convert to integers
-            $cleaned = array_values(array_map('intval', array_filter($value)));
-            $this->attributes['features'] = json_encode($cleaned);
-        } else {
-            $this->attributes['features'] = $value;
-        }
-    }
-
-    
+    // public function setFeaturesAttribute($value)
+    // {
+    //     if (is_null($value) || $value === '') {
+    //         $this->attributes['features'] = json_encode([]);
+    //     } elseif (is_array($value)) {
+    //         // Filter out empty values and convert to integers
+    //         $cleaned = array_values(array_map('intval', array_filter($value)));
+    //         $this->attributes['features'] = json_encode($cleaned);
+    //     } else {
+    //         $this->attributes['features'] = $value;
+    //     }
+    // }
 }

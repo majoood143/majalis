@@ -136,15 +136,15 @@ class CreateHall extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         // Separate features for pivot table
-        $features = $data['features'] ?? [];
-        unset($data['features']);
+        // $features = $data['features'] ?? [];
+        // unset($data['features']);
 
         $record = static::getModel()::create($data);
 
         // Attach features
-        if (!empty($features)) {
-            $record->features()->sync($features);
-        }
+        // if (!empty($features)) {
+        //     $record->features()->sync($features);
+        // }
 
         // Log the creation
         activity()
@@ -171,6 +171,10 @@ class CreateHall extends CreateRecord
             'owner_id' => $hall->owner_id,
             'created_by' => Auth::id(),
         ]);
+
+        // if ($this->data['features'] ?? null) {
+        //     $this->record->features()->sync($this->data['features']);
+        // }
 
         // Clear cache
         //Cache::tags(['halls', 'city_' . $hall->city_id])->flush();

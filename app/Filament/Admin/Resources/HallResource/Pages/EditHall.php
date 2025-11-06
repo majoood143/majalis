@@ -172,7 +172,9 @@ class EditHall extends EditRecord
                     $newHall->save();
 
                     // Copy features
-                    $newHall->features()->sync($this->record->features->pluck('id'));
+                    //$newHall->features()->sync($this->record->features->pluck('id'));
+                $newHall->features = $this->record->features; // ✅ Correct
+                $newHall->save();
 
                     Notification::make()
                         ->success()
@@ -249,10 +251,8 @@ class EditHall extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Load features relationship
-        //$data['features'] = $this->record->features->pluck('id')->toArray();
-
-        $data['features'] = collect($this->record->features)->pluck('id')->toArray();
+        // Features is already an array of IDs from the JSON column
+        $data['features'] = $this->record->features ?? [];
 
         return $data;
     }
@@ -302,28 +302,18 @@ class EditHall extends EditRecord
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $oldValues = $record->toArray();
-
-        // Separate features for pivot table
-        $features = $data['features'] ?? [];
-        unset($data['features']);
-
+        // Just update normally - features will be saved as JSON
         $record->update($data);
 
-        // Sync features
-        //$record->features()->sync($features);
-
-        //$changes = array_diff_assoc($data, $oldValues);
-
         // Log the update
-        // activity()
-        //     ->performedOn($record)
-        //     ->causedBy(Auth::user())
-        //     ->withProperties([
-        //         'old' => $oldValues,
-        //         'changes' => $changes,
-        //     ])
-        //     ->log('Hall updated');
+        activity()
+            ->performedOn($record)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'old' => $record->getOriginal(),
+                'changes' => $data,
+            ])
+            ->log('Hall updated');
 
         return $record;
     }
