@@ -13,6 +13,10 @@ use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Support\Facades\Storage;
+use App\Models\HallAvailability;
+use App\Models\Hall;
+use Filament\Forms\Set;;
+use Filament\Forms\Get;
 
 
 class BookingResource extends Resource
@@ -41,16 +45,16 @@ class BookingResource extends Resource
                     ->preload(),
 
                 Forms\Components\Select::make('hall_id')
-                    ->label('Hall')
+                    ->relationship('hall', 'name')
                     ->options(\App\Models\Hall::where('is_active', true)->pluck('name', 'id'))
                     ->required()
                     ->searchable()
                     ->preload()
                     ->live()
-                    ->afterStateUpdated(function ($state, Forms\Set $set) {
-                        $set('booking_date', null);
-                        $set('time_slot', null);
-                        $set('hall_price', 0);
+                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                        if ($state && $get('booking_date') && $get('time_slot')) {
+                            static::updateHallPrice($set, $state, $get('booking_date'), $get('time_slot'));
+                        }
                     }),
                 Forms\Components\Select::make('time_slot')
                     ->options([
@@ -61,12 +65,13 @@ class BookingResource extends Resource
                     ])
                     ->required()
                     ->live()
-                    ->disabled(fn(Forms\Get $get) => !$get('hall_id'))
-                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                        $set('booking_date', null);
+                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                        if ($state && $get('hall_id') && $get('booking_date')) {
+                            static::updateHallPrice($set, $get('hall_id'), $get('booking_date'), $state);
+                        }
                     }),
 
-                        
+
 
                 Forms\Components\DatePicker::make('booking_date')
                     ->required()
@@ -84,15 +89,18 @@ class BookingResource extends Resource
 
                         return self::getUnavailableDates($hallId, $timeSlot);
                     })
-                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                        self::updateHallPrice($set, $get);
-                    })
+                        ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                            if ($state && $get('hall_id') && $get('time_slot')) {
+                                static::updateHallPrice($set, $get('hall_id'), $state, $get('time_slot'));
+                            }})
                     ->helperText(
                         fn(Forms\Get $get) =>
                         !$get('hall_id') ? 'Select a hall first' : (!$get('time_slot') ? 'Select a time slot first' : 'Unavailable dates are disabled')
                     ),
 
-                
+
+
+
 
 
                 Forms\Components\TextInput::make('number_of_guests')
@@ -476,34 +484,108 @@ class BookingResource extends Resource
         return !$isBooked;
     }
 
-    protected static function updateHallPrice(Forms\Set $set, Forms\Get $get): void
+    // protected static function updateHallPrice(Forms\Set $set, Forms\Get $get): void
+    // {
+    //     $hallId = $get('hall_id');
+    //     $timeSlot = $get('time_slot');
+
+    //     if (!$hallId || !$timeSlot) {
+    //         $set('hall_price', 0);
+    //         return;
+    //     }
+
+    //     $hall = \App\Models\Hall::find($hallId);
+
+    //     if (!$hall) {
+    //         $set('hall_price', 0);
+    //         return;
+    //     }
+
+    //     // Simple calculation: full_day = 3x the slot price
+    //     $multiplier = match ($timeSlot) {
+    //         'morning' => 1,
+    //         'afternoon' => 1,
+    //         'evening' => 1,
+    //         'full_day' => 3,
+    //         default => 1,
+    //     };
+
+    //     $price = $hall->price_per_slot * $multiplier;
+
+    //     $set('hall_price', number_format($price, 3, '.', ''));
+    // }
+
+    protected static function updateHallPrice(Set $set, $hallId, $bookingDate, $timeSlot): void
     {
-        $hallId = $get('hall_id');
-        $timeSlot = $get('time_slot');
-
-        if (!$hallId || !$timeSlot) {
-            $set('hall_price', 0);
+        if (!$hallId || !$bookingDate || !$timeSlot) {
             return;
         }
 
-        $hall = \App\Models\Hall::find($hallId);
+        // First, check if there's a custom price in HallAvailability
+        $availability = HallAvailability::where('hall_id', $hallId)
+            ->where('date', $bookingDate)
+            ->where('time_slot', $timeSlot)
+            ->first();
 
-        if (!$hall) {
-            $set('hall_price', 0);
-            return;
+        if ($availability && $availability->custom_price !== null) {
+            // Use custom price from HallAvailability
+            $hallPrice = (float) $availability->custom_price;
+        } else {
+            // Use default Hall price for this time slot
+            $hall = Hall::find($hallId);
+            if ($hall) {
+                $hallPrice = $hall->getPriceForSlot($timeSlot);
+            } else {
+                $hallPrice = 0;
+            }
         }
 
-        // Simple calculation: full_day = 3x the slot price
-        $multiplier = match ($timeSlot) {
-            'morning' => 1,
-            'afternoon' => 1,
-            'evening' => 1,
-            'full_day' => 3,
-            default => 1,
-        };
+        $set('hall_price', $hallPrice);
 
-        $price = $hall->price_per_slot * $multiplier;
+        // Recalculate totals
+        static::calculateTotals($set, [
+            'hall_price' => $hallPrice,
+            'services_price' => 0,
+            'commission_amount' => 0,
+        ]);
+    }
 
-        $set('hall_price', number_format($price, 3, '.', ''));
+    /**
+     * Calculate all totals
+     */
+    protected static function calculateTotals(Set $set, $get): void
+    {
+        $hallPrice = (float) ($get['hall_price'] ?? $get('hall_price') ?? 0);
+        $servicesPrice = (float) ($get['services_price'] ?? $get('services_price') ?? 0);
+        $commissionAmount = (float) ($get['commission_amount'] ?? $get('commission_amount') ?? 0);
+
+        $subtotal = $hallPrice + $servicesPrice;
+        $totalAmount = $subtotal + $commissionAmount;
+        $ownerPayout = $subtotal - $commissionAmount;
+
+        $set('subtotal', $subtotal);
+        $set('total_amount', $totalAmount);
+        $set('owner_payout', max(0, $ownerPayout));
+    }
+
+    /**
+     * Get helper text for price field
+     */
+    protected static function getPriceHelperText($hallId, $bookingDate, $timeSlot): string
+    {
+        if (!$hallId || !$bookingDate || !$timeSlot) {
+            return 'Select hall, date, and time slot to see pricing';
+        }
+
+        $availability = HallAvailability::where('hall_id', $hallId)
+            ->where('date', $bookingDate)
+            ->where('time_slot', $timeSlot)
+            ->first();
+
+        if ($availability && $availability->custom_price !== null) {
+            return '✓ Custom price for this date/slot';
+        }
+
+        return 'Default hall price for ' . ucfirst(str_replace('_', ' ', $timeSlot));
     }
 }
