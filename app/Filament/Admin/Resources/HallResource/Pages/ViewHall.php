@@ -66,7 +66,7 @@ class ViewHall extends ViewRecord
                 Infolists\Components\Section::make('Hall Overview')
                     ->schema([
                         Infolists\Components\ImageEntry::make('featured_image')
-                            ->label('')
+                            ->label('Image')
                             ->disk('public')
                             ->height(300)
                             ->columnSpanFull()

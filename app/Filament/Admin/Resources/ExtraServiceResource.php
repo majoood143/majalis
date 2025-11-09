@@ -37,7 +37,7 @@ class ExtraServiceResource extends Resource
                                 //$locale = app()->getLocale();
 
                                 // Get hall name
-                                $hallName = $hall->name->en ?? 'Unnamed Hall';
+                                $hallName = $hall->name ?? 'Unnamed Hall';
                                     // ? ($hall->name[$locale] ?? $hall->name['en'] ?? 'Unnamed Hall')
                                     // : $hall->name;
 
@@ -51,7 +51,7 @@ class ExtraServiceResource extends Resource
                                 $ownerName = $hall->owner->name ?? 'No Owner';
 
                                 // Format: "Hall Name - City (Owner)"
-                                $label = "{$hallName} - {$cityName} ({$ownerName})";
+                                $label = "{$hallName} - {$cityName} - ({$ownerName})";
 
                                 return [$hall->id => $label];
                             });

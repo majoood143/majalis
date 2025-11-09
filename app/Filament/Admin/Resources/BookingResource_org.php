@@ -34,68 +34,34 @@ class BookingResource extends Resource
                         Forms\Components\TextInput::make('booking_number')
                             ->disabled()
                             ->dehydrated(false),
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
 
-                Forms\Components\Select::make('hall_id')
-                    ->label('Hall')
+                        Forms\Components\Select::make('hall_id')
+                            ->relationship('hall', 'name')
                     ->options(\App\Models\Hall::where('is_active', true)->pluck('name', 'id'))
                     ->required()
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->afterStateUpdated(function ($state, Forms\Set $set) {
-                        $set('booking_date', null);
-                        $set('time_slot', null);
-                        $set('hall_price', 0);
-                    }),
-                Forms\Components\Select::make('time_slot')
-                    ->options([
-                        'morning' => 'Morning (8 AM - 12 PM)',
-                        'afternoon' => 'Afternoon (12 PM - 5 PM)',
-                        'evening' => 'Evening (5 PM - 11 PM)',
-                        'full_day' => 'Full Day (8 AM - 11 PM)',
-                    ])
-                    ->required()
-                    ->live()
-                    ->disabled(fn(Forms\Get $get) => !$get('hall_id'))
-                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                        $set('booking_date', null);
-                    }),
+                            ->searchable()
+                            ->preload(),
 
-                        
+                        Forms\Components\Select::make('user_id')
+                            ->relationship('user', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
 
-                Forms\Components\DatePicker::make('booking_date')
-                    ->required()
-                    ->native(false)
-                    ->live()
-                    ->minDate(now())
-                    ->disabled(fn(Forms\Get $get) => !$get('hall_id') || !$get('time_slot'))
-                    ->disabledDates(function (Forms\Get $get) {
-                        $hallId = $get('hall_id');
-                        $timeSlot = $get('time_slot');
+                        Forms\Components\DatePicker::make('booking_date')
+                            ->required()
+                            ->native(false),
 
-                        if (!$hallId || !$timeSlot) {
-                            return [];
-                        }
+                        Forms\Components\Select::make('time_slot')
+                            ->options([
+                                'morning' => 'Morning (8 AM - 12 PM)',
+                                'afternoon' => 'Afternoon (12 PM - 5 PM)',
+                                'evening' => 'Evening (5 PM - 11 PM)',
+                                'full_day' => 'Full Day (8 AM - 11 PM)',
+                            ])
+                            ->required(),
 
-                        return self::getUnavailableDates($hallId, $timeSlot);
-                    })
-                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                        self::updateHallPrice($set, $get);
-                    })
-                    ->helperText(
-                        fn(Forms\Get $get) =>
-                        !$get('hall_id') ? 'Select a hall first' : (!$get('time_slot') ? 'Select a time slot first' : 'Unavailable dates are disabled')
-                    ),
-
-                
-
-
-                Forms\Components\TextInput::make('number_of_guests')
+                        Forms\Components\TextInput::make('number_of_guests')
                             ->numeric()
                             ->required()
                             ->minValue(1),
@@ -124,12 +90,10 @@ class BookingResource extends Resource
 
                 Forms\Components\Section::make('Pricing')
                     ->schema([
-                Forms\Components\TextInput::make('hall_price')
-                    ->numeric()
-                    ->prefix('OMR')
-                    ->required()
-                    ->disabled()
-                    ->dehydrated(),
+                        Forms\Components\TextInput::make('hall_price')
+                            ->numeric()
+                            ->prefix('OMR')
+                            ->required(),
 
                         Forms\Components\TextInput::make('services_price')
                             ->numeric()
@@ -410,100 +374,5 @@ class BookingResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::where('status', 'pending')->count();
-    }
-
-    protected static function getUnavailableDates(int $hallId, ?string $timeSlot = null): array
-    {
-        $startDate = now();
-        $endDate = now()->addMonths(6);
-        $unavailableDates = [];
-
-        $currentDate = $startDate->copy();
-
-        while ($currentDate->lte($endDate)) {
-            $dateString = $currentDate->format('Y-m-d');
-
-            // Check if this specific date and slot combination is available
-            if ($timeSlot) {
-                // Check specific slot availability
-                $isAvailable = self::isSlotAvailable($hallId, $dateString, $timeSlot);
-
-                if (!$isAvailable) {
-                    $unavailableDates[] = $dateString;
-                }
-            } else {
-                // No slot selected - check if the entire day is blocked
-                $hasFullDayBooking = \App\Models\Booking::where('hall_id', $hallId)
-                    ->whereDate('booking_date', $dateString)
-                    ->where('time_slot', 'full_day')
-                    ->whereIn('status', ['confirmed', 'pending'])
-                    ->exists();
-
-                if ($hasFullDayBooking) {
-                    $unavailableDates[] = $dateString;
-                }
-            }
-
-            $currentDate->addDay();
-        }
-
-        return $unavailableDates;
-    }
-
-    protected static function isSlotAvailable(int $hallId, string $date, string $timeSlot): bool
-    {
-        // Check HallAvailability table
-        $availability = \App\Models\HallAvailability::where('hall_id', $hallId)
-            ->whereDate('date', $date)
-            ->where('time_slot', $timeSlot)
-            ->where('is_available', true)
-            ->exists();
-
-        if (!$availability) {
-            return false;
-        }
-
-        // Check if already booked
-        $isBooked = \App\Models\Booking::where('hall_id', $hallId)
-            ->whereDate('booking_date', $date)
-            ->where(function ($q) use ($timeSlot) {
-                $q->where('time_slot', $timeSlot)
-                    ->orWhere('time_slot', 'full_day'); // Full day blocks all slots
-            })
-            ->whereIn('status', ['confirmed', 'pending'])
-            ->exists();
-
-        return !$isBooked;
-    }
-
-    protected static function updateHallPrice(Forms\Set $set, Forms\Get $get): void
-    {
-        $hallId = $get('hall_id');
-        $timeSlot = $get('time_slot');
-
-        if (!$hallId || !$timeSlot) {
-            $set('hall_price', 0);
-            return;
-        }
-
-        $hall = \App\Models\Hall::find($hallId);
-
-        if (!$hall) {
-            $set('hall_price', 0);
-            return;
-        }
-
-        // Simple calculation: full_day = 3x the slot price
-        $multiplier = match ($timeSlot) {
-            'morning' => 1,
-            'afternoon' => 1,
-            'evening' => 1,
-            'full_day' => 3,
-            default => 1,
-        };
-
-        $price = $hall->price_per_slot * $multiplier;
-
-        $set('hall_price', number_format($price, 3, '.', ''));
     }
 }

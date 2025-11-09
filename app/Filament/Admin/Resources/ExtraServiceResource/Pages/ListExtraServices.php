@@ -58,7 +58,8 @@ class ListExtraServices extends ListRecords
 
                     \Filament\Forms\Components\Select::make('hall_id')
                         ->label('Apply to Hall (Optional)')
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(\App\Models\Hall::where('is_active', true)->get()->pluck('name', 'id'))
+                        //->options(\App\Models\Hall::pluck('name', 'id'))
                         ->searchable()
                         ->preload()
                         ->helperText('Leave empty to apply to all halls'),

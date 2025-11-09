@@ -133,7 +133,7 @@ class CreateHallAvailability extends CreateRecord
         ]);
 
         // Clear cache
-        Cache::tags(['availability', 'hall_' . $availability->hall_id])->flush();
+        //Cache::tags(['availability', 'hall_' . $availability->hall_id])->flush();
 
         // Notify hall owner if blocked
         if (!$availability->is_available && $availability->hall && $availability->hall->owner) {
@@ -152,20 +152,20 @@ class CreateHallAvailability extends CreateRecord
         // Adjust based on your actual booking structure
 
         // Example:
-        // $bookingsCount = \App\Models\Booking::where('hall_id', $data['hall_id'])
-        //     ->whereDate('booking_date', $data['date'])
-        //     ->where('time_slot', $data['time_slot'])
-        //     ->whereIn('status', ['pending', 'confirmed'])
-        //     ->count();
-        // 
-        // if ($bookingsCount > 0 && !$data['is_available']) {
-        //     Notification::make()
-        //         ->warning()
-        //         ->title('Existing Bookings Found')
-        //         ->body("There are {$bookingsCount} existing booking(s) for this slot. They may need to be cancelled.")
-        //         ->persistent()
-        //         ->send();
-        // }
+        $bookingsCount = \App\Models\Booking::where('hall_id', $data['hall_id'])
+            ->whereDate('booking_date', $data['date'])
+            ->where('time_slot', $data['time_slot'])
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->count();
+        
+        if ($bookingsCount > 0 && !$data['is_available']) {
+            Notification::make()
+                ->warning()
+                ->title('Existing Bookings Found')
+                ->body("There are {$bookingsCount} existing booking(s) for this slot. They may need to be cancelled.")
+                ->persistent()
+                ->send();
+        }
     }
 
     protected function notifyHallOwner(): void
@@ -180,28 +180,28 @@ class CreateHallAvailability extends CreateRecord
         // You might want to automatically cancel them or notify the admin
 
         // Example:
-        // $pendingBookings = \App\Models\Booking::where('hall_id', $this->record->hall_id)
-        //     ->whereDate('booking_date', $this->record->date)
-        //     ->where('time_slot', $this->record->time_slot)
-        //     ->where('status', 'pending')
-        //     ->get();
-        // 
-        // if ($pendingBookings->isNotEmpty()) {
-        //     // Notify about pending bookings that need attention
-        //     Notification::make()
-        //         ->warning()
-        //         ->title('Pending Bookings')
-        //         ->body("There are {$pendingBookings->count()} pending booking(s) for this blocked slot.")
-        //         ->persistent()
-        //         ->send();
-        // }
+        $pendingBookings = \App\Models\Booking::where('hall_id', $this->record->hall_id)
+            ->whereDate('booking_date', $this->record->date)
+            ->where('time_slot', $this->record->time_slot)
+            ->where('status', 'pending')
+            ->get();
+        
+        if ($pendingBookings->isNotEmpty()) {
+            // Notify about pending bookings that need attention
+            Notification::make()
+                ->warning()
+                ->title('Pending Bookings')
+                ->body("There are {$pendingBookings->count()} pending booking(s) for this blocked slot.")
+                ->persistent()
+                ->send();
+        }
     }
 
     protected function getFormActions(): array
     {
         return [
             $this->getCreateFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCreateAnotherFormAction()

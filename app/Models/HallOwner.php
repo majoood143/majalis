@@ -102,6 +102,23 @@ class HallOwner extends Model
         return $this->is_verified;
     }
 
+    // Add this new method:
+    public function unverify(): void
+    {
+        $this->update([
+            'is_verified' => false,
+            'verified_at' => null,
+            'verified_by' => null,
+            'verification_notes' => null,
+        ]);
+
+        // Optionally revert user role to 'user' or handle as needed
+        //$this->user->update(['role' => 'user']);
+        
+    }
+
+
+
     public function isActive(): bool
     {
         return $this->is_active;
@@ -125,6 +142,8 @@ class HallOwner extends Model
         // Update user role
         $this->user->update(['role' => 'hall_owner']);
     }
+
+    
 
     public function reject(string $notes = null): void
     {

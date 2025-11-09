@@ -354,7 +354,7 @@ class EditHallAvailability extends EditRecord
     protected function afterSave(): void
     {
         // Clear cache for the hall
-        Cache::tags(['availability', 'hall_' . $this->record->hall_id])->flush();
+        //Cache::tags(['availability', 'hall_' . $this->record->hall_id])->flush();
 
         // Log the update
         Log::info('Hall availability updated', [
@@ -499,7 +499,7 @@ class EditHallAvailability extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),

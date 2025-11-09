@@ -222,6 +222,7 @@ class HallResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('featured_image')
+                    ->label('Image')
                     ->circular(),
 
                 Tables\Columns\TextColumn::make('name')

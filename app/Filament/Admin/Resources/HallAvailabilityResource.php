@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\ActionGroup;
 
 class HallAvailabilityResource extends Resource
 {
@@ -187,6 +188,7 @@ class HallAvailabilityResource extends Resource
                     }),
             ])
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -203,6 +205,7 @@ class HallAvailabilityResource extends Resource
                             'notes' => !$record->is_available ? $record->notes : null,
                         ]);
                     }),
+            ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

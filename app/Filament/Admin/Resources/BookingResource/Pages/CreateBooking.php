@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\BookingResource\Pages;
 use App\Filament\Admin\Resources\BookingResource;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Forms;
 
 class CreateBooking extends CreateRecord
 {

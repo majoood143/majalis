@@ -1,6 +1,6 @@
 @extends('customer.layout')
 
-@section('title', 'Browse Halls - HallBooking')
+@section('title', 'Browse Halls - majalis')
 
 @section('content')
 <!-- Hero Section -->
