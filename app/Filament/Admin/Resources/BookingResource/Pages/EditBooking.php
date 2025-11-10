@@ -3,8 +3,10 @@
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Filament\Admin\Resources\BookingResource;
+use App\Models\Booking;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Notifications\Notification;
 
 class EditBooking extends EditRecord
 {
@@ -14,57 +16,48 @@ class EditBooking extends EditRecord
     {
         return [
             Actions\ViewAction::make(),
-
-            Actions\Action::make('confirm')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->requiresConfirmation()
-                ->action(fn() => $this->record->confirm())
-                ->visible(fn() => $this->record->status->value === 'pending'),
-
-            Actions\Action::make('cancel')
-                ->icon('heroicon-o-x-circle')
-                ->color('danger')
-                ->requiresConfirmation()
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('reason')
-                        ->label('Cancellation Reason')
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $this->record->cancel($data['reason']);
-                })
-                ->visible(fn() => in_array($this->record->status->value, ['pending', 'confirmed'])),
-
-            Actions\Action::make('complete')
-                ->icon('heroicon-o-check-badge')
-                ->color('info')
-                ->requiresConfirmation()
-                ->action(fn() => $this->record->complete())
-                ->visible(fn() => $this->record->status->value === 'confirmed' &&
-                    $this->record->booking_date->isPast()),
-
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Check if hall, date, or time slot changed
+        if (
+            $data['hall_id'] != $this->record->hall_id ||
+            $data['booking_date'] != $this->record->booking_date->format('Y-m-d') ||
+            $data['time_slot'] != $this->record->time_slot
+        ) {
+            // Validate no double booking
+            $existingBooking = Booking::where('hall_id', $data['hall_id'])
+                ->where('booking_date', $data['booking_date'])
+                ->where('time_slot', $data['time_slot'])
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->where('id', '!=', $this->record->id) // Exclude current booking
+                ->first();
+
+            if ($existingBooking) {
+                Notification::make()
+                    ->danger()
+                    ->title('Slot Already Booked')
+                    ->body("This time slot is already booked (Booking #{$existingBooking->booking_number}). Cannot change to this slot.")
+                    ->persistent()
+                    ->send();
+
+                $this->halt();
+            }
+        }
+
+        return $data;
     }
 
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
-
     protected function getSavedNotificationTitle(): ?string
     {
         return 'Booking updated successfully';
     }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        // Recalculate totals if pricing fields are changed
-        if ($this->record->isDirty(['hall_price', 'services_price'])) {
-            // Pricing will be recalculated
-        }
-
-        return $data;
-    }
 }
+
