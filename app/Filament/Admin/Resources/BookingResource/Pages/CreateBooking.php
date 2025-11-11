@@ -7,6 +7,7 @@ use App\Models\Booking;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CreateBooking extends CreateRecord
 {
@@ -19,12 +20,7 @@ class CreateBooking extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Auto-generate booking number if not provided
-        if (empty($data['booking_number'])) {
-            $data['booking_number'] = $this->generateBookingNumber();
-        }
-
-        // Validate no double booking
+        // Check for existing booking FIRST before generating booking number
         $existingBooking = Booking::where('hall_id', $data['hall_id'])
             ->where('booking_date', $data['booking_date'])
             ->where('time_slot', $data['time_slot'])
@@ -65,41 +61,111 @@ class CreateBooking extends CreateRecord
             }
         }
 
+        // Generate unique booking number
+        $data['booking_number'] = $this->generateUniqueBookingNumber();
+
         return $data;
     }
 
     protected function handleRecordCreation(array $data): Model
     {
-        // Separate extra services for pivot table
-        $extraServices = $data['extra_services'] ?? [];
-        unset($data['extra_services']);
+        return DB::transaction(function () use ($data) {
+            // Double-check slot availability within transaction
+            $existingBooking = Booking::where('hall_id', $data['hall_id'])
+                ->where('booking_date', $data['booking_date'])
+                ->where('time_slot', $data['time_slot'])
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->lockForUpdate() // Lock the rows to prevent race conditions
+                ->first();
 
-        // Create booking
-        $record = static::getModel()::create($data);
+            if ($existingBooking) {
+                Notification::make()
+                    ->danger()
+                    ->title('Slot Already Booked')
+                    ->body("This time slot was just booked by another user. Please select a different time slot.")
+                    ->persistent()
+                    ->send();
 
-        // Attach extra services if any
-        if (!empty($extraServices)) {
-            foreach ($extraServices as $service) {
-                $record->extraServices()->attach($service['service_id'], [
-                    'service_name' => $service['service_name'],
-                    'unit_price' => $service['unit_price'],
-                    'quantity' => $service['quantity'],
-                    'total_price' => $service['total_price'],
-                ]);
+                throw new \Exception('Slot already booked');
             }
-        }
 
-        return $record;
+            // Separate extra services for pivot table
+            $extraServices = $data['extra_services'] ?? [];
+            unset($data['extra_services']);
+
+            // Create booking
+            $record = static::getModel()::create($data);
+
+            // Attach extra services if any
+            if (!empty($extraServices)) {
+                foreach ($extraServices as $service) {
+                    $record->extraServices()->attach($service['service_id'], [
+                        'service_name' => json_encode($service['service_name']), // Already an array
+                        'unit_price' => $service['unit_price'] ?? 0,
+                        'quantity' => $service['quantity'] ?? 1,
+                        'total_price' => $service['total_price'] ?? 0,
+                    ]);
+                }
+            }
+
+            return $record;
+        });
     }
 
+    /**
+     * Generate a unique booking number with retry logic
+     */
+    protected function generateUniqueBookingNumber(): string
+    {
+        $maxAttempts = 10;
+        $attempt = 0;
+
+        do {
+            $attempt++;
+            $bookingNumber = $this->generateBookingNumber();
+
+            // Check if this booking number already exists
+            $exists = Booking::where('booking_number', $bookingNumber)->exists();
+
+            if (!$exists) {
+                return $bookingNumber;
+            }
+
+            // If exists, wait a tiny bit and try again
+            usleep(100000); // 0.1 seconds
+
+        } while ($attempt < $maxAttempts);
+
+        // If we couldn't generate a unique number after max attempts, use timestamp
+        return 'BK-' . date('Y') . '-' . time() . '-' . rand(100, 999);
+    }
+
+    /**
+     * Generate booking number based on the latest booking
+     */
     protected function generateBookingNumber(): string
     {
         $year = date('Y');
-        $lastBooking = static::getModel()::whereYear('created_at', $year)
-            ->latest('id')
+
+        // Get the last booking number for this year
+        $lastBooking = Booking::whereYear('created_at', $year)
+            ->orderBy('id', 'desc')
+            ->lockForUpdate()
             ->first();
 
-        $sequence = $lastBooking ? intval(substr($lastBooking->booking_number, -5)) + 1 : 1;
+        if (!$lastBooking || !$lastBooking->booking_number) {
+            $sequence = 1;
+        } else {
+            // Extract sequence number from booking number (BK-2025-00009 -> 00009)
+            preg_match('/BK-\d{4}-(\d+)/', $lastBooking->booking_number, $matches);
+
+            if (isset($matches[1])) {
+                $sequence = intval($matches[1]) + 1;
+            } else {
+                // If pattern doesn't match, count all bookings this year + 1
+                $sequence = Booking::whereYear('created_at', $year)->count() + 1;
+            }
+        }
 
         return 'BK-' . $year . '-' . str_pad($sequence, 5, '0', STR_PAD_LEFT);
     }
@@ -107,5 +173,26 @@ class CreateBooking extends CreateRecord
     protected function getCreatedNotificationTitle(): ?string
     {
         return 'Booking created successfully';
+    }
+
+    /**
+     * Disable the create another button to prevent accidental duplicate submissions
+     */
+    protected function getCreateAnotherFormAction(): \Filament\Actions\Action
+    {
+        return parent::getCreateAnotherFormAction()
+            ->disabled();
+    }
+
+    /**
+     * Add confirmation before creating to prevent accidental clicks
+     */
+    protected function getCreateFormAction(): \Filament\Actions\Action
+    {
+        return parent::getCreateFormAction()
+            ->requiresConfirmation()
+            ->modalHeading('Confirm Booking Creation')
+            ->modalDescription('Are you sure you want to create this booking? Please verify all details are correct.')
+            ->modalSubmitActionLabel('Yes, Create Booking');
     }
 }

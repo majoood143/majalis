@@ -90,6 +90,10 @@ Route::get('/test-view/{booking}', function (Booking $booking) {
     }
 });
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    require __DIR__ . '/customer-tickets.php';
+});
+
 require __DIR__.'/auth.php';
 
 

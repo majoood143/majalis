@@ -6,10 +6,11 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Permission\Traits\HasRoles;
 
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory,HasRoles;
 
     protected $fillable = [
         'booking_id',

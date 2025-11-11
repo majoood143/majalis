@@ -254,27 +254,23 @@ class BookingResource extends Resource
                                 ->options(fn(Get $get) => static::getExtraServicesOptions($get('../../hall_id')))
                                 ->required()
                                 ->live()
-                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                    if ($state) {
-                                        $service = ExtraService::find($state);
-                                        if ($service) {
-                                            $set(
-                                                'service_name',
-                                                is_array($service->name)
-                                                    ? ($service->name['en'] ?? $service->name['ar'])
-                                                    : $service->name
-                                            );
-                                            $set('unit_price', $service->price);
-                                            $set('quantity', $service->minimum_quantity ?? 1);
-                                            $set('unit', $service->unit);
+                        ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                            if ($state) {
+                                $service = ExtraService::find($state);
+                                if ($service) {
+                                    // Store the full name array (not just English)
+                                    $set('service_name', $service->name); // This is already an array
+                                    $set('unit_price', $service->price);
+                                    $set('quantity', $service->minimum_quantity ?? 1);
+                                    $set('unit', $service->unit);
 
-                                            // Calculate line total
-                                            static::calculateServiceTotal($set, $get);
+                                    // Calculate line total
+                                    static::calculateServiceTotal($set, $get);
 
-                                            // Calculate overall totals
-                                            static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
-                                        }
-                                    }
+                                    // Calculate overall totals
+                                    static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
+                                }
+                            }
                                 })
                                 ->columnSpan(2),
 

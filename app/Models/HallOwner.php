@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Permission\Traits\HasRoles;
 
 class HallOwner extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes,HasRoles;
 
     protected $fillable = [
         'user_id',
@@ -114,7 +115,7 @@ class HallOwner extends Model
 
         // Optionally revert user role to 'user' or handle as needed
         //$this->user->update(['role' => 'user']);
-        
+
     }
 
 
@@ -143,7 +144,7 @@ class HallOwner extends Model
         $this->user->update(['role' => 'hall_owner']);
     }
 
-    
+
 
     public function reject(string $notes = null): void
     {

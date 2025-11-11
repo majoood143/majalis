@@ -12,10 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 class Booking extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes,HasRoles;
 
     protected $fillable = [
         'booking_number',
@@ -98,6 +100,14 @@ class Booking extends Model
         return $this->hasOne(Review::class);
     }
 
+    /**
+     * Get all tickets related to this booking.
+     */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
     // Scopes
     public function scopePending($query)
     {
@@ -168,11 +178,43 @@ class Booking extends Model
     protected static function boot()
     {
         parent::boot();
-
+        /**
+         * Boot method to generate booking number automatically
+         */
         static::creating(function ($booking) {
             if (empty($booking->booking_number)) {
                 $booking->booking_number = self::generateBookingNumber();
             }
+
+            // Only generate if not already set
+            if (empty($booking->booking_number)) {
+                $booking->booking_number = static::generateUniqueBookingNumber();
+            }
+        });
+    }
+
+    /**
+     * Generate unique booking number
+     */
+    public static function generateUniqueBookingNumber(): string
+    {
+        $year = date('Y');
+
+        return DB::transaction(function () use ($year) {
+            $lastBooking = static::whereYear('created_at', $year)
+                ->orderBy('id', 'desc')
+                ->lockForUpdate()
+                ->first();
+
+            $sequence = 1;
+            if ($lastBooking && $lastBooking->booking_number) {
+                preg_match('/BK-\d{4}-(\d+)/', $lastBooking->booking_number, $matches);
+                if (isset($matches[1])) {
+                    $sequence = intval($matches[1]) + 1;
+                }
+            }
+
+            return 'BK-' . $year . '-' . str_pad($sequence, 5, '0', STR_PAD_LEFT);
         });
     }
 
@@ -230,6 +272,7 @@ class Booking extends Model
             'confirmed_at' => now(),
         ]);
     }
+
 
     public function complete(): void
     {

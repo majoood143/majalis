@@ -17,10 +17,11 @@ use App\Models\ExtraService;
 use App\Models\Review;
 use App\Models\HallAvailability;
 use App\Models\HallFeature;
+use Spatie\Permission\Traits\HasRoles;
 
 class Hall extends Model
 {
-    use HasFactory, HasTranslations, SoftDeletes;
+    use HasFactory, HasTranslations, SoftDeletes,HasRoles;
 
     protected $fillable = [
         'city_id',
