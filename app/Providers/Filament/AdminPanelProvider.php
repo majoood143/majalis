@@ -67,7 +67,9 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
             ])
             ->authMiddleware([
-                Authenticate::class,
+                //Authenticate::class,
+            AuthenticateSession::class,
+            StartSession::class,
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')

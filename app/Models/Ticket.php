@@ -9,17 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * Ticket Model
- *
+ * 
  * Represents a customer support ticket for booking claims, complaints, and inquiries.
  * Handles ticket lifecycle, SLA tracking, and customer communication management.
- *
+ * 
  * @package App\Models
  * @version 1.0.0
- *
+ * 
  * @property int $id
  * @property string $ticket_number
  * @property int|null $booking_id
@@ -45,7 +44,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class Ticket extends Model
 {
-    use HasFactory, SoftDeletes,HasRoles;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -94,7 +93,7 @@ class Ticket extends Model
 
     /**
      * Bootstrap the model and its traits.
-     *
+     * 
      * Automatically generate ticket number on creation and set due date based on priority.
      *
      * @return void
@@ -108,7 +107,7 @@ class Ticket extends Model
             if (empty($ticket->ticket_number)) {
                 $ticket->ticket_number = $ticket->generateTicketNumber();
             }
-
+            
             // Set due date if not provided
             if (empty($ticket->due_date)) {
                 $ticket->due_date = $ticket->calculateDueDate();
@@ -135,7 +134,7 @@ class Ticket extends Model
 
     /**
      * Get the booking associated with this ticket.
-     *
+     * 
      * @return BelongsTo<Booking, Ticket>
      */
     public function booking(): BelongsTo
@@ -145,7 +144,7 @@ class Ticket extends Model
 
     /**
      * Get the user (customer) who created this ticket.
-     *
+     * 
      * @return BelongsTo<User, Ticket>
      */
     public function user(): BelongsTo
@@ -155,7 +154,7 @@ class Ticket extends Model
 
     /**
      * Get the staff member assigned to this ticket.
-     *
+     * 
      * @return BelongsTo<User, Ticket>
      */
     public function assignedTo(): BelongsTo
@@ -165,7 +164,7 @@ class Ticket extends Model
 
     /**
      * Get all messages/responses for this ticket.
-     *
+     * 
      * @return HasMany<TicketMessage>
      */
     public function messages(): HasMany
@@ -179,7 +178,7 @@ class Ticket extends Model
 
     /**
      * Scope to filter open tickets (not closed or cancelled).
-     *
+     * 
      * @param Builder $query
      * @return Builder
      */
@@ -193,7 +192,7 @@ class Ticket extends Model
 
     /**
      * Scope to filter tickets by status.
-     *
+     * 
      * @param Builder $query
      * @param TicketStatus|string $status
      * @return Builder
@@ -206,7 +205,7 @@ class Ticket extends Model
 
     /**
      * Scope to filter tickets by priority.
-     *
+     * 
      * @param Builder $query
      * @param TicketPriority|string $priority
      * @return Builder
@@ -219,7 +218,7 @@ class Ticket extends Model
 
     /**
      * Scope to filter tickets assigned to a specific user.
-     *
+     * 
      * @param Builder $query
      * @param int $userId
      * @return Builder
@@ -231,7 +230,7 @@ class Ticket extends Model
 
     /**
      * Scope to filter overdue tickets.
-     *
+     * 
      * @param Builder $query
      * @return Builder
      */
@@ -247,7 +246,7 @@ class Ticket extends Model
 
     /**
      * Scope to filter tickets requiring attention.
-     *
+     * 
      * @param Builder $query
      * @return Builder
      */
@@ -269,19 +268,19 @@ class Ticket extends Model
 
     /**
      * Check if ticket is overdue.
-     *
+     * 
      * @return bool
      */
     public function getIsOverdueAttribute(): bool
     {
-        return $this->due_date
-            && $this->due_date->isPast()
+        return $this->due_date 
+            && $this->due_date->isPast() 
             && !in_array($this->status, [TicketStatus::RESOLVED, TicketStatus::CLOSED, TicketStatus::CANCELLED]);
     }
 
     /**
      * Get time remaining until due date in human-readable format.
-     *
+     * 
      * @return string|null
      */
     public function getTimeRemainingAttribute(): ?string
@@ -299,7 +298,7 @@ class Ticket extends Model
 
     /**
      * Calculate response time in hours.
-     *
+     * 
      * @return float|null
      */
     public function getResponseTimeAttribute(): ?float
@@ -313,7 +312,7 @@ class Ticket extends Model
 
     /**
      * Calculate resolution time in hours.
-     *
+     * 
      * @return float|null
      */
     public function getResolutionTimeAttribute(): ?float
@@ -332,33 +331,33 @@ class Ticket extends Model
     /**
      * Generate a unique ticket number.
      * Format: TCK-YYYYMMDD-XXXXX
-     *
+     * 
      * @return string
      */
     protected function generateTicketNumber(): string
     {
         $prefix = 'TCK';
         $date = now()->format('Ymd');
-
+        
         // Get the last ticket created today
         $lastTicket = static::whereDate('created_at', today())
             ->latest('id')
             ->first();
-
+        
         $sequence = $lastTicket ? (int) substr($lastTicket->ticket_number, -5) + 1 : 1;
-
+        
         return sprintf('%s-%s-%05d', $prefix, $date, $sequence);
     }
 
     /**
      * Calculate due date based on priority and SLA rules.
-     *
+     * 
      * SLA Rules:
      * - Urgent: 4 hours
      * - High: 24 hours
      * - Medium: 48 hours
      * - Low: 72 hours
-     *
+     * 
      * @return \Carbon\Carbon
      */
     protected function calculateDueDate(): \Carbon\Carbon
@@ -376,7 +375,7 @@ class Ticket extends Model
 
     /**
      * Assign ticket to a staff member.
-     *
+     * 
      * @param int $userId
      * @return bool
      */
@@ -390,7 +389,7 @@ class Ticket extends Model
 
     /**
      * Mark ticket as resolved with optional resolution message.
-     *
+     * 
      * @param string|null $resolution
      * @return bool
      */
@@ -405,7 +404,7 @@ class Ticket extends Model
 
     /**
      * Close the ticket.
-     *
+     * 
      * @return bool
      */
     public function close(): bool
@@ -418,7 +417,7 @@ class Ticket extends Model
 
     /**
      * Escalate ticket to higher priority.
-     *
+     * 
      * @return bool
      */
     public function escalate(): bool
@@ -438,7 +437,7 @@ class Ticket extends Model
 
     /**
      * Rate the ticket resolution (customer satisfaction).
-     *
+     * 
      * @param int $rating Rating from 1-5
      * @param string|null $feedback Optional feedback text
      * @return bool
@@ -457,7 +456,7 @@ class Ticket extends Model
 
     /**
      * Add a message to the ticket.
-     *
+     * 
      * @param string $message
      * @param int $userId
      * @param TicketMessageType $type
@@ -466,8 +465,8 @@ class Ticket extends Model
      * @return TicketMessage
      */
     public function addMessage(
-        string $message,
-        int $userId,
+        string $message, 
+        int $userId, 
         TicketMessageType $type = TicketMessageType::CUSTOMER_REPLY,
         array $attachments = [],
         bool $isInternal = false
@@ -490,7 +489,7 @@ class Ticket extends Model
 
     /**
      * Check if ticket can be closed.
-     *
+     * 
      * @return bool
      */
     public function canBeClosed(): bool
@@ -503,7 +502,7 @@ class Ticket extends Model
 
     /**
      * Check if ticket can be reopened.
-     *
+     * 
      * @return bool
      */
     public function canBeReopened(): bool

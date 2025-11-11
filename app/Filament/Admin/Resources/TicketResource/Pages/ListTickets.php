@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * List Tickets Page
- * 
+ *
  * Displays a comprehensive list of all tickets with filtering, searching, and statistics.
  * Includes dashboard widgets showing key metrics and tabbed navigation for quick filtering.
- * 
+ *
  * @package App\Filament\Admin\Resources\TicketResource\Pages
  * @version 1.0.0
  */
@@ -32,7 +32,7 @@ class ListTickets extends ListRecords
 
     /**
      * Get the header actions for the page.
-     * 
+     *
      * @return array
      */
     protected function getHeaderActions(): array
@@ -47,7 +47,7 @@ class ListTickets extends ListRecords
     /**
      * Get the header widgets for the page.
      * These widgets display key statistics about tickets.
-     * 
+     *
      * @return array
      */
     protected function getHeaderWidgets(): array
@@ -59,7 +59,7 @@ class ListTickets extends ListRecords
 
     /**
      * Define tabs for quick filtering of tickets.
-     * 
+     *
      * @return array
      */
     public function getTabs(): array
@@ -80,7 +80,7 @@ class ListTickets extends ListRecords
             // My tickets (assigned to current user)
             'my_tickets' => Tab::make('My Tickets')
                 ->icon('heroicon-o-user')
-                ->modifyQueryUsing(fn (Builder $query) => 
+                ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('assigned_to', Auth::id())
                 )
                 ->badge(Ticket::where('assigned_to', Auth::id())->count())
@@ -89,7 +89,7 @@ class ListTickets extends ListRecords
             // Unassigned tickets
             'unassigned' => Tab::make('Unassigned')
                 ->icon('heroicon-o-inbox')
-                ->modifyQueryUsing(fn (Builder $query) => 
+                ->modifyQueryUsing(fn (Builder $query) =>
                     $query->whereNull('assigned_to')
                         ->where('status', '!=', TicketStatus::CLOSED->value)
                 )
@@ -101,7 +101,7 @@ class ListTickets extends ListRecords
             // Urgent tickets
             'urgent' => Tab::make('Urgent')
                 ->icon('heroicon-o-fire')
-                ->modifyQueryUsing(fn (Builder $query) => 
+                ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('priority', TicketPriority::URGENT->value)
                         ->open()
                 )
@@ -120,7 +120,7 @@ class ListTickets extends ListRecords
             // In progress
             'in_progress' => Tab::make('In Progress')
                 ->icon('heroicon-o-arrow-path')
-                ->modifyQueryUsing(fn (Builder $query) => 
+                ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', TicketStatus::IN_PROGRESS->value)
                 )
                 ->badge(Ticket::where('status', TicketStatus::IN_PROGRESS->value)->count())
@@ -129,7 +129,7 @@ class ListTickets extends ListRecords
             // Resolved tickets
             'resolved' => Tab::make('Resolved')
                 ->icon('heroicon-o-check-circle')
-                ->modifyQueryUsing(fn (Builder $query) => 
+                ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', TicketStatus::RESOLVED->value)
                 )
                 ->badge(Ticket::where('status', TicketStatus::RESOLVED->value)->count())
@@ -138,7 +138,7 @@ class ListTickets extends ListRecords
             // Closed tickets
             'closed' => Tab::make('Closed')
                 ->icon('heroicon-o-lock-closed')
-                ->modifyQueryUsing(fn (Builder $query) => 
+                ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', TicketStatus::CLOSED->value)
                 )
                 ->badge(Ticket::where('status', TicketStatus::CLOSED->value)->count())
