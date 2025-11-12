@@ -16,6 +16,8 @@ use App\Services\BookingService;
 use App\Services\NotificationService;
 use App\Services\PaymentService;
 use App\Services\PDFService;
+use Livewire\Livewire;
+use App\Livewire\LanguageSwitcher;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -54,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        Livewire::component('language-switcher', LanguageSwitcher::class);
         Health::checks([
             OptimizedAppCheck::new(),
             DebugModeCheck::new(),

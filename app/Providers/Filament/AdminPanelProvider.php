@@ -19,6 +19,11 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\SpatieLaravelTranslatablePlugin;
+use App\Http\Middleware\SetUserLanguage;
+use App\Livewire\LanguageSwitcher;
+//use Filament\Panels\Enums\PanelsRenderHook;
+use Filament\View\PanelsRenderHook;
+use App\Filament\Pages\EditProfile;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -47,6 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                EditProfile::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
@@ -62,17 +68,23 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
             ])
             ->authMiddleware([
                 //Authenticate::class,
-            AuthenticateSession::class,
-            StartSession::class,
+                AuthenticateSession::class,
+                StartSession::class,
+                SetUserLanguage::class,
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn(): string => view('filament.hooks.language-switcher')->render()
+            )
             ->spa()
 
             //->locale(config('app.locale'))
@@ -83,7 +95,5 @@ class AdminPanelProvider extends PanelProvider
                 SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['en', 'ar'])
             );
-
-
     }
 }

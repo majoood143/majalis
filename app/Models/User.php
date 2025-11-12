@@ -78,6 +78,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'phone_country_code',
         'is_active',
         'phone_verified_at',
+        'language_preference',
     ];
 
     /**
@@ -162,6 +163,27 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
         // Deny access to unknown panels
         return false;
+    }
+
+    /**
+     * Get the user's preferred language
+     *
+     * @return string
+     */
+    public function getPreferredLanguage(): string
+    {
+        return $this->language_preference ?? config('app.locale', 'en');
+    }
+
+    /**
+     * Set the user's preferred language
+     *
+     * @param string $language
+     * @return void
+     */
+    public function setPreferredLanguage(string $language): void
+    {
+        $this->update(['language_preference' => $language]);
     }
 
     // ==================== RELATIONSHIPS ====================
