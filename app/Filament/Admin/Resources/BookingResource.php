@@ -235,6 +235,7 @@ class BookingResource extends Resource
                             ->maxLength(20),
 
                         Forms\Components\Textarea::make('customer_notes')
+                        
                             ->label('Special Requests / Notes')
                             ->rows(3)
                             ->columnSpanFull()

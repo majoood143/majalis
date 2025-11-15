@@ -19,7 +19,7 @@
                 >
                     {{ $localeNames[$locale] ?? $locale }}
                 </x-filament::dropdown.list.item>
-            @endforeach>
+            @endforeach
         </x-filament::dropdown.list>
     </x-filament::dropdown>
 </div>

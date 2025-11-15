@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
+use App\Http\Controllers\Customer\HallController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,11 +16,18 @@ use App\Http\Controllers\Customer\BookingController as CustomerBookingController
 // Public routes - Browse halls
 Route::name('customer.')->group(function () {
 
-    // Homepage - Hall listings
-    Route::get('/halls', [CustomerController::class, 'index'])->name('halls.index');
+    // NEW: Homepage - Hall listings with regions/cities/map
+    Route::get('/halls', [HallController::class, 'index'])->name('halls.index');
 
-    // Hall details
-    Route::get('/halls/{hall:slug}', [CustomerController::class, 'show'])->name('halls.show');
+    // NEW: Get cities by region (AJAX)
+    Route::get('/halls/cities/{region}', [HallController::class, 'getCitiesByRegion'])->name('halls.cities-by-region');
+
+    // NEW: Hall details
+    Route::get('/halls/{slug}', [HallController::class, 'show'])->name('halls.show');
+
+    // OLD routes - Commented out (using new HallController now)
+    // Route::get('/halls', [CustomerController::class, 'index'])->name('halls.index');
+    // Route::get('/halls/{hall:slug}', [CustomerController::class, 'show'])->name('halls.show');
 });
 
 // Protected routes - Requires authentication

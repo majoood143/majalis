@@ -7,7 +7,6 @@ use App\Models\Booking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -28,18 +27,16 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::get('/register', function () {
-    return view('auth.register'); // You'll need to create this
+    return view('auth.register');
 })->name('register');
 
 Route::post('/logout', function () {
-    //Auth::logout();
-    //auth()->logout();
     return redirect('/');
 })->name('logout');
 
+// Test routes
 Route::get('/test-pdf/{booking}', function (Booking $booking) {
     try {
-        // Test 1: Simple PDF
         $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>Booking: ' . $booking->booking_number . '</p>');
         return $pdf->stream();
     } catch (\Exception $e) {
@@ -50,14 +47,8 @@ Route::get('/test-pdf/{booking}', function (Booking $booking) {
 Route::get('/test-storage', function () {
     try {
         $testContent = 'Test file created at ' . now();
-
-        // Test write
         Storage::disk('local')->put('test.txt', $testContent);
-
-        // Check if exists
         $exists = Storage::disk('local')->exists('test.txt');
-
-        // Get path
         $path = Storage::disk('local')->path('test.txt');
 
         return response()->json([
@@ -94,8 +85,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/customer-tickets.php';
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
-
-// Customer Routes - MUST BE LAST
+// Customer Routes - This now includes the new HallController routes
 require __DIR__ . '/customer.php';
+
+// REMOVE THESE DUPLICATE ROUTES - They're now in customer.php
+// Route::prefix('halls')->name('halls.')->group(function () {
+//     Route::get('/', [HallController::class, 'index'])->name('index');
+//     Route::get('/cities/{region}', [HallController::class, 'getCitiesByRegion'])->name('cities-by-region');
+//     Route::get('/{slug}', [HallController::class, 'show'])->name('show');
+// });

@@ -73,7 +73,7 @@ class CustomerController extends Controller
         }
 
         $halls = $query->paginate(12)->withQueryString();
-        
+
         $cities = City::active()->orderBy('name->en')->get();
         $features = HallFeature::active()->ordered()->get();
 
@@ -99,7 +99,7 @@ class CustomerController extends Controller
         ]);
 
         $features = $hall->getFeaturesList();
-        
+
         // Get similar halls
         $similarHalls = Hall::query()
             ->where('id', '!=', $hall->id)
@@ -131,7 +131,7 @@ class CustomerController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        
+
         $upcomingBookings = Booking::query()
             ->where('user_id', $user->id)
             ->whereIn('status', ['pending', 'confirmed'])
@@ -164,7 +164,7 @@ class CustomerController extends Controller
     public function bookings(Request $request)
     {
         $user = Auth::user();
-        
+
         $query = Booking::query()
             ->where('user_id', $user->id)
             ->with(['hall.city']);
