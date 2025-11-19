@@ -4,12 +4,14 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\UserResource\Pages;
 use App\Models\User;
+use Filament\Actions\ActionGroup as ActionsActionGroup;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
+use Filament\Tables\Actions\ActionGroup;
 
 class UserResource extends Resource
 {
@@ -132,8 +134,10 @@ class UserResource extends Resource
                     ->native(false),
             ])
             ->actions([
+            ActionGroup::make([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+            ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

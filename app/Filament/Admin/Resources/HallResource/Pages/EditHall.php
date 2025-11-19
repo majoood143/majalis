@@ -20,6 +20,7 @@ class EditHall extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            
             Actions\ViewAction::make()
                 ->icon('heroicon-o-eye')
                 ->color('info'),
@@ -72,7 +73,7 @@ class EditHall extends EditRecord
             Actions\Action::make('manageAvailability')
                 ->label('Manage Availability')
                 ->icon('heroicon-o-calendar')
-                ->color('purple')
+                ->color('info')
                 ->url(fn() => route('filament.admin.resources.hall-availabilities.index', [
                     'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
                 ])),
@@ -370,7 +371,7 @@ class EditHall extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                //->submit(null)
+
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),

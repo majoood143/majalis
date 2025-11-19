@@ -18,10 +18,12 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Actions\ActionGroup;
+
 
 /**
  * Ticket Resource for Filament Admin Panel
- * 
+ *
  * Manages customer support tickets and claims with comprehensive features:
  * - Full CRUD operations
  * - Status workflow management
@@ -30,7 +32,7 @@ use Illuminate\Support\Facades\Auth;
  * - Message/response management
  * - File attachment support
  * - Customer satisfaction ratings
- * 
+ *
  * @package App\Filament\Admin\Resources
  * @version 1.0.0
  */
@@ -89,15 +91,15 @@ class TicketResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         $count = static::getModel()::open()->count();
-        
+
         if ($count > 10) {
             return 'danger';
         }
-        
+
         if ($count > 5) {
             return 'warning';
         }
-        
+
         return 'success';
     }
 
@@ -183,8 +185,8 @@ class TicketResource extends Resource
                         // Assigned staff member
                         Forms\Components\Select::make('assigned_to')
                             ->label('Assigned To')
-                            ->relationship('assignedTo', 'name', fn (Builder $query) => 
-                                $query->whereHas('roles', fn ($q) => 
+                            ->relationship('assignedTo', 'name', fn (Builder $query) =>
+                                $query->whereHas('roles', fn ($q) =>
                                     $q->whereIn('name', ['admin', 'staff', 'super_admin'])
                                 )
                             )
@@ -199,7 +201,7 @@ class TicketResource extends Resource
                             ->searchable()
                             ->preload()
                             ->helperText('Link to a specific booking if applicable')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => 
+                            ->getOptionLabelFromRecordUsing(fn ($record) =>
                                 "#{$record->id} - {$record->hall->name} ({$record->booking_date->format('M d, Y')})"
                             ),
 
@@ -222,7 +224,7 @@ class TicketResource extends Resource
                             ->rows(4)
                             ->columnSpanFull()
                             ->placeholder('Describe how the issue was resolved')
-                            ->visible(fn ($record) => 
+                            ->visible(fn ($record) =>
                                 $record && in_array($record->status, [
                                     TicketStatus::RESOLVED,
                                     TicketStatus::CLOSED
@@ -358,7 +360,7 @@ class TicketResource extends Resource
                 Tables\Columns\TextColumn::make('booking.id')
                     ->label('Booking')
                     ->prefix('#')
-                    ->url(fn ($record) => $record->booking ? 
+                    ->url(fn ($record) => $record->booking ?
                         route('filament.admin.resources.bookings.view', $record->booking) : null
                     )
                     ->placeholder('—')
@@ -442,6 +444,7 @@ class TicketResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                ActionGroup::make([
                 // View action
                 Tables\Actions\ViewAction::make(),
 
@@ -456,7 +459,7 @@ class TicketResource extends Resource
                     ->requiresConfirmation()
                     ->action(function (Ticket $record) {
                         $record->assignTo(Auth::id());
-                        
+
                         Notification::make()
                             ->title('Ticket Assigned')
                             ->body('Ticket has been assigned to you.')
@@ -479,7 +482,7 @@ class TicketResource extends Resource
                     ])
                     ->action(function (Ticket $record, array $data) {
                         $record->resolve($data['resolution']);
-                        
+
                         Notification::make()
                             ->title('Ticket Resolved')
                             ->success()
@@ -499,7 +502,7 @@ class TicketResource extends Resource
                     ->requiresConfirmation()
                     ->action(function (Ticket $record) {
                         $record->close();
-                        
+
                         Notification::make()
                             ->title('Ticket Closed')
                             ->success()
@@ -509,6 +512,7 @@ class TicketResource extends Resource
 
                 // Delete action
                 Tables\Actions\DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -519,7 +523,7 @@ class TicketResource extends Resource
                         ->form([
                             Forms\Components\Select::make('assigned_to')
                                 ->label('Assign To')
-                                ->options(User::whereHas('roles', fn ($q) => 
+                                ->options(User::whereHas('roles', fn ($q) =>
                                     $q->whereIn('name', ['admin', 'staff', 'super_admin'])
                                 )->pluck('name', 'id'))
                                 ->required()
@@ -529,7 +533,7 @@ class TicketResource extends Resource
                             foreach ($records as $record) {
                                 $record->assignTo($data['assigned_to']);
                             }
-                            
+
                             Notification::make()
                                 ->title('Tickets Assigned')
                                 ->success()

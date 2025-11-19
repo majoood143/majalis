@@ -235,7 +235,7 @@ class BookingResource extends Resource
                             ->maxLength(20),
 
                         Forms\Components\Textarea::make('customer_notes')
-                        
+
                             ->label('Special Requests / Notes')
                             ->rows(3)
                             ->columnSpanFull()
@@ -445,39 +445,6 @@ class BookingResource extends Resource
             ]);
     }
 
-    // /**
-    //  * Get available time slots from HallAvailabilities
-    //  */
-    // protected static function getAvailableTimeSlots($hallId, $bookingDate): array
-    // {
-    //     if (!$hallId || !$bookingDate) {
-    //         return [];
-    //     }
-
-    //     // Get available slots from HallAvailabilities
-    //     $availableSlots = HallAvailability::where('hall_id', $hallId)
-    //         ->where('date', $bookingDate)
-    //         ->where('is_available', true)
-    //         ->get()
-    //         ->pluck('time_slot')
-    //         ->toArray();
-
-    //     // Map to user-friendly labels
-    //     $slotLabels = [
-    //         'morning' => 'Morning (8 AM - 12 PM)',
-    //         'afternoon' => 'Afternoon (12 PM - 5 PM)',
-    //         'evening' => 'Evening (5 PM - 11 PM)',
-    //         'full_day' => 'Full Day (8 AM - 11 PM)',
-    //     ];
-
-    //     $options = [];
-    //     foreach ($availableSlots as $slot) {
-    //         $options[$slot] = $slotLabels[$slot] ?? ucfirst(str_replace('_', ' ', $slot));
-    //     }
-
-    //     return $options;
-    // }
-
     /**
      * Get available time slots from HallAvailabilities and exclude booked slots
      */
@@ -520,28 +487,7 @@ class BookingResource extends Resource
 
         return $options;
     }
-
-    // /**
-    //  * Get helper text for time slot field
-    //  */
-    // protected static function getTimeSlotHelperText($hallId, $bookingDate): string
-    // {
-    //     if (!$hallId || !$bookingDate) {
-    //         return 'Select hall and date first';
-    //     }
-
-    //     $count = HallAvailability::where('hall_id', $hallId)
-    //         ->where('date', $bookingDate)
-    //         ->where('is_available', true)
-    //         ->count();
-
-    //     if ($count === 0) {
-    //         return '⚠️ No available slots for this date';
-    //     }
-
-    //     return "✓ {$count} slot(s) available";
-    // }
-
+    
     /**
      * Get helper text for time slot field
      */
@@ -665,9 +611,7 @@ class BookingResource extends Resource
         $set('total_amount', $hallPrice);
         $set('owner_payout', $hallPrice);
     }
-    /**
-     * Calculate all totals
-     */
+
     /**
      * Calculate all totals
      */
@@ -793,8 +737,10 @@ class BookingResource extends Resource
                 //
             ])
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

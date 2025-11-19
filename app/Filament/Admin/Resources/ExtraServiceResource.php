@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\ActionGroup;
 
 class ExtraServiceResource extends Resource
 {
@@ -204,8 +205,10 @@ class ExtraServiceResource extends Resource
                     ->native(false),
             ])
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

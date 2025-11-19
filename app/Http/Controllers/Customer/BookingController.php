@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Customer;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller as BaseController;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Services\BookingService;
@@ -12,71 +14,100 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
-class BookingController extends Controller
+/**
+ * Controller for handling customer booking operations
+ *
+ * @package App\Http\Controllers\Customer
+ */
+class BookingController extends BaseController
 {
-    // REMOVE THE ENTIRE CONSTRUCTOR - DELETE THIS BLOCK:
-    // public function __construct(
-    //     protected BookingService $bookingService,
-    //     protected PaymentService $paymentService
-    // ) {
-    //     $this->middleware('auth');
-    // }
+    /**
+     * BookingController constructor
+     * Apply authentication middleware
+     */
+    public function __construct()
+    {
+        // Apply auth middleware to all methods except checkAvailability
+        $this->middleware('auth')->except(['checkAvailability']);
+    }
+
+    /**
+     * Show the booking form for a specific hall
+     *
+     * @param Hall $hall
+     * @return \Illuminate\View\View
+     */
+    public function create(Hall $hall)
+    {
+        // Set locale from query parameter or session
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+        session(['locale' => $locale]);
+
+        // Check if hall is active
+        if (!$hall->is_active) {
+            abort(404, 'Hall not found or inactive');
+        }
+
+        // Load necessary relationships
+        $hall->load(['city.region', 'owner', 'activeExtraServices']);
+
+        return view('customer.book', compact('hall'));
+    }
 
     /**
      * Store a new booking
+     *
+     * @param Request $request
+     * @param Hall $hall
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request, Hall $hall)
     {
-        // Get services from container instead
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
+        // Get services from container
         $bookingService = app(BookingService::class);
-        $paymentService = app(PaymentService::class);
 
         // Validation
         $validator = Validator::make($request->all(), [
             'booking_date' => 'required|date|after:today',
             'time_slot' => 'required|in:morning,afternoon,evening,full_day',
-            'number_of_guests' => 'required|integer|min:1',
+            'number_of_guests' => "required|integer|min:{$hall->capacity_min}|max:{$hall->capacity_max}",
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
             'customer_notes' => 'nullable|string|max:1000',
-            'event_type' => 'nullable|string|max:100',
+            'event_type' => 'nullable|string|in:wedding,corporate,birthday,conference,graduation,other',
             'event_details' => 'nullable|string|max:1000',
-            'extra_services' => 'nullable|array',
-            'extra_services.*.service_id' => 'required|exists:extra_services,id',
-            'extra_services.*.quantity' => 'required|integer|min:1',
+            'services' => 'nullable|array',
+            'services.*' => 'exists:extra_services,id',
         ]);
 
         if ($validator->fails()) {
             return back()
                 ->withErrors($validator)
-                ->withInput();
+                ->withInput()
+                ->with('error', __('halls.invalid_request'));
         }
 
         try {
-            // Check availability
+            // Check availability using the service
             if (!$bookingService->checkAvailability(
                 $hall->id,
                 $request->booking_date,
                 $request->time_slot
             )) {
                 return back()
-                    ->with('error', 'The selected time slot is not available. Please choose another date or time.')
+                    ->with('error', __('halls.date_not_available'))
                     ->withInput();
             }
 
-            // Validate guest count
-            if (
-                $request->number_of_guests < $hall->capacity_min ||
-                $request->number_of_guests > $hall->capacity_max
-            ) {
-                return back()
-                    ->with('error', "Number of guests must be between {$hall->capacity_min} and {$hall->capacity_max}.")
-                    ->withInput();
-            }
-
-            // Create booking
+            // Prepare booking data for the service
             $bookingData = [
                 'hall_id' => $hall->id,
                 'user_id' => Auth::id(),
@@ -89,67 +120,152 @@ class BookingController extends Controller
                 'customer_notes' => $request->customer_notes,
                 'event_type' => $request->event_type,
                 'event_details' => $request->event_details,
-                'extra_services' => $request->extra_services ?? [],
+                'extra_services' => $request->services ?? [],
             ];
 
+            // Create booking using the service
             $booking = $bookingService->createBooking($bookingData);
 
-            // Redirect to payment if amount > 0
+            // Redirect based on payment amount
             if ($booking->total_amount > 0) {
                 return redirect()
-                    ->route('customer.booking.payment', $booking)
-                    ->with('success', 'Booking created successfully! Please proceed with payment.');
+                    ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
+                    ->with('success', __('halls.booking_success'));
             }
 
+            // No payment needed, go directly to success page
             return redirect()
-                ->route('customer.booking.details', $booking)
-                ->with('success', 'Booking created successfully!');
+                ->route('customer.booking.success', ['reference' => $booking->booking_reference, 'lang' => $locale])
+                ->with('success', __('halls.booking_success'));
         } catch (Exception $e) {
+            Log::error('Booking creation failed: ' . $e->getMessage(), [
+                'hall_id' => $hall->id,
+                'user_id' => Auth::id(),
+                'exception' => $e
+            ]);
+
             return back()
-                ->with('error', $e->getMessage())
+                ->with('error', __('halls.booking_failed') . ' ' . $e->getMessage())
                 ->withInput();
         }
     }
 
     /**
+     * Show booking success page
+     *
+     * @param string $reference
+     * @return \Illuminate\View\View
+     */
+    public function success(string $reference)
+    {
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
+        // Find booking by reference number
+        $booking = Booking::with(['hall.city.region', 'extraServices', 'user'])
+            ->where('booking_reference', $reference)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        return view('customer.booking-success', compact('booking'));
+    }
+
+    /**
+     * Show user's bookings list
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index()
+    {
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
+        $bookings = Booking::with(['hall.city'])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('customer.bookings.index', compact('bookings'));
+    }
+
+    /**
+     * Show specific booking details
+     *
+     * @param Booking $booking
+     * @return \Illuminate\View\View
+     */
+    public function show(Booking $booking)
+    {
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
+        // Ensure user owns this booking
+        if ($booking->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to booking');
+        }
+
+        $booking->load(['hall.city.region', 'extraServices', 'user']);
+
+        return view('customer.bookings.show', compact('booking'));
+    }
+
+    /**
      * Show payment page
+     *
+     * @param Booking $booking
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function payment(Booking $booking)
     {
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
         // Ensure user owns this booking
         if ($booking->user_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Unauthorized access to booking');
         }
 
         // Check if already paid
         if ($booking->payment_status === 'paid') {
             return redirect()
-                ->route('customer.booking.details', $booking)
-                ->with('info', 'This booking has already been paid.');
+                ->route('customer.booking.success', ['reference' => $booking->booking_reference, 'lang' => $locale])
+                ->with('info', __('halls.already_paid'));
         }
 
-        $booking->load('hall.city');
+        $booking->load(['hall.city', 'extraServices']);
 
         return view('customer.payment', compact('booking'));
     }
 
     /**
      * Process payment
+     *
+     * @param Request $request
+     * @param Booking $booking
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function processPayment(Request $request, Booking $booking)
     {
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
         $paymentService = app(PaymentService::class);
 
         // Ensure user owns this booking
         if ($booking->user_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Unauthorized access to booking');
         }
 
         // Check if already paid
         if ($booking->payment_status === 'paid') {
             return redirect()
-                ->route('customer.booking.details', $booking)
-                ->with('info', 'This booking has already been paid.');
+                ->route('customer.booking.success', ['reference' => $booking->booking_reference, 'lang' => $locale])
+                ->with('info', __('halls.already_paid'));
         }
 
         try {
@@ -159,25 +275,38 @@ class BookingController extends Controller
                 return redirect($paymentData['redirect_url']);
             }
 
-            return back()->with('error', 'Failed to initiate payment. Please try again.');
+            return back()->with('error', __('halls.payment_failed'));
         } catch (Exception $e) {
-            return back()->with('error', 'Payment processing failed: ' . $e->getMessage());
+            Log::error('Payment processing failed: ' . $e->getMessage(), [
+                'booking_id' => $booking->id,
+                'exception' => $e
+            ]);
+
+            return back()->with('error', __('halls.payment_failed') . ' ' . $e->getMessage());
         }
     }
 
     /**
      * Cancel booking
+     *
+     * @param Request $request
+     * @param Booking $booking
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function cancel(Request $request, Booking $booking)
     {
+        // Set locale
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
         // Ensure user owns this booking
         if ($booking->user_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Unauthorized access to booking');
         }
 
         // Check if cancellation is allowed
         if (!in_array($booking->status, ['pending', 'confirmed'])) {
-            return back()->with('error', 'This booking cannot be cancelled.');
+            return back()->with('error', __('halls.cannot_cancel'));
         }
 
         try {
@@ -190,50 +319,72 @@ class BookingController extends Controller
             ]);
 
             // Handle refund logic if needed
-            // ...
+            // If paid, initiate refund through PaymentService
+            if ($booking->payment_status === 'paid') {
+                // $paymentService = app(PaymentService::class);
+                // $paymentService->processRefund($booking);
+            }
 
             DB::commit();
 
             return redirect()
-                ->route('customer.bookings')
-                ->with('success', 'Booking cancelled successfully.');
+                ->route('customer.bookings.index', ['lang' => $locale])
+                ->with('success', __('halls.booking_cancelled'));
         } catch (Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to cancel booking: ' . $e->getMessage());
+
+            Log::error('Booking cancellation failed: ' . $e->getMessage(), [
+                'booking_id' => $booking->id,
+                'exception' => $e
+            ]);
+
+            return back()->with('error', __('halls.cancellation_failed') . ' ' . $e->getMessage());
         }
     }
 
     /**
      * Check availability via AJAX
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function checkAvailability(Request $request)
     {
-        $bookingService = app(BookingService::class);
-
         $validator = Validator::make($request->all(), [
             'hall_id' => 'required|exists:halls,id',
-            'booking_date' => 'required|date',
+            'booking_date' => 'required|date|after:today',
             'time_slot' => 'required|in:morning,afternoon,evening,full_day',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'available' => false,
-                'message' => 'Invalid input'
+                'message' => __('halls.invalid_request')
             ], 422);
         }
 
-        $available = $bookingService->checkAvailability(
-            $request->hall_id,
-            $request->booking_date,
-            $request->time_slot
-        );
+        try {
+            $bookingService = app(BookingService::class);
 
-        return response()->json([
-            'available' => $available,
-            'message' => $available
-                ? 'This time slot is available!'
-                : 'This time slot is not available. Please select another date or time.'
-        ]);
+            $available = $bookingService->checkAvailability(
+                $request->hall_id,
+                $request->booking_date,
+                $request->time_slot
+            );
+
+            return response()->json([
+                'available' => $available,
+                'message' => $available
+                    ? __('halls.date_available')
+                    : __('halls.date_not_available')
+            ]);
+        } catch (Exception $e) {
+            Log::error('Availability check failed: ' . $e->getMessage());
+
+            return response()->json([
+                'available' => false,
+                'message' => __('halls.checking_availability')
+            ], 500);
+        }
     }
 }

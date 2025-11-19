@@ -24,6 +24,7 @@ use App\Livewire\LanguageSwitcher;
 //use Filament\Panels\Enums\PanelsRenderHook;
 use Filament\View\PanelsRenderHook;
 use App\Filament\Pages\EditProfile;
+use Illuminate\Support\Facades\Auth;
 
 class AdminPanelProvider extends PanelProvider
 {
