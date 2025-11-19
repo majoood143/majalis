@@ -36,7 +36,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/book/{hall:slug}', [BookingController::class, 'create'])->name('customer.book');
     Route::post('/book/{hall:slug}', [BookingController::class, 'store'])->name('customer.booking.store');
     Route::post('/check-availability', [BookingController::class, 'checkAvailability'])->name('customer.check-availability');
-    Route::get('/booking/success/{reference}', [BookingController::class, 'success'])->name('customer.booking.success');
+    Route::get('/booking/success/{bookingNumber}', [BookingController::class, 'success'])->name('customer.booking.success');
+    Route::get('/booking/{booking}/payment', [BookingController::class, 'payment'])->name('customer.booking.payment');
+    Route::post('/booking/{booking}/process-payment', [BookingController::class, 'processPayment'])->name('customer.booking.process-payment');
+
+    // Payment routes
+    Route::get('/booking/{booking}/payment', [BookingController::class, 'payment'])->name('customer.booking.payment');
+    Route::post('/booking/{booking}/process-payment', [BookingController::class, 'processPayment'])->name('customer.booking.process-payment');
+    Route::get('/payment/success/{booking}', [BookingController::class, 'paymentSuccess'])->name('customer.payment.success');
+    Route::get('/payment/cancel/{booking}', [BookingController::class, 'paymentCancel'])->name('customer.payment.cancel');
+
+    // PDF download
+    Route::get('/booking/{booking}/download-pdf', [BookingController::class, 'downloadPdf'])->name('customer.booking.download-pdf');
 });
 
 // Protected routes - Requires authentication

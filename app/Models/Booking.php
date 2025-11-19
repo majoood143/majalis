@@ -1,24 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Enums\BookingStatus;
-use App\Enums\PaymentStatus;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * Booking Model
+ *
+ * @property int $id
+ * @property string $booking_number
+ * @property int $hall_id
+ * @property int $user_id
+ * @property string $booking_date
+ * @property string $time_slot
+ * @property int $number_of_guests
+ * @property string $customer_name
+ * @property string $customer_email
+ * @property string $customer_phone
+ * @property string|null $customer_notes
+ * @property string|null $event_type
+ * @property array|null $event_details
+ * @property float $hall_price
+ * @property float $services_price
+ * @property float $subtotal
+ * @property float $platform_fee
+ * @property float $total_amount
+ * @property float $commission_amount
+ * @property string|null $commission_type
+ * @property float|null $commission_value
+ * @property float $owner_payout
+ * @property string $status
+ * @property string $payment_status
+ */
 class Booking extends Model
 {
-    use HasFactory, SoftDeletes,HasRoles;
+    use HasFactory, SoftDeletes;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'booking_number',
         'hall_id',
@@ -50,372 +80,110 @@ class Booking extends Model
         'completed_at',
         'invoice_path',
         'admin_notes',
+        'payment_id',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'booking_date' => 'date',
+        'hall_price' => 'decimal:3',
+        'services_price' => 'decimal:3',
+        'subtotal' => 'decimal:3',
+        'platform_fee' => 'decimal:3',
+        'total_amount' => 'decimal:3',
+        'commission_amount' => 'decimal:3',
+        'commission_value' => 'decimal:3',
+        'owner_payout' => 'decimal:3',
+        'refund_amount' => 'decimal:3',
         'event_details' => 'array',
-        'number_of_guests' => 'integer',
-        'hall_price' => 'decimal:2',
-        'services_price' => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'platform_fee' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-        'commission_amount' => 'decimal:2',
-        'commission_value' => 'decimal:2',
-        'owner_payout' => 'decimal:2',
-        'refund_amount' => 'decimal:2',
-        'status' => BookingStatus::class,
-        'payment_status' => PaymentStatus::class,
         'cancelled_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 
-    // Relationships
+    /**
+     * Get the hall that owns the booking.
+     */
     public function hall(): BelongsTo
     {
         return $this->belongsTo(Hall::class);
     }
 
+    /**
+     * Get the user that owns the booking.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function payment(): HasOne
-    {
-        return $this->hasOne(Payment::class);
-    }
-
+    /**
+     * The extra services that belong to the booking.
+     */
     public function extraServices(): BelongsToMany
     {
         return $this->belongsToMany(ExtraService::class, 'booking_extra_services')
-            ->withPivot(['service_name', 'unit_price', 'quantity', 'total_price'])
+            ->withPivot('service_name', 'unit_price', 'quantity', 'total_price')
             ->withTimestamps();
     }
 
-    public function review(): HasOne
+    /**
+     * Scope a query to only include bookings of a given status.
+     */
+    public function scopeStatus($query, string $status)
     {
-        return $this->hasOne(Review::class);
+        return $query->where('status', $status);
     }
 
     /**
-     * Get all tickets related to this booking.
+     * Scope a query to only include pending bookings.
      */
-    public function tickets(): HasMany
-    {
-        return $this->hasMany(Ticket::class);
-    }
-
-    // Scopes
     public function scopePending($query)
     {
-        return $query->where('status', BookingStatus::PENDING);
-    }
-
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', BookingStatus::CONFIRMED);
-    }
-
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', BookingStatus::COMPLETED);
-    }
-
-    public function scopeCancelled($query)
-    {
-        return $query->where('status', BookingStatus::CANCELLED);
-    }
-
-    public function scopePaid($query)
-    {
-        return $query->where('payment_status', PaymentStatus::PAID);
-    }
-
-    public function scopeForUser($query, int $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    public function scopeForHall($query, int $hallId)
-    {
-        return $query->where('hall_id', $hallId);
-    }
-
-    public function scopeForOwner($query, int $ownerId)
-    {
-        return $query->whereHas('hall', function ($q) use ($ownerId) {
-            $q->where('owner_id', $ownerId);
-        });
-    }
-
-    public function scopeUpcoming($query)
-    {
-        return $query->where('booking_date', '>=', now()->toDateString())
-            ->whereIn('status', [BookingStatus::PENDING, BookingStatus::CONFIRMED])
-            ->orderBy('booking_date');
-    }
-
-    public function scopePast($query)
-    {
-        return $query->where('booking_date', '<', now()->toDateString())
-            ->orderByDesc('booking_date');
-    }
-
-    public function scopeToday($query)
-    {
-        return $query->whereDate('booking_date', today());
-    }
-
-    public function scopeBetweenDates($query, string $startDate, string $endDate)
-    {
-        return $query->whereBetween('booking_date', [$startDate, $endDate]);
-    }
-
-    // Mutators
-    protected static function boot()
-    {
-        parent::boot();
-        /**
-         * Boot method to generate booking number automatically
-         */
-        static::creating(function ($booking) {
-            if (empty($booking->booking_number)) {
-                $booking->booking_number = self::generateBookingNumber();
-            }
-
-            // Only generate if not already set
-            if (empty($booking->booking_number)) {
-                $booking->booking_number = static::generateUniqueBookingNumber();
-            }
-        });
+        return $query->where('status', 'pending');
     }
 
     /**
-     * Generate unique booking number
+     * Scope a query to only include confirmed bookings.
      */
-    public static function generateUniqueBookingNumber(): string
+    public function scopeConfirmed($query)
     {
-        $year = date('Y');
-
-        return DB::transaction(function () use ($year) {
-            $lastBooking = static::whereYear('created_at', $year)
-                ->orderBy('id', 'desc')
-                ->lockForUpdate()
-                ->first();
-
-            $sequence = 1;
-            if ($lastBooking && $lastBooking->booking_number) {
-                preg_match('/BK-\d{4}-(\d+)/', $lastBooking->booking_number, $matches);
-                if (isset($matches[1])) {
-                    $sequence = intval($matches[1]) + 1;
-                }
-            }
-
-            return 'BK-' . $year . '-' . str_pad($sequence, 5, '0', STR_PAD_LEFT);
-        });
+        return $query->where('status', 'confirmed');
     }
 
-    // Status Methods
-    public function isPending(): bool
+    /**
+     * Check if booking is cancellable
+     */
+    public function isCancellable(): bool
     {
-        return $this->status === BookingStatus::PENDING;
+        return in_array($this->status, ['pending', 'confirmed']);
     }
 
-    public function isConfirmed(): bool
-    {
-        return $this->status === BookingStatus::CONFIRMED;
-    }
-
-    public function isCompleted(): bool
-    {
-        return $this->status === BookingStatus::COMPLETED;
-    }
-
-    public function isCancelled(): bool
-    {
-        return $this->status === BookingStatus::CANCELLED;
-    }
-
+    /**
+     * Check if booking is paid
+     */
     public function isPaid(): bool
     {
-        return $this->payment_status === PaymentStatus::PAID;
+        return $this->payment_status === 'paid';
     }
 
-    public function canBeCancelled(): bool
+    /**
+     * Get the payments for the booking.
+     */
+    public function payments(): HasMany
     {
-        if ($this->isCancelled() || $this->isCompleted()) {
-            return false;
-        }
-
-        // Check if within cancellation window
-        $cancellationDeadline = Carbon::parse($this->booking_date)
-            ->subHours($this->hall->cancellation_hours);
-
-        return now()->lt($cancellationDeadline);
+        return $this->hasMany(Payment::class);
     }
 
-    public function canBeReviewed(): bool
+    /**
+     * Get the latest payment for the booking.
+     */
+    public function latestPayment(): HasOne
     {
-        return $this->isCompleted()
-            && $this->isPaid()
-            && !$this->review()->exists();
-    }
-
-    // Action Methods
-    public function confirm(): void
-    {
-        $this->update([
-            'status' => BookingStatus::CONFIRMED,
-            'confirmed_at' => now(),
-        ]);
-    }
-
-
-    public function complete(): void
-    {
-        $this->update([
-            'status' => BookingStatus::COMPLETED,
-            'completed_at' => now(),
-        ]);
-    }
-
-    public function cancel(string $reason = null): void
-    {
-        $refundAmount = 0;
-
-        if ($this->isPaid() && $this->canBeCancelled()) {
-            $cancellationFee = ($this->total_amount * $this->hall->cancellation_fee_percentage) / 100;
-            $refundAmount = $this->total_amount - $cancellationFee;
-        }
-
-        $this->update([
-            'status' => BookingStatus::CANCELLED,
-            'cancelled_at' => now(),
-            'cancellation_reason' => $reason,
-            'refund_amount' => $refundAmount,
-        ]);
-    }
-
-    // Helper Methods
-    public static function generateBookingNumber(): string
-    {
-        $year = date('Y');
-        $lastBooking = self::whereYear('created_at', $year)
-            ->latest('id')
-            ->first();
-
-        $sequence = $lastBooking ? intval(substr($lastBooking->booking_number, -5)) + 1 : 1;
-
-        return 'BK-' . $year . '-' . str_pad($sequence, 5, '0', STR_PAD_LEFT);
-    }
-
-    public function isUpcoming(): bool
-    {
-        return $this->booking_date->isFuture() &&
-            in_array($this->status, [BookingStatus::PENDING, BookingStatus::CONFIRMED]);
-    }
-
-    public function isPast(): bool
-    {
-        return $this->booking_date->isPast();
-    }
-
-    public function getDaysUntilBooking(): int
-    {
-        return now()->diffInDays($this->booking_date, false);
-    }
-
-    public function getFormattedDateAttribute(): string
-    {
-        return $this->booking_date->format('d M Y');
-    }
-
-    public function getTimeSlotLabelAttribute(): string
-    {
-        return __(ucfirst(str_replace('_', ' ', $this->time_slot)));
-    }
-
-    // Calculate totals
-    public function calculateTotals(array $extraServiceData = []): void
-    {
-        $hallPrice = $this->hall->getPriceForDate(
-            $this->booking_date->format('Y-m-d'),
-            $this->time_slot
-        );
-
-        $servicesPrice = 0;
-        foreach ($extraServiceData as $serviceData) {
-            $servicesPrice += $serviceData['total_price'];
-        }
-
-        $subtotal = $hallPrice + $servicesPrice;
-
-        // Get commission settings
-        $commission = $this->calculateCommission($subtotal);
-
-        $this->hall_price = $hallPrice;
-        $this->services_price = $servicesPrice;
-        $this->subtotal = $subtotal;
-        $this->commission_amount = $commission['amount'];
-        $this->commission_type = $commission['type'];
-        $this->commission_value = $commission['value'];
-        $this->platform_fee = $commission['amount'];
-        $this->total_amount = $subtotal + $commission['amount'];
-        $this->owner_payout = $subtotal - $commission['amount'];
-    }
-
-    protected function calculateCommission(float $amount): array
-    {
-        // Check for hall-specific commission
-        $commissionSetting = CommissionSetting::where('hall_id', $this->hall_id)
-            ->where('is_active', true)
-            ->where(function ($q) {
-                $q->whereNull('effective_from')
-                    ->orWhere('effective_from', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('effective_to')
-                    ->orWhere('effective_to', '>=', now());
-            })
-            ->first();
-
-        // If no hall-specific, check owner-specific
-        if (!$commissionSetting) {
-            $commissionSetting = CommissionSetting::where('owner_id', $this->hall->owner_id)
-                ->where('is_active', true)
-                ->where(function ($q) {
-                    $q->whereNull('effective_from')
-                        ->orWhere('effective_from', '<=', now());
-                })
-                ->where(function ($q) {
-                    $q->whereNull('effective_to')
-                        ->orWhere('effective_to', '>=', now());
-                })
-                ->first();
-        }
-
-        // If no specific settings, use global default
-        if (!$commissionSetting) {
-            $commissionSetting = CommissionSetting::whereNull('hall_id')
-                ->whereNull('owner_id')
-                ->where('is_active', true)
-                ->first();
-        }
-
-        $commissionType = $commissionSetting->commission_type ?? 'percentage';
-        $commissionValue = $commissionSetting->commission_value ?? 10;
-
-        $commissionAmount = $commissionType === 'percentage'
-            ? ($amount * $commissionValue) / 100
-            : $commissionValue;
-
-        return [
-            'amount' => $commissionAmount,
-            'type' => $commissionType,
-            'value' => $commissionValue,
-        ];
+        return $this->hasOne(Payment::class)->latestOfMany();
     }
 }

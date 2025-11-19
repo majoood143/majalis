@@ -1,46 +1,131 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\ExtraService;
-use App\Enums\BookingStatus;
-use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Service for handling booking operations
+ *
+ * @package App\Services
+ */
 class BookingService
 {
-    public function __construct(
-        protected PaymentService $paymentService,
-        protected NotificationService $notificationService
-    ) {}
+    /**
+     * Check if a hall is available for a specific date and time slot
+     *
+     * @param int $hallId
+     * @param string $bookingDate
+     * @param string $timeSlot
+     * @return bool
+     */
+    public function checkAvailability(int $hallId, string $bookingDate, string $timeSlot): bool
+    {
+        // Check for existing bookings with same date and time slot
+        $existingBooking = Booking::where('hall_id', $hallId)
+            ->where('booking_date', $bookingDate)
+            ->where('time_slot', $timeSlot)
+            ->whereIn('status', ['pending', 'confirmed', 'paid'])
+            ->exists();
+
+        if ($existingBooking) {
+            return false;
+        }
+
+        // If requesting full_day, check if any other slot is booked
+        if ($timeSlot === 'full_day') {
+            $anySlotBooked = Booking::where('hall_id', $hallId)
+                ->where('booking_date', $bookingDate)
+                ->whereIn('status', ['pending', 'confirmed', 'paid'])
+                ->exists();
+
+            return !$anySlotBooked;
+        }
+
+        // Check if full_day is already booked
+        $fullDayBooked = Booking::where('hall_id', $hallId)
+            ->where('booking_date', $bookingDate)
+            ->where('time_slot', 'full_day')
+            ->whereIn('status', ['pending', 'confirmed', 'paid'])
+            ->exists();
+
+        return !$fullDayBooked;
+    }
 
     /**
      * Create a new booking
+     *
+     * @param array $data
+     * @return Booking
+     * @throws Exception
      */
     public function createBooking(array $data): Booking
     {
+        DB::beginTransaction();
+
         try {
-            DB::beginTransaction();
-
-            // Validate availability
-            if (!$this->checkAvailability($data['hall_id'], $data['booking_date'], $data['time_slot'])) {
-                throw new Exception('The selected time slot is not available.');
-            }
-
-            // Get hall
+            // Get hall details
             $hall = Hall::findOrFail($data['hall_id']);
 
-            // Validate capacity
-            if ($data['number_of_guests'] < $hall->capacity_min || $data['number_of_guests'] > $hall->capacity_max) {
-                throw new Exception("Guest count must be between {$hall->capacity_min} and {$hall->capacity_max}.");
+            // Calculate hall price
+            $hallPrice = $hall->price_per_slot;
+
+            // Calculate services total
+            $servicesPrice = 0;
+            $selectedServices = [];
+
+            if (!empty($data['extra_services'])) {
+                $services = ExtraService::whereIn('id', $data['extra_services'])
+                    ->where('is_active', true)
+                    ->get();
+
+                foreach ($services as $service) {
+                    $servicesPrice += $service->price;
+                    $selectedServices[] = [
+                        'id' => $service->id,
+                        'name' => $service->name,
+                        'price' => $service->price
+                    ];
+                }
             }
+
+            // Calculate pricing
+            $subtotal = $hallPrice + $servicesPrice;
+            $platformFee = 0; // You can add platform fee calculation here
+            $totalAmount = $subtotal + $platformFee;
+
+            // Calculate commission (if hall has commission settings)
+            $commissionAmount = 0;
+            $commissionType = null;
+            $commissionValue = null;
+
+            if ($hall->commission_type && $hall->commission_value) {
+                $commissionType = $hall->commission_type;
+                $commissionValue = $hall->commission_value;
+
+                if ($commissionType === 'percentage') {
+                    $commissionAmount = ($subtotal * $commissionValue) / 100;
+                } else {
+                    $commissionAmount = $commissionValue;
+                }
+            }
+
+            // Calculate owner payout
+            $ownerPayout = $totalAmount - $commissionAmount;
+
+            // Generate unique booking number
+            $bookingNumber = $this->generateBookingNumber();
 
             // Create booking
             $booking = Booking::create([
+                'booking_number' => $bookingNumber,
                 'hall_id' => $data['hall_id'],
                 'user_id' => $data['user_id'],
                 'booking_date' => $data['booking_date'],
@@ -51,295 +136,108 @@ class BookingService
                 'customer_phone' => $data['customer_phone'],
                 'customer_notes' => $data['customer_notes'] ?? null,
                 'event_type' => $data['event_type'] ?? null,
-                'event_details' => $data['event_details'] ?? null,
-                'status' => BookingStatus::PENDING,
-                'payment_status' => PaymentStatus::PENDING,
+                'event_details' => isset($data['event_details']) ? json_encode($data['event_details']) : null,
+                'hall_price' => $hallPrice,
+                'services_price' => $servicesPrice,
+                'subtotal' => $subtotal,
+                'platform_fee' => $platformFee,
+                'total_amount' => $totalAmount,
+                'commission_amount' => $commissionAmount,
+                'commission_type' => $commissionType,
+                'commission_value' => $commissionValue,
+                'owner_payout' => $ownerPayout,
+                'status' => 'pending',
+                'payment_status' => 'pending',
             ]);
 
-            // Calculate pricing
-            $this->calculateBookingPricing($booking, $data['extra_services'] ?? []);
-
-            // Attach extra services
-            if (!empty($data['extra_services'])) {
-                $this->attachExtraServices($booking, $data['extra_services']);
+            // Attach extra services to booking
+            if (!empty($selectedServices)) {
+                foreach ($selectedServices as $service) {
+                    DB::table('booking_extra_services')->insert([
+                        'booking_id' => $booking->id,
+                        'extra_service_id' => $service['id'],
+                        'service_name' => json_encode($service['name']),
+                        'unit_price' => $service['price'],
+                        'quantity' => 1,
+                        'total_price' => $service['price'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
-
-            // Increment hall booking count
-            $hall->incrementBookings();
 
             DB::commit();
 
-            // Send notifications
-            $this->notificationService->sendBookingCreatedNotification($booking);
+            // Load relationships for return
+            $booking->load(['hall', 'user', 'extraServices']);
 
-            Log::info('Booking created successfully', ['booking_id' => $booking->id]);
-
-            return $booking->fresh();
+            return $booking;
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Booking creation failed', ['error' => $e->getMessage(), 'data' => $data]);
-            throw $e;
+
+            Log::error('Booking creation failed in service: ' . $e->getMessage(), [
+                'data' => $data,
+                'exception' => $e
+            ]);
+
+            throw new Exception('Failed to create booking: ' . $e->getMessage());
         }
     }
 
     /**
-     * Check if slot is available
+     * Generate unique booking number
+     *
+     * @return string
      */
-    public function checkAvailability(int $hallId, string $date, string $timeSlot): bool
+    protected function generateBookingNumber(): string
     {
-        $hall = Hall::find($hallId);
+        $year = date('Y');
 
-        if (!$hall || !$hall->is_active) {
-            return false;
+        // Get the last booking number for this year
+        $lastBooking = Booking::whereYear('created_at', $year)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastBooking) {
+            // Extract the number part and increment
+            $lastNumber = (int) substr($lastBooking->booking_number, -5);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
         }
 
-        return $hall->isAvailableOn($date, $timeSlot);
+        // Format: BK-2025-00001
+        return sprintf('BK-%s-%05d', $year, $newNumber);
     }
 
     /**
      * Calculate booking pricing
+     *
+     * @param Hall $hall
+     * @param array $serviceIds
+     * @return array
      */
-    protected function calculateBookingPricing(Booking $booking, array $extraServices = []): void
+    public function calculatePricing(Hall $hall, array $serviceIds = []): array
     {
-        $extraServiceData = [];
+        $hallPrice = $hall->price_per_slot;
+        $servicesPrice = 0;
 
-        // Calculate extra services total
-        foreach ($extraServices as $serviceData) {
-            $service = ExtraService::find($serviceData['service_id']);
-            if ($service) {
-                $quantity = $serviceData['quantity'] ?? 1;
-                $totalPrice = $service->calculatePrice($quantity);
-
-                $extraServiceData[] = [
-                    'service_id' => $service->id,
-                    'quantity' => $quantity,
-                    'total_price' => $totalPrice,
-                ];
-            }
+        if (!empty($serviceIds)) {
+            $servicesPrice = ExtraService::whereIn('id', $serviceIds)
+                ->where('is_active', true)
+                ->sum('price');
         }
 
-        $booking->calculateTotals($extraServiceData);
-        $booking->save();
-    }
+        $subtotal = $hallPrice + $servicesPrice;
+        $platformFee = 0; // Add your platform fee logic here
+        $totalAmount = $subtotal + $platformFee;
 
-    /**
-     * Attach extra services to booking
-     */
-    protected function attachExtraServices(Booking $booking, array $extraServices): void
-    {
-        foreach ($extraServices as $serviceData) {
-            $service = ExtraService::find($serviceData['service_id']);
-            if ($service) {
-                $quantity = $serviceData['quantity'] ?? 1;
-
-                $booking->extraServices()->attach($service->id, [
-                    'service_name' => $service->name,
-                    'unit_price' => $service->price,
-                    'quantity' => $quantity,
-                    'total_price' => $service->calculatePrice($quantity),
-                ]);
-            }
-        }
-    }
-
-    /**
-     * Confirm a booking
-     */
-    public function confirmBooking(Booking $booking): bool
-    {
-        try {
-            DB::beginTransaction();
-
-            $booking->confirm();
-
-            // Send confirmation notifications
-            $this->notificationService->sendBookingConfirmedNotification($booking);
-
-            DB::commit();
-
-            Log::info('Booking confirmed', ['booking_id' => $booking->id]);
-
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Booking confirmation failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
-            throw $e;
-        }
-    }
-
-    /**
-     * Cancel a booking
-     */
-    public function cancelBooking(Booking $booking, string $reason = null, int $userId = null): bool
-    {
-        try {
-            DB::beginTransaction();
-
-            if (!$booking->canBeCancelled()) {
-                throw new Exception('This booking cannot be cancelled. Cancellation deadline has passed.');
-            }
-
-            // Process refund if payment was made
-            if ($booking->isPaid()) {
-                $refundAmount = $booking->total_amount;
-
-                // Apply cancellation fee if applicable
-                if ($booking->hall->cancellation_fee_percentage > 0) {
-                    $cancellationFee = ($booking->total_amount * $booking->hall->cancellation_fee_percentage) / 100;
-                    $refundAmount = $booking->total_amount - $cancellationFee;
-                }
-
-                // Process refund through payment service
-                if ($booking->payment) {
-                    $this->paymentService->refundPayment($booking->payment, $refundAmount, $reason);
-                }
-            }
-
-            // Cancel booking
-            $booking->cancel($reason);
-
-            // Send cancellation notifications
-            $this->notificationService->sendBookingCancelledNotification($booking);
-
-            DB::commit();
-
-            Log::info('Booking cancelled', [
-                'booking_id' => $booking->id,
-                'cancelled_by' => $userId,
-                'reason' => $reason
-            ]);
-
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Booking cancellation failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
-            throw $e;
-        }
-    }
-
-    /**
-     * Complete a booking (after event date)
-     */
-    public function completeBooking(Booking $booking): bool
-    {
-        try {
-            DB::beginTransaction();
-
-            if ($booking->booking_date->isFuture()) {
-                throw new Exception('Cannot complete a booking that is in the future.');
-            }
-
-            if (!$booking->isConfirmed()) {
-                throw new Exception('Only confirmed bookings can be completed.');
-            }
-
-            $booking->complete();
-
-            // Send completion notification (request review)
-            $this->notificationService->sendBookingCompletedNotification($booking);
-
-            DB::commit();
-
-            Log::info('Booking completed', ['booking_id' => $booking->id]);
-
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Booking completion failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
-            throw $e;
-        }
-    }
-
-    /**
-     * Get available slots for a hall on a specific date
-     */
-    public function getAvailableSlots(int $hallId, string $date): array
-    {
-        $hall = Hall::find($hallId);
-
-        if (!$hall) {
-            return [];
-        }
-
-        return $hall->getAvailableSlots($date);
-    }
-
-    /**
-     * Get upcoming bookings for a user
-     */
-    public function getUserUpcomingBookings(int $userId, int $limit = 10)
-    {
-        return Booking::where('user_id', $userId)
-            ->whereIn('status', [BookingStatus::PENDING, BookingStatus::CONFIRMED])
-            ->where('booking_date', '>=', now()->toDateString())
-            ->orderBy('booking_date')
-            ->limit($limit)
-            ->get();
-    }
-
-    /**
-     * Get bookings for a hall owner
-     */
-    public function getOwnerBookings(int $ownerId, array $filters = [])
-    {
-        $query = Booking::whereHas('hall', function ($q) use ($ownerId) {
-            $q->where('owner_id', $ownerId);
-        });
-
-        // Apply filters
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        if (!empty($filters['payment_status'])) {
-            $query->where('payment_status', $filters['payment_status']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $query->whereDate('booking_date', '>=', $filters['date_from']);
-        }
-
-        if (!empty($filters['date_to'])) {
-            $query->whereDate('booking_date', '<=', $filters['date_to']);
-        }
-
-        if (!empty($filters['hall_id'])) {
-            $query->where('hall_id', $filters['hall_id']);
-        }
-
-        return $query->orderByDesc('created_at')->paginate($filters['per_page'] ?? 15);
-    }
-
-    /**
-     * Send booking reminder
-     */
-    public function sendBookingReminder(Booking $booking): void
-    {
-        if ($booking->booking_date->isFuture() && $booking->isConfirmed()) {
-            $this->notificationService->sendBookingReminderNotification($booking);
-        }
-    }
-
-    /**
-     * Auto-complete past bookings
-     */
-    public function autoCompletePastBookings(): int
-    {
-        $bookings = Booking::where('status', BookingStatus::CONFIRMED)
-            ->where('booking_date', '<', now()->toDateString())
-            ->get();
-
-        $completed = 0;
-
-        foreach ($bookings as $booking) {
-            try {
-                $this->completeBooking($booking);
-                $completed++;
-            } catch (Exception $e) {
-                Log::error('Auto-complete failed', ['booking_id' => $booking->id, 'error' => $e->getMessage()]);
-            }
-        }
-
-        return $completed;
+        return [
+            'hall_price' => $hallPrice,
+            'services_price' => $servicesPrice,
+            'subtotal' => $subtotal,
+            'platform_fee' => $platformFee,
+            'total_amount' => $totalAmount,
+        ];
     }
 }

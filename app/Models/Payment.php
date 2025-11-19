@@ -1,17 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * Payment Model
+ *
+ * @property int $id
+ * @property int $booking_id
+ * @property string $payment_reference
+ * @property string|null $transaction_id
+ * @property float $amount
+ * @property string $currency
+ * @property string $status
+ * @property string|null $payment_method
+ * @property array|null $gateway_response
+ * @property string|null $payment_url
+ * @property string|null $invoice_id
+ * @property \Carbon\Carbon|null $paid_at
+ * @property \Carbon\Carbon|null $failed_at
+ * @property \Carbon\Carbon|null $refunded_at
+ * @property float|null $refund_amount
+ * @property string|null $refund_reason
+ * @property string|null $failure_reason
+ * @property string|null $customer_ip
+ * @property string|null $user_agent
+ */
 class Payment extends Model
 {
-    use HasFactory,HasRoles;
+    use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'booking_id',
         'payment_reference',
@@ -33,154 +61,101 @@ class Payment extends Model
         'user_agent',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'amount' => 'decimal:2',
-        'refund_amount' => 'decimal:2',
+        'amount' => 'decimal:3',
+        'refund_amount' => 'decimal:3',
         'gateway_response' => 'array',
-        'status' => PaymentStatus::class,
         'paid_at' => 'datetime',
         'failed_at' => 'datetime',
         'refunded_at' => 'datetime',
     ];
 
-    // Relationships
+    /**
+     * Payment statuses
+     */
+    const STATUS_PENDING = 'pending';
+    const STATUS_PROCESSING = 'processing';
+    const STATUS_PAID = 'paid';
+    const STATUS_FAILED = 'failed';
+    const STATUS_REFUNDED = 'refunded';
+    const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Get the booking that owns the payment.
+     */
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);
     }
 
-    // Scopes
-    public function scopePaid($query)
-    {
-        return $query->where('status', PaymentStatus::PAID);
-    }
-
-    public function scopePending($query)
-    {
-        return $query->where('status', PaymentStatus::PENDING);
-    }
-
-    public function scopeFailed($query)
-    {
-        return $query->where('status', PaymentStatus::FAILED);
-    }
-
-    public function scopeRefunded($query)
-    {
-        return $query->whereIn('status', [
-            PaymentStatus::REFUNDED,
-            PaymentStatus::PARTIALLY_REFUNDED
-        ]);
-    }
-
-    // Mutators
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($payment) {
-            if (empty($payment->payment_reference)) {
-                $payment->payment_reference = self::generatePaymentReference();
-            }
-        });
-    }
-
-    // Status Methods
+    /**
+     * Check if payment is successful
+     */
     public function isPaid(): bool
     {
-        return $this->status === PaymentStatus::PAID;
+        return $this->status === self::STATUS_PAID;
     }
 
+    /**
+     * Check if payment is pending
+     */
     public function isPending(): bool
     {
-        return $this->status === PaymentStatus::PENDING;
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
     }
 
-    public function isFailed(): bool
+    /**
+     * Check if payment has failed
+     */
+    public function hasFailed(): bool
     {
-        return $this->status === PaymentStatus::FAILED;
+        return $this->status === self::STATUS_FAILED;
     }
 
-    public function isRefunded(): bool
-    {
-        return in_array($this->status, [
-            PaymentStatus::REFUNDED,
-            PaymentStatus::PARTIALLY_REFUNDED
-        ]);
-    }
-
-    // Action Methods
-    public function markAsPaid(string $transactionId = null, array $response = []): void
+    /**
+     * Mark payment as paid
+     */
+    public function markAsPaid(string $transactionId, ?array $gatewayResponse = null): void
     {
         $this->update([
-            'status' => PaymentStatus::PAID,
-            'transaction_id' => $transactionId ?? $this->transaction_id,
-            'gateway_response' => $response,
+            'status' => self::STATUS_PAID,
+            'transaction_id' => $transactionId,
+            'gateway_response' => $gatewayResponse,
             'paid_at' => now(),
         ]);
-
-        // Update booking status
-        $this->booking->update([
-            'payment_status' => PaymentStatus::PAID,
-        ]);
     }
 
-    public function markAsFailed(string $reason = null, array $response = []): void
+    /**
+     * Mark payment as failed
+     */
+    public function markAsFailed(string $reason, ?array $gatewayResponse = null): void
     {
         $this->update([
-            'status' => PaymentStatus::FAILED,
+            'status' => self::STATUS_FAILED,
             'failure_reason' => $reason,
-            'gateway_response' => $response,
+            'gateway_response' => $gatewayResponse,
             'failed_at' => now(),
         ]);
-
-        // Update booking status
-        $this->booking->update([
-            'payment_status' => PaymentStatus::FAILED,
-        ]);
     }
 
-    public function refund(float $amount = null, string $reason = null): void
+    /**
+     * Scope a query to only include paid payments.
+     */
+    public function scopePaid($query)
     {
-        $refundAmount = $amount ?? $this->amount;
-        $isPartial = $refundAmount < $this->amount;
-
-        $this->update([
-            'status' => $isPartial ? PaymentStatus::PARTIALLY_REFUNDED : PaymentStatus::REFUNDED,
-            'refund_amount' => $refundAmount,
-            'refund_reason' => $reason,
-            'refunded_at' => now(),
-        ]);
-
-        // Update booking
-        $this->booking->update([
-            'payment_status' => $isPartial ? PaymentStatus::PARTIALLY_REFUNDED : PaymentStatus::REFUNDED,
-            'refund_amount' => $refundAmount,
-        ]);
+        return $query->where('status', self::STATUS_PAID);
     }
 
-    // Helper Methods
-    public static function generatePaymentReference(): string
+    /**
+     * Scope a query to only include pending payments.
+     */
+    public function scopePending($query)
     {
-        return 'PAY-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -8));
-    }
-
-    public function getFormattedAmountAttribute(): string
-    {
-        return number_format($this->amount, 3) . ' ' . $this->currency;
-    }
-
-    public function canBeRefunded(): bool
-    {
-        return $this->isPaid() && !$this->isRefunded();
-    }
-
-    public function getRemainingRefundableAmount(): float
-    {
-        if ($this->isRefunded()) {
-            return $this->amount - ($this->refund_amount ?? 0);
-        }
-
-        return $this->amount;
+        return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING]);
     }
 }

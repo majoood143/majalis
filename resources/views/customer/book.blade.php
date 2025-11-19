@@ -85,6 +85,21 @@
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom);
         }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #0284c7;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 
     <script>
@@ -105,7 +120,7 @@
         }
     </script>
 </head>
-<body class="bg-gray-50" x-data="bookingWizard()">
+<body class="bg-gray-50" x-data="bookingWizard()" x-init="init()">
 
     <!-- Top Navigation -->
     <nav class="sticky top-0 z-50 border-b border-gray-200 glass-morphism safe-area-top">
@@ -129,7 +144,7 @@
         </div>
     </nav>
 
-    <!-- Progress Steps (Desktop & Mobile) -->
+    <!-- Progress Steps -->
     <div class="py-6 bg-white border-b border-gray-200">
         <div class="container px-4 mx-auto">
             <div class="max-w-3xl mx-auto">
@@ -155,8 +170,42 @@
         </div>
     </div>
 
+    <!-- Error Display -->
+    @if(session('error'))
+        <div class="container px-4 mx-auto mt-4">
+            <div class="flex items-center max-w-5xl gap-3 p-4 mx-auto border-2 border-red-200 bg-red-50 rounded-xl">
+                <svg class="flex-shrink-0 w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-red-800">{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="container px-4 mx-auto mt-4">
+            <div class="max-w-5xl p-4 mx-auto border-2 border-red-200 bg-red-50 rounded-xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <svg class="flex-shrink-0 w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-bold text-red-800">{{ __('halls.validation_errors') }}</span>
+                </div>
+                <ul class="space-y-1 text-sm text-red-700 list-disc list-inside ml-9">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
     <div class="container px-4 py-6 mx-auto md:py-8">
-        <form @submit.prevent="submitBooking" class="max-w-5xl mx-auto">
+        <!-- Regular Form (NOT Alpine submission) -->
+        <form method="POST" action="{{ route('customer.booking.store', $hall->slug) }}" class="max-w-5xl mx-auto" id="bookingForm">
+            @csrf
+            <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
                 <!-- Main Form Area -->
@@ -182,18 +231,17 @@
                                     </label>
                                     <input
                                         type="date"
+                                        name="booking_date"
                                         x-model="formData.booking_date"
                                         @change="checkAvailability()"
                                         :min="minDate"
+                                        value="{{ old('booking_date') }}"
                                         required
                                         class="w-full px-4 text-base transition border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent">
 
                                     <!-- Availability Status -->
                                     <div x-show="availabilityChecking" class="flex items-center gap-2 mt-3 text-sm text-gray-600">
-                                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
+                                        <div class="spinner"></div>
                                         {{ __('halls.checking_availability') }}
                                     </div>
 
@@ -214,61 +262,29 @@
                                         {{ __('halls.time_slot') }} <span class="text-red-500">*</span>
                                     </label>
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        @foreach(['morning', 'afternoon', 'evening', 'full_day'] as $slot)
                                         <label class="relative cursor-pointer">
-                                            <input type="radio" x-model="formData.time_slot" value="morning" @change="checkAvailability(); calculateTotal()" class="sr-only peer" required>
-                                            <div class="h-full p-4 transition border-2 border-gray-200 rounded-xl hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                                <div class="flex items-center gap-3">
-                                                    <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                                    </svg>
-                                                    <div>
-                                                        <div class="font-semibold text-gray-900">{{ __('halls.morning') }}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </label>
-
-                                        <label class="relative cursor-pointer">
-                                            <input type="radio" x-model="formData.time_slot" value="afternoon" @change="checkAvailability(); calculateTotal()" class="sr-only peer">
-                                            <div class="h-full p-4 transition border-2 border-gray-200 rounded-xl hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                                <div class="flex items-center gap-3">
-                                                    <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                                    </svg>
-                                                    <div>
-                                                        <div class="font-semibold text-gray-900">{{ __('halls.afternoon') }}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </label>
-
-                                        <label class="relative cursor-pointer">
-                                            <input type="radio" x-model="formData.time_slot" value="evening" @change="checkAvailability(); calculateTotal()" class="sr-only peer">
-                                            <div class="h-full p-4 transition border-2 border-gray-200 rounded-xl hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                                <div class="flex items-center gap-3">
-                                                    <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                                                    </svg>
-                                                    <div>
-                                                        <div class="font-semibold text-gray-900">{{ __('halls.evening') }}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </label>
-
-                                        <label class="relative cursor-pointer">
-                                            <input type="radio" x-model="formData.time_slot" value="full_day" @change="checkAvailability(); calculateTotal()" class="sr-only peer">
+                                            <input
+                                                type="radio"
+                                                name="time_slot"
+                                                x-model="formData.time_slot"
+                                                value="{{ $slot }}"
+                                                @change="checkAvailability(); calculateTotal()"
+                                                class="sr-only peer"
+                                                {{ old('time_slot') == $slot ? 'checked' : '' }}
+                                                required>
                                             <div class="h-full p-4 transition border-2 border-gray-200 rounded-xl hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
                                                 <div class="flex items-center gap-3">
                                                     <svg class="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                     </svg>
                                                     <div>
-                                                        <div class="font-semibold text-gray-900">{{ __('halls.full_day') }}</div>
+                                                        <div class="font-semibold text-gray-900">{{ __('halls.' . $slot) }}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </label>
+                                        @endforeach
                                     </div>
                                 </div>
 
@@ -279,9 +295,11 @@
                                     </label>
                                     <input
                                         type="number"
+                                        name="number_of_guests"
                                         x-model="formData.number_of_guests"
                                         min="{{ $hall->capacity_min }}"
                                         max="{{ $hall->capacity_max }}"
+                                        value="{{ old('number_of_guests', $hall->capacity_min) }}"
                                         required
                                         class="w-full px-4 text-base transition border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                                     <p class="flex items-center gap-2 mt-2 text-sm text-gray-600">
@@ -298,15 +316,13 @@
                                         {{ __('halls.event_type') }}
                                     </label>
                                     <select
+                                        name="event_type"
                                         x-model="formData.event_type"
                                         class="w-full px-4 text-base transition border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                                         <option value="">{{ __('halls.select_event_type') }}</option>
-                                        <option value="wedding">{{ __('halls.wedding') }}</option>
-                                        <option value="corporate">{{ __('halls.corporate') }}</option>
-                                        <option value="birthday">{{ __('halls.birthday') }}</option>
-                                        <option value="conference">{{ __('halls.conference') }}</option>
-                                        <option value="graduation">{{ __('halls.graduation') }}</option>
-                                        <option value="other">{{ __('halls.other') }}</option>
+                                        @foreach(['wedding', 'corporate', 'birthday', 'conference', 'graduation', 'other'] as $type)
+                                            <option value="{{ $type }}" {{ old('event_type') == $type ? 'selected' : '' }}>{{ __('halls.' . $type) }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
@@ -334,7 +350,9 @@
                                         </label>
                                         <input
                                             type="text"
+                                            name="customer_name"
                                             x-model="formData.customer_name"
+                                            value="{{ old('customer_name', Auth::user()->name ?? '') }}"
                                             required
                                             class="w-full px-4 text-base transition border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                             placeholder="{{ __('halls.full_name') }}">
@@ -347,7 +365,9 @@
                                         </label>
                                         <input
                                             type="tel"
+                                            name="customer_phone"
                                             x-model="formData.customer_phone"
+                                            value="{{ old('customer_phone', Auth::user()->phone ?? '') }}"
                                             required
                                             class="w-full px-4 text-base transition border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                             placeholder="+968 XXXX XXXX">
@@ -361,7 +381,9 @@
                                     </label>
                                     <input
                                         type="email"
+                                        name="customer_email"
                                         x-model="formData.customer_email"
+                                        value="{{ old('customer_email', Auth::user()->email ?? '') }}"
                                         required
                                         class="w-full px-4 text-base transition border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                         placeholder="example@email.com">
@@ -373,10 +395,11 @@
                                         {{ __('halls.additional_notes') }}
                                     </label>
                                     <textarea
+                                        name="customer_notes"
                                         x-model="formData.customer_notes"
                                         rows="4"
                                         class="w-full px-4 py-3 text-base transition border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                        placeholder="{{ __('halls.special_requests') }}"></textarea>
+                                        placeholder="{{ __('halls.special_requests') }}">{{ old('customer_notes') }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -396,8 +419,10 @@
                                 <label class="flex items-start gap-4 p-4 transition border-2 border-gray-200 cursor-pointer rounded-xl hover:border-primary-300">
                                     <input
                                         type="checkbox"
+                                        name="services[]"
                                         value="{{ $service->id }}"
                                         @change="toggleService({{ $service->id }}, {{ $service->price }})"
+                                        {{ in_array($service->id, old('services', [])) ? 'checked' : '' }}
                                         class="w-5 h-5 mt-1 border-gray-300 rounded text-primary-600 focus:ring-primary-500">
                                     <div class="flex-1">
                                         <div class="font-semibold text-gray-900">
@@ -528,15 +553,17 @@
                         </button>
 
                         <button
-                            type="submit"
+                            type="button"
+                            @click="submitForm"
                             x-show="currentStep === 2"
-                            :disabled="!agreeToTerms || !isAvailable"
-                            :class="(agreeToTerms && isAvailable) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'"
+                            :disabled="submitting || !agreeToTerms || !isAvailable"
+                            :class="(!submitting && agreeToTerms && isAvailable) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'"
                             class="flex items-center justify-center flex-1 gap-2 px-6 font-bold text-white transition shadow-lg h-14 rounded-xl">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div x-show="submitting" class="spinner"></div>
+                            <svg x-show="!submitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            {{ __('halls.confirm_booking') }}
+                            <span x-text="submitting ? '{{ __('halls.processing') }}...' : '{{ __('halls.confirm_booking') }}'"></span>
                         </button>
                     </div>
                 </div>
@@ -597,20 +624,21 @@
         function bookingWizard() {
             return {
                 currentStep: 0,
+                submitting: false,
                 steps: @json([
                     __('halls.booking_details'),
                     __('halls.your_information'),
                     __('halls.review_confirm')
                 ]),
                 formData: {
-                    booking_date: '',
-                    time_slot: '',
-                    number_of_guests: {{ $hall->capacity_min }},
-                    event_type: '',
+                    booking_date: '{{ old("booking_date") }}',
+                    time_slot: '{{ old("time_slot") }}',
+                    number_of_guests: {{ old('number_of_guests', $hall->capacity_min) }},
+                    event_type: '{{ old("event_type") }}',
                     customer_name: '{{ old("customer_name", Auth::user()->name ?? "") }}',
                     customer_email: '{{ old("customer_email", Auth::user()->email ?? "") }}',
                     customer_phone: '{{ old("customer_phone", Auth::user()->phone ?? "") }}',
-                    customer_notes: '',
+                    customer_notes: '{{ old("customer_notes") }}',
                 },
                 selectedServices: [],
                 servicesTotal: 0,
@@ -621,6 +649,14 @@
                 availabilityChecking: false,
                 agreeToTerms: false,
                 minDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+
+                init() {
+                    console.log('Booking wizard initialized');
+                    // Pre-check availability if date and time_slot are set from old input
+                    if (this.formData.booking_date && this.formData.time_slot) {
+                        this.checkAvailability();
+                    }
+                },
 
                 async checkAvailability() {
                     if (!this.formData.booking_date || !this.formData.time_slot) {
@@ -636,7 +672,8 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
                             },
                             body: JSON.stringify({
                                 hall_id: {{ $hall->id }},
@@ -648,9 +685,12 @@
                         const data = await response.json();
                         this.isAvailable = data.available;
                         this.availabilityMessage = data.message;
+
+                        console.log('Availability:', data);
                     } catch (error) {
-                        console.error('Error:', error);
+                        console.error('Availability check error:', error);
                         this.availabilityMessage = '{{ __("halls.checking_availability") }}';
+                        this.isAvailable = false;
                     } finally {
                         this.availabilityChecking = false;
                     }
@@ -723,44 +763,27 @@
                     return labels[type] || '-';
                 },
 
-                submitBooking() {
-                    if (!this.agreeToTerms || !this.isAvailable) {
+                submitForm() {
+                    if (this.submitting) {
+                        console.log('Already submitting...');
+                        return;
+                    }
+
+                    if (!this.agreeToTerms) {
                         alert('{{ __("halls.terms_agree") }}');
                         return;
                     }
 
-                    // Create form and submit
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route("customer.booking.store", $hall->slug) }}';
+                    if (!this.isAvailable) {
+                        alert('{{ __("halls.date_not_available") }}');
+                        return;
+                    }
 
-                    // Add CSRF token
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = document.querySelector('meta[name="csrf-token"]').content;
-                    form.appendChild(csrfInput);
+                    console.log('Submitting form...');
+                    this.submitting = true;
 
-                    // Add form data
-                    Object.keys(this.formData).forEach(key => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = this.formData[key];
-                        form.appendChild(input);
-                    });
-
-                    // Add selected services
-                    this.selectedServices.forEach(serviceId => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'services[]';
-                        input.value = serviceId;
-                        form.appendChild(input);
-                    });
-
-                    document.body.appendChild(form);
-                    form.submit();
+                    // Submit the actual form
+                    document.getElementById('bookingForm').submit();
                 }
             }
         }
