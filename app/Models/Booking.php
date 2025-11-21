@@ -186,4 +186,23 @@ class Booking extends Model
     {
         return $this->hasOne(Payment::class)->latestOfMany();
     }
+
+    /**
+     * Confirm the booking
+     *
+     * Changes status from pending to confirmed and sets confirmed_at timestamp.
+     *
+     * @return bool
+     */
+    public function confirm(): bool
+    {
+        if ($this->status !== 'pending') {
+            return false;
+        }
+
+        return $this->update([
+            'status' => 'confirmed',
+            'confirmed_at' => now(),
+        ]);
+    }
 }

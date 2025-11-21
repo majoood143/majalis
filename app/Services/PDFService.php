@@ -264,4 +264,38 @@ class PDFService
 
         return false;
     }
+
+    /**
+     * Generate payment receipt PDF
+     *
+     * @param \App\Models\Payment $payment
+     * @return string Filename of generated PDF
+     */
+    public function generatePaymentReceipt(\App\Models\Payment $payment): string
+    {
+        // Load relationships
+        $payment->load('booking.hall');
+
+        // Generate filename
+        $filename = 'receipt_' . $payment->payment_reference . '_' . now()->format('YmdHis') . '.pdf';
+        $directory = 'receipts';
+        $path = $directory . '/' . $filename;
+
+        // Ensure directory exists
+        if (!Storage::disk('local')->exists($directory)) {
+            Storage::disk('local')->makeDirectory($directory);
+        }
+
+        // Generate PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.payment-receipt', [
+            'payment' => $payment,
+            'booking' => $payment->booking,
+            'hall' => $payment->booking?->hall,
+        ]);
+
+        // Save PDF
+        Storage::disk('local')->put($path, $pdf->output());
+
+        return $filename;
+    }
 }

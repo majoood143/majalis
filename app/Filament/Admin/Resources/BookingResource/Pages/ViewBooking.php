@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Filament\Admin\Resources\BookingResource;
@@ -8,30 +10,72 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 
+/**
+ * ViewBooking Page
+ *
+ * Displays detailed information about a booking with actions to manage booking lifecycle.
+ * Supports status transitions: pending -> confirmed -> completed or cancelled.
+ *
+ * @package App\Filament\Admin\Resources\BookingResource\Pages
+ */
 class ViewBooking extends ViewRecord
 {
+    /**
+     * The resource associated with this page
+     *
+     * @var string
+     */
     protected static string $resource = BookingResource::class;
 
+    /**
+     * Get the header actions available on this page
+     *
+     * Provides actions for:
+     * - Editing booking details
+     * - Confirming pending bookings
+     * - Cancelling bookings (with reason)
+     * - Completing confirmed bookings
+     * - Downloading/generating invoices
+     * - Sending reminders to customers
+     *
+     * @return array<Actions\Action>
+     */
     protected function getHeaderActions(): array
     {
         return [
+            // Standard edit action
             Actions\EditAction::make(),
 
+            /**
+             * Confirm Booking Action
+             *
+             * Transitions booking from 'pending' to 'confirmed' status.
+             * Only visible for pending bookings.
+             */
             Actions\Action::make('confirm')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
                 ->action(function () {
+                    // Call the confirm method on the booking model
                     $this->record->confirm();
                     $this->record->refresh();
 
+                    // Send success notification
                     \Filament\Notifications\Notification::make()
                         ->title('Booking confirmed successfully')
                         ->success()
                         ->send();
                 })
-                ->visible(fn() => $this->record->status->value === 'pending'),
+                // FIX: Removed ->value since status is already a string
+                ->visible(fn() => $this->record->status === 'pending'),
 
+            /**
+             * Cancel Booking Action
+             *
+             * Allows cancellation of pending or confirmed bookings with a reason.
+             * Opens a form modal to collect cancellation reason.
+             */
             Actions\Action::make('cancel')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
@@ -43,95 +87,110 @@ class ViewBooking extends ViewRecord
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
+                    // Call the cancel method with the provided reason
                     $this->record->cancel($data['reason']);
                     $this->record->refresh();
 
+                    // Send success notification
                     \Filament\Notifications\Notification::make()
                         ->title('Booking cancelled successfully')
                         ->success()
                         ->send();
                 })
-                ->visible(fn() => in_array($this->record->status->value, ['pending', 'confirmed'])),
+                // FIX: Removed ->value since status is already a string
+                ->visible(fn() => in_array($this->record->status, ['pending', 'confirmed'])),
 
+            /**
+             * Complete Booking Action
+             *
+             * Marks a confirmed booking as completed after the event date has passed.
+             * Only visible for confirmed bookings where the booking date is in the past.
+             */
             Actions\Action::make('complete')
                 ->icon('heroicon-o-check-badge')
                 ->color('info')
                 ->requiresConfirmation()
                 ->action(function () {
+                    // Call the complete method on the booking model
                     $this->record->complete();
                     $this->record->refresh();
 
+                    // Send success notification
                     \Filament\Notifications\Notification::make()
                         ->title('Booking completed successfully')
                         ->success()
                         ->send();
                 })
-                ->visible(fn() => $this->record->status->value === 'confirmed' &&
+                // FIX: Removed ->value since status is already a string
+                ->visible(fn() => $this->record->status === 'confirmed' &&
                     $this->record->booking_date->isPast()),
 
+            /**
+             * Download Invoice Action
+             *
+             * Downloads the previously generated invoice PDF.
+             * Only visible when an invoice exists.
+             */
             Actions\Action::make('downloadInvoice')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('primary')
                 ->action(function () {
+                    // Check if invoice exists
                     if ($this->record->invoice_path) {
-                    
-                        return response()->download(storage_path('app/private/' . $this->record->invoice_path));
-                    }else{
-                      
-
-                    \Filament\Notifications\Notification::make()
-                        ->title('Invoice not available')
-                        ->warning()
-                        ->send();
+                        // Return download response from private storage
+                        return response()->download(
+                            storage_path('app/private/' . $this->record->invoice_path)
+                        );
+                    } else {
+                        // Show warning if invoice not available
+                        \Filament\Notifications\Notification::make()
+                            ->title('Invoice not available')
+                            ->warning()
+                            ->send();
                     }
                 })
                 ->visible(fn() => !empty($this->record->invoice_path)),
 
-            // Actions\Action::make('generateInvoice')
-            //     ->icon('heroicon-o-document-plus')
-            //     ->color('gray')
-            //     ->action(function () {
-            //         $pdfService = app(\App\Services\PDFService::class);
-            //         $pdfService->generateBookingInvoice($this->record);
-            //         $this->record->refresh();
-
-            //         \Filament\Notifications\Notification::make()
-            //             ->title('Invoice generated successfully')
-            //             ->success()
-            //             ->send();
-            //     })
-            //     ->visible(fn() => empty($this->record->invoice_path) &&
-            //         $this->record->status->value === 'confirmed'),
-
+            /**
+             * Generate Invoice Action
+             *
+             * Creates a new PDF invoice for the booking using PDFService.
+             * Only visible for confirmed bookings without an existing invoice.
+             * Includes comprehensive error handling and logging.
+             */
             Actions\Action::make('generateInvoice')
                 ->icon('heroicon-o-document-plus')
                 ->color('gray')
                 ->action(function () {
                     try {
+                        // Get the PDF service from container
                         $pdfService = app(\App\Services\PDFService::class);
 
-                        // Generate invoice
+                        // Generate the invoice and get filename
                         $filename = $pdfService->generateBookingInvoice($this->record);
 
-                        // Refresh to get updated data
+                        // Refresh the record to get updated invoice_path
                         $this->record->refresh();
 
-                        // Verify it worked
+                        // Verify the invoice was saved properly
                         if (empty($this->record->invoice_path)) {
                             throw new \Exception('Invoice was not saved properly');
                         }
 
+                        // Send success notification with filename
                         \Filament\Notifications\Notification::make()
                             ->title('Invoice generated successfully')
                             ->body('Invoice saved as: ' . $filename)
                             ->success()
                             ->send();
                     } catch (\Exception $e) {
+                        // Log the error for debugging
                         \Illuminate\Support\Facades\Log::error('Invoice generation failed in action', [
                             'booking_id' => $this->record->id,
                             'error' => $e->getMessage()
                         ]);
 
+                        // Send error notification to user
                         \Filament\Notifications\Notification::make()
                             ->title('Invoice generation failed')
                             ->body($e->getMessage())
@@ -139,31 +198,64 @@ class ViewBooking extends ViewRecord
                             ->send();
                     }
                 })
+                // FIX: Removed ->value since status is already a string
                 ->visible(fn() => empty($this->record->invoice_path) &&
-                    $this->record->status->value === 'confirmed'),
+                    $this->record->status === 'confirmed'),
 
+            /**
+             * Send Reminder Action
+             *
+             * Sends a booking reminder notification to the customer.
+             * Only visible for confirmed future bookings.
+             */
             Actions\Action::make('sendReminder')
                 ->icon('heroicon-o-bell')
                 ->color('warning')
                 ->requiresConfirmation()
                 ->action(function () {
+                    // Get the notification service from container
                     $notificationService = app(\App\Services\NotificationService::class);
+
+                    // Send the reminder notification
                     $notificationService->sendBookingReminderNotification($this->record);
 
+                    // Send success notification
                     \Filament\Notifications\Notification::make()
                         ->title('Reminder sent successfully')
                         ->success()
                         ->send();
                 })
-                ->visible(fn() => $this->record->status->value === 'confirmed' &&
+                // FIX: Removed ->value since status is already a string
+                ->visible(fn() => $this->record->status === 'confirmed' &&
                     $this->record->booking_date->isFuture()),
         ];
     }
 
+    /**
+     * Build the infolist for displaying booking details
+     *
+     * Organizes booking information into logical sections:
+     * - Booking status and identification
+     * - Hall and event details
+     * - Customer information
+     * - Pricing breakdown with commission
+     * - Extra services list
+     * - Timestamps and audit trail
+     * - Cancellation details (if applicable)
+     * - Admin notes
+     *
+     * @param Infolist $infolist
+     * @return Infolist
+     */
     public function infolist(Infolist $infolist): Infolist
     {
         return $infolist
             ->schema([
+                /**
+                 * Booking Information Section
+                 *
+                 * Displays the booking number, status badges, and payment status.
+                 */
                 Infolists\Components\Section::make('Booking Information')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -182,6 +274,11 @@ class ViewBooking extends ViewRecord
                             ]),
                     ]),
 
+                /**
+                 * Hall & Date Information Section
+                 *
+                 * Shows the booked hall, location, date, time slot, and event details.
+                 */
                 Infolists\Components\Section::make('Hall & Date Information')
                     ->schema([
                         Infolists\Components\Grid::make(2)
@@ -192,7 +289,11 @@ class ViewBooking extends ViewRecord
 
                                 Infolists\Components\TextEntry::make('hall.city.name')
                                     ->label('Location')
-                                    ->formatStateUsing(fn($record) => $record->hall->city->name . ', ' . $record->hall->city->region->name),
+                                    ->formatStateUsing(
+                                        fn($record) =>
+                                        $record->hall->city->name . ', ' .
+                                            $record->hall->city->region->name
+                                    ),
 
                                 Infolists\Components\TextEntry::make('booking_date')
                                     ->date('d M Y')
@@ -200,17 +301,28 @@ class ViewBooking extends ViewRecord
 
                                 Infolists\Components\TextEntry::make('time_slot')
                                     ->badge()
-                                    ->formatStateUsing(fn(string $state): string => ucfirst(str_replace('_', ' ', $state))),
+                                    ->formatStateUsing(
+                                        fn(string $state): string =>
+                                        ucfirst(str_replace('_', ' ', $state))
+                                    ),
 
                                 Infolists\Components\TextEntry::make('number_of_guests')
                                     ->suffix(' guests')
                                     ->icon('heroicon-o-users'),
 
                                 Infolists\Components\TextEntry::make('event_type')
-                                    ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : '-'),
+                                    ->formatStateUsing(
+                                        fn(?string $state): string =>
+                                        $state ? ucfirst($state) : '-'
+                                    ),
                             ]),
                     ])->columns(2),
 
+                /**
+                 * Customer Details Section
+                 *
+                 * Displays customer contact information and notes.
+                 */
                 Infolists\Components\Section::make('Customer Details')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -232,6 +344,17 @@ class ViewBooking extends ViewRecord
                             ->placeholder('No notes provided'),
                     ]),
 
+                /**
+                 * Pricing Breakdown Section
+                 *
+                 * Shows detailed pricing including:
+                 * - Base hall price
+                 * - Services price
+                 * - Subtotal
+                 * - Platform commission
+                 * - Total amount
+                 * - Owner payout (after commission)
+                 */
                 Infolists\Components\Section::make('Pricing Breakdown')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -266,6 +389,12 @@ class ViewBooking extends ViewRecord
                             ]),
                     ])->columns(3),
 
+                /**
+                 * Extra Services Section
+                 *
+                 * Lists all additional services booked with quantities and prices.
+                 * Only visible if the booking has extra services.
+                 */
                 Infolists\Components\Section::make('Extra Services')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('extraServices')
@@ -286,6 +415,17 @@ class ViewBooking extends ViewRecord
                     ])
                     ->visible(fn() => $this->record->extraServices->count() > 0),
 
+                /**
+                 * Timestamps Section
+                 *
+                 * Shows audit trail of when actions occurred:
+                 * - Created at
+                 * - Confirmed at
+                 * - Completed at
+                 * - Cancelled at (if applicable)
+                 *
+                 * Collapsed by default to reduce clutter.
+                 */
                 Infolists\Components\Section::make('Timestamps')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -309,6 +449,12 @@ class ViewBooking extends ViewRecord
                     ])
                     ->collapsed(),
 
+                /**
+                 * Cancellation Details Section
+                 *
+                 * Shows cancellation reason and refund amount.
+                 * Only visible for cancelled bookings.
+                 */
                 Infolists\Components\Section::make('Cancellation Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('cancellation_reason')
@@ -317,8 +463,15 @@ class ViewBooking extends ViewRecord
                         Infolists\Components\TextEntry::make('refund_amount')
                             ->money('OMR'),
                     ])
-                    ->visible(fn() => $this->record->status->value === 'cancelled'),
+                    // FIX: Removed ->value since status is already a string
+                    ->visible(fn() => $this->record->status === 'cancelled'),
 
+                /**
+                 * Admin Notes Section
+                 *
+                 * Displays internal notes for administrators.
+                 * Collapsed by default and only visible if notes exist.
+                 */
                 Infolists\Components\Section::make('Admin Notes')
                     ->schema([
                         Infolists\Components\TextEntry::make('admin_notes')

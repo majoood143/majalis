@@ -189,5 +189,8 @@ return [
     'payment_verification_pending' => 'جارٍ التحقق من الدفع...',
     'payment_cancelled' => 'تم إلغاء عملية الدفع',
     'booking_success_pending_payment' => 'تم إنشاء الحجز بنجاح! في انتظار الدفع',
-
+    'payment_gateway_error' => 'خطأ في بوابة الدفع',
+    'try_alternative_payment' => 'يرجى تجربة طريقة دفع بديلة',
+    'payment_gateway_unavailable' => 'بوابة الدفع غير متاحة حالياً',
+    'booking_confirmed_payment_pending' => 'تم تأكيد حجزك. سيتم التواصل معك قريباً لإتمام الدفع',
 ];

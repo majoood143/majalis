@@ -91,4 +91,12 @@ return [
         'visibility' => 'public',
     ],
 
+    // // Add this private disk configuration
+    // 'private' => [
+    //     'driver' => 'local',
+    //     'root' => storage_path('app/private'),
+    //     'visibility' => 'private',
+    //     'throw' => false,
+    // ],
+
 ];

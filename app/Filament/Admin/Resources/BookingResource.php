@@ -487,7 +487,7 @@ class BookingResource extends Resource
 
         return $options;
     }
-    
+
     /**
      * Get helper text for time slot field
      */

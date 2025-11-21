@@ -50,6 +50,7 @@ return [
         'secret_key' => env('THAWANI_SECRET_KEY'),
         'publishable_key' => env('THAWANI_PUBLISHABLE_KEY'),
         'base_url' => env('THAWANI_BASE_URL', 'https://uatcheckout.thawani.om/api/v1'),
+        'mock_mode' => env('PAYMENT_MOCK_MODE', false),
     ],
 
 ];

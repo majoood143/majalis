@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Ticket Stats Overview Widget
- * 
+ *
  * Displays key ticket statistics and metrics in a dashboard widget format.
  * Shows real-time data about ticket counts, response times, and performance.
- * 
+ *
  * @package App\Filament\Admin\Resources\TicketResource\Widgets
  * @version 1.0.0
  */
-class TicketStatsOverview extends BaseWidget
+class TicketStatsOverview_org extends BaseWidget
 {
     /**
      * Widget polling interval (auto-refresh every 30 seconds).
@@ -29,7 +29,7 @@ class TicketStatsOverview extends BaseWidget
 
     /**
      * Define the statistics to display.
-     * 
+     *
      * @return array
      */
     protected function getStats(): array
@@ -67,8 +67,8 @@ class TicketStatsOverview extends BaseWidget
             now()->subWeek()->endOfWeek()
         ])->count();
 
-        $weeklyChange = $lastWeekCount > 0 
-            ? (($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100 
+        $weeklyChange = $lastWeekCount > 0
+            ? (($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100
             : 0;
 
         // Build statistics array
@@ -138,7 +138,7 @@ class TicketStatsOverview extends BaseWidget
 
     /**
      * Format hours into human-readable format.
-     * 
+     *
      * @param float|null $hours
      * @return string
      */
@@ -158,20 +158,20 @@ class TicketStatsOverview extends BaseWidget
 
         $days = floor($hours / 24);
         $remainingHours = round($hours % 24);
-        
+
         return $days . 'd ' . ($remainingHours > 0 ? $remainingHours . 'h' : '');
     }
 
     /**
      * Get color for response time based on performance.
-     * 
+     *
      * @param float|null $hours
      * @return string
      */
     protected function getResponseTimeColor(?float $hours): string
     {
         if (!$hours) return 'gray';
-        
+
         // Good: < 4 hours
         // Average: 4-12 hours
         // Poor: > 12 hours
@@ -182,14 +182,14 @@ class TicketStatsOverview extends BaseWidget
 
     /**
      * Get color for resolution time based on performance.
-     * 
+     *
      * @param float|null $hours
      * @return string
      */
     protected function getResolutionTimeColor(?float $hours): string
     {
         if (!$hours) return 'gray';
-        
+
         // Good: < 24 hours
         // Average: 24-48 hours
         // Poor: > 48 hours
@@ -200,26 +200,26 @@ class TicketStatsOverview extends BaseWidget
 
     /**
      * Get chart data for the last 7 days.
-     * 
+     *
      * @param TicketStatus|null $status
      * @return array
      */
     protected function getLastSevenDaysChart(?TicketStatus $status = null): array
     {
         $data = [];
-        
+
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->startOfDay();
-            
+
             $query = Ticket::whereDate('created_at', $date);
-            
+
             if ($status) {
                 $query->where('status', $status->value);
             }
-            
+
             $data[] = $query->count();
         }
-        
+
         return $data;
     }
 }

@@ -189,4 +189,8 @@ return [
     'payment_verification_pending' => 'Payment verification pending...',
     'payment_cancelled' => 'Payment cancelled',
     'booking_success_pending_payment' => 'Booking created successfully! Payment pending',
+    'payment_gateway_error' => 'Payment gateway error',
+    'try_alternative_payment' => 'Please try an alternative payment method',
+    'payment_gateway_unavailable' => 'Payment gateway is currently unavailable',
+    'booking_confirmed_payment_pending' => 'Your booking is confirmed. You will be contacted shortly to complete payment',
 ];
