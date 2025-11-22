@@ -21,10 +21,35 @@ use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
+use App\Filament\Traits\HasTranslations;
+
 
 
 class BookingResource extends Resource
 {
+    use HasTranslations;
+
+    // ✅ Use METHOD override (not property) - avoids PHP trait conflicts
+    protected static function getTranslationNamespace(): string
+    {
+        return 'booking';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return static::trans('resource.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return static::trans('resource.plural_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return static::trans('resource.navigation_group');
+    }
+
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
@@ -32,6 +57,11 @@ class BookingResource extends Resource
     protected static ?string $navigationGroup = 'Booking Management';
 
     protected static ?int $navigationSort = 1;
+
+    // Specify the translation file namespace
+    protected static ?string $translationNamespace = 'booking';
+
+
 
     public static function form(Form $form): Form
     {
@@ -713,9 +743,11 @@ class BookingResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('booking_number')
+                ->label(static::columnLabel('booking_number'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('hall.name')
+                ->label(static::columnLabel('hall'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('customer_name')
