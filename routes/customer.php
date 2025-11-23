@@ -5,6 +5,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
 use App\Http\Controllers\Customer\HallController;
 use App\Http\Controllers\Customer\BookingController;
+use App\Http\Controllers\Customer\ProfileController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -81,3 +83,16 @@ Route::middleware(['auth'])->name('customer.')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::post('/api/check-availability', [CustomerBookingController::class, 'checkAvailability'])->name('api.check-availability');
 });
+
+// Inside the auth middleware group, replace the old profile route:
+Route::middleware(['auth'])->name('customer.')->group(function () {
+    // ... existing routes ...
+
+    // Profile Routes (replace old profile route)
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+

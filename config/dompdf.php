@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -296,6 +298,16 @@ return [
          * @var bool
          */
         'enable_html5_parser' => true,
+
+        /**
+         * Enable font subsetting for better Arabic support
+         */
+        'isFontSubsettingEnabled' => true,
+
+        /**
+         * Default font family - use DejaVu Sans for Arabic support
+         */
+        'defaultFont' => 'DejaVu Sans',
     ],
 
 ];

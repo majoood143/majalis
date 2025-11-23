@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Booking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Customer\BookingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -96,3 +97,16 @@ require __DIR__ . '/customer.php';
 //     Route::get('/cities/{region}', [HallController::class, 'getCitiesByRegion'])->name('cities-by-region');
 //     Route::get('/{slug}', [HallController::class, 'show'])->name('show');
 // });
+
+/**
+ * Customer Booking PDF Routes
+ */
+Route::prefix('customer/bookings')->name('customer.bookings.')->group(function () {
+    // Download PDF confirmation
+    Route::get('{token}/download-pdf', [BookingController::class, 'downloadConfirmation'])
+        ->name('download-confirmation');
+
+    // Preview PDF confirmation in browser
+    Route::get('{token}/preview-pdf', [BookingController::class, 'previewConfirmation'])
+        ->name('preview-confirmation');
+});
