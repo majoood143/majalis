@@ -432,7 +432,7 @@
                                             $serviceDesc = is_array($service->description) ? ($service->description[app()->getLocale()] ?? $service->description['en'] ?? '') : $service->description;
                                         @endphp
                                         @if($serviceDesc)
-                                            <div class="mt-1 text-sm text-gray-600">{{ $serviceDesc }}</div>
+                                            <div class="mt-1 text-sm text-gray-600">{!! $serviceDesc !!}</div>
                                         @endif
                                         <div class="mt-1 text-xs text-gray-500">{{ $service->unit }}</div>
                                     </div>

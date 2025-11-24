@@ -224,7 +224,7 @@
                                 ? $hall->description[app()->getLocale()] ?? ($hall->description['en'] ?? '')
                                 : $hall->description;
                         @endphp
-                        { $description }
+                        {!! $description !!}
                     </div>
                 </div>
 
@@ -282,7 +282,7 @@
                                                 : $service->description;
                                         @endphp
                                         @if ($serviceDesc)
-                                            <div class="text-sm text-gray-600">{ $serviceDesc }</div>
+                                            <div class="text-sm text-gray-600">{!! $serviceDesc !!}</div>
                                         @endif
                                     </div>
                                     <div
