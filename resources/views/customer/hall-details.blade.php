@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ is_array($hall->name) ? ($hall->name[app()->getLocale()] ?? $hall->name['en']) : $hall->name }} - Majalis</title>
+    <title>{{ is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name }} - Majalis
+    </title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -85,15 +86,18 @@
                 <!-- Back Button -->
                 <a href="{{ route('customer.halls.index') }}?lang={{ app()->getLocale() }}"
                     class="flex items-center gap-2 text-gray-700 transition hover:text-gray-900">
-                    <svg class="w-6 h-6 {{ app()->getLocale() === 'ar' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    <svg class="w-6 h-6 {{ app()->getLocale() === 'ar' ? 'rotate-180' : '' }}" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                        </path>
                     </svg>
                     <span class="hidden font-medium sm:inline">{{ __('halls.breadcrumb_halls') }}</span>
                 </a>
 
                 <!-- Logo (Desktop) -->
                 <a href="/" class="items-center hidden gap-2 md:flex">
-                    <div class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
+                    <div
+                        class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
                         <span class="text-xl font-bold text-white">م</span>
                     </div>
                     <span class="text-xl font-bold text-gray-800">Majalis</span>
@@ -103,7 +107,9 @@
                 <a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() === 'ar' ? 'en' : 'ar']) }}"
                     class="flex items-center gap-2 px-3 py-2 transition rounded-lg hover:bg-gray-100">
                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129">
+                        </path>
                     </svg>
                     <span class="text-sm font-medium text-gray-700">
                         {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}
@@ -115,34 +121,37 @@
 
     <!-- Hero Image -->
     <div class="relative h-64 overflow-hidden bg-gray-200 md:h-96">
-        @if($hall->featured_image)
-        <img
-            src="{{ asset('storage/' . $hall->featured_image) }}"
-            alt="{{ is_array($hall->name) ? ($hall->name[app()->getLocale()] ?? $hall->name['en']) : $hall->name }}"
-            class="object-cover w-full h-full">
+        @if ($hall->featured_image)
+            <img src="{{ asset('storage/' . $hall->featured_image) }}"
+                alt="{{ is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name }}"
+                class="object-cover w-full h-full">
         @else
-        <div class="flex items-center justify-center w-full h-full bg-gradient-to-br from-primary-400 to-primary-600">
-            <svg class="w-24 h-24 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-            </svg>
-        </div>
+            <div
+                class="flex items-center justify-center w-full h-full bg-gradient-to-br from-primary-400 to-primary-600">
+                <svg class="w-24 h-24 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                    </path>
+                </svg>
+            </div>
         @endif
 
         <!-- Badges Overlay -->
         <div class="absolute top-4 {{ app()->getLocale() === 'ar' ? 'left-4' : 'right-4' }} flex flex-col gap-2">
-            @if($hall->is_featured)
-            <span class="px-3 py-1.5 bg-amber-400 text-amber-900 rounded-full text-sm font-bold shadow-lg">
-                {{ __('halls.featured') }}
-            </span>
+            @if ($hall->is_featured)
+                <span class="px-3 py-1.5 bg-amber-400 text-amber-900 rounded-full text-sm font-bold shadow-lg">
+                    {{ __('halls.featured') }}
+                </span>
             @endif
-            @if($hall->average_rating > 0)
-            <span class="px-3 py-1.5 bg-white rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
-                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                {{ number_format($hall->average_rating, 1) }}
-                <span class="text-gray-600">({{ $hall->total_reviews }})</span>
-            </span>
+            @if ($hall->average_rating > 0)
+                <span class="px-3 py-1.5 bg-white rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
+                    <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    {{ number_format($hall->average_rating, 1) }}
+                    <span class="text-gray-600">({{ $hall->total_reviews }})</span>
+                </span>
             @endif
         </div>
     </div>
@@ -155,16 +164,20 @@
                 <!-- Hall Title & Location -->
                 <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
                     <h1 class="mb-3 text-2xl font-bold text-gray-900 md:text-3xl">
-                        {{ is_array($hall->name) ? ($hall->name[app()->getLocale()] ?? $hall->name['en']) : $hall->name }}
+                        {{ is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name }}
                     </h1>
 
                     <div class="flex items-center mb-4 text-gray-600">
-                        <svg class="w-5 h-5 {{ app()->getLocale() === 'ar' ? 'ml-2' : 'mr-2' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <svg class="w-5 h-5 {{ app()->getLocale() === 'ar' ? 'ml-2' : 'mr-2' }}" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                         <span>
-                            {{ is_array($hall->city->name) ? ($hall->city->name[app()->getLocale()] ?? $hall->city->name['en']) : $hall->city->name }},
+                            {{ is_array($hall->city->name) ? $hall->city->name[app()->getLocale()] ?? $hall->city->name['en'] : $hall->city->name }},
                             {{ $hall->address }}
                         </span>
                     </div>
@@ -173,7 +186,8 @@
                     <div class="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4 bg-gray-50 rounded-xl">
                         <div class="text-center">
                             <div class="mb-1 text-xs text-gray-600">{{ __('halls.capacity') }}</div>
-                            <div class="text-lg font-bold text-gray-900">{{ $hall->capacity_min }}-{{ $hall->capacity_max }}</div>
+                            <div class="text-lg font-bold text-gray-900">
+                                {{ $hall->capacity_min }}-{{ $hall->capacity_max }}</div>
                             <div class="text-xs text-gray-500">{{ __('halls.guests_count') }}</div>
                         </div>
                         <div class="text-center">
@@ -183,7 +197,8 @@
                         </div>
                         <div class="text-center">
                             <div class="mb-1 text-xs text-gray-600">{{ __('halls.price_per_day') }}</div>
-                            <div class="text-lg font-bold text-primary-600">{{ number_format($hall->price_per_slot, 3) }}</div>
+                            <div class="text-lg font-bold text-primary-600">
+                                {{ number_format($hall->price_per_slot, 3) }}</div>
                             <div class="text-xs text-gray-500">OMR</div>
                         </div>
                         <div class="text-center">
@@ -198,98 +213,119 @@
                 <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
                     <h3 class="flex items-center gap-2 mb-4 text-xl font-bold text-gray-900">
                         <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         {{ __('halls.about_hall') }}
                     </h3>
                     <div class="leading-relaxed prose text-gray-700 max-w-none">
                         @php
-                        $description = is_array($hall->description)
-                        ? ($hall->description[app()->getLocale()] ?? $hall->description['en'] ?? '')
-                        : $hall->description;
+                            $description = is_array($hall->description)
+                                ? $hall->description[app()->getLocale()] ?? ($hall->description['en'] ?? '')
+                                : $hall->description;
                         @endphp
-                        {!! $description !!}
+                        { $description }
                     </div>
                 </div>
 
                 <!-- Features & Amenities -->
-                @if($features && count($features) > 0)
-                <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-                    <h3 class="flex items-center gap-2 mb-4 text-xl font-bold text-gray-900">
-                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {{ __('halls.features_amenities') }}
-                    </h3>
-                    <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-                        @foreach($features as $feature)
-                        <div class="flex items-center gap-3 p-3 border border-green-100 bg-green-50 rounded-xl">
-                            {{-- <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if ($features && count($features) > 0)
+                    <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
+                        <h3 class="flex items-center gap-2 mb-4 text-xl font-bold text-gray-900">
+                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ __('halls.features_amenities') }}
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+                            @foreach ($features as $feature)
+                                <div
+                                    class="flex items-center gap-3 p-3 border border-green-100 bg-green-50 rounded-xl">
+                                    {{-- <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg> --}}
-                            <x-dynamic-component :component="$feature->icon" class="w-5 h-5 text-green-500" />
-                            <span class="text-sm font-medium text-gray-700">
-                                {{ is_array($feature->name) ? ($feature->name[app()->getLocale()] ?? $feature->name['en']) : $feature->name }}
-                            </span>
+                                    <x-dynamic-component :component="$feature->icon" class="w-5 h-5 text-green-500" />
+                                    <span class="text-sm font-medium text-gray-700">
+                                        {{ is_array($feature->name) ? $feature->name[app()->getLocale()] ?? $feature->name['en'] : $feature->name }}
+                                    </span>
+                                </div>
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
-                </div>
                 @endif
 
                 <!-- Extra Services -->
-                @if($hall->activeExtraServices->count() > 0)
-                <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-                    <h3 class="flex items-center gap-2 mb-4 text-xl font-bold text-gray-900">
-                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        {{ __('halls.available_services') }}
-                    </h3>
-                    <div class="space-y-3">
-                        @foreach($hall->activeExtraServices as $service)
-                        <div class="flex items-center justify-between p-4 border border-blue-100 bg-blue-50 rounded-xl">
-                            <div class="flex-1">
-                                <div class="mb-1 font-semibold text-gray-900">
-                                    {{ is_array($service->name) ? ($service->name[app()->getLocale()] ?? $service->name['en']) : $service->name }}
+                @if ($hall->activeExtraServices->count() > 0)
+                    <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
+                        <h3 class="flex items-center gap-2 mb-4 text-xl font-bold text-gray-900">
+                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            {{ __('halls.available_services') }}
+                        </h3>
+                        <div class="space-y-3">
+                            @foreach ($hall->activeExtraServices as $service)
+                                <div
+                                    class="flex items-center justify-between p-4 border border-blue-100 bg-blue-50 rounded-xl">
+                                    <div class="flex-1">
+                                        <div class="mb-1 font-semibold text-gray-900">
+                                            {{ is_array($service->name) ? $service->name[app()->getLocale()] ?? $service->name['en'] : $service->name }}
+                                        </div>
+                                        @php
+                                            $serviceDesc = is_array($service->description)
+                                                ? $service->description[app()->getLocale()] ??
+                                                    ($service->description['en'] ?? '')
+                                                : $service->description;
+                                        @endphp
+                                        @if ($serviceDesc)
+                                            <div class="text-sm text-gray-600">{ $serviceDesc }</div>
+                                        @endif
+                                    </div>
+                                    <div
+                                        class="text-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }} {{ app()->getLocale() === 'ar' ? 'mr-4' : 'ml-4' }}">
+                                        <div class="font-bold text-primary-600 whitespace-nowrap">
+                                            {{ number_format($service->price, 3) }} OMR</div>
+                                        <div class="text-xs text-gray-500">{{ $service->unit }}</div>
+                                    </div>
                                 </div>
-                                @php
-                                $serviceDesc = is_array($service->description)
-                                ? ($service->description[app()->getLocale()] ?? $service->description['en'] ?? '')
-                                : $service->description;
-                                @endphp
-                                @if($serviceDesc)
-                                <div class="text-sm text-gray-600">{!! $serviceDesc !!}</div>
-                                @endif
-                            </div>
-                            <div class="text-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }} {{ app()->getLocale() === 'ar' ? 'mr-4' : 'ml-4' }}">
-                                <div class="font-bold text-primary-600 whitespace-nowrap">{{ number_format($service->price, 3) }} OMR</div>
-                                <div class="text-xs text-gray-500">{{ $service->unit }}</div>
-                            </div>
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
-                </div>
                 @endif
 
                 <!-- Contact Owner (Mobile - in content) -->
                 <div class="p-6 bg-white border border-gray-200 shadow-sm lg:hidden rounded-2xl">
                     <h4 class="flex items-center gap-2 mb-4 text-lg font-bold">
-                        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                         {{ __('halls.contact_owner') }}
                     </h4>
                     <div class="space-y-3">
-                        <a href="tel:{{ $hall->owner->phone ?? '' }}" class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        <a href="tel:{{ $hall->owner->phone ?? '' }}"
+                            class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                </path>
                             </svg>
-                            <span class="font-medium text-gray-700">{{ $hall->owner->phone ?? __('halls.not_available') }}</span>
+                            <span
+                                class="font-medium text-gray-700">{{ $hall->owner->phone ?? __('halls.not_available') }}</span>
                         </a>
-                        <a href="mailto:{{ $hall->owner->email }}" class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        <a href="mailto:{{ $hall->owner->email }}"
+                            class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
                             </svg>
                             <span class="font-medium text-gray-700 truncate">{{ $hall->owner->email }}</span>
                         </a>
@@ -310,34 +346,42 @@
 
                     <!-- Book Button -->
                     @auth
-                    <a href="{{ route('customer.book', $hall->slug) }}"
-                        class="flex items-center justify-center block w-full gap-2 mb-6 font-bold text-center text-white transition shadow-lg h-14 bg-primary-600 rounded-xl hover:bg-primary-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        {{ __('halls.book_now') }}
-                    </a>
+                        <a href="{{ route('customer.book', $hall->slug) }}"
+                            class="flex items-center justify-center block w-full gap-2 mb-6 font-bold text-center text-white transition shadow-lg h-14 bg-primary-600 rounded-xl hover:bg-primary-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            {{ __('halls.book_now') }}
+                        </a>
                     @else
-                    <a href="{{ route('filament.admin.auth.login') }}?lang={{ app()->getLocale() }}"
-                        class="flex items-center justify-center block w-full gap-2 mb-6 font-bold text-center text-white transition shadow-lg h-14 bg-primary-600 rounded-xl hover:bg-primary-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                        </svg>
-                        {{ __('halls.login_to_book') }}
-                    </a>
+                        <a href="{{ route('login') }}?lang={{ app()->getLocale() }}"
+                            class="flex items-center justify-center block w-full gap-2 mb-6 font-bold text-center text-white transition shadow-lg h-14 bg-primary-600 rounded-xl hover:bg-primary-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                                </path>
+                            </svg>
+                            {{ __('halls.login_to_book') }}
+                        </a>
                     @endauth
 
                     <!-- Benefits -->
                     <div class="mb-6 space-y-3">
                         <div class="flex items-center gap-3">
-                            <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span class="text-sm text-gray-700">{{ __('halls.instant_confirmation') }}</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span class="text-sm text-gray-700">{{ __('halls.secure_payment') }}</span>
                         </div>
@@ -347,17 +391,27 @@
                     <div class="pt-6 border-t border-gray-200">
                         <h4 class="mb-4 text-lg font-bold">{{ __('halls.contact_owner') }}</h4>
                         <div class="space-y-3">
-                            <a href="tel:{{ $hall->owner->phone ?? '' }}" class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            <a href="tel:{{ $hall->owner->phone ?? '' }}"
+                                class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                    </path>
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">{{ $hall->owner->phone ?? __('halls.not_available') }}</span>
+                                <span
+                                    class="text-sm font-medium text-gray-700">{{ $hall->owner->phone ?? __('halls.not_available') }}</span>
                             </a>
-                            <a href="mailto:{{ $hall->owner->email }}" class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            <a href="mailto:{{ $hall->owner->email }}"
+                                class="flex items-center gap-3 p-3 transition bg-gray-50 rounded-xl hover:bg-gray-100">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                    </path>
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700 truncate">{{ $hall->owner->email }}</span>
+                                <span
+                                    class="text-sm font-medium text-gray-700 truncate">{{ $hall->owner->email }}</span>
                             </a>
                         </div>
                     </div>
@@ -366,37 +420,40 @@
         </div>
 
         <!-- Similar Halls -->
-        @if($similarHalls->count() > 0)
-        <div class="mt-12">
-            <h2 class="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">{{ __('halls.similar_halls') }}</h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
-                @foreach($similarHalls as $similar)
-                <a href="{{ route('customer.halls.show', $similar->slug) }}?lang={{ app()->getLocale() }}" class="block overflow-hidden transition bg-white border border-gray-200 shadow-sm hall-card rounded-2xl hover:shadow-xl">
-                    <div class="h-48 overflow-hidden bg-gray-200">
-                        @if($similar->featured_image)
-                        <img src="{{ asset('storage/' . $similar->featured_image) }}"
-                            alt="{{ is_array($similar->name) ? ($similar->name[app()->getLocale()] ?? $similar->name['en']) : $similar->name }}"
-                            class="object-cover w-full h-full">
-                        @else
-                        <div class="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200"></div>
-                        @endif
-                    </div>
-                    <div class="p-4">
-                        <h3 class="mb-2 font-bold text-gray-900 line-clamp-1">
-                            {{ is_array($similar->name) ? ($similar->name[app()->getLocale()] ?? $similar->name['en']) : $similar->name }}
-                        </h3>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-xl font-bold text-primary-600">{{ number_format($similar->price_per_slot, 3) }}</span>
-                                <span class="text-sm text-gray-600"> OMR</span>
+        @if ($similarHalls->count() > 0)
+            <div class="mt-12">
+                <h2 class="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">{{ __('halls.similar_halls') }}</h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+                    @foreach ($similarHalls as $similar)
+                        <a href="{{ route('customer.halls.show', $similar->slug) }}?lang={{ app()->getLocale() }}"
+                            class="block overflow-hidden transition bg-white border border-gray-200 shadow-sm hall-card rounded-2xl hover:shadow-xl">
+                            <div class="h-48 overflow-hidden bg-gray-200">
+                                @if ($similar->featured_image)
+                                    <img src="{{ asset('storage/' . $similar->featured_image) }}"
+                                        alt="{{ is_array($similar->name) ? $similar->name[app()->getLocale()] ?? $similar->name['en'] : $similar->name }}"
+                                        class="object-cover w-full h-full">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200"></div>
+                                @endif
                             </div>
-                            <span class="text-sm font-medium text-primary-600">{{ __('halls.view_details') }} →</span>
-                        </div>
-                    </div>
-                </a>
-                @endforeach
+                            <div class="p-4">
+                                <h3 class="mb-2 font-bold text-gray-900 line-clamp-1">
+                                    {{ is_array($similar->name) ? $similar->name[app()->getLocale()] ?? $similar->name['en'] : $similar->name }}
+                                </h3>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span
+                                            class="text-xl font-bold text-primary-600">{{ number_format($similar->price_per_slot, 3) }}</span>
+                                        <span class="text-sm text-gray-600"> OMR</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-primary-600">{{ __('halls.view_details') }}
+                                        →</span>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
             </div>
-        </div>
         @endif
     </div>
 
@@ -411,18 +468,20 @@
                     </div>
                 </div>
                 @auth
-                <a href="{{ route('customer.book', $hall->slug) }}"
-                    class="flex items-center justify-center flex-1 h-12 max-w-xs gap-2 font-bold text-center text-white transition shadow-lg bg-primary-600 rounded-xl hover:bg-primary-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    {{ __('halls.book_now') }}
-                </a>
+                    <a href="{{ route('customer.book', $hall->slug) }}"
+                        class="flex items-center justify-center flex-1 h-12 max-w-xs gap-2 font-bold text-center text-white transition shadow-lg bg-primary-600 rounded-xl hover:bg-primary-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        {{ __('halls.book_now') }}
+                    </a>
                 @else
-                <a href="{{ route('filament.admin.auth.login') }}?lang={{ app()->getLocale() }}"
-                    class="flex items-center justify-center flex-1 h-12 max-w-xs gap-2 font-bold text-center text-white transition shadow-lg bg-primary-600 rounded-xl hover:bg-primary-700">
-                    {{ __('halls.login_to_book') }}
-                </a>
+                    <a href="{{ route('filament.admin.auth.login') }}?lang={{ app()->getLocale() }}"
+                        class="flex items-center justify-center flex-1 h-12 max-w-xs gap-2 font-bold text-center text-white transition shadow-lg bg-primary-600 rounded-xl hover:bg-primary-700">
+                        {{ __('halls.login_to_book') }}
+                    </a>
                 @endauth
             </div>
         </div>

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Booking Confirmation - {{ $booking->booking_number }}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ __('halls.booking_confirmation') }} - {{ $booking->booking_number }}</title>
     <style>
         @page {
             margin: 0;
@@ -17,10 +19,12 @@
         }
 
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'DejaVu Sans', 'Arial Unicode MS', sans-serif;
             font-size: 11pt;
             color: #333;
             line-height: 1.5;
+            direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
 
         .container {
@@ -208,11 +212,25 @@
         }
 
         /* Utilities */
-        .mb-10 { margin-bottom: 10px; }
-        .mb-20 { margin-bottom: 20px; }
-        .mt-20 { margin-top: 20px; }
-        .bold { font-weight: bold; }
-        .text-center { text-align: center; }
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .text-center {
+            text-align: center;
+        }
 
         .status-badge {
             display: inline-block;
@@ -238,6 +256,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
 
@@ -258,14 +277,19 @@
                 <div class="info-cell">
                     <div class="info-label">{{ __('halls.check_in') }}</div>
                     <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d') }}</div>
-                    <div style="font-size: 9pt; color: #666;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('F') }}</div>
-                    <div style="font-size: 9pt; color: #666;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('l') }}</div>
+                    <div style="font-size: 9pt; color: #666;">
+                        {{ \Carbon\Carbon::parse($booking->booking_date)->format('F') }}</div>
+                    <div style="font-size: 9pt; color: #666;">
+                        {{ \Carbon\Carbon::parse($booking->booking_date)->format('l') }}</div>
                 </div>
                 <div class="info-cell">
                     <div class="info-label">{{ __('halls.check_out') }}</div>
-                    <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('d') }}</div>
-                    <div style="font-size: 9pt; color: #666;">{{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('F') }}</div>
-                    <div style="font-size: 9pt; color: #666;">{{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('l') }}</div>
+                    <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('d') }}
+                    </div>
+                    <div style="font-size: 9pt; color: #666;">
+                        {{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('F') }}</div>
+                    <div style="font-size: 9pt; color: #666;">
+                        {{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('l') }}</div>
                 </div>
                 <div class="info-cell">
                     <div class="info-label">{{ __('halls.time_slot') }}</div>
@@ -280,37 +304,41 @@
 
         <!-- Hall Details -->
         <div class="hall-section">
-            @if($booking->hall->featured_image)
-            <img src="{{ public_path('storage/' . $booking->hall->featured_image) }}" class="hall-image" alt="{{ is_array($booking->hall->name) ? ($booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en']) : $booking->hall->name }}">
+            @if ($booking->hall->featured_image)
+                <img src="{{ public_path('storage/' . $booking->hall->featured_image) }}" class="hall-image"
+                    alt="{{ is_array($booking->hall->name) ? $booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] : $booking->hall->name }}">
             @endif
 
             <div class="hall-name">
-                {{ is_array($booking->hall->name) ? ($booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en']) : $booking->hall->name }}
+                {{ is_array($booking->hall->name) ? $booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] : $booking->hall->name }}
             </div>
             <div class="hall-address">
-                📍 {{ $booking->hall->address }},
-                {{ is_array($booking->hall->city->name) ? ($booking->hall->city->name[app()->getLocale()] ?? $booking->hall->city->name['en']) : $booking->hall->city->name }},
-                {{ is_array($booking->hall->city->region->name) ? ($booking->hall->city->region->name[app()->getLocale()] ?? $booking->hall->city->region->name['en']) : $booking->hall->city->region->name }}
+                {{ $booking->hall->address }},
+                {{ is_array($booking->hall->city->name) ? $booking->hall->city->name[app()->getLocale()] ?? $booking->hall->city->name['en'] : $booking->hall->city->name }},
+                {{ is_array($booking->hall->city->region->name) ? $booking->hall->city->region->name[app()->getLocale()] ?? $booking->hall->city->region->name['en'] : $booking->hall->city->region->name }}
             </div>
 
-            @if($booking->hall->phone)
-            <div style="margin-bottom: 5px;">📞 {{ $booking->hall->phone }}</div>
+            @if ($booking->hall->phone)
+                <div style="margin-bottom: 5px;">{{ __('halls.phone') }}: {{ $booking->hall->phone }}</div>
             @endif
 
-            @if($booking->hall->latitude && $booking->hall->longitude)
-            <div>🗺️ GPS: {{ number_format($booking->hall->latitude, 6) }}, {{ number_format($booking->hall->longitude, 6) }}</div>
+            @if ($booking->hall->latitude && $booking->hall->longitude)
+                <div>GPS: {{ number_format($booking->hall->latitude, 6) }},
+                    {{ number_format($booking->hall->longitude, 6) }}</div>
             @endif
         </div>
 
         <!-- Customer Information -->
         <div class="mb-20">
-            <h3 style="font-size: 14pt; color: #0369a1; margin-bottom: 10px;">{{ __('halls.customer_information') }}</h3>
+            <h3 style="font-size: 14pt; color: #0369a1; margin-bottom: 10px;">{{ __('halls.customer_information') }}
+            </h3>
             <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
                 <div class="mb-10"><strong>{{ __('halls.name') }}:</strong> {{ $booking->customer_name }}</div>
                 <div class="mb-10"><strong>{{ __('halls.email') }}:</strong> {{ $booking->customer_email }}</div>
                 <div class="mb-10"><strong>{{ __('halls.phone') }}:</strong> {{ $booking->customer_phone }}</div>
-                @if($booking->event_type)
-                <div><strong>{{ __('halls.event_type') }}:</strong> {{ __('halls.' . $booking->event_type) }}</div>
+                @if ($booking->event_type)
+                    <div><strong>{{ __('halls.event_type') }}:</strong> {{ __('halls.' . $booking->event_type) }}
+                    </div>
                 @endif
             </div>
         </div>
@@ -330,23 +358,24 @@
                     <td class="text-right">{{ number_format($booking->hall_price, 3) }} OMR</td>
                 </tr>
 
-                @if($booking->extraServices->count() > 0)
-                    @foreach($booking->extraServices as $service)
-                    <tr>
-                        <td>
-                            {{ is_array($service->name) ? ($service->name[app()->getLocale()] ?? $service->name['en']) : $service->name }}
-                            ({{ $service->pivot->quantity }} × {{ number_format($service->pivot->unit_price, 3) }} OMR)
-                        </td>
-                        <td class="text-right">{{ number_format($service->pivot->total_price, 3) }} OMR</td>
-                    </tr>
+                @if ($booking->extraServices->count() > 0)
+                    @foreach ($booking->extraServices as $service)
+                        <tr>
+                            <td>
+                                {{ is_array($service->name) ? $service->name[app()->getLocale()] ?? $service->name['en'] : $service->name }}
+                                ({{ $service->pivot->quantity }} × {{ number_format($service->pivot->unit_price, 3) }}
+                                OMR)
+                            </td>
+                            <td class="text-right">{{ number_format($service->pivot->total_price, 3) }} OMR</td>
+                        </tr>
                     @endforeach
                 @endif
 
-                @if($booking->platform_fee > 0)
-                <tr>
-                    <td>{{ __('halls.platform_fee') }}</td>
-                    <td class="text-right">{{ number_format($booking->platform_fee, 3) }} OMR</td>
-                </tr>
+                @if ($booking->platform_fee > 0)
+                    <tr>
+                        <td>{{ __('halls.platform_fee') }}</td>
+                        <td class="text-right">{{ number_format($booking->platform_fee, 3) }} OMR</td>
+                    </tr>
                 @endif
 
                 <tr class="total-row">
@@ -364,19 +393,20 @@
         </div>
 
         <!-- Map (Placeholder) -->
-        @if($booking->hall->latitude && $booking->hall->longitude)
-        <div class="map-box">
-            <div style="text-align: center; color: #666;">
-                <div style="font-size: 14pt; margin-bottom: 5px;">📍 {{ __('halls.location') }}</div>
-                <div>GPS: {{ number_format($booking->hall->latitude, 6) }}, {{ number_format($booking->hall->longitude, 6) }}</div>
-                <div style="font-size: 9pt; margin-top: 10px;">{{ __('halls.view_on_map') }}: maps.google.com</div>
+        @if ($booking->hall->latitude && $booking->hall->longitude)
+            <div class="map-box">
+                <div style="text-align: center; color: #666;">
+                    <div style="font-size: 14pt; margin-bottom: 5px;">{{ __('halls.location') }}</div>
+                    <div>GPS: {{ number_format($booking->hall->latitude, 6) }},
+                        {{ number_format($booking->hall->longitude, 6) }}</div>
+                    <div style="font-size: 9pt; margin-top: 10px;">{{ __('halls.view_on_map') }}: maps.google.com</div>
+                </div>
             </div>
-        </div>
         @endif
 
         <!-- Important Information -->
         <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="color: #92400e; margin-bottom: 10px;">⚠️ {{ __('halls.important_info') }}</h4>
+            <h4 style="color: #92400e; margin-bottom: 10px;">{{ __('halls.important_info') }}</h4>
             <ul style="margin-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 20px; color: #78350f;">
                 <li>{{ __('halls.bring_confirmation') }}</li>
                 <li>{{ __('halls.arrive_on_time') }}</li>
@@ -389,8 +419,8 @@
         <div class="footer">
             <div class="contact-info">
                 <strong>{{ __('halls.need_help') }}</strong><br>
-                📧 support@majalis.om | 📞 +968 XXXX XXXX<br>
-                🌐 www.majalis.om
+                {{ __('halls.email') }}: support@majalis.om | {{ __('halls.phone') }}: +968 XXXX XXXX<br>
+                {{ __('halls.website') }}: www.majalis.om
             </div>
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                 {{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}<br>
@@ -400,4 +430,5 @@
 
     </div>
 </body>
+
 </html>

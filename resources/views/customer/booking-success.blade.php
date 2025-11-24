@@ -66,7 +66,7 @@
         <!-- Booking Card -->
         <div class="p-6 mb-6 bg-white shadow-xl rounded-2xl md:p-8 fade-in-up" style="animation-delay: 0.2s;">
             <!-- Reference Number -->
-            <div class="p-6 mb-6 -mx-2 text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl">
+            <div class="p-6 mb-6 -mx-2 text-gray-900 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl">
                 <div class="mb-1 text-sm opacity-90">{{ __('halls.booking_reference') }}</div>
                 <div class="text-2xl font-bold tracking-wider">{{ $booking->booking_number }}</div>
             </div>
@@ -182,30 +182,14 @@
                 {{ __('halls.back_to_home') }}
             </a>
 
-             <a href="{{ route('customer.booking.download-pdf', $booking->id) }}"
-       class="flex items-center justify-center gap-2 font-bold text-white transition bg-green-600 shadow-lg h-14 rounded-xl hover:bg-green-700">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        {{ __('halls.download_pdf') }}
-    </a>
-
-    <a href="#"
-       class="flex items-center justify-center gap-2 font-bold text-white transition shadow-lg h-14 bg-primary-600 rounded-xl hover:bg-primary-700">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        {{ __('halls.my_bookings') }}
-    </a>
-
-            <a href="#"
-                class="flex items-center justify-center gap-2 font-bold text-white transition shadow-lg h-14 bg-primary-600 rounded-xl hover:bg-primary-700">
+            <a href="{{ route('customer.booking.download-pdf', $booking->id) }}"
+                class="flex items-center justify-center gap-2 font-bold text-white transition bg-green-600 shadow-lg h-14 rounded-xl hover:bg-green-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                     </path>
                 </svg>
-                {{ __('halls.download_confirmation') }}
+                {{ __('halls.download_pdf') }}
             </a>
         </div>
     </div>

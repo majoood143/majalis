@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // 'api_key' => env('THAWANI_API_KEY'),
+    'api_key' => env('THAWANI_API_KEY'),
     // 'secret_key' => env('THAWANI_SECRET_KEY'),
     // 'mode' => env('THAWANI_MODE', 'sandbox'),
     // 'return_url' => env('THAWANI_RETURN_URL'),

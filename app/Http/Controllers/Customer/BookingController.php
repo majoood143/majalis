@@ -685,6 +685,6 @@ class BookingController extends BaseController
         }
 
         $pdfService = app(BookingPdfService::class);
-        return $pdfService->download($booking);
+        return $pdfService->downloadWithArabicSupport($booking);
     }
 }

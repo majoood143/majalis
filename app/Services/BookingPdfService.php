@@ -34,6 +34,12 @@ class BookingPdfService
                 'booking' => $booking,
             ]);
 
+            // Set options for Arabic/RTL support
+            $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
+            $pdf->getDomPDF()->set_option('isHtml5ParserEnabled', true);
+            $pdf->getDomPDF()->set_option('isFontSubsettingEnabled', true);
+            $pdf->getDomPDF()->set_option('defaultFont', 'DejaVu Sans');
+
             // Set paper size and orientation
             $pdf->setPaper('a4', 'portrait');
 
@@ -66,12 +72,46 @@ class BookingPdfService
      */
     public function download(Booking $booking)
     {
-        if ($booking->invoice_path && Storage::disk('public')->exists($booking->invoice_path)) {
-            return Storage::disk('public')->download($booking->invoice_path, $booking->booking_number . '.pdf');
-        }
 
-        // Generate if doesn't exist
-        $path = $this->generateConfirmation($booking);
-        return Storage::disk('public')->download($path, $booking->booking_number . '.pdf');
+        // Use the Arabic support method instead
+        return $this->downloadWithArabicSupport($booking);
+        // if ($booking->invoice_path && Storage::disk('public')->exists($booking->invoice_path)) {
+        //     return Storage::disk('public')->download($booking->invoice_path, $booking->booking_number . '.pdf');
+        // }
+
+        // // Generate if doesn't exist
+        // $path = $this->generateConfirmation($booking);
+        // return Storage::disk('public')->download($path, $booking->booking_number . '.pdf');
+    }
+
+    /**
+     * Download booking confirmation PDF with Arabic support
+     *
+     * @param Booking $booking
+     * @return \Illuminate\Http\Response
+     */
+    public function downloadWithArabicSupport(Booking $booking)
+    {
+        // Load booking with relationships
+        $booking->load(['hall.city.region', 'extraServices', 'user']);
+
+        // Generate HTML
+        $html = view('pdf.booking-confirmation', ['booking' => $booking])->render();
+
+        // Ensure UTF-8 encoding
+        $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+
+        // Generate PDF with proper encoding
+        $pdf = Pdf::loadHTML($html);
+
+        // Set options
+        $pdf->getDomPDF()->set_option('isHtml5ParserEnabled', true);
+        $pdf->getDomPDF()->set_option('defaultFont', 'DejaVu Sans');
+
+        $pdf->setPaper('a4', 'portrait');
+
+        $filename = $booking->booking_number . '.pdf';
+
+        return $pdf->download($filename);
     }
 }
