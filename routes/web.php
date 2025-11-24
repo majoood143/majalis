@@ -110,3 +110,126 @@ Route::prefix('customer/bookings')->name('customer.bookings.')->group(function (
     Route::get('{token}/preview-pdf', [BookingController::class, 'previewConfirmation'])
         ->name('preview-confirmation');
 });
+
+require __DIR__ . '/test-thawani.php';
+
+// In routes/web.php
+Route::get('/direct-thawani-test', function () {
+    $apiKey = 'rRQ26GcsZzoEhbrP2HZvLYDbn9C9et';
+
+    $client = new \GuzzleHttp\Client([
+        'base_uri' => 'https://uatcheckout.thawani.om/api/v1',
+        'timeout' => 30,
+        'http_errors' => false,
+        'verify' => true,
+    ]);
+
+    $payload = [
+        'client_reference_id' => 'TEST-' . time(),
+        'mode' => 'payment',
+        'products' => [
+            [
+                'name' => 'Test Product',
+                'quantity' => 1,
+                'unit_amount' => 1000,
+            ]
+        ],
+        'success_url' => 'http://localhost:8000/test-success',
+        'cancel_url' => 'http://localhost:8000/test-cancel',
+    ];
+
+    $jsonPayload = json_encode($payload);
+
+    try {
+        $response = $client->post('/checkout/session', [
+            'headers' => [
+                'thawani-api-key' => $apiKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+            'body' => $jsonPayload,
+        ]);
+
+        $statusCode = $response->getStatusCode();
+        $body = $response->getBody()->getContents();
+        $headers = $response->getHeaders();
+
+        return response()->json([
+            'status_code' => $statusCode,
+            'headers' => $headers,
+            'body' => $body,
+            'decoded' => json_decode($body, true),
+            'payload_sent' => $payload,
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'class' => get_class($e),
+        ], 500);
+    }
+});
+
+Route::get('/check-keys', function () {
+    $secret = config('services.thawani.secret_key');
+    $pub = config('services.thawani.publishable_key');
+
+    return response()->json([
+        'secret_key' => $secret,
+        'secret_length' => strlen($secret),
+        'publishable_key' => $pub,
+        'pub_length' => strlen($pub),
+        'keys_are_different' => $secret !== $pub,
+        'secret_hex' => bin2hex($secret),
+        'pub_hex' => bin2hex($pub),
+    ], 200, [], JSON_PRETTY_PRINT);
+});
+
+Route::get('/test-native-curl', function () {
+    $apiKey = 'rRQ26GcsZzoEhbrP2HZvLYDbn9C9et';
+    $baseUrl = 'https://uatcheckout.thawani.om/api/v1';
+
+    $payload = [
+        'client_reference_id' => 'TEST-' . time(),
+        'mode' => 'payment',
+        'products' => [
+            [
+                'name' => 'Test Product',
+                'quantity' => 1,
+                'unit_amount' => 1000,
+            ]
+        ],
+        'success_url' => 'http://localhost:8000/test-success',
+        'cancel_url' => 'http://localhost:8000/test-cancel',
+    ];
+
+    $jsonPayload = json_encode($payload);
+
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $baseUrl . '/checkout/session',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $jsonPayload,
+        CURLOPT_HTTPHEADER => [
+            'thawani-api-key: ' . $apiKey,
+            'Content-Type: application/json',
+        ],
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_SSL_VERIFYPEER => true,
+    ]);
+
+    $response = curl_exec($ch);
+    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    $curlInfo = curl_getinfo($ch);
+    curl_close($ch);
+
+    return response()->json([
+        'status_code' => $statusCode,
+        'curl_error' => $curlError ?: null,
+        'response' => $response,
+        'decoded' => json_decode($response, true),
+        'curl_info' => $curlInfo,
+    ], 200, [], JSON_PRETTY_PRINT);
+});

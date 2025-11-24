@@ -691,4 +691,23 @@ class Payment extends Model
             self::STATUS_PARTIALLY_REFUNDED => 'Partially Refunded',
         ];
     }
+
+    /**
+     * Check if payment is processing
+     *
+     * @return bool
+     */
+    public function isProcessing(): bool
+    {
+        return $this->status === self::STATUS_PROCESSING;
+    }
+
+    /**
+     * Constants for payment statuses
+     */
+
+    public const STATUS_PROCESSING = 'processing';
+
+    public const STATUS_CANCELLED = 'cancelled';
+
 }

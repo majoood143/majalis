@@ -15,6 +15,9 @@ use Exception;
 /**
  * Payment Service for Thawani Gateway Integration
  *
+ * Handles payment processing with Thawani Payment Gateway (UAT Environment)
+ * Supports online payments, cash, and bank transfers
+ *
  * @package App\Services
  */
 class PaymentService
@@ -28,116 +31,44 @@ class PaymentService
     protected Client $client;
 
     /**
-     * Constructor
+     * Constructor - Initialize Thawani API client
      */
     public function __construct()
     {
-        // Thawani API credentials from .env
+        // Thawani API credentials from .env via config/services.php
         $this->apiKey = config('services.thawani.secret_key');
         $this->publishableKey = config('services.thawani.publishable_key');
         $this->baseUrl = config('services.thawani.base_url', 'https://uatcheckout.thawani.om/api/v1');
 
+        // Initialize Guzzle HTTP client with Thawani headers
+        // IMPORTANT: Don't set default headers - pass them per request
         $this->client = new Client([
             'base_uri' => $this->baseUrl,
-            'headers' => [
-                'thawani-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json',
-            ],
             'timeout' => 30,
+            'http_errors' => false, // Don't throw exceptions on 4xx/5xx
+            'verify' => true, // Verify SSL certificates
         ]);
     }
 
     /**
      * Initiate payment session with Thawani
      *
-     * @param Booking $booking
-     * @param string $paymentMethod
-     * @return array
-     * @throws Exception
-     */
-    // public function initiatePayment(Booking $booking, string $paymentMethod = 'online'): array
-    // {
-    //     DB::beginTransaction();
-
-    //     try {
-    //         // Create payment record
-    //         $payment = $this->createPaymentRecord($booking, $paymentMethod);
-
-    //         // For cash payment, no gateway needed
-    //         if ($paymentMethod === 'cash') {
-    //             DB::commit();
-    //             return [
-    //                 'success' => true,
-    //                 'payment_method' => 'cash',
-    //                 'payment_id' => $payment->id,
-    //                 'redirect_url' => null,
-    //             ];
-    //         }
-
-    //         // For bank transfer, no gateway needed
-    //         if ($paymentMethod === 'bank_transfer') {
-    //             DB::commit();
-    //             return [
-    //                 'success' => true,
-    //                 'payment_method' => 'bank_transfer',
-    //                 'payment_id' => $payment->id,
-    //                 'redirect_url' => null,
-    //             ];
-    //         }
-
-    //         // For online payment, integrate with Thawani
-    //         $sessionData = $this->createThawaniSession($booking, $payment);
-
-    //         if (!$sessionData['success']) {
-    //             throw new Exception($sessionData['message'] ?? 'Failed to create payment session');
-    //         }
-
-    //         // Update payment with gateway details
-    //         $payment->update([
-    //             'transaction_id' => $sessionData['session_id'],
-    //             'payment_url' => $sessionData['redirect_url'],
-    //             'gateway_response' => $sessionData,
-    //             'status' => Payment::STATUS_PROCESSING,
-    //         ]);
-
-    //         DB::commit();
-
-    //         return [
-    //             'success' => true,
-    //             'payment_method' => 'online',
-    //             'payment_id' => $payment->id,
-    //             'session_id' => $sessionData['session_id'],
-    //             'redirect_url' => $sessionData['redirect_url'],
-    //         ];
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Payment initiation failed', [
-    //             'booking_id' => $booking->id,
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         throw $e;
-    //     }
-    // }
-
-    /**
-     * Initiate payment session with Thawani
+     * Creates a payment record and initiates the appropriate payment flow
+     * based on the selected payment method (online, cash, bank_transfer)
      *
-     * @param Booking $booking
-     * @param string $paymentMethod
-     * @return array
-     * @throws Exception
+     * @param Booking $booking The booking to process payment for
+     * @param string $paymentMethod Payment method: online, cash, or bank_transfer
+     * @return array Payment initiation result with success status and redirect URL
      */
     public function initiatePayment(Booking $booking, string $paymentMethod = 'online'): array
     {
         DB::beginTransaction();
 
         try {
-            // Create payment record
+            // Create payment record in database
             $payment = $this->createPaymentRecord($booking, $paymentMethod);
 
-            // For cash payment, no gateway needed
+            // Handle cash payment - no gateway needed
             if ($paymentMethod === 'cash') {
                 DB::commit();
                 return [
@@ -148,7 +79,7 @@ class PaymentService
                 ];
             }
 
-            // For bank transfer, no gateway needed
+            // Handle bank transfer - no gateway needed
             if ($paymentMethod === 'bank_transfer') {
                 DB::commit();
                 return [
@@ -159,8 +90,8 @@ class PaymentService
                 ];
             }
 
-            // For online payment, integrate with Thawani
-            // Check if API credentials are configured
+            // Handle online payment - integrate with Thawani gateway
+            // Check if API credentials are properly configured
             if (empty($this->apiKey) || $this->apiKey === 'your_secret_key_here') {
                 Log::warning('Thawani API credentials not configured', [
                     'booking_id' => $booking->id,
@@ -178,10 +109,11 @@ class PaymentService
                     'success' => false,
                     'payment_method' => 'online',
                     'payment_id' => $payment->id,
-                    'message' => 'Payment gateway temporarily unavailable',
+                    'message' => 'Payment gateway temporarily unavailable. Please contact support.',
                 ];
             }
 
+            // Create Thawani checkout session
             $sessionData = $this->createThawaniSession($booking, $payment);
 
             if (!$sessionData['success']) {
@@ -202,11 +134,11 @@ class PaymentService
                     'success' => false,
                     'payment_method' => 'online',
                     'payment_id' => $payment->id,
-                    'message' => $sessionData['message'] ?? 'Payment gateway error',
+                    'message' => $sessionData['message'] ?? 'Payment gateway error. Please try again.',
                 ];
             }
 
-            // Update payment with gateway details
+            // Update payment record with gateway session details
             $payment->update([
                 'transaction_id' => $sessionData['session_id'],
                 'payment_url' => $sessionData['redirect_url'],
@@ -228,10 +160,12 @@ class PaymentService
 
             Log::error('Payment initiation failed', [
                 'booking_id' => $booking->id,
-                'error' => $e->getMessage()
+                'payment_method' => $paymentMethod,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            // Don't throw exception, return error response
+            // Return error response instead of throwing exception
             return [
                 'success' => false,
                 'payment_method' => $paymentMethod,
@@ -241,103 +175,60 @@ class PaymentService
     }
 
     /**
-     * Create payment record in database
+     * Create Thawani checkout session
      *
-     * @param Booking $booking
-     * @param string $paymentMethod
-     * @return Payment
+     * Calls Thawani API to create a new checkout session for the booking
+     * Converts amount to baisa (Omani currency subdivision)
+     *
+     * @param Booking $booking The booking to create session for
+     * @param Payment $payment The payment record
+     * @return array Session creation result with session_id and redirect_url
      */
-    protected function createPaymentRecord(Booking $booking, string $paymentMethod): Payment
+
+
+    /**
+     * Make HTTP POST request using cURL
+     *
+     * Wrapper method for easier testing and maintenance
+     *
+     * @param string $endpoint API endpoint
+     * @param array $data Request payload
+     * @param array $headers HTTP headers
+     * @return array Response with status_code, body, and error
+     */
+    protected function curlPost(string $endpoint, array $data, array $headers = []): array
     {
-        return Payment::create([
-            'booking_id' => $booking->id,
-            'payment_reference' => $this->generatePaymentReference(),
-            'amount' => $booking->total_amount,
-            'currency' => 'OMR',
-            'status' => Payment::STATUS_PENDING,
-            'payment_method' => $paymentMethod,
-            'customer_ip' => request()->ip(),
-            'user_agent' => request()->userAgent(),
+        $jsonPayload = json_encode($data);
+
+        $ch = curl_init();
+
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $this->baseUrl . $endpoint,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $jsonPayload,
+            CURLOPT_HTTPHEADER => array_merge([
+                'Content-Type: application/json',
+            ], $headers),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
         ]);
+
+        $responseBody = curl_exec($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        return [
+            'status_code' => $statusCode,
+            'body' => $responseBody,
+            'error' => $curlError ?: null,
+        ];
     }
 
     /**
-     * Create Thawani checkout session
-     *
-     * @param Booking $booking
-     * @param Payment $payment
-     * @return array
-     */
-    // protected function createThawaniSession(Booking $booking, Payment $payment): array
-    // {
-    //     try {
-    //         // Convert amount to baisa (1 OMR = 1000 baisa)
-    //         $amountInBaisa = (int) ($booking->total_amount * 1000);
-
-    //         // Prepare payment data
-    //         $paymentData = [
-    //             'client_reference_id' => $payment->payment_reference,
-    //             'mode' => 'payment',
-    //             'products' => [
-    //                 [
-    //                     'name' => $this->getHallName($booking->hall->name),
-    //                     'quantity' => 1,
-    //                     'unit_amount' => $amountInBaisa,
-    //                 ]
-    //             ],
-    //             'success_url' => route('customer.payment.success', ['booking' => $booking->id]),
-    //             'cancel_url' => route('customer.payment.cancel', ['booking' => $booking->id]),
-    //             'metadata' => [
-    //                 'booking_id' => $booking->id,
-    //                 'booking_number' => $booking->booking_number,
-    //                 'payment_id' => $payment->id,
-    //                 'payment_reference' => $payment->payment_reference,
-    //             ]
-    //         ];
-
-    //         Log::info('Creating Thawani session', [
-    //             'booking_id' => $booking->id,
-    //             'payment_id' => $payment->id,
-    //             'amount' => $amountInBaisa,
-    //         ]);
-
-    //         // Create checkout session
-    //         $response = $this->client->post('/checkout/session', [
-    //             'json' => $paymentData
-    //         ]);
-
-    //         $result = json_decode($response->getBody()->getContents(), true);
-
-    //         if ($result['success'] ?? false) {
-    //             $sessionId = $result['data']['session_id'];
-
-    //             return [
-    //                 'success' => true,
-    //                 'session_id' => $sessionId,
-    //                 'redirect_url' => $this->baseUrl . '/checkout/' . $sessionId . '?key=' . $this->publishableKey,
-    //                 'data' => $result['data']
-    //             ];
-    //         }
-
-    //         return [
-    //             'success' => false,
-    //             'message' => $result['description'] ?? 'Unknown error'
-    //         ];
-    //     } catch (GuzzleException $e) {
-    //         Log::error('Thawani API error', [
-    //             'booking_id' => $booking->id,
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         return [
-    //             'success' => false,
-    //             'message' => 'Payment gateway error: ' . $e->getMessage()
-    //         ];
-    //     }
-    // }
-
-    /**
-     * Create Thawani checkout session
+     * Create Thawani checkout session using native cURL
      *
      * @param Booking $booking
      * @param Payment $payment
@@ -346,68 +237,156 @@ class PaymentService
     protected function createThawaniSession(Booking $booking, Payment $payment): array
     {
         try {
-            // Check if API key is set
+            // Validate API key
             if (empty($this->apiKey)) {
                 throw new Exception('Thawani API key is not configured');
             }
 
+
             // Convert amount to baisa (1 OMR = 1000 baisa)
-            $amountInBaisa = (int) ($booking->total_amount * 1000);
+            $amountInBaisa = (int) round($booking->total_amount * 1000);
 
             if ($amountInBaisa <= 0) {
                 throw new Exception('Invalid payment amount: ' . $booking->total_amount);
             }
 
-            // Prepare payment data
+            // Product name (English only to avoid encoding issues)
+            $productName = 'Hall Booking - ' . $booking->booking_number;
+
+            // Build URLs and force localhost (Thawani rejects 127.0.0.1)
+            $successUrl = route('customer.payment.success', ['booking' => $booking->id]);
+            $cancelUrl = route('customer.payment.cancel', ['booking' => $booking->id]);
+
+            $successUrl = str_replace('127.0.0.1', 'localhost', $successUrl);
+            $cancelUrl = str_replace('127.0.0.1', 'localhost', $cancelUrl);
+
+            // Prepare payment data according to Thawani API specification
             $paymentData = [
                 'client_reference_id' => $payment->payment_reference,
                 'mode' => 'payment',
                 'products' => [
                     [
-                        'name' => $this->getHallName($booking->hall->name),
+                        'name' => $productName,
                         'quantity' => 1,
                         'unit_amount' => $amountInBaisa,
                     ]
                 ],
-                'success_url' => route('customer.payment.success', ['booking' => $booking->id]),
-                'cancel_url' => route('customer.payment.cancel', ['booking' => $booking->id]),
-                'metadata' => [
-                    'booking_id' => $booking->id,
-                    'booking_number' => $booking->booking_number,
-                    'payment_id' => $payment->id,
-                    'payment_reference' => $payment->payment_reference,
-                ]
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
             ];
 
-            Log::info('Creating Thawani session', [
+            // Use the wrapper method
+            $response = $this->curlPost('/checkout/session', $paymentData, [
+                'thawani-api-key: ' . $this->apiKey,
+            ]);
+
+            if ($response['error']) {
+                return ['success' => false, 'message' => $response['error']];
+            }
+
+            $jsonPayload = json_encode($paymentData);
+
+            Log::info('Creating Thawani session with native cURL', [
                 'booking_id' => $booking->id,
                 'payment_id' => $payment->id,
-                'amount' => $amountInBaisa,
+                'amount_baisa' => $amountInBaisa,
                 'amount_omr' => $booking->total_amount,
-                'api_endpoint' => $this->baseUrl . '/checkout/session',
-                'payload' => $paymentData,
+                'product_name' => $productName,
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
             ]);
 
-            // Create checkout session
-            $response = $this->client->post('/checkout/session', [
-                'json' => $paymentData
+            // Use native cURL (exactly like successful terminal cURL)
+            $ch = curl_init();
+
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $this->baseUrl . '/checkout/session',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $jsonPayload,
+                CURLOPT_HTTPHEADER => [
+                    'thawani-api-key: ' . $this->apiKey,
+                    'Content-Type: application/json',
+                ],
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
             ]);
 
-            $responseBody = $response->getBody()->getContents();
-            $result = json_decode($responseBody, true);
+            $responseBody = curl_exec($ch);
+            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            // Check for cURL errors
+            if ($curlError) {
+                Log::error('cURL error creating Thawani session', [
+                    'error' => $curlError,
+                    'booking_id' => $booking->id,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Connection error: ' . $curlError
+                ];
+            }
 
             Log::info('Thawani API response', [
-                'status_code' => $response->getStatusCode(),
-                'response' => $result,
+                'status_code' => $statusCode,
+                'has_body' => !empty($responseBody),
+                'body_length' => strlen($responseBody),
+                'booking_id' => $booking->id,
             ]);
 
-            if ($result['success'] ?? false) {
+            // Handle empty response
+            if (empty($responseBody)) {
+                Log::error('Thawani returned empty response', [
+                    'status_code' => $statusCode,
+                    'booking_id' => $booking->id,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Payment gateway returned empty response (Status: ' . $statusCode . ')'
+                ];
+            }
+
+            // Decode JSON response
+            $result = json_decode($responseBody, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('Failed to decode Thawani response', [
+                    'json_error' => json_last_error_msg(),
+                    'raw_response' => $responseBody,
+                    'booking_id' => $booking->id,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Invalid response format from payment gateway'
+                ];
+            }
+
+            Log::info('Thawani API decoded response', [
+                'status_code' => $statusCode,
+                'success' => $result['success'] ?? false,
+                'code' => $result['code'] ?? null,
+                'description' => $result['description'] ?? null,
+                'booking_id' => $booking->id,
+            ]);
+
+            // Check if session creation was successful
+            if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
                 $sessionId = $result['data']['session_id'];
-                $redirectUrl = $this->baseUrl . '/checkout/' . $sessionId . '?key=' . $this->publishableKey;
+
+                // Build redirect URL for Thawani checkout page
+                $redirectUrl = 'https://uatcheckout.thawani.om/pay/' . $sessionId . '?key=' . $this->publishableKey;
 
                 Log::info('Thawani session created successfully', [
                     'session_id' => $sessionId,
                     'redirect_url' => $redirectUrl,
+                    'invoice' => $result['data']['invoice'] ?? null,
+                    'booking_id' => $booking->id,
                 ]);
 
                 return [
@@ -418,34 +397,21 @@ class PaymentService
                 ];
             }
 
-            $errorMessage = $result['description'] ?? $result['message'] ?? 'Unknown error';
+            // Handle API error response
+            $errorMessage = $result['description']
+                ?? $result['message']
+                ?? 'Unknown error from payment gateway';
+
             Log::error('Thawani session creation failed', [
                 'error' => $errorMessage,
+                'status_code' => $statusCode,
                 'full_response' => $result,
+                'booking_id' => $booking->id,
             ]);
 
             return [
                 'success' => false,
                 'message' => $errorMessage
-            ];
-        } catch (GuzzleException $e) {
-            Log::error('Thawani API GuzzleException', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-                'code' => $e->getCode(),
-            ]);
-
-            // Try to get response body for more details
-            if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
-                $responseBody = $e->getResponse()->getBody()->getContents();
-                Log::error('Thawani API error response', [
-                    'response_body' => $responseBody,
-                ]);
-            }
-
-            return [
-                'success' => false,
-                'message' => 'Payment gateway error: ' . $e->getMessage()
             ];
         } catch (Exception $e) {
             Log::error('Thawani session creation exception', [
@@ -456,29 +422,39 @@ class PaymentService
 
             return [
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error creating payment session: ' . $e->getMessage()
             ];
         }
     }
 
     /**
-     * Verify payment with Thawani
+     * Verify payment status with Thawani
      *
-     * @param Payment $payment
-     * @return array
-     * @throws Exception
+     * Retrieves the current status of a payment session from Thawani
+     *
+     * @param string $sessionId Thawani session ID
+     * @return array Verification result with payment status
      */
-    public function verifyPayment(Payment $payment): array
+    public function verifyPaymentBySessionId(string $sessionId): array
     {
-        if (!$payment->transaction_id) {
-            throw new Exception('No transaction ID found for payment verification');
-        }
-
         try {
-            $response = $this->client->get('/checkout/session/' . $payment->transaction_id);
-            $result = json_decode($response->getBody()->getContents(), true);
+            Log::info('Verifying payment with Thawani', [
+                'session_id' => $sessionId,
+            ]);
 
-            if ($result['success'] ?? false) {
+            // Call Thawani API to get session details
+            $response = $this->client->get('/checkout/session/' . $sessionId);
+            $statusCode = $response->getStatusCode();
+            $responseBody = $response->getBody()->getContents();
+            $result = json_decode($responseBody, true);
+
+            Log::info('Thawani verification response', [
+                'session_id' => $sessionId,
+                'status_code' => $statusCode,
+                'response' => $result,
+            ]);
+
+            if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
                 $paymentStatus = $result['data']['payment_status'] ?? 'unknown';
 
                 return [
@@ -497,8 +473,7 @@ class PaymentService
             ];
         } catch (GuzzleException $e) {
             Log::error('Payment verification error', [
-                'payment_id' => $payment->id,
-                'transaction_id' => $payment->transaction_id,
+                'session_id' => $sessionId,
                 'error' => $e->getMessage()
             ]);
 
@@ -507,10 +482,28 @@ class PaymentService
     }
 
     /**
+     * Verify payment with Thawani using Payment model
+     *
+     * @param Payment $payment Payment record to verify
+     * @return array Verification result
+     * @throws Exception If no transaction ID found
+     */
+    public function verifyPayment(Payment $payment): array
+    {
+        if (!$payment->transaction_id) {
+            throw new Exception('No transaction ID found for payment verification');
+        }
+
+        return $this->verifyPaymentBySessionId($payment->transaction_id);
+    }
+
+    /**
      * Process successful payment
      *
-     * @param Payment $payment
-     * @param array $gatewayData
+     * Updates payment and booking status after successful payment verification
+     *
+     * @param Payment $payment Payment record to update
+     * @param array $gatewayData Gateway response data
      * @return void
      */
     public function processSuccessfulPayment(Payment $payment, array $gatewayData = []): void
@@ -520,27 +513,22 @@ class PaymentService
         try {
             // Mark payment as paid
             $payment->markAsPaid(
-                $gatewayData['id'] ?? $payment->transaction_id,
-                $gatewayData
+                $gatewayData['invoice_id'] ?? $payment->transaction_id,
+                $gatewayData,
+                $gatewayData['invoice_id'] ?? null
             );
-
-            // Update booking
-            $payment->booking->update([
-                'payment_status' => 'paid',
-                'status' => 'confirmed',
-                'confirmed_at' => now(),
-            ]);
-
-            DB::commit();
 
             Log::info('Payment processed successfully', [
                 'payment_id' => $payment->id,
+                'payment_reference' => $payment->payment_reference,
                 'booking_id' => $payment->booking_id,
             ]);
+
+            DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
 
-            Log::error('Payment processing failed', [
+            Log::error('Failed to process successful payment', [
                 'payment_id' => $payment->id,
                 'error' => $e->getMessage()
             ]);
@@ -550,86 +538,30 @@ class PaymentService
     }
 
     /**
-     * Process failed payment
+     * Create payment record in database
      *
-     * @param Payment $payment
-     * @param string $reason
-     * @param array $gatewayData
-     * @return void
+     * @param Booking $booking Booking to create payment for
+     * @param string $paymentMethod Payment method
+     * @return Payment Created payment record
      */
-    public function processFailedPayment(Payment $payment, string $reason, array $gatewayData = []): void
+    protected function createPaymentRecord(Booking $booking, string $paymentMethod): Payment
     {
-        $payment->markAsFailed($reason, $gatewayData);
-
-        Log::warning('Payment failed', [
-            'payment_id' => $payment->id,
-            'booking_id' => $payment->booking_id,
-            'reason' => $reason,
+        return Payment::create([
+            'booking_id' => $booking->id,
+            'payment_reference' => $this->generatePaymentReference(),
+            'amount' => $booking->total_amount,
+            'currency' => 'OMR',
+            'status' => Payment::STATUS_PENDING,
+            'payment_method' => $paymentMethod,
+            'customer_ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
-    }
-
-    /**
-     * Process refund
-     *
-     * @param Payment $payment
-     * @param float $amount
-     * @param string $reason
-     * @return array
-     * @throws Exception
-     */
-    public function processRefund(Payment $payment, float $amount, string $reason): array
-    {
-        if (!$payment->isPaid()) {
-            throw new Exception('Cannot refund unpaid payment');
-        }
-
-        try {
-            $amountInBaisa = (int) ($amount * 1000);
-
-            $response = $this->client->post('/refunds', [
-                'json' => [
-                    'payment_id' => $payment->transaction_id,
-                    'amount' => $amountInBaisa,
-                    'reason' => $reason,
-                    'metadata' => [
-                        'payment_id' => $payment->id,
-                        'booking_id' => $payment->booking_id,
-                    ]
-                ]
-            ]);
-
-            $result = json_decode($response->getBody()->getContents(), true);
-
-            if ($result['success'] ?? false) {
-                $payment->update([
-                    'status' => Payment::STATUS_REFUNDED,
-                    'refund_amount' => $amount,
-                    'refund_reason' => $reason,
-                    'refunded_at' => now(),
-                ]);
-
-                return [
-                    'success' => true,
-                    'refund_id' => $result['data']['id'],
-                    'data' => $result['data']
-                ];
-            }
-
-            throw new Exception('Refund failed: ' . ($result['description'] ?? 'Unknown error'));
-        } catch (GuzzleException $e) {
-            Log::error('Refund error', [
-                'payment_id' => $payment->id,
-                'error' => $e->getMessage()
-            ]);
-
-            throw new Exception('Refund processing failed: ' . $e->getMessage());
-        }
     }
 
     /**
      * Generate unique payment reference
      *
-     * @return string
+     * @return string Generated reference number
      */
     protected function generatePaymentReference(): string
     {
@@ -637,16 +569,21 @@ class PaymentService
     }
 
     /**
-     * Get hall name in proper format
+     * Get hall name from translatable field
      *
-     * @param mixed $name
-     * @return string
+     * Handles both string and array (translatable) hall names
+     *
+     * @param mixed $name Hall name (string or translatable array)
+     * @return string Processed hall name
      */
     protected function getHallName($name): string
     {
+        // Handle translatable fields (array format)
         if (is_array($name)) {
-            return $name[app()->getLocale()] ?? $name['en'] ?? 'Hall Booking';
+            return $name[app()->getLocale()] ?? $name['en'] ?? $name['ar'] ?? 'Hall Booking';
         }
+
+        // Handle regular string
         return $name ?? 'Hall Booking';
     }
 }
