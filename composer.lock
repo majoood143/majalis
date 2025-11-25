@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5fa3634bd073b096c75594a23fee2bc4",
+    "content-hash": "a598a41579e5c87ad3f7042aaa738b97",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2636,61 +2636,6 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
-        },
-        {
-            "name": "ialtoobi/thawani",
-            "version": "1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ialtoobi/Thawani-Manager.git",
-                "reference": "9c2d0c7b1792a24bdcf3709faef76faa9ff2968a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ialtoobi/Thawani-Manager/zipball/9c2d0c7b1792a24bdcf3709faef76faa9ff2968a",
-                "reference": "9c2d0c7b1792a24bdcf3709faef76faa9ff2968a",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.3|^8.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Ialtoobi\\Thawani\\ThawaniServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Ialtoobi\\Thawani\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mohammed Al Toubi",
-                    "email": "altoobi9@gmail.com"
-                }
-            ],
-            "description": "A Laravel package for integrating Thawani payment gateway.",
-            "keywords": [
-                "laravel",
-                "payment gateway",
-                "thawani"
-            ],
-            "support": {
-                "issues": "https://github.com/ialtoobi/Thawani-Manager/issues",
-                "source": "https://github.com/ialtoobi/Thawani-Manager/tree/1.3"
-            },
-            "time": "2024-06-04T11:17:32+00:00"
         },
         {
             "name": "intervention/gif",
