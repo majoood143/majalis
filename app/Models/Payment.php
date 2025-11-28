@@ -107,11 +107,13 @@ class Payment extends Model
     ];
 
     /**
-     * Available payment statuses
+     * Payment status constants
      */
     public const STATUS_PENDING = 'pending';
+    public const STATUS_PROCESSING = 'processing';
     public const STATUS_PAID = 'paid';
     public const STATUS_FAILED = 'failed';
+    public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_REFUNDED = 'refunded';
     public const STATUS_PARTIALLY_REFUNDED = 'partially_refunded';
 
@@ -188,18 +190,40 @@ class Payment extends Model
      *
      * @return bool
      */
+    /**
+     * Check if payment can be refunded
+     *
+     * @return bool
+     */
     public function canBeRefunded(): bool
     {
-        // Check if status allows refunds
-        if (!in_array($this->status, [self::STATUS_PAID, self::STATUS_PARTIALLY_REFUNDED])) {
+        try {
+            // Only paid payments can be refunded
+            if ($this->status !== self::STATUS_PAID) {
+                return false;
+            }
+
+            // Check if already fully refunded
+            if ($this->status === self::STATUS_REFUNDED) {
+                return false;
+            }
+
+            // Check if refundable amount remains
+            $remaining = $this->getRemainingRefundableAmount();
+
+            return $remaining > 0;
+        } catch (\Exception $e) {
+            Log::error('Error checking if payment can be refunded', [
+                'payment_id' => $this->id ?? 'unknown',
+                'error' => $e->getMessage(),
+            ]);
+
             return false;
         }
-
-        // Check if there's remaining amount to refund
-        $remainingAmount = $this->getRemainingRefundableAmount();
-
-        return $remainingAmount > 0;
     }
+
+
+
 
     /**
      * Check if the payment has been refunded (fully or partially)
@@ -268,12 +292,26 @@ class Payment extends Model
      *
      * @return float
      */
+    /**
+     * Get remaining refundable amount
+     *
+     * @return float
+     */
     public function getRemainingRefundableAmount(): float
     {
-        $refunded = $this->refund_amount ?? 0;
-        $remaining = $this->amount - $refunded;
+        try {
+            $refundedAmount = (float) ($this->refund_amount ?? 0);
+            $originalAmount = (float) $this->amount;
 
-        return max(0, $remaining);
+            return max(0, $originalAmount - $refundedAmount);
+        } catch (\Exception $e) {
+            Log::error('Error calculating remaining refundable amount', [
+                'payment_id' => $this->id ?? 'unknown',
+                'error' => $e->getMessage(),
+            ]);
+
+            return 0;
+        }
     }
 
     /**
@@ -401,6 +439,77 @@ class Payment extends Model
      * @param string|null $invoiceId Optional invoice ID
      * @return bool
      */
+    // public function markAsPaid(
+    //     ?string $transactionId = null,
+    //     ?array $gatewayResponse = null,
+    //     ?string $invoiceId = null
+    // ): bool {
+    //     DB::beginTransaction();
+
+    //     try {
+    //         $updateData = [
+    //             'status' => self::STATUS_PAID,
+    //             'paid_at' => now(),
+    //         ];
+
+    //         if ($transactionId) {
+    //             $updateData['transaction_id'] = $transactionId;
+    //         }
+
+    //         if ($gatewayResponse) {
+    //             $updateData['gateway_response'] = $gatewayResponse;
+    //         }
+
+    //         if ($invoiceId) {
+    //             $updateData['invoice_id'] = $invoiceId;
+    //         }
+
+    //         $this->update($updateData);
+
+    //         // Update booking payment status
+    //         if ($this->booking) {
+    //             $this->booking->update([
+    //                 'payment_status' => 'paid',
+    //             ]);
+
+    //             // Optionally auto-confirm the booking
+    //             // $this->booking->confirm();
+    //         }
+
+    //         Log::info('Payment marked as paid', [
+    //             'payment_id' => $this->id,
+    //             'payment_reference' => $this->payment_reference,
+    //             'booking_id' => $this->booking_id,
+    //             'amount' => $this->amount,
+    //             'transaction_id' => $transactionId,
+    //             'invoice_id' => $invoiceId,
+    //         ]);
+
+    //         DB::commit();
+
+    //         return true;
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Failed to mark payment as paid', [
+    //             'payment_id' => $this->id,
+    //             'error' => $e->getMessage(),
+    //         ]);
+
+    //         return false;
+    //     }
+    // }
+    /**
+     * Mark payment as paid
+     *
+     * Updates status to paid and sets paid_at timestamp.
+     * Updates related booking payment status.
+     *
+     * @param string|null $transactionId Optional transaction ID from gateway
+     * @param array|null $gatewayResponse Optional gateway response data
+     * @param string|null $invoiceId Optional invoice ID
+     * @return bool
+     */
     public function markAsPaid(
         ?string $transactionId = null,
         ?array $gatewayResponse = null,
@@ -419,7 +528,9 @@ class Payment extends Model
             }
 
             if ($gatewayResponse) {
-                $updateData['gateway_response'] = $gatewayResponse;
+                // Merge with existing gateway_response
+                $existingResponse = $this->gateway_response ?? [];
+                $updateData['gateway_response'] = array_merge($existingResponse, $gatewayResponse);
             }
 
             if ($invoiceId) {
@@ -435,7 +546,11 @@ class Payment extends Model
                 ]);
 
                 // Optionally auto-confirm the booking
-                // $this->booking->confirm();
+                if ($this->booking->status === 'pending') {
+                    $this->booking->update([
+                        'status' => 'confirmed',
+                    ]);
+                }
             }
 
             Log::info('Payment marked as paid', [
@@ -702,12 +817,8 @@ class Payment extends Model
         return $this->status === self::STATUS_PROCESSING;
     }
 
-    /**
-     * Constants for payment statuses
-     */
 
-    public const STATUS_PROCESSING = 'processing';
 
-    public const STATUS_CANCELLED = 'cancelled';
+
 
 }

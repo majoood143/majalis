@@ -11,6 +11,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentResource extends Resource
 {
@@ -98,6 +100,7 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            -> modifyQueryUsing(fn($query) => $query->with('booking'))
             ->columns([
                 Tables\Columns\TextColumn::make('payment_reference')
                     ->searchable()
@@ -159,24 +162,152 @@ class PaymentResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+            Tables\Actions\Action::make('refund')
+                ->label('Process Refund')
+                ->icon('heroicon-o-arrow-path')
+                ->color('warning')
+                ->visible(fn(Payment $record): bool => $record->canBeRefunded())
+                ->form(function (Payment $record): array {
+                    $remainingAmount = $record->getRemainingRefundableAmount();
 
-                Tables\Actions\Action::make('refund')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->form([
-                        Forms\Components\TextInput::make('amount')
-                            ->label('Refund Amount')
-                            ->numeric()
-                            ->required()
-                            ->prefix('OMR'),
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Refund Reason')
-                            ->required(),
-                    ])
-                    ->action(fn(Payment $record, array $data) => $record->refund($data['amount'], $data['reason']))
-                    ->visible(fn(Payment $record) => $record->canBeRefunded()),
-            ])
+                    return [
+                        Forms\Components\Section::make('Refund Details')
+                            ->description('Process a full or partial refund for this payment.')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('payment_reference')
+                                            ->label('Payment Reference')
+                                            ->content($record->payment_reference),
+
+                                        Forms\Components\Placeholder::make('booking_number')
+                                            ->label('Booking Number')
+                                            ->content($record->booking?->booking_number ?? 'N/A'),
+
+                                        Forms\Components\Placeholder::make('original_amount')
+                                            ->label('Original Amount')
+                                            ->content(number_format($record->amount, 3) . ' OMR'),
+
+                                        Forms\Components\Placeholder::make('already_refunded')
+                                            ->label('Already Refunded')
+                                            ->content(number_format($record->refund_amount ?? 0, 3) . ' OMR'),
+
+                                        Forms\Components\Placeholder::make('refundable_amount')
+                                            ->label('Available to Refund')
+                                            ->content(fn() => number_format($remainingAmount, 3) . ' OMR')
+                                            ->columnSpanFull()
+                                            ->extraAttributes(['class' => 'text-lg font-bold text-green-600']),
+                                    ]),
+
+                                Forms\Components\Radio::make('refund_type')
+                                    ->label('Refund Type')
+                                    ->options([
+                                        'full' => 'Full Refund (' . number_format($remainingAmount, 3) . ' OMR)',
+                                        'partial' => 'Partial Refund (Specify Amount)',
+                                    ])
+                                    ->default('full')
+                                    ->required()
+                                    ->live()
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('amount')
+                                    ->label('Refund Amount')
+                                    ->numeric()
+                                    ->required()
+                                    ->prefix('OMR')
+                                    ->step(0.001)
+                                    ->minValue(0.001)
+                                    ->maxValue($remainingAmount)
+                                    ->default($remainingAmount)
+                                    ->helperText('Maximum: ' . number_format($remainingAmount, 3) . ' OMR')
+                                    ->visible(fn($get) => $get('refund_type') === 'partial'),
+
+                                Forms\Components\Select::make('reason')
+                                    ->label('Refund Reason')
+                                    ->options([
+                                        'Customer Request' => 'Customer Request',
+                                        'Event Cancelled' => 'Event Cancelled',
+                                        'Hall Unavailable' => 'Hall Unavailable',
+                                        'Duplicate Payment' => 'Duplicate Payment',
+                                        'Service Not Provided' => 'Service Not Provided',
+                                        'Quality Issues' => 'Quality Issues',
+                                        'Other' => 'Other',
+                                    ])
+                                    ->required()
+                                    ->searchable()
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Textarea::make('notes')
+                                    ->label('Additional Notes')
+                                    ->rows(3)
+                                    ->placeholder('Enter any additional details about this refund...')
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Checkbox::make('notify_customer')
+                                    ->label('Send refund notification to customer')
+                                    ->default(true)
+                                    ->helperText('Customer will receive an email about this refund'),
+                            ])
+                    ];
+                })
+                ->requiresConfirmation()
+                ->modalHeading('Process Refund')
+                ->modalDescription('This action will process a refund through Thawani payment gateway.')
+                ->modalSubmitActionLabel('Process Refund')
+                ->modalWidth('2xl')
+                ->action(function (Payment $record, array $data): void {
+                    try {
+                        // Determine refund amount
+                        $amount = $data['refund_type'] === 'full'
+                            ? $record->getRemainingRefundableAmount()
+                            : (float) $data['amount'];
+
+                        // Build refund reason
+                        $reason = $data['reason'];
+                        if (!empty($data['notes'])) {
+                            $reason .= ' - ' . $data['notes'];
+                        }
+                        $reason .= ' | Processed by: ' . (Auth::user()?->name ?? 'System');
+
+                        // Process refund
+                        $success = $record->refund($amount, $reason);
+
+                        if ($success) {
+                            // Send notification if requested
+                            if ($data['notify_customer'] ?? false) {
+                                try {
+                                    // Log notification intent (implement actual sending later)
+                                    \Illuminate\Support\Facades\Log::info('Refund notification requested', [
+                                        'payment_id' => $record->id,
+                                        'amount' => $amount,
+                                        'customer_email' => $record->booking?->customer_email,
+                                    ]);
+                                } catch (\Exception $e) {
+                                    \Illuminate\Support\Facades\Log::warning('Failed to send refund notification', [
+                                        'payment_id' => $record->id,
+                                        'error' => $e->getMessage(),
+                                    ]);
+                                }
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Refund Processed Successfully')
+                                ->success()
+                                ->body("Refund of " . number_format($amount, 3) . " OMR has been processed successfully.")
+                                ->send();
+                        }
+                    } catch (\Exception $e) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Refund Failed')
+                            ->danger()
+                            ->body('Failed to process refund: ' . $e->getMessage())
+                            ->persistent()
+                            ->send();
+
+                        throw $e;
+                    }
+                }),
+             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

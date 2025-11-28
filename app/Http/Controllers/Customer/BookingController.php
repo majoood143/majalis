@@ -665,13 +665,14 @@ class BookingController extends BaseController
         $locale = request()->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        // Get session_id from query parameter (Thawani sends this)
-        $sessionId = request()->query('session_id');
+        // Get session_id from query parameter (Thawani should send this, but sometimes doesn't)
+        $sessionIdFromCallback = request()->query('session_id');
 
         Log::info('Payment success callback received', [
             'booking_id' => $booking->id,
-            'session_id' => $sessionId,
+            'session_id_from_callback' => $sessionIdFromCallback,
             'full_url' => request()->fullUrl(),
+            'all_params' => request()->all(),
         ]);
 
         // Ensure user owns this booking (skip for guest bookings)
@@ -695,60 +696,124 @@ class BookingController extends BaseController
                     ->with('error', __('halls.payment_not_found'));
             }
 
-            // If session_id provided, verify with Thawani
+            Log::info('Payment found for verification', [
+                'payment_id' => $payment->id,
+                'payment_status' => $payment->status,
+                'payment_reference' => $payment->payment_reference,
+                'stored_transaction_id' => $payment->transaction_id,
+            ]);
+
+            // If payment is already paid, just redirect to success
+            if ($payment->isPaid()) {
+                Log::info('Payment already marked as paid', [
+                    'payment_id' => $payment->id,
+                ]);
+
+                return redirect()
+                    ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+                    ->with('success', __('halls.payment_successful'));
+            }
+
+            // Get session_id: either from callback OR from stored transaction_id
+            $sessionId = $sessionIdFromCallback ?? $payment->transaction_id;
+
+            Log::info('Using session ID for verification', [
+                'session_id' => $sessionId,
+                'source' => $sessionIdFromCallback ? 'callback' : 'stored',
+            ]);
+
+            // If we have a session_id and payment is not yet paid, verify with Thawani
             if ($sessionId && ($payment->isPending() || $payment->isProcessing())) {
                 Log::info('Verifying payment with Thawani', [
                     'payment_id' => $payment->id,
                     'session_id' => $sessionId,
                 ]);
 
-                // Verify payment with Thawani
-                $verification = $paymentService->verifyPaymentBySessionId($sessionId);
+                try {
+                    // Verify payment with Thawani
+                    $verification = $paymentService->verifyPaymentBySessionId($sessionId);
 
-                if ($verification['success'] && $verification['is_paid']) {
-                    // Process successful payment
-                    $paymentService->processSuccessfulPayment($payment, $verification['data']);
+                    Log::info('Thawani verification result', [
+                        'payment_id' => $payment->id,
+                        'verification' => $verification,
+                    ]);
 
-                    // Generate PDF if service available
-                    if (app()->bound(BookingPdfService::class)) {
-                        try {
-                            $pdfService = app(BookingPdfService::class);
-                            $pdfService->generateConfirmation($booking);
-                        } catch (Exception $e) {
-                            Log::warning('PDF generation failed', [
-                                'booking_id' => $booking->id,
-                                'error' => $e->getMessage(),
-                            ]);
+                    if ($verification['success'] && $verification['is_paid']) {
+                        // ✅ CRITICAL: Process successful payment
+                        $paymentService->processSuccessfulPayment($payment, $verification['data']);
+
+                        Log::info('Payment successfully processed and marked as paid', [
+                            'payment_id' => $payment->id,
+                            'payment_reference' => $payment->payment_reference,
+                            'invoice' => $verification['data']['invoice'] ?? null,
+                        ]);
+
+                        // Generate PDF if service available
+                        if (app()->bound(\App\Services\BookingPdfService::class)) {
+                            try {
+                                $pdfService = app(\App\Services\BookingPdfService::class);
+                                $pdfService->generateConfirmation($booking);
+
+                                Log::info('Booking confirmation PDF generated', [
+                                    'booking_id' => $booking->id,
+                                ]);
+                            } catch (Exception $e) {
+                                Log::warning('PDF generation failed', [
+                                    'booking_id' => $booking->id,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
                         }
-                    }
 
-                    return redirect()
-                        ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
-                        ->with('success', __('halls.payment_successful'));
-                } else {
-                    Log::warning('Payment verification failed', [
+                        return redirect()
+                            ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+                            ->with('success', __('halls.payment_successful'));
+                    } else {
+                        // Payment not yet completed or verification failed
+                        Log::warning('Payment verification incomplete', [
+                            'payment_id' => $payment->id,
+                            'session_id' => $sessionId,
+                            'verification_status' => $verification['status'] ?? 'unknown',
+                        ]);
+
+                        // Payment might still be processing
+                        return redirect()
+                            ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+                            ->with('warning', __('halls.payment_verification_pending'));
+                    }
+                } catch (Exception $e) {
+                    Log::error('Payment verification exception', [
                         'payment_id' => $payment->id,
                         'session_id' => $sessionId,
-                        'verification_result' => $verification,
+                        'error' => $e->getMessage(),
                     ]);
+
+                    // Don't fail completely, still redirect to success page
+                    return redirect()
+                        ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+                        ->with('warning', __('halls.payment_verification_pending'));
                 }
             }
 
-            // If payment is already processed, show success
+            // No session_id available or payment already in final state
             if ($payment->isPaid()) {
                 return redirect()
                     ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
                     ->with('success', __('halls.payment_successful'));
             }
 
-            // Payment verification pending or failed
+            // Payment verification pending
+            Log::warning('Payment verification pending - no session ID available', [
+                'payment_id' => $payment->id,
+                'payment_status' => $payment->status,
+            ]);
+
             return redirect()
                 ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
                 ->with('warning', __('halls.payment_verification_pending'));
         } catch (Exception $e) {
             Log::error('Payment success handling failed', [
                 'booking_id' => $booking->id,
-                'session_id' => $sessionId ?? null,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -770,22 +835,37 @@ class BookingController extends BaseController
         $locale = request()->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        Log::info('Payment cancelled', [
+        Log::info('Payment cancelled by user', [
             'booking_id' => $booking->id,
+            'booking_number' => $booking->booking_number,
+            'full_url' => request()->fullUrl(),
         ]);
 
-        // Mark latest payment as cancelled
+        // Ensure user owns this booking (skip for guest bookings)
+        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // Get the latest payment and update status
         $payment = $booking->latestPayment;
+
         if ($payment && ($payment->isPending() || $payment->isProcessing())) {
             $payment->update([
-                'status' => Payment::STATUS_CANCELLED,
-                'failure_reason' => 'Payment cancelled by user',
+                'status' => \App\Models\Payment::STATUS_CANCELLED,
+                'failure_reason' => 'Payment cancelled by customer',
+                'failed_at' => now(),
+            ]);
+
+            Log::info('Payment status updated to cancelled', [
+                'payment_id' => $payment->id,
+                'payment_reference' => $payment->payment_reference,
             ]);
         }
 
+        // Redirect to cancellation page
         return redirect()
-            ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
-            ->with('error', __('halls.payment_cancelled'));
+            ->route('customer.booking.cancelled', ['booking' => $booking->id, 'lang' => $locale])
+            ->with('warning', __('halls.payment_cancelled_message'));
     }
 
     /**
@@ -903,5 +983,98 @@ class BookingController extends BaseController
 
         $pdfService = app(BookingPdfService::class);
         return $pdfService->downloadWithArabicSupport($booking);
+    }
+
+    /**
+     * Show booking cancellation page
+     *
+     * @param Booking $booking
+     * @return \Illuminate\View\View
+     */
+    public function cancelled(Booking $booking)
+    {
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
+        // Ensure user owns this booking (skip for guest bookings)
+        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        Log::info('Showing booking cancellation page', [
+            'booking_id' => $booking->id,
+            'booking_number' => $booking->booking_number,
+        ]);
+
+        return view('customer.booking-cancelled', compact('booking'));
+    }
+
+    /**
+     * Retry payment for a booking
+     *
+     * @param Booking $booking
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function retryPayment(Booking $booking)
+    {
+        $locale = request()->get('lang', session('locale', 'ar'));
+        app()->setLocale($locale);
+
+        // Ensure user owns this booking (skip for guest bookings)
+        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        Log::info('Retrying payment for booking', [
+            'booking_id' => $booking->id,
+            'booking_number' => $booking->booking_number,
+        ]);
+
+        // Check if booking is already paid
+        if ($booking->payment_status === 'paid') {
+            return redirect()
+                ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+                ->with('info', __('halls.booking_already_paid'));
+        }
+
+        // Get the latest payment
+        $payment = $booking->latestPayment;
+
+        if (!$payment) {
+            return redirect()
+                ->route('customer.halls.index', ['lang' => $locale])
+                ->with('error', __('halls.payment_not_found'));
+        }
+
+        // If payment is already processing, redirect to gateway
+        if ($payment->payment_url && $payment->isProcessing()) {
+            return redirect($payment->payment_url);
+        }
+
+        // Otherwise, create a new payment session
+        try {
+            $paymentService = app(\App\Services\PaymentService::class);
+            $result = $paymentService->initiatePayment($booking, 'online');
+
+            if ($result['success'] && isset($result['redirect_url'])) {
+                Log::info('Payment retry successful, redirecting to gateway', [
+                    'booking_id' => $booking->id,
+                    'redirect_url' => $result['redirect_url'],
+                ]);
+
+                return redirect($result['redirect_url']);
+            }
+
+            throw new \Exception($result['message'] ?? 'Failed to initiate payment');
+        } catch (\Exception $e) {
+            Log::error('Payment retry failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('customer.booking.cancelled', ['booking' => $booking->id, 'lang' => $locale])
+                ->with('error', __('halls.payment_retry_failed') . ': ' . $e->getMessage());
+        }
     }
 }

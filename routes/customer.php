@@ -77,6 +77,14 @@ Route::middleware(['auth'])->name('customer.')->group(function () {
 
     // Cancel booking
     Route::post('/bookings/{booking}/cancel', [CustomerBookingController::class, 'cancel'])->name('booking.cancel');
+
+    // Booking cancellation page route
+    Route::get('/booking/cancelled/{booking}', [BookingController::class, 'cancelled'])
+        ->name('booking.cancelled');
+
+    // Retry payment route (optional but recommended)
+    Route::get('/booking/{booking}/retry-payment', [BookingController::class, 'retryPayment'])
+        ->name('booking.retry-payment');
 });
 
 // AJAX routes
@@ -94,5 +102,3 @@ Route::middleware(['auth'])->name('customer.')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
-

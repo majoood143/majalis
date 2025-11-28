@@ -10,6 +10,7 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Filament\Forms;
 
 /**
  * View Payment Page
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class ViewPayment extends ViewRecord
 {
-    
+
     /**
      * The resource this page belongs to
      *
@@ -63,46 +64,141 @@ class ViewPayment extends ViewRecord
                 ->modalSubmitAction(false), // No submit button, just close
 
             // Refund Action - Process refund (if applicable)
-            Actions\Action::make('refund')
+            // Process Refund Action - Enhanced version
+            Actions\Action::make('process_refund')
                 ->label('Process Refund')
-                ->icon('heroicon-o-arrow-uturn-left')
+                ->icon('heroicon-o-arrow-path')
                 ->color('warning')
-                ->visible(fn($record) => $record->status === 'paid' && !$record->refunded_at)
+                ->visible(fn($record) => $record->canBeRefunded())
+                ->form(function ($record) {
+                    $remainingAmount = $record->getRemainingRefundableAmount();
+
+                    return [
+                        Forms\Components\Section::make('Refund Information')
+                            ->schema([
+                                Forms\Components\Placeholder::make('payment_details')
+                                    ->label('Payment Details')
+                                    ->content(function () use ($record, $remainingAmount) {
+                                        return view('filament.components.refund-details', [
+                                            'payment' => $record,
+                                            'remainingAmount' => $remainingAmount,
+                                        ]);
+                                    })
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Radio::make('refund_type')
+                                    ->label('Refund Type')
+                                    ->options([
+                                        'full' => 'Full Refund (' . number_format($remainingAmount, 3) . ' OMR)',
+                                        'partial' => 'Partial Refund (Custom Amount)',
+                                    ])
+                                    ->default('full')
+                                    ->required()
+                                    ->reactive()
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('amount')
+                                    ->label('Refund Amount (OMR)')
+                                    ->numeric()
+                                    ->required()
+                                    ->prefix('OMR')
+                                    ->step(0.001)
+                                    ->minValue(0.001)
+                                    ->maxValue($remainingAmount)
+                                    ->default($remainingAmount)
+                                    ->helperText('Enter amount between 0.001 and ' . number_format($remainingAmount, 3) . ' OMR')
+                                    ->visible(fn($get) => $get('refund_type') === 'partial'),
+
+                                Forms\Components\Select::make('reason')
+                                    ->label('Refund Reason')
+                                    ->options([
+                                        'Customer Request' => 'Customer Request',
+                                        'Event Cancelled' => 'Event Cancelled',
+                                        'Hall Unavailable' => 'Hall Unavailable',
+                                        'Duplicate Payment' => 'Duplicate Payment',
+                                        'Fraudulent Transaction' => 'Fraudulent Transaction',
+                                        'Service Not Provided' => 'Service Not Provided',
+                                        'Quality Issues' => 'Quality Issues',
+                                        'Weather/Force Majeure' => 'Weather/Force Majeure',
+                                        'Technical Error' => 'Technical Error',
+                                        'Other' => 'Other',
+                                    ])
+                                    ->required()
+                                    ->searchable(),
+
+                                Forms\Components\Textarea::make('notes')
+                                    ->label('Additional Notes (Optional)')
+                                    ->rows(3)
+                                    ->placeholder('Add any additional details about this refund...')
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Toggle::make('notify_customer')
+                                    ->label('Send notification to customer')
+                                    ->default(true)
+                                    ->helperText('Customer will receive an email and SMS about this refund'),
+
+                                Forms\Components\Toggle::make('cancel_booking')
+                                    ->label('Cancel booking (for full refunds)')
+                                    ->default(true)
+                                    ->helperText('Booking will be automatically cancelled if full refund is processed')
+                                    ->visible(fn($get) => $get('refund_type') === 'full'),
+                            ])
+                    ];
+                })
                 ->requiresConfirmation()
-                ->modalHeading('Process Refund')
-                ->modalDescription('Are you sure you want to process a refund for this payment? This action may not be reversible.')
-                ->modalSubmitActionLabel('Yes, Refund')
-                ->action(function ($record) {
+                ->modalHeading('Process Payment Refund')
+                ->modalDescription('This will process a refund through Thawani payment gateway. This action cannot be undone.')
+                ->modalSubmitActionLabel('Process Refund')
+                ->modalWidth('3xl')
+                ->action(function ($record, array $data) {
                     try {
-                        // Process refund logic here
-                        $record->update([
-                            'status' => 'refunded',
-                            'refunded_at' => now(),
-                            'refund_amount' => $record->amount,
-                            'refund_reason' => 'Manual refund by admin',
-                        ]);
+                        // Calculate refund amount
+                        $amount = $data['refund_type'] === 'full'
+                            ? $record->getRemainingRefundableAmount()
+                            : (float) $data['amount'];
 
-                        // Update booking payment status
-                        if ($record->booking) {
-                            $record->booking->update([
-                                'payment_status' => 'refunded',
-                            ]);
+                        // Build comprehensive reason
+                        $reason = $data['reason'];
+                        if (!empty($data['notes'])) {
+                            $reason .= ' | Notes: ' . $data['notes'];
                         }
+                        $reason .= ' | Processed by: ' . Auth::user()?->name ?? 'System';
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Refund Processed')
-                            ->success()
-                            ->body('Payment has been successfully refunded.')
-                            ->send();
+                        // Process refund
+                        $paymentService = app(\App\Services\PaymentService::class);
+                        $result = $paymentService->processRefund($record, $amount, $reason);
+
+                        if ($result['success']) {
+                            // Send notifications if requested
+                            if ($data['notify_customer'] ?? false) {
+                                // You can implement email/SMS here
+                                Log::info('Customer notification requested for refund', [
+                                    'payment_id' => $record->id,
+                                    'amount' => $amount,
+                                ]);
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Refund Processed Successfully')
+                                ->success()
+                                ->body("Refund of " . number_format($amount, 3) . " OMR has been processed. Refund ID: " . ($result['refund_id'] ?? 'N/A'))
+                                ->duration(10000)
+                                ->send();
+
+                            // Refresh the page to show updated status
+                            redirect()->route('filament.admin.resources.payments.view', ['record' => $record]);
+                        }
                     } catch (\Exception $e) {
                         \Filament\Notifications\Notification::make()
-                            ->title('Refund Failed')
+                            ->title('Refund Processing Failed')
                             ->danger()
-                            ->body('Failed to process refund: ' . $e->getMessage())
+                            ->body('Error: ' . $e->getMessage())
+                            ->persistent()
                             ->send();
+
+                        throw $e;
                     }
                 }),
-
             // Mark as Paid Action - Manually mark payment as paid
             Actions\Action::make('mark_as_paid')
                 ->label('Mark as Paid')

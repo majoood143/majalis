@@ -6,17 +6,15 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Payment;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Payment Service for Thawani Gateway Integration
  *
- * Handles payment processing with Thawani Payment Gateway (UAT Environment)
- * Supports online payments, cash, and bank transfers
+ * Uses native PHP cURL for maximum compatibility with Thawani UAT
  *
  * @package App\Services
  */
@@ -28,47 +26,31 @@ class PaymentService
     protected string $apiKey;
     protected string $baseUrl;
     protected string $publishableKey;
-    protected Client $client;
 
     /**
-     * Constructor - Initialize Thawani API client
+     * Constructor - Initialize Thawani API configuration
      */
     public function __construct()
     {
-        // Thawani API credentials from .env via config/services.php
         $this->apiKey = config('services.thawani.secret_key');
         $this->publishableKey = config('services.thawani.publishable_key');
         $this->baseUrl = config('services.thawani.base_url', 'https://uatcheckout.thawani.om/api/v1');
-
-        // Initialize Guzzle HTTP client with Thawani headers
-        // IMPORTANT: Don't set default headers - pass them per request
-        $this->client = new Client([
-            'base_uri' => $this->baseUrl,
-            'timeout' => 30,
-            'http_errors' => false, // Don't throw exceptions on 4xx/5xx
-            'verify' => true, // Verify SSL certificates
-        ]);
     }
 
     /**
      * Initiate payment session with Thawani
      *
-     * Creates a payment record and initiates the appropriate payment flow
-     * based on the selected payment method (online, cash, bank_transfer)
-     *
-     * @param Booking $booking The booking to process payment for
-     * @param string $paymentMethod Payment method: online, cash, or bank_transfer
-     * @return array Payment initiation result with success status and redirect URL
+     * @param Booking $booking
+     * @param string $paymentMethod
+     * @return array
      */
     public function initiatePayment(Booking $booking, string $paymentMethod = 'online'): array
     {
         DB::beginTransaction();
 
         try {
-            // Create payment record in database
             $payment = $this->createPaymentRecord($booking, $paymentMethod);
 
-            // Handle cash payment - no gateway needed
             if ($paymentMethod === 'cash') {
                 DB::commit();
                 return [
@@ -79,7 +61,6 @@ class PaymentService
                 ];
             }
 
-            // Handle bank transfer - no gateway needed
             if ($paymentMethod === 'bank_transfer') {
                 DB::commit();
                 return [
@@ -90,14 +71,11 @@ class PaymentService
                 ];
             }
 
-            // Handle online payment - integrate with Thawani gateway
-            // Check if API credentials are properly configured
             if (empty($this->apiKey) || $this->apiKey === 'your_secret_key_here') {
                 Log::warning('Thawani API credentials not configured', [
                     'booking_id' => $booking->id,
                 ]);
 
-                // Mark payment as pending manual verification
                 $payment->update([
                     'status' => Payment::STATUS_PENDING,
                     'failure_reason' => 'Payment gateway not configured',
@@ -113,7 +91,6 @@ class PaymentService
                 ];
             }
 
-            // Create Thawani checkout session
             $sessionData = $this->createThawaniSession($booking, $payment);
 
             if (!$sessionData['success']) {
@@ -122,7 +99,6 @@ class PaymentService
                     'error' => $sessionData['message'] ?? 'Unknown error',
                 ]);
 
-                // Mark payment as pending for manual processing
                 $payment->update([
                     'status' => Payment::STATUS_PENDING,
                     'failure_reason' => $sessionData['message'] ?? 'Gateway error',
@@ -138,9 +114,9 @@ class PaymentService
                 ];
             }
 
-            // Update payment record with gateway session details
             $payment->update([
                 'transaction_id' => $sessionData['session_id'],
+                'invoice_id' => $sessionData['invoice'] ?? null,
                 'payment_url' => $sessionData['redirect_url'],
                 'gateway_response' => $sessionData,
                 'status' => Payment::STATUS_PROCESSING,
@@ -162,69 +138,14 @@ class PaymentService
                 'booking_id' => $booking->id,
                 'payment_method' => $paymentMethod,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
-            // Return error response instead of throwing exception
             return [
                 'success' => false,
                 'payment_method' => $paymentMethod,
                 'message' => 'Payment processing error: ' . $e->getMessage(),
             ];
         }
-    }
-
-    /**
-     * Create Thawani checkout session
-     *
-     * Calls Thawani API to create a new checkout session for the booking
-     * Converts amount to baisa (Omani currency subdivision)
-     *
-     * @param Booking $booking The booking to create session for
-     * @param Payment $payment The payment record
-     * @return array Session creation result with session_id and redirect_url
-     */
-
-
-    /**
-     * Make HTTP POST request using cURL
-     *
-     * Wrapper method for easier testing and maintenance
-     *
-     * @param string $endpoint API endpoint
-     * @param array $data Request payload
-     * @param array $headers HTTP headers
-     * @return array Response with status_code, body, and error
-     */
-    protected function curlPost(string $endpoint, array $data, array $headers = []): array
-    {
-        $jsonPayload = json_encode($data);
-
-        $ch = curl_init();
-
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $this->baseUrl . $endpoint,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $jsonPayload,
-            CURLOPT_HTTPHEADER => array_merge([
-                'Content-Type: application/json',
-            ], $headers),
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-        ]);
-
-        $responseBody = curl_exec($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        return [
-            'status_code' => $statusCode,
-            'body' => $responseBody,
-            'error' => $curlError ?: null,
-        ];
     }
 
     /**
@@ -237,30 +158,20 @@ class PaymentService
     protected function createThawaniSession(Booking $booking, Payment $payment): array
     {
         try {
-            // Validate API key
             if (empty($this->apiKey)) {
                 throw new Exception('Thawani API key is not configured');
             }
 
-
-            // Convert amount to baisa (1 OMR = 1000 baisa)
             $amountInBaisa = (int) round($booking->total_amount * 1000);
 
             if ($amountInBaisa <= 0) {
                 throw new Exception('Invalid payment amount: ' . $booking->total_amount);
             }
 
-            // Product name (English only to avoid encoding issues)
             $productName = 'Hall Booking - ' . $booking->booking_number;
+            $successUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.success', ['booking' => $booking->id]));
+            $cancelUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.cancel', ['booking' => $booking->id]));
 
-            // Build URLs and force localhost (Thawani rejects 127.0.0.1)
-            $successUrl = route('customer.payment.success', ['booking' => $booking->id]);
-            $cancelUrl = route('customer.payment.cancel', ['booking' => $booking->id]);
-
-            $successUrl = str_replace('127.0.0.1', 'localhost', $successUrl);
-            $cancelUrl = str_replace('127.0.0.1', 'localhost', $cancelUrl);
-
-            // Prepare payment data according to Thawani API specification
             $paymentData = [
                 'client_reference_id' => $payment->payment_reference,
                 'mode' => 'payment',
@@ -275,28 +186,14 @@ class PaymentService
                 'cancel_url' => $cancelUrl,
             ];
 
-            // Use the wrapper method
-            $response = $this->curlPost('/checkout/session', $paymentData, [
-                'thawani-api-key: ' . $this->apiKey,
-            ]);
-
-            if ($response['error']) {
-                return ['success' => false, 'message' => $response['error']];
-            }
-
             $jsonPayload = json_encode($paymentData);
 
             Log::info('Creating Thawani session with native cURL', [
                 'booking_id' => $booking->id,
                 'payment_id' => $payment->id,
                 'amount_baisa' => $amountInBaisa,
-                'amount_omr' => $booking->total_amount,
-                'product_name' => $productName,
-                'success_url' => $successUrl,
-                'cancel_url' => $cancelUrl,
             ]);
 
-            // Use native cURL (exactly like successful terminal cURL)
             $ch = curl_init();
 
             curl_setopt_array($ch, [
@@ -318,7 +215,6 @@ class PaymentService
             $curlError = curl_error($ch);
             curl_close($ch);
 
-            // Check for cURL errors
             if ($curlError) {
                 Log::error('cURL error creating Thawani session', [
                     'error' => $curlError,
@@ -331,93 +227,48 @@ class PaymentService
                 ];
             }
 
-            Log::info('Thawani API response', [
-                'status_code' => $statusCode,
-                'has_body' => !empty($responseBody),
-                'body_length' => strlen($responseBody),
-                'booking_id' => $booking->id,
-            ]);
-
-            // Handle empty response
             if (empty($responseBody)) {
-                Log::error('Thawani returned empty response', [
-                    'status_code' => $statusCode,
-                    'booking_id' => $booking->id,
-                ]);
-
                 return [
                     'success' => false,
-                    'message' => 'Payment gateway returned empty response (Status: ' . $statusCode . ')'
+                    'message' => 'Payment gateway returned empty response'
                 ];
             }
 
-            // Decode JSON response
             $result = json_decode($responseBody, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('Failed to decode Thawani response', [
-                    'json_error' => json_last_error_msg(),
-                    'raw_response' => $responseBody,
-                    'booking_id' => $booking->id,
-                ]);
-
                 return [
                     'success' => false,
                     'message' => 'Invalid response format from payment gateway'
                 ];
             }
 
-            Log::info('Thawani API decoded response', [
-                'status_code' => $statusCode,
-                'success' => $result['success'] ?? false,
-                'code' => $result['code'] ?? null,
-                'description' => $result['description'] ?? null,
-                'booking_id' => $booking->id,
-            ]);
-
-            // Check if session creation was successful
             if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
                 $sessionId = $result['data']['session_id'];
-
-                // Build redirect URL for Thawani checkout page
                 $redirectUrl = 'https://uatcheckout.thawani.om/pay/' . $sessionId . '?key=' . $this->publishableKey;
 
                 Log::info('Thawani session created successfully', [
                     'session_id' => $sessionId,
-                    'redirect_url' => $redirectUrl,
                     'invoice' => $result['data']['invoice'] ?? null,
-                    'booking_id' => $booking->id,
                 ]);
 
                 return [
                     'success' => true,
                     'session_id' => $sessionId,
+                    'invoice' => $result['data']['invoice'] ?? null,
                     'redirect_url' => $redirectUrl,
                     'data' => $result['data']
                 ];
             }
 
-            // Handle API error response
-            $errorMessage = $result['description']
-                ?? $result['message']
-                ?? 'Unknown error from payment gateway';
-
-            Log::error('Thawani session creation failed', [
-                'error' => $errorMessage,
-                'status_code' => $statusCode,
-                'full_response' => $result,
-                'booking_id' => $booking->id,
-            ]);
-
             return [
                 'success' => false,
-                'message' => $errorMessage
+                'message' => $result['description'] ?? 'Unknown error from payment gateway'
             ];
         } catch (Exception $e) {
             Log::error('Thawani session creation exception', [
                 'booking_id' => $booking->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
@@ -428,12 +279,11 @@ class PaymentService
     }
 
     /**
-     * Verify payment status with Thawani
+     * Verify payment status with Thawani using session ID
      *
-     * Retrieves the current status of a payment session from Thawani
-     *
-     * @param string $sessionId Thawani session ID
-     * @return array Verification result with payment status
+     * @param string $sessionId
+     * @return array
+     * @throws Exception
      */
     public function verifyPaymentBySessionId(string $sessionId): array
     {
@@ -442,16 +292,48 @@ class PaymentService
                 'session_id' => $sessionId,
             ]);
 
-            // Call Thawani API to get session details
-            $response = $this->client->get('/checkout/session/' . $sessionId);
-            $statusCode = $response->getStatusCode();
-            $responseBody = $response->getBody()->getContents();
+            $ch = curl_init();
+
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $this->baseUrl . '/checkout/session/' . $sessionId,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                    'thawani-api-key: ' . $this->apiKey,
+                    'Content-Type: application/json',
+                ],
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+            ]);
+
+            $responseBody = curl_exec($ch);
+            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if ($curlError) {
+                Log::error('cURL error during payment verification', [
+                    'session_id' => $sessionId,
+                    'error' => $curlError,
+                ]);
+
+                throw new Exception('Connection error: ' . $curlError);
+            }
+
+            if (empty($responseBody)) {
+                throw new Exception('Empty response from payment gateway');
+            }
+
             $result = json_decode($responseBody, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid response format from payment gateway');
+            }
 
             Log::info('Thawani verification response', [
                 'session_id' => $sessionId,
                 'status_code' => $statusCode,
-                'response' => $result,
+                'payment_status' => $result['data']['payment_status'] ?? 'unknown',
             ]);
 
             if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
@@ -471,10 +353,10 @@ class PaymentService
                 'is_paid' => false,
                 'message' => $result['description'] ?? 'Verification failed'
             ];
-        } catch (GuzzleException $e) {
-            Log::error('Payment verification error', [
+        } catch (Exception $e) {
+            Log::error('Payment verification exception', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             throw new Exception('Payment verification failed: ' . $e->getMessage());
@@ -484,9 +366,9 @@ class PaymentService
     /**
      * Verify payment with Thawani using Payment model
      *
-     * @param Payment $payment Payment record to verify
-     * @return array Verification result
-     * @throws Exception If no transaction ID found
+     * @param Payment $payment
+     * @return array
+     * @throws Exception
      */
     public function verifyPayment(Payment $payment): array
     {
@@ -500,28 +382,52 @@ class PaymentService
     /**
      * Process successful payment
      *
+     * @param Payment $payment
+     * @param array $gatewayData
+     * @return void
+     */
+    /**
+     * Process successful payment
+     *
      * Updates payment and booking status after successful payment verification
      *
      * @param Payment $payment Payment record to update
      * @param array $gatewayData Gateway response data
      * @return void
+     * @throws Exception
      */
     public function processSuccessfulPayment(Payment $payment, array $gatewayData = []): void
     {
         DB::beginTransaction();
 
         try {
+            // Extract invoice ID from gateway data
+            $invoiceId = $gatewayData['invoice'] ?? null;
+            $transactionId = $gatewayData['session_id'] ?? $payment->transaction_id;
+
+            Log::info('Processing successful payment', [
+                'payment_id' => $payment->id,
+                'current_status' => $payment->status,
+                'invoice_id' => $invoiceId,
+                'transaction_id' => $transactionId,
+            ]);
+
             // Mark payment as paid
-            $payment->markAsPaid(
-                $gatewayData['invoice_id'] ?? $payment->transaction_id,
+            $success = $payment->markAsPaid(
+                $transactionId,
                 $gatewayData,
-                $gatewayData['invoice_id'] ?? null
+                $invoiceId
             );
+
+            if (!$success) {
+                throw new Exception('Failed to mark payment as paid');
+            }
 
             Log::info('Payment processed successfully', [
                 'payment_id' => $payment->id,
                 'payment_reference' => $payment->payment_reference,
                 'booking_id' => $payment->booking_id,
+                'new_status' => $payment->fresh()->status,
             ]);
 
             DB::commit();
@@ -530,7 +436,8 @@ class PaymentService
 
             Log::error('Failed to process successful payment', [
                 'payment_id' => $payment->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw $e;
@@ -540,9 +447,9 @@ class PaymentService
     /**
      * Create payment record in database
      *
-     * @param Booking $booking Booking to create payment for
-     * @param string $paymentMethod Payment method
-     * @return Payment Created payment record
+     * @param Booking $booking
+     * @param string $paymentMethod
+     * @return Payment
      */
     protected function createPaymentRecord(Booking $booking, string $paymentMethod): Payment
     {
@@ -565,25 +472,323 @@ class PaymentService
      */
     protected function generatePaymentReference(): string
     {
-        return 'PAY-' . strtoupper(uniqid()) . '-' . time();
+        // Shorter format: PAY-XXXXXXXXXXXX (16 characters)
+        $timestamp = substr((string) time(), -6);
+        $random = strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+
+        return 'PAY-' . $timestamp . $random;
     }
 
     /**
-     * Get hall name from translatable field
+     * Process refund through Thawani gateway
      *
-     * Handles both string and array (translatable) hall names
+     * Creates a refund request with Thawani for a paid payment
      *
-     * @param mixed $name Hall name (string or translatable array)
-     * @return string Processed hall name
+     * @param Payment $payment Payment to refund
+     * @param float $amount Refund amount in OMR
+     * @param string $reason Refund reason
+     * @param array $metadata Additional metadata
+     * @return array Refund result
+     * @throws Exception
      */
-    protected function getHallName($name): string
+    public function processRefund(Payment $payment, float $amount, string $reason, array $metadata = []): array
     {
-        // Handle translatable fields (array format)
-        if (is_array($name)) {
-            return $name[app()->getLocale()] ?? $name['en'] ?? $name['ar'] ?? 'Hall Booking';
-        }
+        DB::beginTransaction();
 
-        // Handle regular string
-        return $name ?? 'Hall Booking';
+        try {
+            // Validate payment can be refunded
+            if (!$payment->isPaid()) {
+                throw new Exception('Only paid payments can be refunded');
+            }
+
+            if (!$payment->transaction_id) {
+                throw new Exception('No transaction ID found for refund');
+            }
+
+            // Validate refund amount
+            $remainingAmount = $payment->getRemainingRefundableAmount();
+
+            if ($amount > $remainingAmount) {
+                throw new Exception("Refund amount ({$amount} OMR) exceeds refundable amount ({$remainingAmount} OMR)");
+            }
+
+            if ($amount <= 0) {
+                throw new Exception('Refund amount must be greater than zero');
+            }
+
+            // Convert amount to baisa
+            $amountInBaisa = (int) round($amount * 1000);
+
+            // Prepare refund data
+            $refundData = [
+                'session_id' => $payment->transaction_id,
+                'reason' => $this->mapRefundReason($reason),
+                'metadata' => array_merge([
+                    'payment_id' => (string) $payment->id,
+                    'payment_reference' => $payment->payment_reference,
+                    'booking_id' => (string) $payment->booking_id,
+                    'booking_number' => $payment->booking->booking_number ?? 'N/A',
+                    'refund_amount_omr' => (string) $amount,
+                    'refund_requested_by' => Auth::user()?->name ?? 'System',
+                ], $metadata),
+            ];
+
+            // Add amount for partial refund (Thawani API supports this)
+            if ($amount < $payment->amount) {
+                $refundData['amount'] = $amountInBaisa;
+            }
+
+            Log::info('Processing Thawani refund', [
+                'payment_id' => $payment->id,
+                'refund_amount' => $amount,
+                'refund_amount_baisa' => $amountInBaisa,
+                'reason' => $reason,
+            ]);
+
+            // Call Thawani Refund API
+            $response = $this->createThawaniRefund($refundData);
+
+            if (!$response['success']) {
+                throw new Exception($response['message'] ?? 'Refund request failed');
+            }
+
+            // Determine refund type
+            $isFullRefund = ($amount >= $payment->amount);
+            $refundStatus = $isFullRefund ? Payment::STATUS_REFUNDED : Payment::STATUS_PARTIALLY_REFUNDED;
+
+            // Update payment record
+            $payment->update([
+                'status' => $refundStatus,
+                'refund_amount' => DB::raw("COALESCE(refund_amount, 0) + {$amount}"),
+                'refund_reason' => $reason,
+                'refunded_at' => now(),
+                'gateway_response' => array_merge(
+                    $payment->gateway_response ?? [],
+                    ['refund' => $response['data']]
+                ),
+            ]);
+
+            // Update booking if full refund
+            if ($isFullRefund && $payment->booking) {
+                $payment->booking->update([
+                    'status' => 'cancelled',
+                    'payment_status' => 'refunded',
+                    'cancelled_at' => now(),
+                    'cancellation_reason' => 'Full refund processed: ' . $reason,
+                ]);
+
+                Log::info('Booking cancelled due to full refund', [
+                    'booking_id' => $payment->booking_id,
+                ]);
+            }
+
+            Log::info('Refund processed successfully', [
+                'payment_id' => $payment->id,
+                'refund_id' => $response['data']['refund_id'] ?? null,
+                'refund_amount' => $amount,
+                'refund_type' => $isFullRefund ? 'full' : 'partial',
+            ]);
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'refund_id' => $response['data']['refund_id'] ?? null,
+                'amount' => $amount,
+                'is_full_refund' => $isFullRefund,
+                'data' => $response['data'],
+            ];
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            Log::error('Refund processing failed', [
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Create refund through Thawani API using native cURL
+     *
+     * @param array $refundData Refund request data
+     * @return array API response
+     */
+    protected function createThawaniRefund(array $refundData): array
+    {
+        try {
+            $jsonPayload = json_encode($refundData);
+
+            Log::info('Creating Thawani refund', [
+                'endpoint' => '/refunds',
+                'payload' => $refundData,
+            ]);
+
+            // Use native cURL for Thawani API
+            $ch = curl_init();
+
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $this->baseUrl . '/refunds',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $jsonPayload,
+                CURLOPT_HTTPHEADER => [
+                    'thawani-api-key: ' . $this->apiKey,
+                    'Content-Type: application/json',
+                ],
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+            ]);
+
+            $responseBody = curl_exec($ch);
+            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            // Check for cURL errors
+            if ($curlError) {
+                Log::error('cURL error creating refund', [
+                    'error' => $curlError,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Connection error: ' . $curlError
+                ];
+            }
+
+            if (empty($responseBody)) {
+                return [
+                    'success' => false,
+                    'message' => 'Empty response from payment gateway'
+                ];
+            }
+
+            // Decode response
+            $result = json_decode($responseBody, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid response format from payment gateway'
+                ];
+            }
+
+            Log::info('Thawani refund API response', [
+                'status_code' => $statusCode,
+                'response' => $result,
+            ]);
+
+            // Check if refund was successful
+            if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
+                return [
+                    'success' => true,
+                    'data' => $result['data']
+                ];
+            }
+
+            // Handle error
+            return [
+                'success' => false,
+                'message' => $result['description'] ?? $result['message'] ?? 'Refund request failed'
+            ];
+        } catch (Exception $e) {
+            Log::error('Thawani refund exception', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Error creating refund: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Map internal refund reason to Thawani-accepted reason
+     *
+     * Thawani accepts: requested_by_customer, fraudulent, duplicate, other
+     *
+     * @param string $reason Internal reason
+     * @return string Thawani-compatible reason
+     */
+    protected function mapRefundReason(string $reason): string
+    {
+        $reasonMap = [
+            'customer_request' => 'requested_by_customer',
+            'Customer Request' => 'requested_by_customer',
+            'Customer requested refund' => 'requested_by_customer',
+            'duplicate' => 'duplicate',
+            'Duplicate Payment' => 'duplicate',
+            'fraudulent' => 'fraudulent',
+            'Fraudulent Transaction' => 'fraudulent',
+            'Fraud' => 'fraudulent',
+        ];
+
+        // Return mapped reason or default to 'other'
+        return $reasonMap[$reason] ?? 'other';
+    }
+
+    /**
+     * Get refund status from Thawani
+     *
+     * @param string $refundId Thawani refund ID
+     * @return array Refund status
+     */
+    public function getRefundStatus(string $refundId): array
+    {
+        try {
+            $ch = curl_init();
+
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $this->baseUrl . '/refunds/' . $refundId,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                    'thawani-api-key: ' . $this->apiKey,
+                    'Content-Type: application/json',
+                ],
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+            ]);
+
+            $responseBody = curl_exec($ch);
+            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if ($curlError || empty($responseBody)) {
+                throw new Exception('Failed to get refund status');
+            }
+
+            $result = json_decode($responseBody, true);
+
+            if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
+                return [
+                    'success' => true,
+                    'status' => $result['data']['status'] ?? 'unknown',
+                    'data' => $result['data']
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => $result['description'] ?? 'Failed to get refund status'
+            ];
+        } catch (Exception $e) {
+            Log::error('Failed to get refund status', [
+                'refund_id' => $refundId,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
     }
 }
+
+
+
+

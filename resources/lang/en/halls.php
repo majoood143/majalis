@@ -193,4 +193,25 @@ return [
     'try_alternative_payment' => 'Please try an alternative payment method',
     'payment_gateway_unavailable' => 'Payment gateway is currently unavailable',
     'booking_confirmed_payment_pending' => 'Your booking is confirmed. You will be contacted shortly to complete payment',
+
+
+    // Payment cancellation translations
+    'payment_cancelled' => 'Payment Cancelled',
+    'booking_cancelled' => 'Booking Cancelled',
+    'booking_not_completed' => 'Your booking was not completed',
+    'what_happened' => 'What Happened?',
+    'payment_cancelled_message' => 'You cancelled the payment process before completing it. Your booking has not been confirmed.',
+    'no_charges_applied' => 'No charges have been applied to your account.',
+    'what_next' => 'What Can You Do Next?',
+    'try_payment_again' => 'Try completing the payment again for the same booking',
+    'choose_different_hall' => 'Browse and choose a different hall',
+    'contact_support' => 'Contact our support team if you need assistance',
+    'booking_details' => 'Booking Details',
+    'browse_halls' => 'Browse Halls',
+    'retry_payment' => 'Try Payment Again',
+    'need_help' => 'Need help?',
+
+    'booking_already_paid' => 'This booking has already been paid',
+    'payment_retry_failed' => 'Failed to retry payment',
+    'total_amount' => 'Total Amount',
 ];

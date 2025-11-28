@@ -193,4 +193,24 @@ return [
     'try_alternative_payment' => 'يرجى تجربة طريقة دفع بديلة',
     'payment_gateway_unavailable' => 'بوابة الدفع غير متاحة حالياً',
     'booking_confirmed_payment_pending' => 'تم تأكيد حجزك. سيتم التواصل معك قريباً لإتمام الدفع',
+
+    // Payment cancellation translations (Arabic)
+    'payment_cancelled' => 'تم إلغاء الدفع',
+    'booking_cancelled' => 'تم إلغاء الحجز',
+    'booking_not_completed' => 'لم يتم إكمال حجزك',
+    'what_happened' => 'ماذا حدث؟',
+    'payment_cancelled_message' => 'قمت بإلغاء عملية الدفع قبل إتمامها. لم يتم تأكيد حجزك.',
+    'no_charges_applied' => 'لم يتم تطبيق أي رسوم على حسابك.',
+    'what_next' => 'ما الذي يمكنك فعله الآن؟',
+    'try_payment_again' => 'حاول إكمال الدفع مرة أخرى لنفس الحجز',
+    'choose_different_hall' => 'تصفح واختر قاعة مختلفة',
+    'contact_support' => 'اتصل بفريق الدعم إذا كنت بحاجة إلى مساعدة',
+    'booking_details' => 'تفاصيل الحجز',
+    'browse_halls' => 'تصفح القاعات',
+    'retry_payment' => 'حاول الدفع مرة أخرى',
+    'need_help' => 'تحتاج مساعدة؟',
+
+    'booking_already_paid' => 'هذا الحجز تم دفعه بالفعل',
+    'payment_retry_failed' => 'فشل في إعادة محاولة الدفع',
+    'total_amount' => 'الإجمالي',
 ];
