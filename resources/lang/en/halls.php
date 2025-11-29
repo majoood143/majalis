@@ -128,6 +128,7 @@ return [
     'booking_failed' => 'Booking failed. Please try again.',
     'invalid_request' => 'Invalid request',
     'booking_confirmed' => 'Your booking is confirmed',
+    'booking_confirmation' => 'Your Booking Confirmation',
     'booking_reference' => 'Booking Reference',
     'booking_details' => 'Booking Details',
     'payment_pending' => 'Payment Pending',
@@ -214,4 +215,14 @@ return [
     'booking_already_paid' => 'This booking has already been paid',
     'payment_retry_failed' => 'Failed to retry payment',
     'total_amount' => 'Total Amount',
+
+    // Image Gallery Translations
+    'view_fullscreen' => 'View Fullscreen',
+    'close' => 'Close',
+    'image_gallery' => 'Image Gallery',
+    'images_count' => ':count images',
+    'view_all_images' => 'View All Images',
+    'previous_image' => 'Previous Image',
+    'next_image' => 'Next Image',
+    'no_images_available' => 'No images available',
 ];

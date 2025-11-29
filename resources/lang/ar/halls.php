@@ -128,6 +128,7 @@ return [
     'booking_failed' => 'فشل الحجز. يرجى المحاولة مرة أخرى.',
     'invalid_request' => 'طلب غير صالح',
     'booking_confirmed' => 'تم تأكيد حجزك',
+    'booking_confirmation' => 'تم تأكيد حجزك',
     'booking_reference' => 'رقم الحجز',
     'booking_details' => 'تفاصيل الحجز',
     'payment_pending' => 'في انتظار الدفع',
@@ -213,4 +214,14 @@ return [
     'booking_already_paid' => 'هذا الحجز تم دفعه بالفعل',
     'payment_retry_failed' => 'فشل في إعادة محاولة الدفع',
     'total_amount' => 'الإجمالي',
+
+    // Image Gallery Translations
+    'view_fullscreen' => 'عرض بالحجم الكامل',
+    'close' => 'إغلاق',
+    'image_gallery' => 'معرض الصور',
+    'images_count' => ':count صورة',
+    'view_all_images' => 'عرض جميع الصور',
+    'previous_image' => 'الصورة السابقة',
+    'next_image' => 'الصورة التالية',
+    'no_images_available' => 'لا توجد صور متاحة',
 ];

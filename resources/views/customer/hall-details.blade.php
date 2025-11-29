@@ -75,6 +75,56 @@
             }
         }
     </script>
+
+    {{-- Swiper CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <style>
+        /* ... existing styles ... */
+
+        /* Gallery Swiper Styles */
+        .hallGalleryMain .swiper-slide-thumb-active .aspect-square > div {
+            background: rgba(14, 165, 233, 0.2) !important;
+            border-color: #0ea5e9 !important;
+        }
+
+        .hallGalleryThumbs .swiper-slide {
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .hallGalleryThumbs .swiper-slide-thumb-active {
+            opacity: 1;
+        }
+
+        .swiper-pagination-bullet {
+            background: white !important;
+            opacity: 0.5 !important;
+        }
+
+        .swiper-pagination-bullet-active {
+            opacity: 1 !important;
+        }
+
+        /* Lightbox Styles */
+        #lightbox.active {
+            display: block;
+        }
+
+        .lightboxSwiper {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* RTL Support */
+        [dir="rtl"] .swiper-button-prev:after {
+            content: 'next' !important;
+        }
+
+        [dir="rtl"] .swiper-button-next:after {
+            content: 'prev' !important;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50">
@@ -156,6 +206,206 @@
         </div>
     </div>
 
+<!-- Hall Image Gallery -->
+    @if ($hall->images()->active()->count() > 0)
+        <div class="relative -mt-8 md:-mt-12">
+            <div class="container px-4 mx-auto">
+                <div class="overflow-hidden bg-white shadow-2xl rounded-2xl md:rounded-3xl">
+
+                    {{-- Gallery Header (Optional) --}}
+                    <div class="px-4 pt-4 md:px-6 md:pt-6">
+                        <h2 class="text-lg font-bold text-gray-900 md:text-xl">
+                            {{ __('halls.image_gallery') }}
+                        </h2>
+                        <p class="text-sm text-gray-600">
+                            {{ __('halls.images_count', ['count' => $hall->images()->active()->count()]) }}
+                        </p>
+                    </div>
+
+                    <!-- Main Swiper Slider -->
+                    <div class="swiper hallGalleryMain">
+                        <div class="swiper-wrapper">
+                            @foreach ($hall->images()->active()->orderBy('order')->get() as $image)
+                                <div class="swiper-slide">
+                                    <div class="relative bg-gray-200 aspect-[4/3] md:aspect-[16/9] overflow-hidden">
+                                        {{-- Lazy Loading Image --}}
+                                        <img
+                                            src="{{ asset('storage/' . $image->image_path) }}"
+                                            alt="{{ $image->alt_text ?? (is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name) }}"
+                                            class="object-cover w-full h-full swiper-lazy"
+                                        >
+                                        {{-- Loading Spinner --}}
+                                        <div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div>
+
+                                        {{-- Caption Overlay (if exists) --}}
+                                        @if ($image->caption && !empty($image->caption[app()->getLocale()]))
+                                            <div class="absolute bottom-0 left-0 right-0 px-4 py-3 text-white bg-gradient-to-t from-black/70 to-transparent md:px-6 md:py-4">
+                                                <p class="text-sm md:text-base">
+                                                    {{ $image->caption[app()->getLocale()] }}
+                                                </p>
+                                            </div>
+                                        @endif
+
+                                        {{-- Zoom Icon --}}
+                                        <button
+                                            onclick="openLightbox({{ $loop->index }})"
+                                            class="absolute p-2 transition bg-white rounded-full shadow-lg top-4 {{ app()->getLocale() === 'ar' ? 'left-4' : 'right-4' }} hover:bg-gray-100 group"
+                                            aria-label="{{ __('halls.view_fullscreen') }}"
+                                            title="{{ __('halls.view_fullscreen') }}"
+                                        >
+                                            <svg class="w-5 h-5 text-gray-700 transition group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Navigation Arrows (Desktop) --}}
+                        <div class="hidden md:block">
+                            <button
+                                class="swiper-button-prev {{ app()->getLocale() === 'ar' ? '!right-4 !left-auto' : '!left-4' }} !text-white !w-12 !h-12 after:!text-2xl bg-black/30 hover:bg-black/50 rounded-full backdrop-blur-sm transition"
+                                aria-label="{{ __('halls.previous_image') }}"
+                            ></button>
+                            <button
+                                class="swiper-button-next {{ app()->getLocale() === 'ar' ? '!left-4 !right-auto' : '!right-4' }} !text-white !w-12 !h-12 after:!text-2xl bg-black/30 hover:bg-black/50 rounded-full backdrop-blur-sm transition"
+                                aria-label="{{ __('halls.next_image') }}"
+                            ></button>
+                        </div>
+
+                        {{-- Pagination Dots --}}
+                        <div class="swiper-pagination !bottom-4"></div>
+                    </div>
+
+                    {{-- Thumbnail Navigation --}}
+                    <div class="p-4 bg-gray-50 md:p-6">
+                        <div class="swiper hallGalleryThumbs">
+                            <div class="swiper-wrapper">
+                                @foreach ($hall->images()->active()->orderBy('order')->get() as $image)
+                                    <div class="swiper-slide">
+                                        <div class="relative overflow-hidden transition border-2 border-transparent cursor-pointer aspect-square rounded-xl hover:border-primary-500">
+                                            <img
+                                                src="{{ $image->thumbnail_path ? asset('storage/' . $image->thumbnail_path) : asset('storage/' . $image->image_path) }}"
+                                                alt="{{ $image->alt_text ?? '' }}"
+                                                class="object-cover w-full h-full"
+                                            >
+                                            {{-- Active Overlay --}}
+                                            <div class="absolute inset-0 transition bg-primary-600/0"></div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Image Counter --}}
+                        <div class="flex items-center justify-center gap-2 mt-4 text-sm text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="font-medium gallery-counter">1 / {{ $hall->images()->active()->count() }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @else
+        {{-- No Images Fallback --}}
+        <div class="relative -mt-8 md:-mt-12">
+            <div class="container px-4 mx-auto">
+                <div class="p-8 text-center bg-white border border-gray-200 shadow-sm rounded-2xl md:rounded-3xl">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-gray-600">{{ __('halls.no_images_available') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Lightbox Modal --}}
+    <div id="lightbox" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-sm">
+        {{-- Close Button --}}
+        <button
+            onclick="closeLightbox()"
+            class="absolute z-10 p-3 text-white transition rounded-full top-4 {{ app()->getLocale() === 'ar' ? 'left-4' : 'right-4' }} hover:bg-white/10 group"
+            aria-label="{{ __('halls.close') }}"
+            title="{{ __('halls.close') }}"
+        >
+            <svg class="w-8 h-8 transition group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        {{-- Lightbox Swiper --}}
+        <div class="h-full swiper lightboxSwiper">
+            <div class="items-center swiper-wrapper">
+                @foreach ($hall->images()->active()->orderBy('order')->get() as $image)
+                    <div class="flex items-center justify-center p-4 swiper-slide md:p-8">
+                        <img
+                            src="{{ asset('storage/' . $image->image_path) }}"
+                            alt="{{ $image->alt_text ?? '' }}"
+                            class="object-contain max-w-full max-h-full rounded-lg shadow-2xl"
+                        >
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Navigation --}}
+            <button
+                class="swiper-button-prev {{ app()->getLocale() === 'ar' ? '!right-4 !left-auto' : '!left-4' }} !text-white after:!text-3xl"
+                aria-label="{{ __('halls.previous_image') }}"
+            ></button>
+            <button
+                class="swiper-button-next {{ app()->getLocale() === 'ar' ? '!left-4 !right-auto' : '!right-4' }} !text-white after:!text-3xl"
+                aria-label="{{ __('halls.next_image') }}"
+            ></button>
+
+            {{-- Counter --}}
+            <div class="absolute z-10 px-4 py-2 text-white -translate-x-1/2 rounded-lg shadow-lg bottom-4 left-1/2 bg-black/50 backdrop-blur-sm">
+                <span class="font-medium lightbox-counter">1 / {{ $hall->images()->active()->count() }}</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Lightbox Modal --}}
+    <div id="lightbox" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-sm">
+        {{-- Close Button --}}
+        <button
+            onclick="closeLightbox()"
+            class="absolute z-10 p-3 text-white transition rounded-full top-4 {{ app()->getLocale() === 'ar' ? 'left-4' : 'right-4' }} hover:bg-white/10 group"
+            aria-label="{{ __('halls.close') }}"
+        >
+            <svg class="w-8 h-8 transition group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        {{-- Lightbox Swiper --}}
+        <div class="h-full swiper lightboxSwiper">
+            <div class="items-center swiper-wrapper">
+                @foreach ($hall->images()->active()->orderBy('order')->get() as $image)
+                    <div class="flex items-center justify-center p-4 swiper-slide md:p-8">
+                        <img
+                            src="{{ asset('storage/' . $image->image_path) }}"
+                            alt="{{ $image->alt_text ?? '' }}"
+                            class="object-contain max-w-full max-h-full rounded-lg shadow-2xl"
+                        >
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Navigation --}}
+            <div class="swiper-button-prev {{ app()->getLocale() === 'ar' ? '!right-4 !left-auto' : '!left-4' }} !text-white after:!text-3xl"></div>
+            <div class="swiper-button-next {{ app()->getLocale() === 'ar' ? '!left-4 !right-auto' : '!right-4' }} !text-white after:!text-3xl"></div>
+
+            {{-- Counter --}}
+            <div class="absolute z-10 px-4 py-2 text-white -translate-x-1/2 rounded-lg shadow-lg bottom-4 left-1/2 bg-black/50 backdrop-blur-sm">
+                <span class="font-medium lightbox-counter">1 / {{ $hall->images()->active()->count() }}</span>
+            </div>
+        </div>
+    </div>
+
     <div class="container px-4 py-6 pb-32 mx-auto lg:pb-8">
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Main Content -->
@@ -203,7 +453,7 @@
                         </div>
                         <div class="text-center">
                             <div class="mb-1 text-xs text-gray-600">{{ __('halls.total_bookings') }}</div>
-                            <div class="text-lg font-bold text-gray-900">{{ $hall->total_bookings }}</div>
+                            <div class="text-lg font-bold text-gray-900">{{ $hall->bookings->count() }}</div>
                             <div class="text-xs text-gray-500">{{ __('halls.reviews') }}</div>
                         </div>
                     </div>
@@ -486,6 +736,131 @@
             </div>
         </div>
     </div>
+
+    {{-- Swiper JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Thumbnail Swiper
+            const thumbsSwiper = new Swiper('.hallGalleryThumbs', {
+                spaceBetween: 12,
+                slidesPerView: 4,
+                freeMode: true,
+                watchSlidesProgress: true,
+                breakpoints: {
+                    640: {
+                        slidesPerView: 5,
+                        spaceBetween: 16,
+                    },
+                    768: {
+                        slidesPerView: 6,
+                        spaceBetween: 16,
+                    },
+                    1024: {
+                        slidesPerView: 8,
+                        spaceBetween: 16,
+                    },
+                },
+            });
+
+            // Initialize Main Gallery Swiper
+            const mainSwiper = new Swiper('.hallGalleryMain', {
+                spaceBetween: 0,
+                lazy: {
+                    loadPrevNext: true,
+                    loadPrevNextAmount: 2,
+                },
+                navigation: {
+                    nextEl: '.hallGalleryMain .swiper-button-next',
+                    prevEl: '.hallGalleryMain .swiper-button-prev',
+                },
+                pagination: {
+                    el: '.hallGalleryMain .swiper-pagination',
+                    clickable: true,
+                },
+                thumbs: {
+                    swiper: thumbsSwiper,
+                },
+                on: {
+                    slideChange: function() {
+                        updateCounter(this.activeIndex + 1, this.slides.length);
+                    }
+                },
+                keyboard: {
+                    enabled: true,
+                },
+                loop: false,
+            });
+
+            // Initialize Lightbox Swiper
+            const lightboxSwiper = new Swiper('.lightboxSwiper', {
+                spaceBetween: 20,
+                navigation: {
+                    nextEl: '.lightboxSwiper .swiper-button-next',
+                    prevEl: '.lightboxSwiper .swiper-button-prev',
+                },
+                keyboard: {
+                    enabled: true,
+                },
+                on: {
+                    slideChange: function() {
+                        updateLightboxCounter(this.activeIndex + 1, this.slides.length);
+                    }
+                },
+            });
+
+            // Sync main and lightbox swipers
+            window.mainSwiper = mainSwiper;
+            window.lightboxSwiper = lightboxSwiper;
+
+            function updateCounter(current, total) {
+                const counter = document.querySelector('.gallery-counter');
+                if (counter) {
+                    counter.textContent = `${current} / ${total}`;
+                }
+            }
+
+            function updateLightboxCounter(current, total) {
+                const counter = document.querySelector('.lightbox-counter');
+                if (counter) {
+                    counter.textContent = `${current} / ${total}`;
+                }
+            }
+        });
+
+        // Lightbox Functions
+        function openLightbox(index) {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Sync to the same slide
+            if (window.lightboxSwiper) {
+                window.lightboxSwiper.slideTo(index, 0);
+            }
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close lightbox on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+
+        // Close lightbox on background click
+        document.getElementById('lightbox')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLightbox();
+            }
+        });
+    </script>
 
 </body>
 

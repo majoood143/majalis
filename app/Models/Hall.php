@@ -422,4 +422,58 @@ class Hall extends Model
     //         $this->attributes['features'] = $value;
     //     }
     // }
+
+    /**
+     * Get all images for the hall
+     *
+     * @return HasMany
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(HallImage::class)
+            ->orderBy('order')
+            ->orderBy('id');
+    }
+
+    /**
+     * Get only active images
+     *
+     * @return HasMany
+     */
+    public function activeImages(): HasMany
+    {
+        return $this->hasMany(HallImage::class)
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('id');
+    }
+
+    /**
+     * Get only gallery images
+     *
+     * @return HasMany
+     */
+    public function galleryImages(): HasMany
+    {
+        return $this->hasMany(HallImage::class)
+            ->where('type', 'gallery')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('id');
+    }
+
+    /**
+     * Get the featured image from hall_images table
+     *
+     * @return HasMany
+     */
+    public function featuredImages(): HasMany
+    {
+        return $this->hasMany(HallImage::class)
+            ->where('is_featured', true)
+            ->where('is_active', true)
+            ->orderBy('order');
+    }
+
+
 }

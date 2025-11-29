@@ -164,14 +164,35 @@ class HallController extends Controller
         session(['locale' => $locale]);
 
         // Get hall with relationships
+        // $hall = Hall::where('slug', $slug)
+        //     ->where('is_active', true)
+        //     ->with([
+        //         'city.region',
+        //         'owner',
+        //         'activeExtraServices',
+        //         'reviews' => function ($query) {
+        //             $query->where('is_approved', true)->latest()->limit(5);
+        //         }
+        //     ])
+        //     ->firstOrFail();
+
         $hall = Hall::where('slug', $slug)
             ->where('is_active', true)
             ->with([
-                'city.region',
                 'owner',
+                'city.region',
                 'activeExtraServices',
+                'city',
+                //'amenities',
+                'images' => function ($query) {
+                    // Load only active gallery images, ordered
+                    $query->where('is_active', true)
+                        ->where('type', 'gallery')
+                        ->orderBy('order')
+                        ->orderBy('id');
+                },
                 'reviews' => function ($query) {
-                    $query->where('is_approved', true)->latest()->limit(5);
+                    $query->latest()->limit(5);
                 }
             ])
             ->firstOrFail();
