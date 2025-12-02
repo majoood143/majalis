@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Container\Attributes\Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Models\Booking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Customer\BookingController;
+use App\Http\Controllers\PageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,16 +23,42 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Add these authentication routes
-Route::get('/login', function () {
-    return redirect('/admin/login');
-})->name('login');
+// // Add these authentication routes
+// Route::get('/login', function () {
+//     return redirect('/admin/login');
+// })->name('login');
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
+// Route::get('/register', function () {
+//     return view('auth.register');
+// })->name('register');
 
+// Route::post('/logout', function () {
+//     return redirect('/');
+// })->name('logout');
+
+/**
+ * Customer Authentication Routes
+ *
+ * Laravel Breeze handles customer authentication
+ */
+Route::middleware('guest')->group(function () {
+    // Customer login page
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
+
+    // Customer registration page
+    Route::get('/register', function () {
+        return view('auth.register');
+    })->name('register');
+});
+
+// Logout route (for all user types)
 Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+
     return redirect('/');
 })->name('logout');
 
@@ -81,6 +108,29 @@ Route::get('/test-view/{booking}', function (Booking $booking) {
         return 'View Error: ' . $e->getMessage() . '<br><br>' . $e->getTraceAsString();
     }
 });
+
+// ============================================================
+// STATIC PAGES ROUTES - ADD THIS SECTION
+// ============================================================
+
+// About Us Page
+Route::get('/about-us', [PageController::class, 'aboutUs'])->name('pages.about-us');
+
+// Contact Us Page
+Route::get('/contact-us', [PageController::class, 'contactUs'])->name('pages.contact-us');
+
+// Terms and Conditions Page
+Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('pages.terms');
+
+// Privacy Policy Page
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('pages.privacy');
+
+// Dynamic Page Route (for any custom pages)
+Route::get('/page/{slug}', [PageController::class, 'show'])->name('pages.show');
+
+// ============================================================
+// END STATIC PAGES ROUTES
+// ============================================================
 
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/customer-tickets.php';
@@ -233,3 +283,5 @@ Route::get('/test-native-curl', function () {
         'curl_info' => $curlInfo,
     ], 200, [], JSON_PRETTY_PRINT);
 });
+
+

@@ -13,7 +13,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -21,8 +21,8 @@
 </head>
 <body class="font-sans antialiased bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
@@ -35,11 +35,11 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden md:flex items-center space-x-8">
+                <div class="items-center hidden space-x-8 md:flex">
                     <a href="{{ route('customer.halls.index') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.halls.*') ? 'text-indigo-600 font-semibold' : '' }}">
                         Browse Halls
                     </a>
-                    
+
                     @auth
                         <a href="{{ route('customer.dashboard') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.dashboard') ? 'text-indigo-600 font-semibold' : '' }}">
                             Dashboard
@@ -51,7 +51,7 @@
                         <!-- User Dropdown -->
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-indigo-600">
-                                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">
+                                <div class="flex items-center justify-center w-8 h-8 font-medium text-white bg-indigo-600 rounded-full">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                 </div>
                                 <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
@@ -61,30 +61,30 @@
                             </button>
 
                             <div x-show="open" @click.away="open = false" x-cloak
-                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                                class="absolute right-0 w-48 py-1 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
                                 <a href="{{ route('customer.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Profile
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <button type="submit" class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100">
                                         Logout
                                     </button>
                                 </form>
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">
+                        <a href="{{ route('login') }}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600">
                             Login
                         </a>
-                        <a href="{{ route('register') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
                             Register
                         </a>
                     @endauth
                 </div>
 
                 <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
+                <div class="flex items-center md:hidden">
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-700 hover:text-indigo-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -97,30 +97,30 @@
         <!-- Mobile menu -->
         <div x-show="mobileMenuOpen" x-cloak class="md:hidden" x-data="{ mobileMenuOpen: false }">
             <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{{ route('customer.halls.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md">
+                <a href="{{ route('customer.halls.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                     Browse Halls
                 </a>
                 @auth
-                    <a href="{{ route('customer.dashboard') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md">
+                    <a href="{{ route('customer.dashboard') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         Dashboard
                     </a>
-                    <a href="{{ route('customer.bookings') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md">
+                    <a href="{{ route('customer.bookings') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         My Bookings
                     </a>
-                    <a href="{{ route('customer.profile') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md">
+                    <a href="{{ route('customer.profile') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         Profile
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md">
+                        <button type="submit" class="block w-full px-3 py-2 text-base font-medium text-left text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                             Logout
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md">
+                    <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         Login
                     </a>
-                    <a href="{{ route('register') }}" class="block px-3 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
+                    <a href="{{ route('register') }}" class="block px-3 py-2 text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
                         Register
                     </a>
                 @endauth
@@ -130,8 +130,8 @@
 
     <!-- Flash Messages -->
     @if (session('success'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" 
-            class="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg max-w-md">
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+            class="fixed z-50 max-w-md px-4 py-3 text-green-800 border border-green-200 rounded-lg shadow-lg top-4 right-4 bg-green-50">
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -148,8 +148,8 @@
     @endif
 
     @if (session('error'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" 
-            class="fixed top-4 right-4 z-50 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg max-w-md">
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+            class="fixed z-50 max-w-md px-4 py-3 text-red-800 border border-red-200 rounded-lg shadow-lg top-4 right-4 bg-red-50">
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -171,12 +171,12 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer class="text-gray-300 bg-gray-900">
+        <div class="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <!-- Company Info -->
                 <div class="col-span-1">
-                    <div class="flex items-center space-x-2 mb-4">
+                    <div class="flex items-center mb-4 space-x-2">
                         <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
@@ -187,7 +187,7 @@
 
                 <!-- Quick Links -->
                 <div>
-                    <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+                    <h3 class="mb-4 font-semibold text-white">Quick Links</h3>
                     <ul class="space-y-2 text-sm">
                         <li><a href="{{ route('customer.halls.index') }}" class="hover:text-white">Browse Halls</a></li>
                         <li><a href="#" class="hover:text-white">About Us</a></li>
@@ -198,7 +198,7 @@
 
                 <!-- For Owners -->
                 <div>
-                    <h3 class="text-white font-semibold mb-4">For Hall Owners</h3>
+                    <h3 class="mb-4 font-semibold text-white">For Hall Owners</h3>
                     <ul class="space-y-2 text-sm">
                         <li><a href="#" class="hover:text-white">List Your Hall</a></li>
                         <li><a href="#" class="hover:text-white">Owner Dashboard</a></li>
@@ -208,7 +208,7 @@
 
                 <!-- Contact Info -->
                 <div>
-                    <h3 class="text-white font-semibold mb-4">Contact Us</h3>
+                    <h3 class="mb-4 font-semibold text-white">Contact Us</h3>
                     <ul class="space-y-2 text-sm">
                         <li class="flex items-center space-x-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@
             </div>
 
             <!-- Copyright -->
-            <div class="border-t border-gray-800 mt-8 pt-8 text-sm text-center text-gray-400">
+            <div class="pt-8 mt-8 text-sm text-center text-gray-400 border-t border-gray-800">
                 <p>&copy; {{ date('Y') }} majalis. All rights reserved.</p>
             </div>
         </div>
@@ -238,5 +238,29 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
+
+    @auth
+<script>
+    // Warn user before session expires
+    (function() {
+        const sessionLifetime = {{ config('session.lifetime') }}; // minutes
+        const warningTime = (sessionLifetime - 5) * 60 * 1000; // 5 min before expiry
+
+        setTimeout(function() {
+            // Show warning notification
+            if (confirm('{{ __('auth.session_expiring_soon') }}\n\n{{ __('Do you want to stay logged in?') }}')) {
+                // Ping server to keep session alive
+                fetch('{{ route('customer.dashboard') }}', {
+                    method: 'HEAD',
+                    credentials: 'same-origin'
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        }, warningTime);
+    })();
+</script>
+@endauth
+
 </body>
 </html>

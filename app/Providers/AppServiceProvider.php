@@ -18,6 +18,7 @@ use App\Services\PaymentService;
 use App\Services\PDFService;
 use Livewire\Livewire;
 use App\Livewire\LanguageSwitcher;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -66,5 +67,10 @@ class AppServiceProvider extends ServiceProvider
             QueueCheck::new(),
             DatabaseCheck::new(),
         ]);
+        // Register view composers for navigation
+        View::composer(
+            ['layouts.header', 'layouts.footer'],
+            \App\View\Composers\PageNavigationComposer::class
+        );
     }
 }
