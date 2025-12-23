@@ -225,4 +225,15 @@ return [
     'previous_image' => 'Previous Image',
     'next_image' => 'Next Image',
     'no_images_available' => 'No images available',
+
+    'review_confirm' => 'Review & Confirm',
+    'services_selected' => 'service(s) selected',
+    'agree_terms' => 'I agree to the Terms & Conditions',
+    'terms_description' => 'By proceeding, you agree to our booking terms',
+    'processing' => 'Processing...',
+    'confirm_book' => 'Confirm & Book',
+    'notes_placeholder' =>'Write any additional notes here...',
+    'back' => 'Back',
+    'payment_confirmed'=>'Payment Confirmed',
+    'full_payment_received'=>'Full payment received',
 ];

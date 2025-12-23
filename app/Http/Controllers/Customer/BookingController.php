@@ -128,12 +128,33 @@ class BookingController extends BaseController
             // Create booking using the service
             $booking = $bookingService->createBooking($bookingData);
 
+            // ✅ NEW: Calculate advance payment if hall requires it
+            $booking->calculateAdvancePayment();
+            $booking->save();
+
+            // Determine payment amount (advance or full)
+            $paymentAmount = $booking->isAdvancePayment()
+                ? $booking->advance_amount
+                : $booking->total_amount;
+
             // Redirect based on payment amount
-            if ($booking->total_amount > 0) {
+            if ($paymentAmount > 0) {
                 return redirect()
                     ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
                     ->with('success', __('halls.booking_success'));
             }
+
+            // No payment needed, go directly to success page
+            return redirect()
+                ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+                ->with('success', __('halls.booking_success'));
+
+            // // Redirect based on payment amount
+            // if ($booking->total_amount > 0) {
+            //     return redirect()
+            //         ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
+            //         ->with('success', __('halls.booking_success'));
+            // }
 
             // No payment needed, go directly to success page
             return redirect()

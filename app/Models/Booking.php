@@ -15,6 +15,21 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * Booking Model
  *
+ * Represents a hall booking in the Majalis system.
+ * Supports full and partial (advance) payment tracking.
+ *
+ * Payment Flow:
+ * 1. Customer books hall → Creates booking record
+ * 2. If hall requires advance:
+ *    - payment_type = 'advance'
+ *    - advance_amount = calculated from hall settings
+ *    - balance_due = total_amount - advance_amount
+ *    - payment_status = 'partial'
+ * 3. When balance paid (manually marked by admin):
+ *    - balance_paid_at = timestamp
+ *    - balance_payment_method = 'bank_transfer', 'cash', etc.
+ *    - payment_status = 'paid'
+ *
  * @property int $id
  * @property string $booking_number
  * @property int $hall_id
@@ -39,6 +54,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property float $owner_payout
  * @property string $status
  * @property string $payment_status
+ * @property string $payment_type 'full' or 'advance'
+ * @property float|null $advance_amount
+ * @property float|null $balance_due
+ * @property \DateTime|null $balance_paid_at
+ * @property string|null $balance_payment_method
+ * @property string|null $balance_payment_reference
  */
 class Booking extends Model
 {
@@ -81,6 +102,13 @@ class Booking extends Model
         'invoice_path',
         'admin_notes',
         'payment_id',
+        // Advance Payment Tracking Fields
+        'payment_type',
+        'advance_amount',
+        'balance_due',
+        'balance_paid_at',
+        'balance_payment_method',
+        'balance_payment_reference',
     ];
 
     /**
@@ -103,7 +131,13 @@ class Booking extends Model
         'cancelled_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'completed_at' => 'datetime',
+        // Advance Payment Casts
+        'advance_amount' => 'decimal:3',
+        'balance_due' => 'decimal:3',
+        'balance_paid_at' => 'datetime',
     ];
+
+    // ==================== RELATIONSHIPS ====================
 
     /**
      * Get the hall that owns the booking.
@@ -114,7 +148,7 @@ class Booking extends Model
     }
 
     /**
-     * Get the user that owns the booking.
+     * Get the user who made the booking.
      */
     public function user(): BelongsTo
     {
@@ -122,87 +156,181 @@ class Booking extends Model
     }
 
     /**
-     * The extra services that belong to the booking.
+     * Get the payment record for this booking.
+     */
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    /**
+     * Get the extra services attached to this booking.
      */
     public function extraServices(): BelongsToMany
     {
         return $this->belongsToMany(ExtraService::class, 'booking_extra_services')
-            ->withPivot('service_name', 'unit_price', 'quantity', 'total_price')
+            ->withPivot(['service_name', 'unit_price', 'quantity', 'total_price'])
             ->withTimestamps();
     }
 
     /**
-     * Scope a query to only include bookings of a given status.
+     * Get the review for this booking.
      */
-    public function scopeStatus($query, string $status)
+    public function review(): HasOne
     {
-        return $query->where('status', $status);
+        return $this->hasOne(Review::class);
     }
 
-    /**
-     * Scope a query to only include pending bookings.
-     */
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
+    // ==================== ADVANCE PAYMENT METHODS ====================
 
     /**
-     * Scope a query to only include confirmed bookings.
-     */
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', 'confirmed');
-    }
-
-    /**
-     * Check if booking is cancellable
-     */
-    public function isCancellable(): bool
-    {
-        return in_array($this->status, ['pending', 'confirmed']);
-    }
-
-    /**
-     * Check if booking is paid
-     */
-    public function isPaid(): bool
-    {
-        return $this->payment_status === 'paid';
-    }
-
-    /**
-     * Get the payments for the booking.
-     */
-    public function payments(): HasMany
-    {
-        return $this->hasMany(Payment::class);
-    }
-
-    /**
-     * Get the latest payment for the booking.
-     */
-    public function latestPayment(): HasOne
-    {
-        return $this->hasOne(Payment::class)->latestOfMany();
-    }
-
-    /**
-     * Confirm the booking
+     * Check if this booking uses advance payment.
      *
-     * Changes status from pending to confirmed and sets confirmed_at timestamp.
-     *
-     * @return bool
+     * @return bool True if advance payment was used
      */
-    public function confirm(): bool
+    public function isAdvancePayment(): bool
     {
-        if ($this->status !== 'pending') {
+        return $this->payment_type === 'advance';
+    }
+
+    /**
+     * Check if this booking is fully paid.
+     *
+     * @return bool True if payment_status is 'paid' and no balance due
+     */
+    public function isFullyPaid(): bool
+    {
+        if ($this->payment_status !== 'paid') {
             return false;
         }
 
-        return $this->update([
-            'status' => 'confirmed',
-            'confirmed_at' => now(),
-        ]);
+        // If it's an advance payment, check if balance is also paid
+        if ($this->isAdvancePayment()) {
+            return $this->balance_paid_at !== null;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if balance payment is pending.
+     *
+     * @return bool True if advance paid but balance still due
+     */
+    public function isBalancePending(): bool
+    {
+        return $this->isAdvancePayment()
+            && $this->balance_due > 0
+            && $this->balance_paid_at === null;
+    }
+
+    /**
+     * Mark balance as paid.
+     *
+     * Updates balance payment details and changes payment status to 'paid'.
+     *
+     * @param string $method Payment method (bank_transfer, cash, etc.)
+     * @param string|null $reference Transaction reference or receipt number
+     * @return bool Success
+     */
+    public function markBalanceAsPaid(string $method, ?string $reference = null): bool
+    {
+        if (!$this->isAdvancePayment()) {
+            return false;
+        }
+
+        $this->balance_paid_at = now();
+        $this->balance_payment_method = $method;
+        $this->balance_payment_reference = $reference;
+        $this->payment_status = 'paid';
+
+        return $this->save();
+    }
+
+    /**
+     * Get payment summary for display.
+     *
+     * @return array{total: float, advance: float|null, balance: float|null, type: string, fully_paid: bool}
+     */
+    public function getPaymentSummary(): array
+    {
+        return [
+            'total' => $this->total_amount,
+            'advance' => $this->advance_amount,
+            'balance' => $this->balance_due,
+            'type' => $this->payment_type,
+            'fully_paid' => $this->isFullyPaid(),
+            'balance_pending' => $this->isBalancePending(),
+            'balance_paid_at' => $this->balance_paid_at,
+            'balance_payment_method' => $this->balance_payment_method,
+        ];
+    }
+
+    /**
+     * Calculate and set advance payment details from hall settings.
+     *
+     * Call this method when creating a booking for a hall that requires advance.
+     *
+     * @return void
+     */
+    public function calculateAdvancePayment(): void
+    {
+        // Only calculate if hall requires advance
+        if (!$this->hall || !$this->hall->requiresAdvancePayment()) {
+            $this->payment_type = 'full';
+            $this->advance_amount = null;
+            $this->balance_due = null;
+            return;
+        }
+
+        // Calculate advance based on total (hall + services)
+        $totalAmount = $this->subtotal; // subtotal already includes hall + services
+
+        $this->payment_type = 'advance';
+        $this->advance_amount = $this->hall->calculateAdvanceAmount($totalAmount);
+        $this->balance_due = $this->hall->calculateBalanceDue($totalAmount, $this->advance_amount);
+    }
+
+    // ==================== SCOPES ====================
+
+    /**
+     * Scope to get bookings with pending balance.
+     */
+    public function scopeWithPendingBalance($query)
+    {
+        return $query->where('payment_type', 'advance')
+            ->where('balance_due', '>', 0)
+            ->whereNull('balance_paid_at');
+    }
+
+    /**
+     * Scope to get fully paid bookings.
+     */
+    public function scopeFullyPaid($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('payment_type', 'full')
+                ->where('payment_status', 'paid');
+        })->orWhere(function ($q) {
+            $q->where('payment_type', 'advance')
+                ->where('payment_status', 'paid')
+                ->whereNotNull('balance_paid_at');
+        });
+    }
+
+    /**
+     * Scope to get advance payment bookings.
+     */
+    public function scopeAdvancePayment($query)
+    {
+        return $query->where('payment_type', 'advance');
+    }
+
+    /**
+     * Scope to get full payment bookings.
+     */
+    public function scopeFullPayment($query)
+    {
+        return $query->where('payment_type', 'full');
     }
 }

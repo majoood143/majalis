@@ -9,6 +9,8 @@ use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 
 /**
  * ViewBooking Page
@@ -480,6 +482,45 @@ class ViewBooking extends ViewRecord
                     ])
                     ->collapsed()
                     ->visible(fn() => !empty($this->record->admin_notes)),
+
+            Section::make(__('advance_payment.advance_payment_info'))
+                ->schema([
+                    TextEntry::make('payment_type')
+                        ->label(__('advance_payment.payment_type'))
+                        ->badge()
+                        ->color(fn(string $state): string => match ($state) {
+                            'full' => 'success',
+                            'advance' => 'warning',
+                            default => 'gray',
+                        }),
+
+                    TextEntry::make('advance_amount')
+                        ->label(__('advance_payment.advance_paid'))
+                        ->money('OMR', 3)
+                        ->visible(fn($record) => $record->isAdvancePayment()),
+
+                    TextEntry::make('balance_due')
+                        ->label(__('advance_payment.balance_due'))
+                        ->money('OMR', 3)
+                        ->visible(fn($record) => $record->isAdvancePayment()),
+
+                    TextEntry::make('balance_paid_at')
+                        ->label(__('advance_payment.balance_paid_on'))
+                        ->dateTime()
+                        ->placeholder(__('advance_payment.balance_not_paid'))
+                        ->visible(fn($record) => $record->isAdvancePayment()),
+
+                    TextEntry::make('balance_payment_method')
+                        ->label(__('advance_payment.balance_payment_method'))
+                        ->badge()
+                        ->visible(fn($record) => $record->balance_paid_at !== null),
+
+                    TextEntry::make('balance_payment_reference')
+                        ->label(__('advance_payment.balance_payment_reference'))
+                        ->visible(fn($record) => $record->balance_paid_at !== null),
+                ])
+                ->columns(2)
+                ->visible(fn($record) => $record->isAdvancePayment()),
             ]);
     }
 }

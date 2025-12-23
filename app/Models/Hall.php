@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\TimeSlot;
@@ -10,19 +12,44 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
-use App\Models\City;
-use App\Models\User;
-use App\Models\Booking;
-use App\Models\ExtraService;
-use App\Models\Review;
-use App\Models\HallAvailability;
-use App\Models\HallFeature;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * Hall Model
+ *
+ * Represents event venues/halls in the Majalis booking system.
+ * Supports multilingual content, pricing configurations, and advance payment options.
+ *
+ * Advance Payment Feature:
+ * - Hall owners can require customers to pay advance before full booking
+ * - Supports fixed amounts (e.g., 500 OMR) or percentage-based (e.g., 20%)
+ * - Advance calculated on total booking (hall price + services)
+ * - Services are ALWAYS included in advance (reserved from suppliers)
+ *
+ * @property int $id
+ * @property int $city_id
+ * @property int $owner_id
+ * @property array $name Translatable (en, ar)
+ * @property string $slug
+ * @property array $description Translatable (en, ar)
+ * @property string $address
+ * @property float $price_per_slot Base price in OMR
+ * @property array|null $pricing_override Slot-specific pricing
+ * @property bool $allows_advance_payment Enable advance payment
+ * @property string $advance_payment_type 'fixed' or 'percentage'
+ * @property float|null $advance_payment_amount Fixed amount in OMR
+ * @property float|null $advance_payment_percentage Percentage value
+ * @property float|null $minimum_advance_payment Minimum advance required
+ */
 class Hall extends Model
 {
-    use HasFactory, HasTranslations, SoftDeletes,HasRoles;
+    use HasFactory, HasTranslations, SoftDeletes, HasRoles;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
     protected $fillable = [
         'city_id',
         'owner_id',
@@ -57,8 +84,19 @@ class Hall extends Model
         'meta_description',
         'meta_keywords',
         'features',
+        // Advance Payment Fields
+        'allows_advance_payment',
+        'advance_payment_type',
+        'advance_payment_amount',
+        'advance_payment_percentage',
+        'minimum_advance_payment',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'name' => 'array',
         'description' => 'array',
@@ -67,10 +105,9 @@ class Hall extends Model
         'longitude' => 'decimal:7',
         'capacity_min' => 'integer',
         'capacity_max' => 'integer',
-        'price_per_slot' => 'decimal:2',
+        'price_per_slot' => 'decimal:3',
         'pricing_override' => 'array',
         'gallery' => 'array',
-        'virtual_tour_url' => 'array',
         'features' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
@@ -83,134 +120,146 @@ class Hall extends Model
         'meta_title' => 'array',
         'meta_description' => 'array',
         'meta_keywords' => 'array',
+        // Advance Payment Casts
+        'allows_advance_payment' => 'boolean',
+        'advance_payment_amount' => 'decimal:3',
+        'advance_payment_percentage' => 'decimal:2',
+        'minimum_advance_payment' => 'decimal:3',
     ];
 
-    public $translatable = ['name', 'description', 'address_localized', 'meta_title', 'meta_description'];
+    /**
+     * Translatable attributes.
+     *
+     * @var array<string>
+     */
+    public $translatable = [
+        'name',
+        'description',
+        'address_localized',
+        'meta_title',
+        'meta_description',
+    ];
 
-    // Relationships
+    // ==================== RELATIONSHIPS ====================
+
+    /**
+     * Get the city that owns the hall.
+     */
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }
 
+    /**
+     * Get the user who owns this hall.
+     */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /**
+     * Get all bookings for this hall.
+     */
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
     }
 
+    /**
+     * Get all extra services offered by this hall.
+     */
     public function extraServices(): HasMany
     {
         return $this->hasMany(ExtraService::class);
     }
 
+    /**
+     * Get only active extra services.
+     */
     public function activeExtraServices(): HasMany
     {
         return $this->extraServices()->where('is_active', true)->orderBy('order');
     }
 
+    /**
+     * Get all reviews for this hall.
+     */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
+    /**
+     * Get only approved reviews.
+     */
     public function approvedReviews(): HasMany
     {
         return $this->reviews()->where('is_approved', true)->latest();
     }
 
+    /**
+     * Get availability records for this hall.
+     */
     public function availability(): HasMany
     {
         return $this->hasMany(HallAvailability::class);
     }
 
-    // public function features()
-    // {
-    //     return $this->belongsToMany(HallFeature::class, 'hall_features')
-    //         ->withTimestamps(); // Add this if your pivot table has timestamps
-    // }
-
-    // Scopes
-    public function scopeActive($query)
+    /**
+     * Get all images for the hall.
+     */
+    public function images(): HasMany
     {
-        return $query->where('is_active', true);
+        return $this->hasMany(HallImage::class)
+            ->orderBy('order')
+            ->orderBy('id');
     }
 
-    public function scopeFeatured($query)
+    /**
+     * Get only active images.
+     */
+    public function activeImages(): HasMany
     {
-        return $query->where('is_featured', true);
+        return $this->hasMany(HallImage::class)
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('id');
     }
 
-    public function scopeInCity($query, $cityId)
+    /**
+     * Get only gallery images.
+     */
+    public function galleryImages(): HasMany
     {
-        return $query->where('city_id', $cityId);
+        return $this->hasMany(HallImage::class)
+            ->where('type', 'gallery')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('id');
     }
 
-    public function scopeForCapacity($query, int $guests)
+    /**
+     * Get the featured image from hall_images table.
+     */
+    public function featuredImages(): HasMany
     {
-        return $query->where('capacity_min', '<=', $guests)
-            ->where('capacity_max', '>=', $guests);
+        return $this->hasMany(HallImage::class)
+            ->where('is_featured', true)
+            ->where('is_active', true)
+            ->orderBy('order');
     }
 
-    public function scopePriceRange($query, float $min, float $max)
-    {
-        return $query->whereBetween('price_per_slot', [$min, $max]);
-    }
+    // ==================== BOOT & EVENTS ====================
 
-    public function scopeWithFeatures($query, array $featureIds)
-    {
-        foreach ($featureIds as $featureId) {
-            $query->whereJsonContains('features', $featureId);
-        }
-        return $query;
-    }
-
-    public function scopeAvailableOn($query, string $date, string $timeSlot)
-    {
-        return $query->where('is_active', true)
-            ->whereDoesntHave('bookings', function ($q) use ($date, $timeSlot) {
-                $q->where('booking_date', $date)
-                    ->where('time_slot', $timeSlot)
-                    ->whereIn('status', ['pending', 'confirmed']);
-            })
-            ->whereDoesntHave('availability', function ($q) use ($date, $timeSlot) {
-                $q->where('date', $date)
-                    ->where('time_slot', $timeSlot)
-                    ->where('is_available', false);
-            });
-    }
-
-    // Accessors
-    // public function getNameAttribute($value)
-    // {
-    //     $decoded = json_decode($value, true);
-    //     $locale = app()->getLocale();
-    //     return $decoded[$locale] ?? $decoded['en'] ?? '';
-    // }
-
-    public function getFeatureDetailsAttribute()
-    {
-        if (empty($this->features)) {
-            return collect();
-        }
-
-        return HallFeature::whereIn('id', $this->features)->get();
-    }
-
-    public function getRegionAttribute()
-    {
-        return $this->city?->region;
-    }
-
-    // Mutators
+    /**
+     * Boot the model and register events.
+     */
     protected static function boot()
     {
         parent::boot();
 
+        // Auto-generate slug from name on creation
         static::creating(function ($hall) {
             if (empty($hall->slug)) {
                 $name = is_array($hall->name) ? $hall->name : json_decode($hall->name, true);
@@ -218,6 +267,7 @@ class Hall extends Model
             }
         });
 
+        // Update slug if name changes
         static::updating(function ($hall) {
             if ($hall->isDirty('name') && empty($hall->slug)) {
                 $name = is_array($hall->name) ? $hall->name : json_decode($hall->name, true);
@@ -226,12 +276,24 @@ class Hall extends Model
         });
     }
 
-    public function getRouteKeyName()
+    /**
+     * Get the route key for the model (use slug instead of ID).
+     */
+    public function getRouteKeyName(): string
     {
         return 'slug';
     }
 
-    // Pricing Methods
+    // ==================== PRICING METHODS ====================
+
+    /**
+     * Get price for a specific time slot.
+     *
+     * Checks pricing_override first, falls back to base price.
+     *
+     * @param string $timeSlot morning|afternoon|evening|full_day
+     * @return float Price in OMR
+     */
     public function getPriceForSlot(string $timeSlot): float
     {
         if ($this->pricing_override && isset($this->pricing_override[$timeSlot])) {
@@ -241,6 +303,15 @@ class Hall extends Model
         return (float) $this->price_per_slot;
     }
 
+    /**
+     * Get price for a specific date and time slot.
+     *
+     * Checks custom availability pricing first, then slot pricing.
+     *
+     * @param string $date Date in Y-m-d format
+     * @param string $timeSlot morning|afternoon|evening|full_day
+     * @return float Price in OMR
+     */
     public function getPriceForDate(string $date, string $timeSlot): float
     {
         // Check for custom pricing on specific date
@@ -256,7 +327,162 @@ class Hall extends Model
         return $this->getPriceForSlot($timeSlot);
     }
 
-    // Availability Methods
+    // ==================== ADVANCE PAYMENT METHODS ====================
+
+    /**
+     * Check if this hall requires advance payment.
+     *
+     * @return bool True if advance payment is enabled
+     */
+    public function requiresAdvancePayment(): bool
+    {
+        return (bool) $this->allows_advance_payment;
+    }
+
+    /**
+     * Calculate advance payment amount based on hall settings.
+     *
+     * Important: Advance is calculated on TOTAL booking amount (hall + services)
+     * because services must be reserved from suppliers upfront.
+     *
+     * @param float $totalAmount Total booking amount (hall_price + services_price)
+     * @return float Advance amount in OMR
+     */
+    public function calculateAdvanceAmount(float $totalAmount): float
+    {
+        // If advance payment not enabled, return 0
+        if (!$this->allows_advance_payment) {
+            return 0.0;
+        }
+
+        $advanceAmount = 0.0;
+
+        // Calculate based on type
+        if ($this->advance_payment_type === 'fixed') {
+            // Fixed amount (e.g., 500 OMR)
+            $advanceAmount = (float) $this->advance_payment_amount;
+        } elseif ($this->advance_payment_type === 'percentage') {
+            // Percentage of total (e.g., 20%)
+            $percentage = (float) $this->advance_payment_percentage;
+            $advanceAmount = ($totalAmount * $percentage) / 100;
+        }
+
+        // Apply minimum advance if set
+        if ($this->minimum_advance_payment && $advanceAmount < $this->minimum_advance_payment) {
+            $advanceAmount = (float) $this->minimum_advance_payment;
+        }
+
+        // Ensure advance doesn't exceed total amount
+        if ($advanceAmount > $totalAmount) {
+            $advanceAmount = $totalAmount;
+        }
+
+        return round($advanceAmount, 3);
+    }
+
+    /**
+     * Calculate balance due after advance payment.
+     *
+     * @param float $totalAmount Total booking amount
+     * @param float|null $advanceAmount Advance paid (if null, calculates from settings)
+     * @return float Balance remaining in OMR
+     */
+    public function calculateBalanceDue(float $totalAmount, ?float $advanceAmount = null): float
+    {
+        // If no advance payment, balance is full amount
+        if (!$this->allows_advance_payment) {
+            return $totalAmount;
+        }
+
+        // Calculate advance if not provided
+        if ($advanceAmount === null) {
+            $advanceAmount = $this->calculateAdvanceAmount($totalAmount);
+        }
+
+        $balance = $totalAmount - $advanceAmount;
+
+        // Ensure balance is not negative
+        return max(0, round($balance, 3));
+    }
+
+    /**
+     * Get advance payment preview for display purposes.
+     *
+     * Returns array with advance and balance for a given total.
+     * Useful for showing preview in admin panel.
+     *
+     * @param float $totalAmount Sample total amount
+     * @return array{advance: float, balance: float, type: string}
+     */
+    public function getAdvancePaymentPreview(float $totalAmount): array
+    {
+        if (!$this->allows_advance_payment) {
+            return [
+                'advance' => 0.0,
+                'balance' => $totalAmount,
+                'type' => 'none',
+            ];
+        }
+
+        $advance = $this->calculateAdvanceAmount($totalAmount);
+        $balance = $this->calculateBalanceDue($totalAmount, $advance);
+
+        return [
+            'advance' => $advance,
+            'balance' => $balance,
+            'type' => $this->advance_payment_type,
+        ];
+    }
+
+    /**
+     * Validate advance payment configuration.
+     *
+     * Ensures hall has valid advance payment settings.
+     *
+     * @return array{valid: bool, errors: array<string>}
+     */
+    public function validateAdvancePaymentSettings(): array
+    {
+        $errors = [];
+
+        if (!$this->allows_advance_payment) {
+            return ['valid' => true, 'errors' => []];
+        }
+
+        // Check type-specific requirements
+        if ($this->advance_payment_type === 'fixed') {
+            if (!$this->advance_payment_amount || $this->advance_payment_amount <= 0) {
+                $errors[] = 'Fixed advance amount must be greater than 0';
+            }
+        } elseif ($this->advance_payment_type === 'percentage') {
+            if (!$this->advance_payment_percentage || $this->advance_payment_percentage <= 0) {
+                $errors[] = 'Advance percentage must be greater than 0';
+            }
+            if ($this->advance_payment_percentage > 100) {
+                $errors[] = 'Advance percentage cannot exceed 100%';
+            }
+        }
+
+        // Check minimum advance
+        if ($this->minimum_advance_payment && $this->minimum_advance_payment < 0) {
+            $errors[] = 'Minimum advance payment cannot be negative';
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    // ==================== AVAILABILITY METHODS ====================
+
+    /**
+     * Check if hall is available on a specific date and time slot.
+     *
+     * @param string $date Date in Y-m-d format
+     * @param string $timeSlot morning|afternoon|evening|full_day
+     * @return bool True if available
+     */
     public function isAvailableOn(string $date, string $timeSlot): bool
     {
         // Check if hall is active
@@ -282,6 +508,12 @@ class Hall extends Model
             ->exists();
     }
 
+    /**
+     * Get available time slots for a specific date.
+     *
+     * @param string $date Date in Y-m-d format
+     * @return array<array{slot: string, label: string, price: float, start_time: string, end_time: string}>
+     */
     public function getAvailableSlots(string $date): array
     {
         $availableSlots = [];
@@ -301,7 +533,11 @@ class Hall extends Model
         return $availableSlots;
     }
 
-    // Statistics Methods
+    // ==================== STATISTICS METHODS ====================
+
+    /**
+     * Update average rating and total reviews count.
+     */
     public function updateAverageRating(): void
     {
         $this->average_rating = $this->reviews()
@@ -315,12 +551,21 @@ class Hall extends Model
         $this->saveQuietly();
     }
 
+    /**
+     * Increment total bookings count.
+     */
     public function incrementBookings(): void
     {
         $this->increment('total_bookings');
     }
 
-    // Revenue Methods
+    // ==================== REVENUE METHODS ====================
+
+    /**
+     * Get total revenue from all confirmed/completed bookings.
+     *
+     * @return float Total revenue in OMR
+     */
     public function getTotalRevenue(): float
     {
         return $this->bookings()
@@ -329,6 +574,11 @@ class Hall extends Model
             ->sum('total_amount');
     }
 
+    /**
+     * Get owner's earnings (after platform commission).
+     *
+     * @return float Owner earnings in OMR
+     */
     public function getOwnerEarnings(): float
     {
         return $this->bookings()
@@ -337,6 +587,11 @@ class Hall extends Model
             ->sum('owner_payout');
     }
 
+    /**
+     * Get platform's earnings (commission).
+     *
+     * @return float Platform earnings in OMR
+     */
     public function getPlatformEarnings(): float
     {
         return $this->bookings()
@@ -345,12 +600,13 @@ class Hall extends Model
             ->sum('commission_amount');
     }
 
-    // Feature Methods
-    // public function hasFeature(int $featureId): bool
-    // {
-    //     return in_array($featureId, $this->features ?? []);
-    // }
+    // ==================== FEATURE METHODS ====================
 
+    /**
+     * Get list of active features for this hall.
+     *
+     * @return \Illuminate\Support\Collection<HallFeature>
+     */
     public function getFeaturesList()
     {
         if (empty($this->features)) {
@@ -363,36 +619,13 @@ class Hall extends Model
             ->get();
     }
 
-    // In Hall model
-    // public function getTranslatedNameAttribute(): string
-    // {
-    //     $locale = app()->getLocale();
-    //     $nameArray = is_array($this->name) ? $this->name : json_decode($this->name, true);
-    //     return $nameArray[$locale] ?? $nameArray['en'] ?? 'Unnamed Hall';
-    // }
-
-    public function getTranslatedNameAttribute(): string
-    {
-        $locale = app()->getLocale();
-        return is_array($this->name)
-            ? ($this->name[$locale] ?? $this->name['en'] ?? 'Unnamed Hall')
-            : $this->name;
-    }
-
-    public function getDescriptionEnAttribute(): string
-    {
-        return $this->getTranslation('description', 'en') ?? 'No description';
-    }
-
-    public function getDescriptionArAttribute(): string
-    {
-        return $this->getTranslation('description', 'ar') ?? 'لا يوجد وصف';
-    }
-
-
-    // Add these methods to your Hall model
-
-    public function getFeaturesAttribute($value)
+    /**
+     * Get features attribute properly formatted.
+     *
+     * @param mixed $value
+     * @return array<int>
+     */
+    public function getFeaturesAttribute($value): array
     {
         if (is_null($value) || $value === '') {
             return [];
@@ -410,70 +643,38 @@ class Hall extends Model
         return [];
     }
 
-    // public function setFeaturesAttribute($value)
-    // {
-    //     if (is_null($value) || $value === '') {
-    //         $this->attributes['features'] = json_encode([]);
-    //     } elseif (is_array($value)) {
-    //         // Filter out empty values and convert to integers
-    //         $cleaned = array_values(array_map('intval', array_filter($value)));
-    //         $this->attributes['features'] = json_encode($cleaned);
-    //     } else {
-    //         $this->attributes['features'] = $value;
-    //     }
-    // }
+    // ==================== ACCESSOR METHODS ====================
 
     /**
-     * Get all images for the hall
+     * Get translated name in current locale.
      *
-     * @return HasMany
+     * @return string Hall name
      */
-    public function images(): HasMany
+    public function getTranslatedNameAttribute(): string
     {
-        return $this->hasMany(HallImage::class)
-            ->orderBy('order')
-            ->orderBy('id');
+        $locale = app()->getLocale();
+        return is_array($this->name)
+            ? ($this->name[$locale] ?? $this->name['en'] ?? 'Unnamed Hall')
+            : $this->name;
     }
 
     /**
-     * Get only active images
+     * Get description in English.
      *
-     * @return HasMany
+     * @return string Description
      */
-    public function activeImages(): HasMany
+    public function getDescriptionEnAttribute(): string
     {
-        return $this->hasMany(HallImage::class)
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->orderBy('id');
+        return $this->getTranslation('description', 'en') ?? 'No description';
     }
 
     /**
-     * Get only gallery images
+     * Get description in Arabic.
      *
-     * @return HasMany
+     * @return string Description
      */
-    public function galleryImages(): HasMany
+    public function getDescriptionArAttribute(): string
     {
-        return $this->hasMany(HallImage::class)
-            ->where('type', 'gallery')
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->orderBy('id');
+        return $this->getTranslation('description', 'ar') ?? 'لا يوجد وصف';
     }
-
-    /**
-     * Get the featured image from hall_images table
-     *
-     * @return HasMany
-     */
-    public function featuredImages(): HasMany
-    {
-        return $this->hasMany(HallImage::class)
-            ->where('is_featured', true)
-            ->where('is_active', true)
-            ->orderBy('order');
-    }
-
-
 }

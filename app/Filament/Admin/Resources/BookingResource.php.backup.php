@@ -74,7 +74,7 @@ class BookingResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('region_id')
                             ->label('Region')
-                            ->options(fn () => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
+                            ->options(fn () => Region::active()->ordered()->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->live()
@@ -94,7 +94,7 @@ class BookingResource extends Resource
                                 ->when($get('region_id'), fn ($query, $regionId) =>
                                     $query->where('region_id', $regionId)
                                 )
-                                ->where('is_active', true)
+                                ->active()
                                 ->ordered()
                                 ->pluck('name', 'id')
                             )
@@ -120,7 +120,7 @@ class BookingResource extends Resource
                                 ->when(!$get('city_id') && $get('region_id'), fn ($query) =>
                                     $query->whereHas('city', fn ($q) => $q->where('region_id', $get('region_id')))
                                 )
-                                ->where('is_active', true)
+                                ->active()
                                 ->with(['city', 'owner'])
                                 ->get()
                                 ->mapWithKeys(function ($hall) {

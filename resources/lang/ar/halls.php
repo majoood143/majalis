@@ -224,4 +224,15 @@ return [
     'previous_image' => 'الصورة السابقة',
     'next_image' => 'الصورة التالية',
     'no_images_available' => 'لا توجد صور متاحة',
+
+    'review_confirm' => 'مراجعة وتأكيد',
+    'services_selected' => 'خدمة مختارة',
+    'agree_terms' => 'أوافق على الشروط والأحكام',
+    'terms_description' => 'بالمتابعة، فإنك توافق على شروط الحجز',
+    'processing' => 'جاري المعالجة...',
+    'confirm_book' => 'تأكيد الحجز',
+    'notes_placeholder'=>'اكتب أي ملاحظات إضافية هنا...',
+    'back' => 'Back',
+    'payment_confirmed'=>'تم تأكيد الدفع',
+    'full_payment_received' => 'تم استلام الدفع الكامل',
 ];
