@@ -186,21 +186,8 @@ class PaymentService
                 $productName .= ' (Advance Payment)';
             }
 
-            // ✅ FIXED: Use APP_URL from config for proper URL generation
-            // Thawani requires publicly accessible URLs
-            $appUrl = config('app.url');
-            $successUrl = $appUrl . route('customer.payment.success', ['booking' => $booking->id], false);
-            $cancelUrl = $appUrl . route('customer.payment.cancel', ['booking' => $booking->id], false);
-            
-            // Remove any double slashes
-            $successUrl = preg_replace('#(?<!:)//#', '/', $successUrl);
-            $cancelUrl = preg_replace('#(?<!:)//#', '/', $cancelUrl);
-
-            Log::info('Generated callback URLs', [
-                'success_url' => $successUrl,
-                'cancel_url' => $cancelUrl,
-                'app_url' => $appUrl,
-            ]);
+            $successUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.success', ['booking' => $booking->id]));
+            $cancelUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.cancel', ['booking' => $booking->id]));
 
             $paymentData = [
                 'client_reference_id' => $payment->payment_reference,
@@ -224,9 +211,6 @@ class PaymentService
                 'amount_baisa' => $amountInBaisa,
                 'payment_type' => $booking->payment_type,
                 'is_advance' => $booking->isAdvancePayment(),
-                'request_payload' => $paymentData, // ✅ LOG FULL REQUEST FOR DEBUGGING
-                'success_url' => $successUrl,
-                'cancel_url' => $cancelUrl,
             ]);
 
             $ch = curl_init();
@@ -272,36 +256,21 @@ class PaymentService
             $result = json_decode($responseBody, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('Invalid JSON response from Thawani', [
-                    'booking_id' => $booking->id,
-                    'response_body' => $responseBody,
-                    'json_error' => json_last_error_msg(),
-                ]);
-                
                 return [
                     'success' => false,
                     'message' => 'Invalid response format from payment gateway'
                 ];
             }
 
-            // ✅ FIXED: Log AFTER checking status, with full response details
-            Log::info('Thawani API response received', [
+            Log::info('Thawani session created successfully', [
                 'booking_id' => $booking->id,
-                'status_code' => $statusCode,
-                'success' => $result['success'] ?? false,
                 'session_id' => $result['data']['session_id'] ?? 'N/A',
-                'full_response' => $result, // ✅ LOG FULL RESPONSE FOR DEBUGGING
+                'status_code' => $statusCode,
             ]);
 
             if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
                 $sessionId = $result['data']['session_id'];
                 $redirectUrl = "https://uatcheckout.thawani.om/pay/{$sessionId}?key={$this->publishableKey}";
-
-                Log::info('Thawani session created successfully', [
-                    'booking_id' => $booking->id,
-                    'session_id' => $sessionId,
-                    'redirect_url' => $redirectUrl,
-                ]);
 
                 return [
                     'success' => true,
@@ -312,19 +281,9 @@ class PaymentService
                 ];
             }
 
-            // ✅ FIXED: Log detailed error information
-            $errorMessage = $result['description'] ?? $result['message'] ?? 'Failed to create payment session';
-            
-            Log::error('Thawani session creation failed', [
-                'booking_id' => $booking->id,
-                'status_code' => $statusCode,
-                'error' => $errorMessage,
-                'full_response' => $result, // ✅ LOG FULL ERROR FOR DEBUGGING
-            ]);
-
             return [
                 'success' => false,
-                'message' => $errorMessage
+                'message' => $result['description'] ?? $result['message'] ?? 'Failed to create payment session'
             ];
         } catch (Exception $e) {
             Log::error('Thawani session creation exception', [

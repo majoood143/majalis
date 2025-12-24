@@ -41,7 +41,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property float|null $advance_payment_percentage Percentage value
  * @property float|null $minimum_advance_payment Minimum advance required
  */
-class Hall__ extends Model
+class Halll__ extends Model
 {
     use HasFactory, HasTranslations, SoftDeletes, HasRoles;
 

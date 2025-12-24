@@ -290,15 +290,20 @@ class Booking extends Model
         }
 
         // Calculate advance based on total (hall + services)
-        // Use subtotal if available, otherwise fall back to total_amount
-        $totalAmount = $this->subtotal ?? $this->total_amount ?? 0;
+        // Cast to float immediately to handle string values from database (strict types compatibility)
+        $totalAmount = (float) ($this->subtotal ?? $this->total_amount ?? 0);
 
         // Set payment type to advance
         $this->payment_type = 'advance';
-        
-        // Calculate advance and balance amounts using Hall model methods
-        $this->advance_amount = $this->hall->calculateAdvanceAmount($totalAmount);
-        $this->balance_due = $this->hall->calculateBalanceDue($totalAmount, $this->advance_amount);
+
+        // Calculate advance and balance using LOCAL variables (avoids Eloquent cast string conversion cycle)
+        // This prevents TypeError when strict_types=1 is enabled
+        $advanceAmount = $this->hall->calculateAdvanceAmount($totalAmount);
+        $balanceDue = $this->hall->calculateBalanceDue($totalAmount, $advanceAmount);
+
+        // Assign to model properties at the end (single round-trip through cast system)
+        $this->advance_amount = $advanceAmount;
+        $this->balance_due = $balanceDue;
     }
 
     // ==================== SCOPES ====================

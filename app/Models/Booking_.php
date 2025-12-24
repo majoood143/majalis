@@ -40,7 +40,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string $status
  * @property string $payment_status
  */
-class Booking extends Model
+class Booking_ extends Model
 {
     use HasFactory, SoftDeletes;
 

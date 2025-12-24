@@ -232,7 +232,16 @@ return [
     'processing' => 'جاري المعالجة...',
     'confirm_book' => 'تأكيد الحجز',
     'notes_placeholder'=>'اكتب أي ملاحظات إضافية هنا...',
-    'back' => 'Back',
+    'back' => 'رجوع',
     'payment_confirmed'=>'تم تأكيد الدفع',
     'full_payment_received' => 'تم استلام الدفع الكامل',
+
+    'advance_payment_required' => 'دفعة مقدمة مطلوبة',
+    'advance_payment_description' => 'يتطلب هذا الحجز دفعة مقدمة. ستدفع جزءاً الآن والمبلغ المتبقي قبل تاريخ المناسبة.',
+    'pay_now_advance' => 'ادفع الآن (مقدماً)',
+    'balance_due_before_event' => 'المبلغ المتبقي قبل المناسبة',
+    'total_booking_amount' => 'إجمالي مبلغ الحجز',
+    'important' => 'مهم',
+    'balance_payment_reminder' => 'يجب دفع المبلغ المتبقي قبل 48 ساعة على الأقل من تاريخ المناسبة.',
+    'currency' => 'ر.ع.',
 ];

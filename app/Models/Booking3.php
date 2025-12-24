@@ -61,7 +61,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $balance_payment_method
  * @property string|null $balance_payment_reference
  */
-class Booking__ extends Model
+class Booking3 extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -270,25 +270,45 @@ class Booking__ extends Model
      * Calculate and set advance payment details from hall settings.
      *
      * Call this method when creating a booking for a hall that requires advance.
+     * Ensures hall relationship is loaded and handles null cases safely.
      *
      * @return void
      */
     public function calculateAdvancePayment(): void
     {
-        // Only calculate if hall requires advance
-        if (!$this->hall || !$this->hall->requiresAdvancePayment()) {
+        // Load hall relationship if not already loaded
+        if (!$this->relationLoaded('hall')) {
+            $this->load('hall');
+        }
+
+        // Safety check: if no hall or hall doesn't require advance
+        if (!$this->hall || !method_exists($this->hall, 'requiresAdvancePayment') || !$this->hall->requiresAdvancePayment()) {
             $this->payment_type = 'full';
             $this->advance_amount = null;
             $this->balance_due = null;
             return;
         }
 
-        // Calculate advance based on total (hall + services)
-        $totalAmount = $this->subtotal; // subtotal already includes hall + services
+        // // Calculate advance based on total (hall + services)
+        // // Use subtotal if available, otherwise fall back to total_amount
+        // $totalAmount = (float) $this->subtotal ?? $this->total_amount ?? 0;
 
-        $this->payment_type = 'advance';
-        $this->advance_amount = $this->hall->calculateAdvanceAmount($totalAmount);
-        $this->balance_due = $this->hall->calculateBalanceDue($totalAmount, $this->advance_amount);
+        // // Set payment type to advance
+        // $this->payment_type = 'advance';
+
+        // // Calculate advance and balance amounts using Hall model methods
+        // $this->advance_amount = $this->hall->calculateAdvanceAmount($totalAmount);
+        // $this->balance_due = $this->hall->calculateBalanceDue($totalAmount, $this->advance_amount);
+        // Cast to float immediately
+        $totalAmount = (float) ($this->subtotal ?? $this->total_amount ?? 0);
+
+        // Use local variables (avoid model cast cycle)
+        $advanceAmount = $this->hall->calculateAdvanceAmount($totalAmount);
+        $balanceDue = $this->hall->calculateBalanceDue($totalAmount, $advanceAmount);
+
+        // Assign to model at the end
+        $this->advance_amount = $advanceAmount;
+        $this->balance_due = $balanceDue;
     }
 
     // ==================== SCOPES ====================

@@ -236,4 +236,13 @@ return [
     'back' => 'Back',
     'payment_confirmed'=>'Payment Confirmed',
     'full_payment_received'=>'Full payment received',
+
+    'advance_payment_required' => 'Advance Payment Required',
+    'advance_payment_description' => 'This booking requires an advance payment. You will pay a portion now and the remaining balance before your event date.',
+    'pay_now_advance' => 'Pay Now (Advance)',
+    'balance_due_before_event' => 'Balance Due Before Event',
+    'total_booking_amount' => 'Total Booking Amount',
+    'important' => 'Important',
+    'balance_payment_reminder' => 'The remaining balance must be paid at least 48 hours before your event date.',
+    'currency' => 'OMR',
 ];
