@@ -270,19 +270,13 @@ class Booking extends Model
      * Calculate and set advance payment details from hall settings.
      *
      * Call this method when creating a booking for a hall that requires advance.
-     * Ensures hall relationship is loaded and handles null cases safely.
      *
      * @return void
      */
     public function calculateAdvancePayment(): void
     {
-        // Load hall relationship if not already loaded
-        if (!$this->relationLoaded('hall')) {
-            $this->load('hall');
-        }
-
-        // Safety check: if no hall or hall doesn't require advance
-        if (!$this->hall || !method_exists($this->hall, 'requiresAdvancePayment') || !$this->hall->requiresAdvancePayment()) {
+        // Only calculate if hall requires advance
+        if (!$this->hall || !$this->hall->requiresAdvancePayment()) {
             $this->payment_type = 'full';
             $this->advance_amount = null;
             $this->balance_due = null;
@@ -290,13 +284,9 @@ class Booking extends Model
         }
 
         // Calculate advance based on total (hall + services)
-        // Use subtotal if available, otherwise fall back to total_amount
-        $totalAmount = $this->subtotal ?? $this->total_amount ?? 0;
+        $totalAmount = $this->subtotal; // subtotal already includes hall + services
 
-        // Set payment type to advance
         $this->payment_type = 'advance';
-        
-        // Calculate advance and balance amounts using Hall model methods
         $this->advance_amount = $this->hall->calculateAdvanceAmount($totalAmount);
         $this->balance_due = $this->hall->calculateBalanceDue($totalAmount, $this->advance_amount);
     }

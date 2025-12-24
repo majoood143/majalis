@@ -41,7 +41,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property float|null $advance_payment_percentage Percentage value
  * @property float|null $minimum_advance_payment Minimum advance required
  */
-class Hall extends Model
+class Hall__ extends Model
 {
     use HasFactory, HasTranslations, SoftDeletes, HasRoles;
 
@@ -350,9 +350,6 @@ class Hall extends Model
      */
     public function calculateAdvanceAmount(float $totalAmount): float
     {
-        // Cast to float to handle string inputs from database (strict types compatibility)
-        $totalAmount = (float) $totalAmount;
-        
         // If advance payment not enabled, return 0
         if (!$this->allows_advance_payment) {
             return 0.0;
@@ -392,10 +389,6 @@ class Hall extends Model
      */
     public function calculateBalanceDue(float $totalAmount, ?float $advanceAmount = null): float
     {
-        // Cast to float to handle string inputs from database (strict types compatibility)
-        $totalAmount = (float) $totalAmount;
-        $advanceAmount = $advanceAmount !== null ? (float) $advanceAmount : null;
-        
         // If no advance payment, balance is full amount
         if (!$this->allows_advance_payment) {
             return $totalAmount;
@@ -423,9 +416,6 @@ class Hall extends Model
      */
     public function getAdvancePaymentPreview(float $totalAmount): array
     {
-        // Cast to float to handle string inputs from database (strict types compatibility)
-        $totalAmount = (float) $totalAmount;
-        
         if (!$this->allows_advance_payment) {
             return [
                 'advance' => 0.0,

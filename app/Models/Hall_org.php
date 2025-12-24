@@ -19,7 +19,7 @@ use App\Models\HallAvailability;
 use App\Models\HallFeature;
 use Spatie\Permission\Traits\HasRoles;
 
-class Hall extends Model
+class Hall_ extends Model
 {
     use HasFactory, HasTranslations, SoftDeletes,HasRoles;
 
