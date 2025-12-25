@@ -284,4 +284,239 @@ Route::get('/test-native-curl', function () {
     ], 200, [], JSON_PRETTY_PRINT);
 });
 
+Route::get('/diagnose-payment', function () {
+    $diagnostics = [];
+
+    // ============================================
+    // 1. CHECK ENVIRONMENT
+    // ============================================
+    $diagnostics['environment'] = [
+        'APP_ENV' => config('app.env'),
+        'APP_DEBUG' => config('app.debug'),
+        'APP_URL' => config('app.url'),
+        'IS_LOCALHOST' => str_contains(config('app.url'), 'localhost') || str_contains(config('app.url'), '127.0.0.1'),
+    ];
+
+    // ============================================
+    // 2. CHECK THAWANI CREDENTIALS
+    // ============================================
+    $diagnostics['thawani'] = [
+        'secret_key' => config('services.thawani.secret_key'),
+        'secret_key_length' => strlen(config('services.thawani.secret_key')),
+        'secret_key_valid' => strlen(config('services.thawani.secret_key')) > 20,
+        'publishable_key' => config('services.thawani.publishable_key'),
+        'publishable_key_length' => strlen(config('services.thawani.publishable_key')),
+        'publishable_key_valid' => strlen(config('services.thawani.publishable_key')) > 20,
+        'base_url' => config('services.thawani.base_url'),
+        'keys_different' => config('services.thawani.secret_key') !== config('services.thawani.publishable_key'),
+    ];
+
+    // ============================================
+    // 3. CHECK ROUTES
+    // ============================================
+    $testBookingId = 1;
+
+    try {
+        $successUrl = route('customer.payment.success', ['booking' => $testBookingId]);
+        $cancelUrl = route('customer.payment.cancel', ['booking' => $testBookingId]);
+
+        $diagnostics['routes'] = [
+            'success_route_exists' => true,
+            'cancel_route_exists' => true,
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'success_url_has_localhost' => str_contains($successUrl, 'localhost') || str_contains($successUrl, '127.0.0.1'),
+            'cancel_url_has_localhost' => str_contains($cancelUrl, 'localhost') || str_contains($cancelUrl, '127.0.0.1'),
+            'urls_are_https' => str_starts_with($successUrl, 'https://') && str_starts_with($cancelUrl, 'https://'),
+        ];
+    } catch (\Exception $e) {
+        $diagnostics['routes'] = [
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    // ============================================
+    // 4. CHECK BOOKING WITH ADVANCE PAYMENT
+    // ============================================
+    try {
+        $booking = \App\Models\Booking::whereNotNull('advance_amount')
+            ->where('advance_amount', '>', 0)
+            ->first();
+
+        if ($booking) {
+            $diagnostics['test_booking'] = [
+                'found' => true,
+                'id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+                'total_amount' => $booking->total_amount,
+                'payment_type' => $booking->payment_type,
+                'advance_amount' => $booking->advance_amount,
+                'balance_due' => $booking->balance_due,
+                'is_advance_payment' => $booking->isAdvancePayment(),
+            ];
+        } else {
+            $diagnostics['test_booking'] = [
+                'found' => false,
+                'message' => 'No booking with advance payment found',
+            ];
+        }
+    } catch (\Exception $e) {
+        $diagnostics['test_booking'] = [
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    // ============================================
+    // 5. TEST PAYMENT SERVICE
+    // ============================================
+    try {
+        $paymentService = app(\App\Services\PaymentService::class);
+        $diagnostics['payment_service'] = [
+            'instantiated' => true,
+            'class' => get_class($paymentService),
+        ];
+    } catch (\Exception $e) {
+        $diagnostics['payment_service'] = [
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    // ============================================
+    // 6. CHECK RECENT PAYMENT ERRORS
+    // ============================================
+    try {
+        $logFile = storage_path('logs/laravel.log');
+        if (file_exists($logFile)) {
+            $logContent = file_get_contents($logFile);
+            $lines = explode("\n", $logContent);
+            $recentErrors = [];
+
+            foreach (array_reverse($lines) as $line) {
+                if (str_contains($line, 'Thawani') && str_contains($line, 'ERROR')) {
+                    $recentErrors[] = $line;
+                    if (count($recentErrors) >= 5) break;
+                }
+            }
+
+            $diagnostics['recent_errors'] = [
+                'found' => count($recentErrors),
+                'errors' => $recentErrors,
+            ];
+        }
+    } catch (\Exception $e) {
+        $diagnostics['recent_errors'] = [
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    // ============================================
+    // 7. THAWANI API TEST
+    // ============================================
+    try {
+        $apiKey = config('services.thawani.secret_key');
+        $baseUrl = config('services.thawani.base_url');
+
+        $testPayload = [
+            'client_reference_id' => 'DIAGNOSTIC-TEST-' . time(),
+            'mode' => 'payment',
+            'products' => [
+                [
+                    'name' => 'Diagnostic Test',
+                    'quantity' => 1,
+                    'unit_amount' => 1000,
+                ]
+            ],
+            'success_url' => route('customer.payment.success', ['booking' => 1]),
+            'cancel_url' => route('customer.payment.cancel', ['booking' => 1]),
+        ];
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $baseUrl . '/checkout/session',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($testPayload),
+            CURLOPT_HTTPHEADER => [
+                'thawani-api-key: ' . $apiKey,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_TIMEOUT => 10,
+        ]);
+
+        $response = curl_exec($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $responseData = json_decode($response, true);
+
+        $diagnostics['thawani_test'] = [
+            'status_code' => $statusCode,
+            'success' => $statusCode === 200 && isset($responseData['success']) && $responseData['success'],
+            'response' => $responseData,
+            'request_payload' => $testPayload,
+        ];
+    } catch (\Exception $e) {
+        $diagnostics['thawani_test'] = [
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    // ============================================
+    // 8. DETERMINE ISSUES
+    // ============================================
+    $issues = [];
+    $recommendations = [];
+
+    if ($diagnostics['environment']['IS_LOCALHOST']) {
+        $issues[] = '❌ CRITICAL: APP_URL is set to localhost - Thawani cannot access localhost URLs';
+        $recommendations[] = '✅ FIX: Use ngrok (ngrok http 8000) and set APP_URL to ngrok URL';
+    }
+
+    if (!$diagnostics['thawani']['secret_key_valid']) {
+        $issues[] = '❌ CRITICAL: Thawani secret key appears invalid';
+        $recommendations[] = '✅ FIX: Check THAWANI_API_KEY in .env file';
+    }
+
+    if (!$diagnostics['thawani']['publishable_key_valid']) {
+        $issues[] = '❌ CRITICAL: Thawani publishable key appears invalid';
+        $recommendations[] = '✅ FIX: Check THAWANI_PUBLISHABLE_KEY in .env file';
+    }
+
+    if (!$diagnostics['thawani']['keys_different']) {
+        $issues[] = '❌ WARNING: Secret and publishable keys are the same';
+        $recommendations[] = '✅ FIX: Verify you have two different keys from Thawani';
+    }
+
+    if (isset($diagnostics['routes']['success_url_has_localhost']) && $diagnostics['routes']['success_url_has_localhost']) {
+        $issues[] = '❌ CRITICAL: Callback URLs contain localhost';
+        $recommendations[] = '✅ FIX: Update APP_URL in .env and clear config';
+    }
+
+    if (isset($diagnostics['routes']['urls_are_https']) && !$diagnostics['routes']['urls_are_https']) {
+        $issues[] = '⚠️ WARNING: Callback URLs are not HTTPS (required for production)';
+        $recommendations[] = '✅ FIX: Use HTTPS for production environment';
+    }
+
+    if (isset($diagnostics['thawani_test']['status_code']) && $diagnostics['thawani_test']['status_code'] === 400) {
+        $issues[] = '❌ CRITICAL: Thawani API returns 400 - Request rejected';
+        $errorMsg = $diagnostics['thawani_test']['response']['description'] ?? 'Unknown error';
+        $recommendations[] = '✅ ERROR: ' . $errorMsg;
+    }
+
+    $diagnostics['summary'] = [
+        'issues_found' => count($issues),
+        'issues' => $issues,
+        'recommendations' => $recommendations,
+        'ready_for_payment' => count($issues) === 0,
+    ];
+
+    // ============================================
+    // RENDER RESULTS
+    // ============================================
+    return response()->json($diagnostics, 200, [], JSON_PRETTY_PRINT);
+})->name('diagnose.payment');
+
+
+
+
 

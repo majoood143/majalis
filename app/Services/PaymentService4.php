@@ -180,17 +180,10 @@ class PaymentService
                 throw new Exception('Invalid payment amount: ' . $paymentAmount);
             }
 
-            // ✅ FIXED: Product name must be max 40 characters for Thawani
-            // Format: "BK-XXXX (Advance)" or "Booking BK-XXXX"
+            // ✅ NEW: Enhanced product name to indicate payment type
+            $productName = 'Hall Booking - ' . $booking->booking_number;
             if ($booking->isAdvancePayment()) {
-                $productName = $booking->booking_number . ' (Advance)';
-            } else {
-                $productName = 'Booking ' . $booking->booking_number;
-            }
-            
-            // Safety check: truncate if still too long
-            if (strlen($productName) > 40) {
-                $productName = substr($productName, 0, 40);
+                $productName .= ' (Advance Payment)';
             }
 
             $successUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.success', ['booking' => $booking->id]));
@@ -212,32 +205,12 @@ class PaymentService
 
             $jsonPayload = json_encode($paymentData);
 
-            // ✅ DIAGNOSTIC: Log EVERYTHING being sent to Thawani
-            Log::info('🔍 DIAGNOSTIC: Full Thawani Request', [
+            Log::info('Creating Thawani session with native cURL', [
                 'booking_id' => $booking->id,
                 'payment_id' => $payment->id,
+                'amount_baisa' => $amountInBaisa,
                 'payment_type' => $booking->payment_type,
                 'is_advance' => $booking->isAdvancePayment(),
-                'amount_baisa' => $amountInBaisa,
-                '📦 FULL_PAYLOAD' => $paymentData,
-                '🔗 URLs' => [
-                    'success' => $successUrl,
-                    'cancel' => $cancelUrl,
-                    'has_localhost' => str_contains($successUrl, 'localhost'),
-                ],
-                '📝 PRODUCT' => [
-                    'name' => $productName,
-                    'length' => strlen($productName),
-                ],
-                '💰 AMOUNTS' => [
-                    'payment_amount' => $paymentAmount,
-                    'amount_baisa' => $amountInBaisa,
-                ],
-                '🔑 API_CONFIG' => [
-                    'base_url' => $this->baseUrl,
-                    'has_api_key' => !empty($this->apiKey),
-                    'api_key_length' => strlen($this->apiKey),
-                ],
             ]);
 
             $ch = curl_init();
@@ -283,40 +256,21 @@ class PaymentService
             $result = json_decode($responseBody, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('🔴 DIAGNOSTIC: Invalid JSON from Thawani', [
-                    'booking_id' => $booking->id,
-                    'json_error' => json_last_error_msg(),
-                    'raw_response' => $responseBody,
-                ]);
-                
                 return [
                     'success' => false,
                     'message' => 'Invalid response format from payment gateway'
                 ];
             }
 
-            // ✅ DIAGNOSTIC: Log FULL Thawani response
-            Log::info('🔍 DIAGNOSTIC: Full Thawani Response', [
+            Log::info('Thawani session created successfully', [
                 'booking_id' => $booking->id,
+                'session_id' => $result['data']['session_id'] ?? 'N/A',
                 'status_code' => $statusCode,
-                'success' => $result['success'] ?? false,
-                '📦 FULL_RESPONSE' => $result,
-                '❌ ERROR_DETAILS' => [
-                    'code' => $result['code'] ?? null,
-                    'description' => $result['description'] ?? null,
-                    'message' => $result['message'] ?? null,
-                    'errors' => $result['errors'] ?? null,
-                ],
             ]);
 
             if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
                 $sessionId = $result['data']['session_id'];
                 $redirectUrl = "https://uatcheckout.thawani.om/pay/{$sessionId}?key={$this->publishableKey}";
-
-                Log::info('✅ Thawani session created successfully', [
-                    'booking_id' => $booking->id,
-                    'session_id' => $sessionId,
-                ]);
 
                 return [
                     'success' => true,
@@ -327,21 +281,9 @@ class PaymentService
                 ];
             }
 
-            // ✅ DIAGNOSTIC: Detailed error logging
-            $errorMessage = $result['description'] ?? $result['message'] ?? 'Failed to create payment session';
-            
-            Log::error('🔴 DIAGNOSTIC: Thawani Rejected Request', [
-                'booking_id' => $booking->id,
-                'status_code' => $statusCode,
-                'error_code' => $result['code'] ?? null,
-                'error_description' => $result['description'] ?? null,
-                'error_message' => $result['message'] ?? null,
-                'full_error_response' => $result,
-            ]);
-
             return [
                 'success' => false,
-                'message' => $errorMessage
+                'message' => $result['description'] ?? $result['message'] ?? 'Failed to create payment session'
             ];
         } catch (Exception $e) {
             Log::error('Thawani session creation exception', [

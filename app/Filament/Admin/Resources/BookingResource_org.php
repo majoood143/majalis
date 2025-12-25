@@ -26,7 +26,7 @@ use Filament\Tables\Actions\Action;
 
 
 
-class BookingResource extends Resource
+class BookingResource_org extends Resource
 {
     use HasTranslations;
 
@@ -422,57 +422,6 @@ class BookingResource extends Resource
                     ])->columns(3)
                     ->collapsible(),
 
-                // ✅ NEW: Advance Payment Details Section
-                Forms\Components\Section::make('Advance Payment Details')
-                    ->description('Advance payment information (auto-calculated for advance payment bookings)')
-                    ->schema([
-                        Forms\Components\Select::make('payment_type')
-                            ->label(__('advance_payment.payment_type'))
-                            ->options([
-                                'full' => __('advance_payment.payment_type_full'),
-                                'advance' => __('advance_payment.payment_type_advance'),
-                            ])
-                            ->default('full')
-                            ->disabled()
-                            ->dehydrated()
-                            ->helperText('Set by hall configuration'),
-
-                        Forms\Components\TextInput::make('advance_amount')
-                            ->label(__('advance_payment.advance_amount'))
-                            ->numeric()
-                            ->prefix('OMR')
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn (Get $get) => $get('payment_type') === 'advance')
-                            ->helperText('Amount paid upfront'),
-
-                        Forms\Components\TextInput::make('balance_due')
-                            ->label(__('advance_payment.balance_due'))
-                            ->numeric()
-                            ->prefix('OMR')
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn (Get $get) => $get('payment_type') === 'advance')
-                            ->helperText('Amount to be paid before event'),
-
-                        Forms\Components\DateTimePicker::make('balance_paid_at')
-                            ->label(__('advance_payment.balance_paid_at'))
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn (Get $get) => $get('payment_type') === 'advance')
-                            ->helperText('When balance was paid'),
-                        
-                        Forms\Components\Placeholder::make('advance_payment_note')
-                            ->label('')
-                            ->content(fn (Get $get) => $get('payment_type') === 'advance' 
-                                ? '⚠️ Advance payment booking. Customer paid ' . number_format((float)($get('advance_amount') ?? 0), 3) . ' OMR upfront. Balance of ' . number_format((float)($get('balance_due') ?? 0), 3) . ' OMR must be paid before the event.'
-                                : '✅ Full payment booking. Customer pays the entire amount.')
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsible()
-                    ->collapsed(fn (Get $get) => $get('payment_type') !== 'advance'),
-
                 // Event Details Section
                 Forms\Components\Section::make('Event Details')
                     ->schema([
@@ -810,14 +759,8 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('time_slot')
                     ->badge(),
                 Tables\Columns\TextColumn::make('total_amount')
-                    ->label('Total Amount')
-                    ->money('OMR', 3)
-                    ->sortable()
-                    ->description(fn ($record) => $record->isAdvancePayment() 
-                        ? '⚡ Advance: ' . number_format($record->advance_amount, 3) . ' OMR'
-                        : null
-                    )
-                    ->weight('bold'),
+                    ->money('OMR')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
                 Tables\Columns\TextColumn::make('payment_status')
@@ -909,171 +852,6 @@ class BookingResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
-    }
-
-    /**
-     * Configure the infolist for viewing booking details
-     * 
-     * Displays comprehensive booking information including advance payment details
-     */
-    public static function infolist(Infolist $infolist): Infolist
-    {
-        return $infolist
-            ->schema([
-                // Hall & Customer Information
-                Infolists\Components\Section::make('Booking Information')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('booking_number')
-                            ->label('Booking Number')
-                            ->badge()
-                            ->color('primary')
-                            ->size('lg'),
-                        
-                        Infolists\Components\TextEntry::make('hall.name')
-                            ->label('Hall'),
-                        
-                        Infolists\Components\TextEntry::make('customer_name')
-                            ->label('Customer Name'),
-                        
-                        Infolists\Components\TextEntry::make('customer_phone')
-                            ->label('Customer Phone'),
-                        
-                        Infolists\Components\TextEntry::make('booking_date')
-                            ->label('Date')
-                            ->date(),
-                        
-                        Infolists\Components\TextEntry::make('time_slot')
-                            ->label('Time Slot')
-                            ->badge(),
-                        
-                        Infolists\Components\TextEntry::make('status')
-                            ->badge(),
-                        
-                        Infolists\Components\TextEntry::make('payment_status')
-                            ->badge(),
-                    ])
-                    ->columns(2),
-                
-                // Pricing Information
-                Infolists\Components\Section::make('Pricing Details')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('hall_price')
-                            ->label('Hall Price')
-                            ->money('OMR', 3),
-                        
-                        Infolists\Components\TextEntry::make('services_price')
-                            ->label('Services Total')
-                            ->money('OMR', 3),
-                        
-                        Infolists\Components\TextEntry::make('subtotal')
-                            ->label('Subtotal')
-                            ->money('OMR', 3),
-                        
-                        Infolists\Components\TextEntry::make('commission_amount')
-                            ->label('Platform Fee')
-                            ->money('OMR', 3),
-                        
-                        Infolists\Components\TextEntry::make('total_amount')
-                            ->label('Total Amount')
-                            ->money('OMR', 3)
-                            ->weight('bold')
-                            ->size('lg')
-                            ->color('success'),
-                    ])
-                    ->columns(3),
-                
-                // ✅ Advance Payment Section
-                Infolists\Components\Section::make('Advance Payment Details')
-                    ->description(fn ($record) => $record->isAdvancePayment() 
-                        ? 'This booking requires advance payment. Customer must pay balance before the event.'
-                        : 'This is a full payment booking.')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('payment_type')
-                            ->label(__('advance_payment.payment_type'))
-                            ->badge()
-                            ->color(fn (string $state): string => match ($state) {
-                                'full' => 'success',
-                                'advance' => 'warning',
-                                default => 'gray',
-                            })
-                            ->formatStateUsing(fn (string $state): string => 
-                                __('advance_payment.payment_type_' . $state)
-                            )
-                            ->size('lg'),
-                        
-                        Infolists\Components\TextEntry::make('advance_amount')
-                            ->label(__('advance_payment.advance_paid'))
-                            ->money('OMR', 3)
-                            ->visible(fn ($record) => $record->isAdvancePayment())
-                            ->color('warning')
-                            ->weight('bold')
-                            ->size('lg'),
-                        
-                        Infolists\Components\TextEntry::make('balance_due')
-                            ->label(__('advance_payment.balance_due'))
-                            ->money('OMR', 3)
-                            ->visible(fn ($record) => $record->isAdvancePayment())
-                            ->color(fn ($record) => $record->isBalancePending() ? 'danger' : 'success')
-                            ->weight('bold')
-                            ->size('lg'),
-                        
-                        Infolists\Components\TextEntry::make('balance_paid_at')
-                            ->label(__('advance_payment.balance_paid_at'))
-                            ->dateTime()
-                            ->visible(fn ($record) => $record->isAdvancePayment() && $record->balance_paid_at)
-                            ->color('success'),
-                        
-                        Infolists\Components\TextEntry::make('balance_payment_status')
-                            ->label(__('advance_payment.balance_payment_status'))
-                            ->badge()
-                            ->visible(fn ($record) => $record->isAdvancePayment())
-                            ->getStateUsing(fn ($record) => $record->balance_paid_at ? 'Paid' : 'Pending')
-                            ->color(fn ($record) => $record->balance_paid_at ? 'success' : 'danger'),
-                    ])
-                    ->columns(3)
-                    ->visible(fn ($record) => $record->payment_type !== null),
-                
-                // Extra Services
-                Infolists\Components\Section::make('Extra Services')
-                    ->schema([
-                        Infolists\Components\RepeatableEntry::make('extraServices')
-                            ->label('')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('name')
-                                    ->label('Service'),
-                                
-                                Infolists\Components\TextEntry::make('pivot.quantity')
-                                    ->label('Quantity'),
-                                
-                                Infolists\Components\TextEntry::make('pivot.unit_price')
-                                    ->label('Unit Price')
-                                    ->money('OMR', 3),
-                                
-                                Infolists\Components\TextEntry::make('pivot.total_price')
-                                    ->label('Total')
-                                    ->money('OMR', 3)
-                                    ->weight('bold'),
-                            ])
-                            ->columns(4),
-                    ])
-                    ->visible(fn ($record) => $record->extraServices->count() > 0)
-                    ->collapsible(),
-                    
-                // Event Details
-                Infolists\Components\Section::make('Event Details')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('event_type')
-                            ->label('Event Type')
-                            ->badge(),
-                        
-                        Infolists\Components\TextEntry::make('event_details')
-                            ->label('Event Details')
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsible()
-                    ->collapsed(),
             ]);
     }
 

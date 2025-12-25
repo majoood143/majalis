@@ -66,7 +66,7 @@
         <!-- Booking Card -->
         <div class="p-6 mb-6 bg-white shadow-xl rounded-2xl md:p-8 fade-in-up" style="animation-delay: 0.2s;">
             <!-- Reference Number -->
-            <div class="p-6 mb-6 -mx-2 text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl">
+            <div class="p-6 mb-6 -mx-2 text-black bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl">
                 <div class="mb-1 text-sm opacity-90">{{ __('halls.booking_reference') }}</div>
                 <div class="text-2xl font-bold tracking-wider">{{ $booking->booking_number }}</div>
             </div>
@@ -161,27 +161,27 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <div class="flex-1">
-                            <h4 class="font-bold text-blue-900 mb-3">{{ __('advance_payment.advance_paid_success') }}</h4>
-                            
-                            <div class="space-y-2 mb-3">
-                                <div class="flex justify-between items-center p-3 bg-white rounded-lg">
+                            <h4 class="mb-3 font-bold text-blue-900">{{ __('advance_payment.advance_paid_success') }}</h4>
+
+                            <div class="mb-3 space-y-2">
+                                <div class="flex items-center justify-between p-3 bg-white rounded-lg">
                                     <span class="text-sm text-gray-600">{{ __('advance_payment.advance_amount') }}</span>
                                     <span class="text-lg font-bold text-green-600">{{ number_format($booking->advance_amount, 3) }} OMR ✓</span>
                                 </div>
-                                
-                                <div class="flex justify-between items-center p-3 bg-white rounded-lg">
+
+                                <div class="flex items-center justify-between p-3 bg-white rounded-lg">
                                     <span class="text-sm text-gray-600">{{ __('advance_payment.balance_due') }}</span>
                                     <span class="text-lg font-bold text-amber-600">{{ number_format($booking->balance_due, 3) }} OMR</span>
                                 </div>
                             </div>
-                            
-                            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+
+                            <div class="p-3 border rounded-lg bg-amber-50 border-amber-200">
                                 <div class="flex items-start gap-2">
                                     <svg class="flex-shrink-0 w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     <div class="text-sm text-amber-900">
-                                        <div class="font-semibold mb-1">{{ __('advance_payment.balance_payment_required') }}</div>
+                                        <div class="mb-1 font-semibold">{{ __('advance_payment.balance_payment_required') }}</div>
                                         <div>{{ __('advance_payment.balance_payment_explanation') }}</div>
                                     </div>
                                 </div>
@@ -191,7 +191,7 @@
                 </div>
             @else
                 <!-- Full Payment Completed -->
-                <div class="flex items-center gap-3 p-4 mt-6 border bg-green-50 border-green-200 rounded-xl">
+                <div class="flex items-center gap-3 p-4 mt-6 border border-green-200 bg-green-50 rounded-xl">
                     <svg class="flex-shrink-0 w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>

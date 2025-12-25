@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Filament\Admin\Resources\BookingResource;
@@ -11,31 +9,6 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-/**
- * CreateBooking Page
- *
- * Handles the creation of new bookings through the admin panel.
- * 
- * Features:
- * - Validates slot availability (prevents double bookings)
- * - Validates guest capacity against hall limits
- * - Generates unique booking numbers
- * - Attaches extra services with pricing
- * - ✅ Calculates advance payment if hall allows it
- * - Uses database transactions for data integrity
- * - Implements confirmation dialogs for safety
- * 
- * Flow:
- * 1. Validate form data (mutateFormDataBeforeCreate)
- * 2. Check slot availability (with locking)
- * 3. Create booking record
- * 4. Attach extra services
- * 5. ✅ Calculate advance payment (if applicable)
- * 6. Send notifications
- * 7. Redirect to view page
- *
- * @package App\Filament\Admin\Resources\BookingResource\Pages
- */
 class CreateBooking extends CreateRecord
 {
     protected static string $resource = BookingResource::class;
@@ -45,21 +18,6 @@ class CreateBooking extends CreateRecord
         return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
 
-    /**
-     * Mutate form data before creating the booking
-     * 
-     * Performs validation and data preparation:
-     * - Checks for existing bookings on the same slot (prevents double booking)
-     * - Validates guest count against hall capacity (min/max)
-     * - Generates unique booking number
-     * 
-     * Note: Advance payment calculation happens AFTER record creation
-     * in handleRecordCreation() to ensure total_amount is finalized.
-     *
-     * @param array $data Form data
-     * @return array Mutated data
-     * @throws \Exception If validation fails (halts process)
-     */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Check for existing booking FIRST before generating booking number
@@ -109,30 +67,6 @@ class CreateBooking extends CreateRecord
         return $data;
     }
 
-    /**
-     * Handle the actual record creation with transaction safety
-     * 
-     * Process:
-     * 1. Start database transaction
-     * 2. Double-check slot availability with row locking
-     * 3. Create booking record
-     * 4. Attach extra services to booking
-     * 5. ✅ NEW: Calculate advance payment if hall allows it
-     * 6. Commit transaction
-     * 
-     * ✅ Advance Payment Logic:
-     * - Checks if hall has allows_advance_payment enabled
-     * - Calls calculateAdvancePayment() on the booking model
-     * - Sets payment_type, advance_amount, balance_due fields
-     * - Sends notification about advance payment requirement
-     * 
-     * The advance payment calculation happens AFTER services are attached
-     * to ensure the total_amount includes all charges.
-     *
-     * @param array $data Validated form data
-     * @return Model Created booking record
-     * @throws \Exception If slot becomes unavailable during creation
-     */
     protected function handleRecordCreation(array $data): Model
     {
         return DB::transaction(function () use ($data) {
@@ -172,27 +106,6 @@ class CreateBooking extends CreateRecord
                         'total_price' => $service['total_price'] ?? 0,
                     ]);
                 }
-            }
-
-            // ✅ NEW: Calculate advance payment if hall allows it
-            // This must happen AFTER creating the booking and attaching services
-            // so that total_amount is correctly calculated
-            $hall = \App\Models\Hall::find($record->hall_id);
-            if ($hall && $hall->allows_advance_payment) {
-                // Calculate advance payment based on hall settings
-                $record->calculateAdvancePayment();
-                $record->save();
-
-                // Notify admin that this is an advance payment booking
-                Notification::make()
-                    ->success()
-                    ->title('Advance Payment Booking')
-                    ->body(sprintf(
-                        'This booking requires advance payment. Customer must pay %s OMR upfront. Balance of %s OMR due before event.',
-                        number_format((float)$record->advance_amount, 3),
-                        number_format((float)$record->balance_due, 3)
-                    ))
-                    ->send();
             }
 
             return $record;
@@ -257,41 +170,9 @@ class CreateBooking extends CreateRecord
         return 'BK-' . $year . '-' . str_pad($sequence, 5, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Get the title for the creation success notification
-     * 
-     * @return string|null Notification title
-     */
     protected function getCreatedNotificationTitle(): ?string
     {
         return 'Booking created successfully';
-    }
-
-    /**
-     * ✅ NEW: After create hook to provide additional information
-     * 
-     * Shows helpful information about the created booking,
-     * especially for advance payment bookings.
-     */
-    protected function afterCreate(): void
-    {
-        $record = $this->record;
-        
-        // If this is an advance payment booking, provide detailed info
-        if ($record->isAdvancePayment()) {
-            Notification::make()
-                ->info()
-                ->title('📋 Booking Summary')
-                ->body(sprintf(
-                    "**Booking:** %s\n**Total Amount:** %s OMR\n**Payment Type:** Advance Payment\n**Advance Required:** %s OMR\n**Balance Due:** %s OMR\n\nCustomer must pay advance amount before event confirmation.",
-                    $record->booking_number,
-                    number_format((float)$record->total_amount, 3),
-                    number_format((float)$record->advance_amount, 3),
-                    number_format((float)$record->balance_due, 3)
-                ))
-                ->persistent()
-                ->send();
-        }
     }
 
     /**

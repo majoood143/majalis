@@ -230,55 +230,6 @@ class ViewBooking extends ViewRecord
                 // FIX: Removed ->value since status is already a string
                 ->visible(fn() => $this->record->status === 'confirmed' &&
                     $this->record->booking_date->isFuture()),
-
-            /**
-             * Mark Balance as Paid Action
-             *
-             * Allows admin to mark the balance amount as paid for advance payment bookings.
-             * Only visible for advance payment bookings where balance is still pending.
-             * Opens a form to collect payment method, reference, and date.
-             */
-            Actions\Action::make('mark_balance_paid')
-                ->label(__('advance_payment.mark_balance_as_paid'))
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->visible(fn() => $this->record->isAdvancePayment() && $this->record->isBalancePending())
-                ->form([
-                    \Filament\Forms\Components\Select::make('payment_method')
-                        ->label(__('advance_payment.balance_payment_method'))
-                        ->options([
-                            'bank_transfer' => __('advance_payment.bank_transfer'),
-                            'cash' => __('advance_payment.cash'),
-                            'card' => __('advance_payment.card'),
-                        ])
-                        ->required(),
-
-                    \Filament\Forms\Components\TextInput::make('reference')
-                        ->label(__('advance_payment.balance_payment_reference'))
-                        ->placeholder('Transaction ID or Receipt Number')
-                        ->maxLength(255),
-
-                    \Filament\Forms\Components\DateTimePicker::make('paid_at')
-                        ->label(__('Payment Date'))
-                        ->default(now())
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $this->record->update([
-                        'balance_paid_at' => $data['paid_at'],
-                        'balance_payment_method' => $data['payment_method'],
-                        'balance_payment_reference' => $data['reference'] ?? null,
-                        'payment_status' => 'paid',
-                    ]);
-
-                    $this->record->refresh();
-
-                    \Filament\Notifications\Notification::make()
-                        ->title(__('advance_payment.balance_marked_as_paid'))
-                        ->body(__('advance_payment.balance_payment_recorded'))
-                        ->success()
-                        ->send();
-                }),
         ];
     }
 
@@ -441,116 +392,6 @@ class ViewBooking extends ViewRecord
                     ])->columns(3),
 
                 /**
-                 * ✅ ENHANCED: Advance Payment Details Section
-                 *
-                 * Shows comprehensive advance payment information:
-                 * - Payment type (Full/Advance) with color-coded badge
-                 * - Advance amount paid (large, bold, warning color)
-                 * - Balance due (large, bold, red if pending, green if paid)
-                 * - Balance paid date (if applicable)
-                 * - Balance payment status badge
-                 * - Payment method and reference (if balance paid)
-                 *
-                 * Only visible for bookings with advance payment.
-                 * Positioned right after pricing for logical flow.
-                 */
-                Infolists\Components\Section::make('Advance Payment Details')
-                    ->description(fn() => $this->record->isAdvancePayment()
-                        ? ($this->record->isBalancePending()
-                            ? '⚠️ This booking requires advance payment. Customer must pay remaining balance before the event.'
-                            : '✅ This booking required advance payment. Balance has been paid.')
-                        : 'This is a full payment booking. Customer pays the entire amount.')
-                    ->schema([
-                        Infolists\Components\Grid::make(3)
-                            ->schema([
-                                // Payment Type Badge
-                                Infolists\Components\TextEntry::make('payment_type')
-                                    ->label(__('advance_payment.payment_type'))
-                                    ->badge()
-                                    ->size('lg')
-                                    ->color(fn(string $state): string => match ($state) {
-                                        'full' => 'success',
-                                        'advance' => 'warning',
-                                        default => 'gray',
-                                    })
-                                    ->formatStateUsing(fn(string $state): string =>
-                                        __('advance_payment.payment_type_' . $state)
-                                    ),
-
-                                // Advance Amount Paid (prominent display)
-                                Infolists\Components\TextEntry::make('advance_amount')
-                                    ->label(__('advance_payment.advance_paid'))
-                                    ->money('OMR', 3)
-                                    ->weight('bold')
-                                    ->size('lg')
-                                    ->color('warning')
-                                    ->visible(fn() => $this->record->isAdvancePayment())
-                                    ->icon('heroicon-o-banknotes')
-                                    ->iconColor('warning'),
-
-                                // Balance Due (color-coded by status)
-                                Infolists\Components\TextEntry::make('balance_due')
-                                    ->label(__('advance_payment.balance_due'))
-                                    ->money('OMR', 3)
-                                    ->weight('bold')
-                                    ->size('lg')
-                                    ->color(fn() => $this->record->isBalancePending() ? 'danger' : 'success')
-                                    ->visible(fn() => $this->record->isAdvancePayment())
-                                    ->icon(fn() => $this->record->isBalancePending()
-                                        ? 'heroicon-o-exclamation-triangle'
-                                        : 'heroicon-o-check-circle')
-                                    ->iconColor(fn() => $this->record->isBalancePending() ? 'danger' : 'success'),
-
-                                // Balance Payment Status Badge
-                                Infolists\Components\TextEntry::make('balance_payment_status')
-                                    ->label(__('advance_payment.balance_payment_status'))
-                                    ->badge()
-                                    ->size('lg')
-                                    ->visible(fn() => $this->record->isAdvancePayment())
-                                    ->getStateUsing(fn() => $this->record->balance_paid_at
-                                        ? __('advance_payment.balance_paid')
-                                        : __('advance_payment.balance_pending'))
-                                    ->color(fn() => $this->record->balance_paid_at ? 'success' : 'danger')
-                                    ->icon(fn() => $this->record->balance_paid_at
-                                        ? 'heroicon-o-check-badge'
-                                        : 'heroicon-o-clock'),
-
-                                // Balance Paid Date
-                                Infolists\Components\TextEntry::make('balance_paid_at')
-                                    ->label(__('advance_payment.balance_paid_on'))
-                                    ->dateTime('M j, Y \a\t g:i A')
-                                    ->placeholder(__('advance_payment.balance_not_paid'))
-                                    ->visible(fn() => $this->record->isAdvancePayment())
-                                    ->color(fn() => $this->record->balance_paid_at ? 'success' : 'gray')
-                                    ->icon(fn() => $this->record->balance_paid_at ? 'heroicon-o-calendar-days' : null)
-                                    ->iconColor('success'),
-
-                                // Balance Payment Method
-                                Infolists\Components\TextEntry::make('balance_payment_method')
-                                    ->label(__('advance_payment.balance_payment_method'))
-                                    ->badge()
-                                    ->color('info')
-                                    ->visible(fn() => $this->record->balance_paid_at !== null)
-                                    ->formatStateUsing(fn(string $state): string =>
-                                        __('advance_payment.' . $state)
-                                    ),
-
-                                // Balance Payment Reference
-                                Infolists\Components\TextEntry::make('balance_payment_reference')
-                                    ->label(__('advance_payment.balance_payment_reference'))
-                                    ->placeholder('-')
-                                    ->visible(fn() => $this->record->balance_paid_at !== null)
-                                    ->copyable()
-                                    ->copyMessage('Reference copied!')
-                                    ->icon('heroicon-o-document-text'),
-                            ]),
-                    ])
-                    ->columns(3)
-                    ->visible(fn() => $this->record->payment_type !== null)
-                    ->collapsible()
-                    ->collapsed(fn() => !$this->record->isAdvancePayment()),
-
-                /**
                  * Extra Services Section
                  *
                  * Lists all additional services booked with quantities and prices.
@@ -641,6 +482,45 @@ class ViewBooking extends ViewRecord
                     ])
                     ->collapsed()
                     ->visible(fn() => !empty($this->record->admin_notes)),
+
+            Section::make(__('advance_payment.advance_payment_info'))
+                ->schema([
+                    TextEntry::make('payment_type')
+                        ->label(__('advance_payment.payment_type'))
+                        ->badge()
+                        ->color(fn(string $state): string => match ($state) {
+                            'full' => 'success',
+                            'advance' => 'warning',
+                            default => 'gray',
+                        }),
+
+                    TextEntry::make('advance_amount')
+                        ->label(__('advance_payment.advance_paid'))
+                        ->money('OMR', 3)
+                        ->visible(fn($record) => $record->isAdvancePayment()),
+
+                    TextEntry::make('balance_due')
+                        ->label(__('advance_payment.balance_due'))
+                        ->money('OMR', 3)
+                        ->visible(fn($record) => $record->isAdvancePayment()),
+
+                    TextEntry::make('balance_paid_at')
+                        ->label(__('advance_payment.balance_paid_on'))
+                        ->dateTime()
+                        ->placeholder(__('advance_payment.balance_not_paid'))
+                        ->visible(fn($record) => $record->isAdvancePayment()),
+
+                    TextEntry::make('balance_payment_method')
+                        ->label(__('advance_payment.balance_payment_method'))
+                        ->badge()
+                        ->visible(fn($record) => $record->balance_paid_at !== null),
+
+                    TextEntry::make('balance_payment_reference')
+                        ->label(__('advance_payment.balance_payment_reference'))
+                        ->visible(fn($record) => $record->balance_paid_at !== null),
+                ])
+                ->columns(2)
+                ->visible(fn($record) => $record->isAdvancePayment()),
             ]);
     }
 }

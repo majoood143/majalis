@@ -180,17 +180,10 @@ class PaymentService
                 throw new Exception('Invalid payment amount: ' . $paymentAmount);
             }
 
-            // ✅ FIXED: Product name must be max 40 characters for Thawani
-            // Format: "BK-XXXX (Advance)" or "Booking BK-XXXX"
+            // ✅ NEW: Enhanced product name to indicate payment type
+            $productName = 'Hall Booking - ' . $booking->booking_number;
             if ($booking->isAdvancePayment()) {
-                $productName = $booking->booking_number . ' (Advance)';
-            } else {
-                $productName = 'Booking ' . $booking->booking_number;
-            }
-            
-            // Safety check: truncate if still too long
-            if (strlen($productName) > 40) {
-                $productName = substr($productName, 0, 40);
+                $productName .= ' (Advance Payment)';
             }
 
             $successUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.success', ['booking' => $booking->id]));

@@ -165,10 +165,10 @@ class PaymentService
                 throw new Exception('Thawani API key is not configured');
             }
 
-            // ✅ FIXED: Calculate payment amount with NULL safety
+            // ✅ NEW: Calculate payment amount based on payment type
             // If booking requires advance, charge advance amount only
             // Otherwise, charge full amount
-            // NULL safety: if advance_amount is NULL, fall back to total_amount
+            // Cast to float to handle strict types (Eloquent returns decimal as string)
             $paymentAmount = $booking->isAdvancePayment() && $booking->advance_amount
                 ? (float) $booking->advance_amount 
                 : (float) $booking->total_amount;
@@ -180,21 +180,27 @@ class PaymentService
                 throw new Exception('Invalid payment amount: ' . $paymentAmount);
             }
 
-            // ✅ FIXED: Product name must be max 40 characters for Thawani
-            // Format: "BK-XXXX (Advance)" or "Booking BK-XXXX"
+            // ✅ NEW: Enhanced product name to indicate payment type
+            $productName = 'Hall Booking - ' . $booking->booking_number;
             if ($booking->isAdvancePayment()) {
-                $productName = $booking->booking_number . ' (Advance)';
-            } else {
-                $productName = 'Booking ' . $booking->booking_number;
-            }
-            
-            // Safety check: truncate if still too long
-            if (strlen($productName) > 40) {
-                $productName = substr($productName, 0, 40);
+                $productName .= ' (Advance Payment)';
             }
 
-            $successUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.success', ['booking' => $booking->id]));
-            $cancelUrl = str_replace('127.0.0.1', 'localhost', route('customer.payment.cancel', ['booking' => $booking->id]));
+            // ✅ FIXED: Use APP_URL from config for proper URL generation
+            // Thawani requires publicly accessible URLs
+            $appUrl = config('app.url');
+            $successUrl = $appUrl . route('customer.payment.success', ['booking' => $booking->id], false);
+            $cancelUrl = $appUrl . route('customer.payment.cancel', ['booking' => $booking->id], false);
+            
+            // Remove any double slashes
+            $successUrl = preg_replace('#(?<!:)//#', '/', $successUrl);
+            $cancelUrl = preg_replace('#(?<!:)//#', '/', $cancelUrl);
+
+            Log::info('Generated callback URLs', [
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
+                'app_url' => $appUrl,
+            ]);
 
             $paymentData = [
                 'client_reference_id' => $payment->payment_reference,
@@ -212,32 +218,15 @@ class PaymentService
 
             $jsonPayload = json_encode($paymentData);
 
-            // ✅ DIAGNOSTIC: Log EVERYTHING being sent to Thawani
-            Log::info('🔍 DIAGNOSTIC: Full Thawani Request', [
+            Log::info('Creating Thawani session with native cURL', [
                 'booking_id' => $booking->id,
                 'payment_id' => $payment->id,
+                'amount_baisa' => $amountInBaisa,
                 'payment_type' => $booking->payment_type,
                 'is_advance' => $booking->isAdvancePayment(),
-                'amount_baisa' => $amountInBaisa,
-                '📦 FULL_PAYLOAD' => $paymentData,
-                '🔗 URLs' => [
-                    'success' => $successUrl,
-                    'cancel' => $cancelUrl,
-                    'has_localhost' => str_contains($successUrl, 'localhost'),
-                ],
-                '📝 PRODUCT' => [
-                    'name' => $productName,
-                    'length' => strlen($productName),
-                ],
-                '💰 AMOUNTS' => [
-                    'payment_amount' => $paymentAmount,
-                    'amount_baisa' => $amountInBaisa,
-                ],
-                '🔑 API_CONFIG' => [
-                    'base_url' => $this->baseUrl,
-                    'has_api_key' => !empty($this->apiKey),
-                    'api_key_length' => strlen($this->apiKey),
-                ],
+                'request_payload' => $paymentData, // ✅ LOG FULL REQUEST FOR DEBUGGING
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
             ]);
 
             $ch = curl_init();
@@ -283,10 +272,10 @@ class PaymentService
             $result = json_decode($responseBody, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('🔴 DIAGNOSTIC: Invalid JSON from Thawani', [
+                Log::error('Invalid JSON response from Thawani', [
                     'booking_id' => $booking->id,
+                    'response_body' => $responseBody,
                     'json_error' => json_last_error_msg(),
-                    'raw_response' => $responseBody,
                 ]);
                 
                 return [
@@ -295,27 +284,23 @@ class PaymentService
                 ];
             }
 
-            // ✅ DIAGNOSTIC: Log FULL Thawani response
-            Log::info('🔍 DIAGNOSTIC: Full Thawani Response', [
+            // ✅ FIXED: Log AFTER checking status, with full response details
+            Log::info('Thawani API response received', [
                 'booking_id' => $booking->id,
                 'status_code' => $statusCode,
                 'success' => $result['success'] ?? false,
-                '📦 FULL_RESPONSE' => $result,
-                '❌ ERROR_DETAILS' => [
-                    'code' => $result['code'] ?? null,
-                    'description' => $result['description'] ?? null,
-                    'message' => $result['message'] ?? null,
-                    'errors' => $result['errors'] ?? null,
-                ],
+                'session_id' => $result['data']['session_id'] ?? 'N/A',
+                'full_response' => $result, // ✅ LOG FULL RESPONSE FOR DEBUGGING
             ]);
 
             if ($statusCode === 200 && isset($result['success']) && $result['success'] === true) {
                 $sessionId = $result['data']['session_id'];
                 $redirectUrl = "https://uatcheckout.thawani.om/pay/{$sessionId}?key={$this->publishableKey}";
 
-                Log::info('✅ Thawani session created successfully', [
+                Log::info('Thawani session created successfully', [
                     'booking_id' => $booking->id,
                     'session_id' => $sessionId,
+                    'redirect_url' => $redirectUrl,
                 ]);
 
                 return [
@@ -327,16 +312,14 @@ class PaymentService
                 ];
             }
 
-            // ✅ DIAGNOSTIC: Detailed error logging
+            // ✅ FIXED: Log detailed error information
             $errorMessage = $result['description'] ?? $result['message'] ?? 'Failed to create payment session';
             
-            Log::error('🔴 DIAGNOSTIC: Thawani Rejected Request', [
+            Log::error('Thawani session creation failed', [
                 'booking_id' => $booking->id,
                 'status_code' => $statusCode,
-                'error_code' => $result['code'] ?? null,
-                'error_description' => $result['description'] ?? null,
-                'error_message' => $result['message'] ?? null,
-                'full_error_response' => $result,
+                'error' => $errorMessage,
+                'full_response' => $result, // ✅ LOG FULL ERROR FOR DEBUGGING
             ]);
 
             return [
@@ -367,8 +350,8 @@ class PaymentService
      */
     protected function createPaymentRecord(Booking $booking, string $paymentMethod): Payment
     {
-        // ✅ FIXED: Determine payment amount with NULL safety
-        // Cast to float to handle strict types and NULL values
+        // ✅ NEW: Determine payment amount based on payment type
+        // Cast to float to handle strict types (Eloquent returns decimal as string)
         $paymentAmount = $booking->isAdvancePayment() && $booking->advance_amount
             ? (float) $booking->advance_amount 
             : (float) $booking->total_amount;
