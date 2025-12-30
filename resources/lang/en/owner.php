@@ -524,6 +524,82 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | FullCalendar Widget
+    |--------------------------------------------------------------------------
+    */
+    'fullcalendar' => [
+        // Navigation & Page
+        'navigation' => 'Calendar',
+        'page_title' => 'Availability Calendar',
+        'heading' => 'Availability Calendar',
+        'subheading' => 'Visual calendar for managing hall availability',
+
+        // Hall Selection
+        'select_hall' => 'Select Hall',
+        'all_halls' => 'All Halls',
+
+        // Actions
+        'actions' => [
+            'create' => 'Create Slot',
+            'edit' => 'Edit Slot',
+            'delete' => 'Delete Slot',
+            'generate' => 'Generate Slots',
+            'view' => 'View Details',
+            'block' => 'Block',
+            'unblock' => 'Unblock',
+        ],
+
+        // Empty State
+        'no_events' => 'No availability slots found',
+
+        // Instructions
+        'instructions' => [
+            'title' => 'How to use the calendar:',
+            'click_date' => 'Click on a date to create a new availability slot',
+            'click_event' => 'Click on an event to view or edit details',
+            'drag_event' => 'Drag events to move them to a different date',
+            'filter_hall' => 'Use the filter button to view slots for a specific hall',
+        ],
+
+        // Notifications
+        'notifications' => [
+            'select_hall_first' => 'Please select a hall first',
+            'cannot_select_past' => 'Cannot create slots in the past',
+            'cannot_move_to_past' => 'Cannot move slots to past dates',
+            'cannot_move_booked' => 'Cannot move booked slots',
+            'moved_success' => 'Slot moved successfully',
+            'created_success' => 'Slot created successfully',
+            'updated_success' => 'Slot updated successfully',
+            'deleted_success' => 'Slot deleted successfully',
+        ],
+
+        // Tooltips
+        'tooltips' => [
+            'available' => 'Available',
+            'blocked' => 'Blocked',
+            'booked' => 'Booked',
+            'maintenance' => 'Under Maintenance',
+        ],
+
+        // View Labels
+        'views' => [
+            'month' => 'Month',
+            'week' => 'Week',
+            'day' => 'Day',
+            'list' => 'List',
+        ],
+
+        // Time Slots Short
+        'slots_short' => [
+            'morning' => 'M',
+            'afternoon' => 'A',
+            'evening' => 'E',
+            'full_day' => 'F',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Booking Status
     |--------------------------------------------------------------------------
     */
@@ -747,5 +823,169 @@ return [
         'view' => 'View',
         'confirm' => 'Confirm',
         'manage' => 'Manage',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Availability Resource
+    |--------------------------------------------------------------------------
+    */
+    'availability_resource' => [
+        // Navigation
+        'navigation' => 'Availability',
+        'singular' => 'Availability Slot',
+        'plural' => 'Availability',
+        'title' => 'Manage Availability',
+        'heading' => 'Availability Management',
+        'subheading' => 'Manage availability slots across all your halls',
+
+        // Sections
+        'sections' => [
+            'slot_info' => 'Slot Information',
+            'slot_info_desc' => 'Configure the availability slot details',
+            'blocking' => 'Block Configuration',
+            'blocking_desc' => 'Set reason and notes for blocked slots',
+            'pricing' => 'Custom Pricing',
+            'pricing_desc' => 'Override default pricing for this slot',
+        ],
+
+        // Fields
+        'fields' => [
+            'hall' => 'Hall',
+            'date' => 'Date',
+            'time_slot' => 'Time Slot',
+            'time_slots' => 'Time Slots',
+            'is_available' => 'Available',
+            'reason' => 'Block Reason',
+            'notes' => 'Notes',
+            'custom_price' => 'Custom Price',
+            'date_mode' => 'Date Selection',
+            'start_date' => 'Start Date',
+            'end_date' => 'End Date',
+            'days_to_generate' => 'Days to Generate',
+        ],
+
+        // Date modes
+        'date_modes' => [
+            'single' => 'Single Date',
+            'range' => 'Date Range',
+        ],
+
+        // Columns
+        'columns' => [
+            'hall' => 'Hall',
+            'date' => 'Date',
+            'time_slot' => 'Time Slot',
+            'status' => 'Status',
+            'reason' => 'Reason',
+            'price' => 'Custom Price',
+            'notes' => 'Notes',
+        ],
+
+        // Filters
+        'filters' => [
+            'hall' => 'Filter by Hall',
+            'time_slot' => 'Time Slot',
+            'status' => 'Status',
+            'reason' => 'Reason',
+            'future_only' => 'Future Only',
+            'available_only' => 'Available Only',
+            'blocked_only' => 'Blocked Only',
+            'from_date' => 'From Date',
+            'to_date' => 'To Date',
+            'from' => 'From',
+            'to' => 'To',
+            'this_week' => 'This Week',
+            'this_month' => 'This Month',
+        ],
+
+        // Tabs
+        'tabs' => [
+            'all' => 'All Slots',
+            'available' => 'Available',
+            'blocked' => 'Blocked',
+            'booked' => 'Booked',
+            'maintenance' => 'Maintenance',
+            'today' => 'Today',
+            'this_week' => 'This Week',
+        ],
+
+        // Actions
+        'actions' => [
+            'create' => 'Add Slot',
+            'block' => 'Block',
+            'unblock' => 'Unblock',
+            'calendar_view' => 'Calendar View',
+            'list_view' => 'List View',
+            'bulk_generate' => 'Generate Slots',
+            'view_hall' => 'View Hall',
+        ],
+
+        // Bulk Actions
+        'bulk' => [
+            'block' => 'Block Selected',
+            'unblock' => 'Unblock Selected',
+            'set_price' => 'Set Custom Price',
+            'clear_price' => 'Clear Custom Price',
+        ],
+
+        // Placeholders
+        'placeholders' => [
+            'use_hall_price' => 'Use hall default price',
+            'default_price' => 'Default',
+        ],
+
+        // Helpers
+        'helpers' => [
+            'custom_price' => 'Leave empty to use the hall\'s default pricing',
+        ],
+
+        // Suffixes
+        'suffixes' => [
+            'days' => 'days',
+        ],
+
+        // Wizard Steps
+        'wizard' => [
+            'select_hall' => 'Select Hall',
+            'select_dates' => 'Select Dates',
+            'select_slots' => 'Select Slots',
+            'configure' => 'Configure',
+        ],
+
+        // Empty State
+        'empty' => [
+            'heading' => 'No Availability Slots',
+            'description' => 'Generate availability slots for your halls to start accepting bookings.',
+            'action' => 'Generate Slots',
+        ],
+
+        // Create/Edit
+        'create' => [
+            'title' => 'Create Availability Slot',
+        ],
+        'edit' => [
+            'title' => 'Edit :date - :slot',
+        ],
+
+        // Calendar
+        'calendar' => [
+            'title' => 'Availability Calendar',
+            'heading' => 'Calendar View',
+            'subheading' => 'Visual overview of your halls availability',
+            'select_hall' => 'Select Hall',
+            'all_halls' => 'All Halls (Summary View)',
+        ],
+
+        // Notifications
+        'notifications' => [
+            'generated' => 'Availability Generated',
+            'generated_body' => ':days days of availability created for :hall',
+            'updated' => 'Availability Updated',
+            'updated_body' => 'The availability slot has been updated.',
+            'bulk_created' => 'Slots Created',
+            'bulk_created_body' => ':count availability slots have been created.',
+            'select_hall_first' => 'Please select a hall first',
+        ],
     ],
 ];

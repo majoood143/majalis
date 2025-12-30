@@ -1,0 +1,474 @@
+/**
+ * FullCalendar Custom Styles for Majalis Owner Panel
+ *
+ * Add this file to: resources/css/fullcalendar-custom.css
+ *
+ * Then import in your theme CSS:
+ * @import './fullcalendar-custom.css';
+ * @import '../../../../vendor/saade/filament-fullcalendar/resources/css/filament-fullcalendar.css';
+ */
+
+/* ============================================
+   Calendar Container
+   ============================================ */
+.fc {
+    --fc-border-color: theme('colors.gray.200');
+    --fc-page-bg-color: theme('colors.white');
+    --fc-neutral-bg-color: theme('colors.gray.50');
+    --fc-today-bg-color: theme('colors.primary.50');
+    --fc-highlight-color: theme('colors.primary.100');
+    --fc-non-business-color: theme('colors.gray.100');
+}
+
+/* Dark mode support */
+.dark .fc {
+    --fc-border-color: theme('colors.gray.700');
+    --fc-page-bg-color: theme('colors.gray.800');
+    --fc-neutral-bg-color: theme('colors.gray.900');
+    --fc-today-bg-color: rgba(var(--primary-500), 0.1);
+    --fc-highlight-color: rgba(var(--primary-500), 0.2);
+    --fc-non-business-color: theme('colors.gray.900');
+}
+
+/* ============================================
+   Header Toolbar
+   ============================================ */
+.fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: theme('colors.white');
+    border-radius: theme('borderRadius.xl');
+    box-shadow: theme('boxShadow.sm');
+}
+
+.dark .fc .fc-toolbar {
+    background: theme('colors.gray.800');
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: theme('colors.gray.900');
+}
+
+.dark .fc .fc-toolbar-title {
+    color: theme('colors.white');
+}
+
+/* Toolbar Buttons */
+.fc .fc-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: theme('borderRadius.lg');
+    border: 1px solid theme('colors.gray.300');
+    background: theme('colors.white');
+    color: theme('colors.gray.700');
+    transition: all 0.15s ease;
+}
+
+.dark .fc .fc-button {
+    border-color: theme('colors.gray.600');
+    background: theme('colors.gray.700');
+    color: theme('colors.gray.200');
+}
+
+.fc .fc-button:hover {
+    background: theme('colors.gray.100');
+    border-color: theme('colors.gray.400');
+}
+
+.dark .fc .fc-button:hover {
+    background: theme('colors.gray.600');
+    border-color: theme('colors.gray.500');
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+    background: theme('colors.primary.600');
+    border-color: theme('colors.primary.600');
+    color: theme('colors.white');
+}
+
+.fc .fc-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--primary-500), 0.5);
+}
+
+/* Today Button */
+.fc .fc-today-button {
+    background: theme('colors.primary.600');
+    border-color: theme('colors.primary.600');
+    color: theme('colors.white');
+}
+
+.fc .fc-today-button:hover {
+    background: theme('colors.primary.700');
+    border-color: theme('colors.primary.700');
+}
+
+.fc .fc-today-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   Calendar Grid
+   ============================================ */
+.fc .fc-scrollgrid {
+    border-radius: theme('borderRadius.xl');
+    overflow: hidden;
+    border: 1px solid var(--fc-border-color);
+}
+
+.fc .fc-scrollgrid-section > td {
+    border: none;
+}
+
+/* Day Headers */
+.fc .fc-col-header-cell {
+    padding: 0.75rem;
+    background: theme('colors.gray.50');
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: theme('colors.gray.700');
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.dark .fc .fc-col-header-cell {
+    background: theme('colors.gray.700');
+    color: theme('colors.gray.300');
+}
+
+/* Day Cells */
+.fc .fc-daygrid-day {
+    transition: background-color 0.15s ease;
+}
+
+.fc .fc-daygrid-day:hover {
+    background-color: var(--fc-highlight-color);
+}
+
+.fc .fc-daygrid-day-number {
+    padding: 0.5rem;
+    font-weight: 500;
+    color: theme('colors.gray.700');
+}
+
+.dark .fc .fc-daygrid-day-number {
+    color: theme('colors.gray.300');
+}
+
+/* Today Highlight */
+.fc .fc-day-today {
+    background-color: var(--fc-today-bg-color) !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+    background: theme('colors.primary.600');
+    color: theme('colors.white');
+    border-radius: theme('borderRadius.full');
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.25rem;
+}
+
+/* Weekend Styling */
+.fc .fc-day-sat,
+.fc .fc-day-fri {
+    background-color: rgba(251, 146, 60, 0.05);
+}
+
+.dark .fc .fc-day-sat,
+.dark .fc .fc-day-fri {
+    background-color: rgba(251, 146, 60, 0.1);
+}
+
+/* Past Days */
+.fc .fc-day-past {
+    opacity: 0.6;
+}
+
+.fc .fc-day-past .fc-daygrid-day-number {
+    color: theme('colors.gray.400');
+}
+
+/* ============================================
+   Events
+   ============================================ */
+.fc .fc-event {
+    border: none;
+    border-radius: theme('borderRadius.md');
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.fc .fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fc .fc-event-title {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fc .fc-event-time {
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+/* Event Colors */
+.fc .fc-event.available {
+    background-color: #22c55e;
+}
+
+.fc .fc-event.blocked {
+    background-color: #ef4444;
+}
+
+.fc .fc-event.booked {
+    background-color: #3b82f6;
+}
+
+.fc .fc-event.maintenance {
+    background-color: #f59e0b;
+}
+
+.fc .fc-event.past {
+    background-color: #9ca3af;
+}
+
+/* ============================================
+   More Events Link
+   ============================================ */
+.fc .fc-daygrid-more-link {
+    color: theme('colors.primary.600');
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.fc .fc-daygrid-more-link:hover {
+    color: theme('colors.primary.700');
+    text-decoration: underline;
+}
+
+/* ============================================
+   Time Grid View
+   ============================================ */
+.fc .fc-timegrid-slot {
+    height: 2.5rem;
+}
+
+.fc .fc-timegrid-slot-label {
+    font-size: 0.75rem;
+    color: theme('colors.gray.500');
+}
+
+.fc .fc-timegrid-now-indicator-line {
+    border-color: theme('colors.danger.500');
+    border-width: 2px;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: theme('colors.danger.500');
+}
+
+/* ============================================
+   List View
+   ============================================ */
+.fc .fc-list {
+    border-radius: theme('borderRadius.xl');
+    overflow: hidden;
+}
+
+.fc .fc-list-day-cushion {
+    background: theme('colors.gray.100');
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+.dark .fc .fc-list-day-cushion {
+    background: theme('colors.gray.700');
+}
+
+.fc .fc-list-event {
+    cursor: pointer;
+}
+
+.fc .fc-list-event:hover td {
+    background: var(--fc-highlight-color);
+}
+
+.fc .fc-list-event-dot {
+    border-radius: theme('borderRadius.full');
+}
+
+/* ============================================
+   Popover (More Events)
+   ============================================ */
+.fc .fc-popover {
+    border-radius: theme('borderRadius.xl');
+    box-shadow: theme('boxShadow.lg');
+    border: 1px solid var(--fc-border-color);
+}
+
+.fc .fc-popover-header {
+    background: theme('colors.gray.100');
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    border-radius: theme('borderRadius.xl') theme('borderRadius.xl') 0 0;
+}
+
+.dark .fc .fc-popover-header {
+    background: theme('colors.gray.700');
+}
+
+.fc .fc-popover-body {
+    padding: 0.5rem;
+}
+
+/* ============================================
+   Selection Highlight
+   ============================================ */
+.fc .fc-highlight {
+    background: rgba(var(--primary-500), 0.2);
+    border-radius: theme('borderRadius.md');
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+@media (max-width: 640px) {
+    .fc .fc-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .fc .fc-button {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .fc .fc-col-header-cell {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.625rem;
+    }
+
+    .fc .fc-daygrid-day-number {
+        padding: 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    .fc .fc-event {
+        font-size: 0.625rem;
+        padding: 0.0625rem 0.25rem;
+    }
+
+    .fc .fc-daygrid-event {
+        margin: 1px 2px;
+    }
+
+    /* Hide time in mobile */
+    .fc .fc-event-time {
+        display: none;
+    }
+
+    /* Smaller more link */
+    .fc .fc-daygrid-more-link {
+        font-size: 0.625rem;
+    }
+
+    /* Footer toolbar for mobile */
+    .fc .fc-footer-toolbar {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: theme('colors.white');
+        border-radius: theme('borderRadius.lg');
+    }
+
+    .dark .fc .fc-footer-toolbar {
+        background: theme('colors.gray.800');
+    }
+}
+
+/* ============================================
+   RTL Support
+   ============================================ */
+[dir="rtl"] .fc .fc-toolbar {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .fc .fc-toolbar-chunk {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .fc .fc-button-group > .fc-button:first-child {
+    border-radius: 0 theme('borderRadius.lg') theme('borderRadius.lg') 0;
+}
+
+[dir="rtl"] .fc .fc-button-group > .fc-button:last-child {
+    border-radius: theme('borderRadius.lg') 0 0 theme('borderRadius.lg');
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+.fc .fc-loading-skeleton {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+    .fc .fc-toolbar {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .fc .fc-button {
+        display: none;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.5rem;
+    }
+
+    .fc .fc-event {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}

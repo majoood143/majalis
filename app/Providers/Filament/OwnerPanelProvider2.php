@@ -26,7 +26,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 
-class OwnerPanelProvider extends PanelProvider
+class OwnerPanelProvider_ extends PanelProvider
 {
     /**
      * Bootstrap the Owner panel configuration
