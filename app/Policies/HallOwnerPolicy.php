@@ -1,108 +1,100 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\HallOwner;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Database\Eloquent\Model;
 
 class HallOwnerPolicy
 {
-    use HandlesAuthorization;
+    /**
+     * Perform pre-authorization check
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        // Super admins can do anything (optional)
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Must be an owner to access owner panel resources
+        if (!$this->isOwner($user)) {
+            return false;
+        }
+
+        return null; // Continue to specific checks
+    }
 
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the user can view any models
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_hall::owner');
+        return $this->isOwner($user);
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can view the model
      */
-    public function view(User $user, HallOwner $hallOwner): bool
+    public function view(User $user, Model $model): bool
     {
-        return $user->can('view_hall::owner');
+        return $this->ownsRecord($user, $model);
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the user can create models
      */
     public function create(User $user): bool
     {
-        return $user->can('create_hall::owner');
+        return $this->isOwner($user);
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can update the model
      */
-    public function update(User $user, HallOwner $hallOwner): bool
+    public function update(User $user, Model $model): bool
     {
-        return $user->can('update_hall::owner');
+        return $this->ownsRecord($user, $model);
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the user can delete the model
      */
-    public function delete(User $user, HallOwner $hallOwner): bool
+    public function delete(User $user, Model $model): bool
     {
-        return $user->can('delete_hall::owner');
+        return $this->ownsRecord($user, $model);
     }
 
     /**
-     * Determine whether the user can bulk delete.
+     * Check if user is an owner
      */
-    public function deleteAny(User $user): bool
+    protected function isOwner(User $user): bool
     {
-        return $user->can('delete_any_hall::owner');
+        return $user->user_type === 'owner'
+            || $user->hasRole('hall_owner')
+            || $user->halls()->exists();
     }
 
     /**
-     * Determine whether the user can permanently delete.
+     * Check if user owns the record
      */
-    public function forceDelete(User $user, HallOwner $hallOwner): bool
+    protected function ownsRecord(User $user, Model $model): bool
     {
-        return $user->can('force_delete_hall::owner');
-    }
+        // Check different ownership patterns
+        if (isset($model->owner_id)) {
+            return $model->owner_id === $user->id;
+        }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
-    {
-        return $user->can('force_delete_any_hall::owner');
-    }
+        if (isset($model->user_id)) {
+            return $model->user_id === $user->id;
+        }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, HallOwner $hallOwner): bool
-    {
-        return $user->can('restore_hall::owner');
-    }
+        if (method_exists($model, 'hall') && $model->hall) {
+            return $model->hall->owner_id === $user->id;
+        }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
-    {
-        return $user->can('restore_any_hall::owner');
-    }
-
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, HallOwner $hallOwner): bool
-    {
-        return $user->can('replicate_hall::owner');
-    }
-
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
-    {
-        return $user->can('reorder_hall::owner');
+        return false;
     }
 }

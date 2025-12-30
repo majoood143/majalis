@@ -27,7 +27,7 @@ use Filament\Tables\Actions\Action;
 
 
 
-class BookingResource extends Resource
+class BookingResource__ extends Resource
 {
     use HasTranslations;
 
@@ -462,10 +462,10 @@ class BookingResource extends Resource
                             ->dehydrated()
                             ->visible(fn (Get $get) => $get('payment_type') === 'advance')
                             ->helperText('When balance was paid'),
-                        
+
                         Forms\Components\Placeholder::make('advance_payment_note')
                             ->label('')
-                            ->content(fn (Get $get) => $get('payment_type') === 'advance' 
+                            ->content(fn (Get $get) => $get('payment_type') === 'advance'
                                 ? '⚠️ Advance payment booking. Customer paid ' . number_format((float)($get('advance_amount') ?? 0), 3) . ' OMR upfront. Balance of ' . number_format((float)($get('balance_due') ?? 0), 3) . ' OMR must be paid before the event.'
                                 : '✅ Full payment booking. Customer pays the entire amount.')
                             ->columnSpanFull(),
@@ -814,7 +814,7 @@ class BookingResource extends Resource
                     ->label('Total Amount')
                     ->money('OMR', 3)
                     ->sortable()
-                    ->description(fn ($record) => $record->isAdvancePayment() 
+                    ->description(fn ($record) => $record->isAdvancePayment()
                         ? '⚡ Advance: ' . number_format($record->advance_amount, 3) . ' OMR'
                         : null
                     )
@@ -911,29 +911,8 @@ class BookingResource extends Resource
                     ->color('warning')
                     ->visible(fn (Booking $record): bool => $record->isAdvancePayment())
                     ->action(function (Booking $record) {
-                        try {
-                            $invoiceService = app(InvoiceService::class);
-                            $pdf = $invoiceService->generateAdvanceInvoice($record);
-                            
-                            // Return the response directly
-                            return response()->streamDownload(
-                                function () use ($pdf) {
-                                    echo $pdf->output();
-                                },
-                                "advance-invoice-{$record->booking_number}.pdf",
-                                [
-                                    'Content-Type' => 'application/pdf',
-                                    'Content-Disposition' => 'attachment; filename="advance-invoice-' . $record->booking_number . '.pdf"',
-                                ]
-                            );
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->danger()
-                                ->title('PDF Generation Failed')
-                                ->body($e->getMessage())
-                                ->send();
-                            return null;
-                        }
+                        $invoiceService = app(InvoiceService::class);
+                        return $invoiceService->generateAdvanceInvoice($record);
                     })
                     ->requiresConfirmation(false),
 
@@ -941,32 +920,12 @@ class BookingResource extends Resource
                     ->label(__('Balance Due PDF'))
                     ->icon('heroicon-o-exclamation-triangle')
                     ->color('danger')
-                    ->visible(fn (Booking $record): bool => 
+                    ->visible(fn (Booking $record): bool =>
                         $record->isAdvancePayment() && $record->isBalancePending()
                     )
                     ->action(function (Booking $record) {
-                        try {
-                            $invoiceService = app(InvoiceService::class);
-                            $pdf = $invoiceService->generateBalanceInvoice($record);
-                            
-                            return response()->streamDownload(
-                                function () use ($pdf) {
-                                    echo $pdf->output();
-                                },
-                                "balance-invoice-{$record->booking_number}.pdf",
-                                [
-                                    'Content-Type' => 'application/pdf',
-                                    'Content-Disposition' => 'attachment; filename="balance-invoice-' . $record->booking_number . '.pdf"',
-                                ]
-                            );
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->danger()
-                                ->title('PDF Generation Failed')
-                                ->body($e->getMessage())
-                                ->send();
-                            return null;
-                        }
+                        $invoiceService = app(InvoiceService::class);
+                        return $invoiceService->generateBalanceInvoice($record);
                     })
                     ->requiresConfirmation(false),
 
@@ -976,28 +935,8 @@ class BookingResource extends Resource
                     ->color('success')
                     ->visible(fn (Booking $record): bool => $record->isFullyPaid())
                     ->action(function (Booking $record) {
-                        try {
-                            $invoiceService = app(InvoiceService::class);
-                            $pdf = $invoiceService->generateFullReceipt($record);
-                            
-                            return response()->streamDownload(
-                                function () use ($pdf) {
-                                    echo $pdf->output();
-                                },
-                                "receipt-{$record->booking_number}.pdf",
-                                [
-                                    'Content-Type' => 'application/pdf',
-                                    'Content-Disposition' => 'attachment; filename="receipt-' . $record->booking_number . '.pdf"',
-                                ]
-                            );
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->danger()
-                                ->title('PDF Generation Failed')
-                                ->body($e->getMessage())
-                                ->send();
-                            return null;
-                        }
+                        $invoiceService = app(InvoiceService::class);
+                        return $invoiceService->generateFullReceipt($record);
                     })
                     ->requiresConfirmation(false),
 
@@ -1012,7 +951,7 @@ class BookingResource extends Resource
 
     /**
      * Configure the infolist for viewing booking details
-     * 
+     *
      * Displays comprehensive booking information including advance payment details
      */
     public static function infolist(Infolist $infolist): Infolist
@@ -1027,51 +966,51 @@ class BookingResource extends Resource
                             ->badge()
                             ->color('primary')
                             ->size('lg'),
-                        
+
                         Infolists\Components\TextEntry::make('hall.name')
                             ->label('Hall'),
-                        
+
                         Infolists\Components\TextEntry::make('customer_name')
                             ->label('Customer Name'),
-                        
+
                         Infolists\Components\TextEntry::make('customer_phone')
                             ->label('Customer Phone'),
-                        
+
                         Infolists\Components\TextEntry::make('booking_date')
                             ->label('Date')
                             ->date(),
-                        
+
                         Infolists\Components\TextEntry::make('time_slot')
                             ->label('Time Slot')
                             ->badge(),
-                        
+
                         Infolists\Components\TextEntry::make('status')
                             ->badge(),
-                        
+
                         Infolists\Components\TextEntry::make('payment_status')
                             ->badge(),
                     ])
                     ->columns(2),
-                
+
                 // Pricing Information
                 Infolists\Components\Section::make('Pricing Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('hall_price')
                             ->label('Hall Price')
                             ->money('OMR', 3),
-                        
+
                         Infolists\Components\TextEntry::make('services_price')
                             ->label('Services Total')
                             ->money('OMR', 3),
-                        
+
                         Infolists\Components\TextEntry::make('subtotal')
                             ->label('Subtotal')
                             ->money('OMR', 3),
-                        
+
                         Infolists\Components\TextEntry::make('commission_amount')
                             ->label('Platform Fee')
                             ->money('OMR', 3),
-                        
+
                         Infolists\Components\TextEntry::make('total_amount')
                             ->label('Total Amount')
                             ->money('OMR', 3)
@@ -1080,10 +1019,10 @@ class BookingResource extends Resource
                             ->color('success'),
                     ])
                     ->columns(3),
-                
+
                 // ✅ Advance Payment Section
                 Infolists\Components\Section::make('Advance Payment Details')
-                    ->description(fn ($record) => $record->isAdvancePayment() 
+                    ->description(fn ($record) => $record->isAdvancePayment()
                         ? 'This booking requires advance payment. Customer must pay balance before the event.'
                         : 'This is a full payment booking.')
                     ->schema([
@@ -1095,11 +1034,11 @@ class BookingResource extends Resource
                                 'advance' => 'warning',
                                 default => 'gray',
                             })
-                            ->formatStateUsing(fn (string $state): string => 
+                            ->formatStateUsing(fn (string $state): string =>
                                 __('advance_payment.payment_type_' . $state)
                             )
                             ->size('lg'),
-                        
+
                         Infolists\Components\TextEntry::make('advance_amount')
                             ->label(__('advance_payment.advance_paid'))
                             ->money('OMR', 3)
@@ -1107,7 +1046,7 @@ class BookingResource extends Resource
                             ->color('warning')
                             ->weight('bold')
                             ->size('lg'),
-                        
+
                         Infolists\Components\TextEntry::make('balance_due')
                             ->label(__('advance_payment.balance_due'))
                             ->money('OMR', 3)
@@ -1115,13 +1054,13 @@ class BookingResource extends Resource
                             ->color(fn ($record) => $record->isBalancePending() ? 'danger' : 'success')
                             ->weight('bold')
                             ->size('lg'),
-                        
+
                         Infolists\Components\TextEntry::make('balance_paid_at')
                             ->label(__('advance_payment.balance_paid_at'))
                             ->dateTime()
                             ->visible(fn ($record) => $record->isAdvancePayment() && $record->balance_paid_at)
                             ->color('success'),
-                        
+
                         Infolists\Components\TextEntry::make('balance_payment_status')
                             ->label(__('advance_payment.balance_payment_status'))
                             ->badge()
@@ -1131,7 +1070,7 @@ class BookingResource extends Resource
                     ])
                     ->columns(3)
                     ->visible(fn ($record) => $record->payment_type !== null),
-                
+
                 // Extra Services
                 Infolists\Components\Section::make('Extra Services')
                     ->schema([
@@ -1140,14 +1079,14 @@ class BookingResource extends Resource
                             ->schema([
                                 Infolists\Components\TextEntry::make('name')
                                     ->label('Service'),
-                                
+
                                 Infolists\Components\TextEntry::make('pivot.quantity')
                                     ->label('Quantity'),
-                                
+
                                 Infolists\Components\TextEntry::make('pivot.unit_price')
                                     ->label('Unit Price')
                                     ->money('OMR', 3),
-                                
+
                                 Infolists\Components\TextEntry::make('pivot.total_price')
                                     ->label('Total')
                                     ->money('OMR', 3)
@@ -1157,14 +1096,14 @@ class BookingResource extends Resource
                     ])
                     ->visible(fn ($record) => $record->extraServices->count() > 0)
                     ->collapsible(),
-                    
+
                 // Event Details
                 Infolists\Components\Section::make('Event Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('event_type')
                             ->label('Event Type')
                             ->badge(),
-                        
+
                         Infolists\Components\TextEntry::make('event_details')
                             ->label('Event Details')
                             ->columnSpanFull(),

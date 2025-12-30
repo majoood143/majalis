@@ -17,18 +17,40 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\SpatieLaravelTranslatablePlugin;
 
-class OwnerPanelProvider extends PanelProvider
+class OwnerPanelProvider1 extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->id('owner')
             ->path('owner')
-            ->login()  // This enables the login page
+            ->login()
             ->colors([
                 'primary' => Color::Amber,
+                'danger' => Color::Red,
+                'gray' => Color::Slate,
+                'info' => Color::Sky,
+                'success' => Color::Green,
+                'warning' => Color::Orange,
             ])
+            ->brandName('Majalis - Hall Owner')
+            ->brandLogo(asset('images/logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('images/favicon.png'))
+
+            // ADD LOCALE CONFIGURATION
+            ->locale_get_default(config('app.locale'))
+            //->locale(config('app.locale'))
+            ->locales(['en' => 'English', 'ar' => 'العربية'])
+
+            // ADD PLUGIN CONFIGURATION
+            ->plugin(
+                SpatieLaravelTranslatablePlugin::make()
+                    ->defaultLocales(['en', 'ar'])
+            )
+
             ->discoverResources(in: app_path('Filament/Owner/Resources'), for: 'App\\Filament\\Owner\\Resources')
             ->discoverPages(in: app_path('Filament/Owner/Pages'), for: 'App\\Filament\\Owner\\Pages')
             ->pages([
@@ -37,7 +59,6 @@ class OwnerPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Owner/Widgets'), for: 'App\\Filament\\Owner\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -52,6 +73,9 @@ class OwnerPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
+            ->spa();
     }
 }

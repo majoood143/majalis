@@ -9,10 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Permission\Traits\HasRoles;
+
 
 /**
  * Hall Model
@@ -352,7 +354,7 @@ class Hall extends Model
     {
         // Cast to float to handle string inputs from database (strict types compatibility)
         $totalAmount = (float) $totalAmount;
-        
+
         // If advance payment not enabled, return 0
         if (!$this->allows_advance_payment) {
             return 0.0;
@@ -395,7 +397,7 @@ class Hall extends Model
         // Cast to float to handle string inputs from database (strict types compatibility)
         $totalAmount = (float) $totalAmount;
         $advanceAmount = $advanceAmount !== null ? (float) $advanceAmount : null;
-        
+
         // If no advance payment, balance is full amount
         if (!$this->allows_advance_payment) {
             return $totalAmount;
@@ -425,7 +427,7 @@ class Hall extends Model
     {
         // Cast to float to handle string inputs from database (strict types compatibility)
         $totalAmount = (float) $totalAmount;
-        
+
         if (!$this->allows_advance_payment) {
             return [
                 'advance' => 0.0,
@@ -686,5 +688,57 @@ class Hall extends Model
     public function getDescriptionArAttribute(): string
     {
         return $this->getTranslation('description', 'ar') ?? 'لا يوجد وصف';
+    }
+
+
+    /**
+     * Get all payments through bookings (Laravel's HasManyThrough)
+     * This allows us to access payments directly from hall
+     */
+    public function payments(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Payment::class,    // Target model
+            Booking::class,    // Intermediate model
+            'hall_id',         // Foreign key on bookings table
+            'booking_id',      // Foreign key on payments table
+            'id',              // Local key on halls table
+            'id'               // Local key on bookings table
+        );
+    }
+
+
+
+
+
+    /**
+     * Calculate total revenue for this hall
+     */
+    public function getTotalRevenueAttribute(): float
+    {
+        return (float) $this->payments()
+            ->where('payments.status', 'paid')
+            ->sum('amount');
+    }
+
+    /**
+     * Calculate this month's revenue
+     */
+    public function getMonthlyRevenueAttribute(): float
+    {
+        return (float) $this->payments()
+            ->where('status', 'paid')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('amount');
+    }
+
+    /**
+     * Get average rating
+     */
+    public function getAverageRatingAttribute(): ?float
+    {
+        $avg = $this->reviews()->avg('rating');
+        return $avg ? round($avg, 1) : null;
     }
 }
