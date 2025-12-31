@@ -26,9 +26,17 @@ use Illuminate\Support\Facades\Storage;
  * Comprehensive gallery management for hall owners.
  * Upload, organize, and manage images for halls.
  *
+ * Features:
+ * - Upload single/multiple images
+ * - Set featured images
+ * - Reorder images with drag-and-drop
+ * - Edit image metadata (title, caption, alt)
+ * - View image details and dimensions
+ * - Bulk operations
+ *
  * @package App\Filament\Owner\Resources
  */
-class GalleryResource extends Resource
+class GalleryResource1 extends Resource
 {
     /**
      * The model the resource corresponds to.
@@ -51,16 +59,11 @@ class GalleryResource extends Resource
     protected static ?int $navigationSort = 6;
 
     /**
-     * The slug for the resource.
-     */
-    protected static ?string $slug = 'gallery';
-
-    /**
      * Get the navigation label.
      */
     public static function getNavigationLabel(): string
     {
-        return __('owner.gallery.navigation') ?? 'Gallery';
+        return __('owner.gallery.navigation');
     }
 
     /**
@@ -68,7 +71,7 @@ class GalleryResource extends Resource
      */
     public static function getModelLabel(): string
     {
-        return __('owner.gallery.singular') ?? 'Image';
+        return __('owner.gallery.singular');
     }
 
     /**
@@ -76,7 +79,7 @@ class GalleryResource extends Resource
      */
     public static function getPluralModelLabel(): string
     {
-        return __('owner.gallery.plural') ?? 'Gallery Images';
+        return __('owner.gallery.plural');
     }
 
     /**
@@ -130,12 +133,12 @@ class GalleryResource extends Resource
         return $form
             ->schema([
                 // Image Upload Section
-                Forms\Components\Section::make(__('owner.gallery.sections.image') ?? 'Image Upload')
-                    ->description(__('owner.gallery.sections.image_desc') ?? 'Upload and configure the image')
+                Forms\Components\Section::make(__('owner.gallery.sections.image'))
+                    ->description(__('owner.gallery.sections.image_desc'))
                     ->schema([
                         // Hall Selection
                         Forms\Components\Select::make('hall_id')
-                            ->label(__('owner.gallery.fields.hall') ?? 'Hall')
+                            ->label(__('owner.gallery.fields.hall'))
                             ->relationship(
                                 name: 'hall',
                                 titleAttribute: 'name',
@@ -150,7 +153,7 @@ class GalleryResource extends Resource
 
                         // Image Upload
                         Forms\Components\FileUpload::make('image_path')
-                            ->label(__('owner.gallery.fields.image') ?? 'Image')
+                            ->label(__('owner.gallery.fields.image'))
                             ->image()
                             ->disk('public')
                             ->directory('halls/images')
@@ -163,17 +166,17 @@ class GalleryResource extends Resource
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->required()
                             ->columnSpanFull()
-                            ->helperText(__('owner.gallery.helpers.image') ?? 'Max 5MB. Formats: JPEG, PNG, WebP'),
+                            ->helperText(__('owner.gallery.helpers.image')),
 
                         // Image Type
                         Forms\Components\Select::make('type')
-                            ->label(__('owner.gallery.fields.type') ?? 'Image Type')
+                            ->label(__('owner.gallery.fields.type'))
                             ->options([
-                                'gallery' => __('owner.gallery.types.gallery') ?? 'Gallery',
-                                'featured' => __('owner.gallery.types.featured') ?? 'Featured',
-                                'floor_plan' => __('owner.gallery.types.floor_plan') ?? 'Floor Plan',
-                                'exterior' => __('owner.gallery.types.exterior') ?? 'Exterior',
-                                'interior' => __('owner.gallery.types.interior') ?? 'Interior',
+                                'gallery' => __('owner.gallery.types.gallery'),
+                                'featured' => __('owner.gallery.types.featured'),
+                                'floor_plan' => __('owner.gallery.types.floor_plan'),
+                                'exterior' => __('owner.gallery.types.exterior'),
+                                'interior' => __('owner.gallery.types.interior'),
                             ])
                             ->default('gallery')
                             ->required()
@@ -181,19 +184,19 @@ class GalleryResource extends Resource
 
                         // Featured Toggle
                         Forms\Components\Toggle::make('is_featured')
-                            ->label(__('owner.gallery.fields.is_featured') ?? 'Featured Image')
-                            ->helperText(__('owner.gallery.helpers.is_featured') ?? 'Show in featured sections')
+                            ->label(__('owner.gallery.fields.is_featured'))
+                            ->helperText(__('owner.gallery.helpers.is_featured'))
                             ->default(false),
 
                         // Active Toggle
                         Forms\Components\Toggle::make('is_active')
-                            ->label(__('owner.gallery.fields.is_active') ?? 'Active')
-                            ->helperText(__('owner.gallery.helpers.is_active') ?? 'Only active images are shown')
+                            ->label(__('owner.gallery.fields.is_active'))
+                            ->helperText(__('owner.gallery.helpers.is_active'))
                             ->default(true),
 
                         // Order
                         Forms\Components\TextInput::make('order')
-                            ->label(__('owner.gallery.fields.order') ?? 'Display Order')
+                            ->label(__('owner.gallery.fields.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
@@ -201,39 +204,39 @@ class GalleryResource extends Resource
                     ->columns(2),
 
                 // Metadata Section
-                Forms\Components\Section::make(__('owner.gallery.sections.metadata') ?? 'Image Metadata')
-                    ->description(__('owner.gallery.sections.metadata_desc') ?? 'Optional title, caption and SEO information')
+                Forms\Components\Section::make(__('owner.gallery.sections.metadata'))
+                    ->description(__('owner.gallery.sections.metadata_desc'))
                     ->collapsed()
                     ->schema([
                         // Title (English)
                         Forms\Components\TextInput::make('title.en')
-                            ->label(__('owner.gallery.fields.title_en') ?? 'Title (English)')
+                            ->label(__('owner.gallery.fields.title_en'))
                             ->maxLength(150)
-                            ->placeholder('e.g., Main Hall Entrance'),
+                            ->placeholder(__('owner.gallery.placeholders.title')),
 
                         // Title (Arabic)
                         Forms\Components\TextInput::make('title.ar')
-                            ->label(__('owner.gallery.fields.title_ar') ?? 'Title (Arabic)')
+                            ->label(__('owner.gallery.fields.title_ar'))
                             ->maxLength(150)
-                            ->placeholder('مثال: مدخل القاعة الرئيسية'),
+                            ->placeholder(__('owner.gallery.placeholders.title_ar')),
 
                         // Caption (English)
                         Forms\Components\Textarea::make('caption.en')
-                            ->label(__('owner.gallery.fields.caption_en') ?? 'Caption (English)')
+                            ->label(__('owner.gallery.fields.caption_en'))
                             ->rows(2)
                             ->maxLength(500),
 
                         // Caption (Arabic)
                         Forms\Components\Textarea::make('caption.ar')
-                            ->label(__('owner.gallery.fields.caption_ar') ?? 'Caption (Arabic)')
+                            ->label(__('owner.gallery.fields.caption_ar'))
                             ->rows(2)
                             ->maxLength(500),
 
                         // Alt Text (for SEO)
                         Forms\Components\TextInput::make('alt_text')
-                            ->label(__('owner.gallery.fields.alt_text') ?? 'Alt Text')
+                            ->label(__('owner.gallery.fields.alt_text'))
                             ->maxLength(255)
-                            ->helperText(__('owner.gallery.helpers.alt_text') ?? 'Describe the image for accessibility')
+                            ->helperText(__('owner.gallery.helpers.alt_text'))
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -252,7 +255,7 @@ class GalleryResource extends Resource
             ->columns([
                 // Image Preview
                 Tables\Columns\ImageColumn::make('image_path')
-                    ->label(__('owner.gallery.columns.image') ?? 'Image')
+                    ->label(__('owner.gallery.columns.image'))
                     ->disk('public')
                     ->width(80)
                     ->height(60)
@@ -261,7 +264,7 @@ class GalleryResource extends Resource
 
                 // Hall Name
                 Tables\Columns\TextColumn::make('hall.name')
-                    ->label(__('owner.gallery.columns.hall') ?? 'Hall')
+                    ->label(__('owner.gallery.columns.hall'))
                     ->formatStateUsing(fn ($record) => $record->hall->getTranslation('name', app()->getLocale()))
                     ->searchable()
                     ->sortable()
@@ -269,7 +272,7 @@ class GalleryResource extends Resource
 
                 // Title
                 Tables\Columns\TextColumn::make('title')
-                    ->label(__('owner.gallery.columns.title') ?? 'Title')
+                    ->label(__('owner.gallery.columns.title'))
                     ->formatStateUsing(function ($record) {
                         $title = $record->getTranslation('title', app()->getLocale());
                         return $title ?: '-';
@@ -284,16 +287,9 @@ class GalleryResource extends Resource
 
                 // Type
                 Tables\Columns\TextColumn::make('type')
-                    ->label(__('owner.gallery.columns.type') ?? 'Type')
+                    ->label(__('owner.gallery.columns.type'))
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'gallery' => __('owner.gallery.types.gallery') ?? 'Gallery',
-                        'featured' => __('owner.gallery.types.featured') ?? 'Featured',
-                        'floor_plan' => __('owner.gallery.types.floor_plan') ?? 'Floor Plan',
-                        'exterior' => __('owner.gallery.types.exterior') ?? 'Exterior',
-                        'interior' => __('owner.gallery.types.interior') ?? 'Interior',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (string $state): string => __("owner.gallery.types.{$state}"))
                     ->color(fn (string $state): string => match ($state) {
                         'featured' => 'warning',
                         'floor_plan' => 'info',
@@ -304,7 +300,7 @@ class GalleryResource extends Resource
 
                 // Featured
                 Tables\Columns\IconColumn::make('is_featured')
-                    ->label(__('owner.gallery.columns.featured') ?? 'Featured')
+                    ->label(__('owner.gallery.columns.featured'))
                     ->boolean()
                     ->trueIcon('heroicon-s-star')
                     ->falseIcon('heroicon-o-star')
@@ -313,7 +309,7 @@ class GalleryResource extends Resource
 
                 // Active
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label(__('owner.gallery.columns.active') ?? 'Active')
+                    ->label(__('owner.gallery.columns.active'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
@@ -322,20 +318,28 @@ class GalleryResource extends Resource
 
                 // File Size
                 Tables\Columns\TextColumn::make('file_size')
-                    ->label(__('owner.gallery.columns.size') ?? 'Size')
+                    ->label(__('owner.gallery.columns.size'))
                     ->formatStateUsing(fn ($state) => $state ? static::formatBytes((int) $state) : '-')
                     ->toggleable(),
 
+                // Dimensions
+                Tables\Columns\TextColumn::make('dimensions')
+                    ->label(__('owner.gallery.columns.dimensions'))
+                    ->state(fn ($record) => $record->width && $record->height
+                        ? "{$record->width}×{$record->height}"
+                        : '-')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 // Order
                 Tables\Columns\TextColumn::make('order')
-                    ->label(__('owner.gallery.columns.order') ?? 'Order')
+                    ->label(__('owner.gallery.columns.order'))
                     ->badge()
                     ->color('gray')
                     ->sortable(),
 
                 // Created
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('owner.gallery.columns.uploaded') ?? 'Uploaded')
+                    ->label(__('owner.gallery.columns.uploaded'))
                     ->dateTime('d M Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -343,7 +347,7 @@ class GalleryResource extends Resource
             ->filters([
                 // Hall Filter
                 Tables\Filters\SelectFilter::make('hall_id')
-                    ->label(__('owner.gallery.filters.hall') ?? 'Filter by Hall')
+                    ->label(__('owner.gallery.filters.hall'))
                     ->relationship('hall', 'name', fn (Builder $query) => $query->where('owner_id', Auth::id()))
                     ->getOptionLabelFromRecordUsing(fn (Hall $record) => $record->getTranslation('name', app()->getLocale()))
                     ->searchable()
@@ -351,22 +355,26 @@ class GalleryResource extends Resource
 
                 // Type Filter
                 Tables\Filters\SelectFilter::make('type')
-                    ->label(__('owner.gallery.filters.type') ?? 'Image Type')
+                    ->label(__('owner.gallery.filters.type'))
                     ->options([
-                        'gallery' => __('owner.gallery.types.gallery') ?? 'Gallery',
-                        'featured' => __('owner.gallery.types.featured') ?? 'Featured',
-                        'floor_plan' => __('owner.gallery.types.floor_plan') ?? 'Floor Plan',
-                        'exterior' => __('owner.gallery.types.exterior') ?? 'Exterior',
-                        'interior' => __('owner.gallery.types.interior') ?? 'Interior',
+                        'gallery' => __('owner.gallery.types.gallery'),
+                        'featured' => __('owner.gallery.types.featured'),
+                        'floor_plan' => __('owner.gallery.types.floor_plan'),
+                        'exterior' => __('owner.gallery.types.exterior'),
+                        'interior' => __('owner.gallery.types.interior'),
                     ]),
 
                 // Featured Filter
                 Tables\Filters\TernaryFilter::make('is_featured')
-                    ->label(__('owner.gallery.filters.featured') ?? 'Featured'),
+                    ->label(__('owner.gallery.filters.featured'))
+                    ->trueLabel(__('owner.gallery.filters.featured_only'))
+                    ->falseLabel(__('owner.gallery.filters.not_featured')),
 
                 // Active Filter
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label(__('owner.gallery.filters.status') ?? 'Status'),
+                    ->label(__('owner.gallery.filters.status'))
+                    ->trueLabel(__('owner.gallery.filters.active_only'))
+                    ->falseLabel(__('owner.gallery.filters.inactive_only')),
             ])
             ->actions([
                 // View
@@ -375,7 +383,9 @@ class GalleryResource extends Resource
 
                 // Toggle Featured
                 Tables\Actions\Action::make('toggle_featured')
-                    ->label(fn ($record): string => $record->is_featured ? 'Unmark' : 'Mark Featured')
+                    ->label(fn ($record): string => $record->is_featured
+                        ? __('owner.gallery.actions.unmark_featured')
+                        : __('owner.gallery.actions.mark_featured'))
                     ->icon('heroicon-o-star')
                     ->color(fn ($record): string => $record->is_featured ? 'gray' : 'warning')
                     ->action(function ($record): void {
@@ -383,7 +393,9 @@ class GalleryResource extends Resource
 
                         Notification::make()
                             ->success()
-                            ->title($record->is_featured ? 'Marked as Featured' : 'Removed from Featured')
+                            ->title($record->is_featured
+                                ? __('owner.gallery.notifications.marked_featured')
+                                : __('owner.gallery.notifications.unmarked_featured'))
                             ->send();
                     }),
 
@@ -406,7 +418,7 @@ class GalleryResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     // Bulk Activate
                     Tables\Actions\BulkAction::make('activate')
-                        ->label('Activate Selected')
+                        ->label(__('owner.gallery.bulk.activate'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->action(function (Collection $records): void {
@@ -414,14 +426,14 @@ class GalleryResource extends Resource
 
                             Notification::make()
                                 ->success()
-                                ->title($records->count() . ' image(s) activated')
+                                ->title(__('owner.gallery.notifications.bulk_activated', ['count' => $records->count()]))
                                 ->send();
                         })
                         ->deselectRecordsAfterCompletion(),
 
                     // Bulk Deactivate
                     Tables\Actions\BulkAction::make('deactivate')
-                        ->label('Deactivate Selected')
+                        ->label(__('owner.gallery.bulk.deactivate'))
                         ->icon('heroicon-o-x-circle')
                         ->color('warning')
                         ->action(function (Collection $records): void {
@@ -429,7 +441,35 @@ class GalleryResource extends Resource
 
                             Notification::make()
                                 ->success()
-                                ->title($records->count() . ' image(s) deactivated')
+                                ->title(__('owner.gallery.notifications.bulk_deactivated', ['count' => $records->count()]))
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                    // Bulk Change Type
+                    Tables\Actions\BulkAction::make('change_type')
+                        ->label(__('owner.gallery.bulk.change_type'))
+                        ->icon('heroicon-o-tag')
+                        ->color('info')
+                        ->form([
+                            Forms\Components\Select::make('type')
+                                ->label(__('owner.gallery.fields.type'))
+                                ->options([
+                                    'gallery' => __('owner.gallery.types.gallery'),
+                                    'featured' => __('owner.gallery.types.featured'),
+                                    'floor_plan' => __('owner.gallery.types.floor_plan'),
+                                    'exterior' => __('owner.gallery.types.exterior'),
+                                    'interior' => __('owner.gallery.types.interior'),
+                                ])
+                                ->required()
+                                ->native(false),
+                        ])
+                        ->action(function (Collection $records, array $data): void {
+                            $records->each(fn ($record) => $record->update(['type' => $data['type']]));
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('owner.gallery.notifications.bulk_type_changed', ['count' => $records->count()]))
                                 ->send();
                         })
                         ->deselectRecordsAfterCompletion(),
@@ -448,14 +488,108 @@ class GalleryResource extends Resource
                         }),
                 ]),
             ])
-            ->emptyStateHeading(__('owner.gallery.empty.heading') ?? 'No Images Yet')
-            ->emptyStateDescription(__('owner.gallery.empty.description') ?? 'Upload images to showcase your hall')
+            ->emptyStateHeading(__('owner.gallery.empty.heading'))
+            ->emptyStateDescription(__('owner.gallery.empty.description'))
             ->emptyStateIcon('heroicon-o-photo')
             ->emptyStateActions([
                 Tables\Actions\Action::make('upload')
-                    ->label(__('owner.gallery.empty.action') ?? 'Upload First Image')
+                    ->label(__('owner.gallery.empty.action'))
                     ->icon('heroicon-o-arrow-up-tray')
                     ->url(fn () => static::getUrl('create')),
+            ]);
+    }
+
+    /**
+     * Configure the infolist for viewing image details.
+     */
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                // Image Preview
+                Infolists\Components\Section::make(__('owner.gallery.sections.preview'))
+                    ->schema([
+                        Infolists\Components\ImageEntry::make('image_path')
+                            ->label('')
+                            ->disk('public')
+                            ->height(400)
+                            ->columnSpanFull()
+                            ->extraImgAttributes(['class' => 'rounded-xl']),
+                    ]),
+
+                // Image Info
+                Infolists\Components\Section::make(__('owner.gallery.sections.info'))
+                    ->schema([
+                        Infolists\Components\Grid::make(3)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('hall.name')
+                                    ->label(__('owner.gallery.fields.hall'))
+                                    ->formatStateUsing(fn ($record) => $record->hall->getTranslation('name', app()->getLocale()))
+                                    ->badge()
+                                    ->color('success'),
+
+                                Infolists\Components\TextEntry::make('type')
+                                    ->label(__('owner.gallery.fields.type'))
+                                    ->formatStateUsing(fn (string $state): string => __("owner.gallery.types.{$state}"))
+                                    ->badge(),
+
+                                Infolists\Components\IconEntry::make('is_featured')
+                                    ->label(__('owner.gallery.fields.is_featured'))
+                                    ->boolean()
+                                    ->trueIcon('heroicon-s-star')
+                                    ->falseIcon('heroicon-o-star')
+                                    ->trueColor('warning'),
+
+                                Infolists\Components\TextEntry::make('file_size')
+                                    ->label(__('owner.gallery.fields.file_size'))
+                                    ->formatStateUsing(fn ($state) => $state ? static::formatBytes((int) $state) : '-'),
+
+                                Infolists\Components\TextEntry::make('dimensions')
+                                    ->label(__('owner.gallery.fields.dimensions'))
+                                    ->state(fn ($record) => $record->width && $record->height
+                                        ? "{$record->width}×{$record->height} px"
+                                        : '-'),
+
+                                Infolists\Components\TextEntry::make('mime_type')
+                                    ->label(__('owner.gallery.fields.format'))
+                                    ->default('-'),
+
+                                Infolists\Components\TextEntry::make('order')
+                                    ->label(__('owner.gallery.fields.order'))
+                                    ->badge()
+                                    ->color('gray'),
+
+                                Infolists\Components\IconEntry::make('is_active')
+                                    ->label(__('owner.gallery.fields.is_active'))
+                                    ->boolean(),
+
+                                Infolists\Components\TextEntry::make('created_at')
+                                    ->label(__('owner.gallery.fields.uploaded_at'))
+                                    ->dateTime('d M Y, H:i'),
+                            ]),
+                    ]),
+
+                // Metadata
+                Infolists\Components\Section::make(__('owner.gallery.sections.metadata'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('title')
+                            ->label(__('owner.gallery.fields.title'))
+                            ->formatStateUsing(function ($record) {
+                                $en = $record->getTranslation('title', 'en');
+                                $ar = $record->getTranslation('title', 'ar');
+                                if (!$en && !$ar) return '-';
+                                return ($en ?: '-') . ' / ' . ($ar ?: '-');
+                            }),
+
+                        Infolists\Components\TextEntry::make('caption')
+                            ->label(__('owner.gallery.fields.caption'))
+                            ->formatStateUsing(fn ($record) => $record->getTranslation('caption', app()->getLocale()) ?: '-'),
+
+                        Infolists\Components\TextEntry::make('alt_text')
+                            ->label(__('owner.gallery.fields.alt_text'))
+                            ->default('-'),
+                    ])
+                    ->collapsed(),
             ]);
     }
 
@@ -475,8 +609,6 @@ class GalleryResource extends Resource
 
     /**
      * Get the pages for the resource.
-     * 
-     * IMPORTANT: Each page must have a unique route and slug.
      */
     public static function getPages(): array
     {
@@ -484,7 +616,7 @@ class GalleryResource extends Resource
             'index' => Pages\ListGallery::route('/'),
             'create' => Pages\CreateGallery::route('/create'),
             'edit' => Pages\EditGallery::route('/{record}/edit'),
-            'upload' => Pages\BulkUpload::route('/bulk-upload'),
+            'upload' => Pages\BulkUpload::route('/upload'),
             'manage' => Pages\ManageGallery::route('/manage'),
         ];
     }

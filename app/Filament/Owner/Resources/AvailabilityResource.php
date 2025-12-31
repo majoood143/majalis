@@ -57,6 +57,7 @@ class AvailabilityResource extends Resource
      */
     protected static ?int $navigationSort = 2;
 
+
     /**
      * Get the navigation label.
      */

@@ -9,6 +9,10 @@ use App\Models\Hall;
 use App\Models\HallImage;
 use Filament\Resources\Pages\Page;
 use Filament\Actions;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Livewire\Attributes\Computed;
 use Livewire\WithFileUploads;
@@ -22,8 +26,9 @@ use Illuminate\Support\Facades\Log;
  *
  * Upload multiple images at once to a hall gallery.
  */
-class BulkUpload extends Page
+class BulkUpload1 extends Page implements HasForms
 {
+    use InteractsWithForms;
     use WithFileUploads;
 
     /**
@@ -99,7 +104,7 @@ class BulkUpload extends Page
      */
     public function getTitle(): string
     {
-        return __('owner.gallery.bulk_upload.title') ?? 'Bulk Upload';
+        return __('owner.gallery.bulk_upload.title');
     }
 
     /**
@@ -107,7 +112,7 @@ class BulkUpload extends Page
      */
     public function getHeading(): string
     {
-        return __('owner.gallery.bulk_upload.heading') ?? 'Bulk Image Upload';
+        return __('owner.gallery.bulk_upload.heading');
     }
 
     /**
@@ -115,7 +120,7 @@ class BulkUpload extends Page
      */
     public function getSubheading(): ?string
     {
-        return __('owner.gallery.bulk_upload.subheading') ?? 'Upload multiple images at once';
+        return __('owner.gallery.bulk_upload.subheading');
     }
 
     /**
@@ -127,7 +132,7 @@ class BulkUpload extends Page
     {
         return [
             Actions\Action::make('back')
-                ->label(__('owner.gallery.actions.back_to_gallery') ?? 'Back to Gallery')
+                ->label(__('owner.gallery.actions.back_to_gallery'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
@@ -197,7 +202,7 @@ class BulkUpload extends Page
      */
     public function updatedUploadedFiles(): void
     {
-        $this->validate([
+        $this->validateOnly('uploadedFiles', [
             'uploadedFiles' => 'array|max:20',
             'uploadedFiles.*' => 'image|max:5120', // 5MB max per file
         ]);
@@ -211,7 +216,7 @@ class BulkUpload extends Page
         if (!$this->selectedHallId) {
             Notification::make()
                 ->warning()
-                ->title(__('owner.gallery.notifications.select_hall_first') ?? 'Please select a hall first')
+                ->title(__('owner.gallery.notifications.select_hall_first'))
                 ->send();
             return;
         }
@@ -219,7 +224,7 @@ class BulkUpload extends Page
         if (empty($this->uploadedFiles)) {
             Notification::make()
                 ->warning()
-                ->title(__('owner.gallery.notifications.no_files') ?? 'No files selected')
+                ->title(__('owner.gallery.notifications.no_files'))
                 ->send();
             return;
         }
@@ -229,7 +234,7 @@ class BulkUpload extends Page
         if (!$hall || $hall->owner_id !== Auth::id()) {
             Notification::make()
                 ->danger()
-                ->title(__('owner.errors.unauthorized') ?? 'Unauthorized')
+                ->title(__('owner.errors.unauthorized'))
                 ->send();
             return;
         }
@@ -270,6 +275,9 @@ class BulkUpload extends Page
 
                 $this->successCount++;
 
+                // Generate thumbnail (async would be better in production)
+                $this->generateThumbnailForPath($path);
+
             } catch (\Exception $e) {
                 Log::error('Bulk upload failed for file: ' . $e->getMessage());
                 $this->failedUploads[] = [
@@ -289,21 +297,61 @@ class BulkUpload extends Page
         if ($this->successCount > 0) {
             Notification::make()
                 ->success()
-                ->title(__('owner.gallery.notifications.bulk_uploaded') ?? 'Images Uploaded')
-                ->body($this->successCount . ' image(s) uploaded successfully')
+                ->title(__('owner.gallery.notifications.bulk_uploaded'))
+                ->body(__('owner.gallery.notifications.bulk_uploaded_body', [
+                    'count' => $this->successCount,
+                ]))
                 ->send();
         }
 
         if (!empty($this->failedUploads)) {
             Notification::make()
                 ->warning()
-                ->title(__('owner.gallery.notifications.some_failed') ?? 'Some uploads failed')
-                ->body(count($this->failedUploads) . ' image(s) failed to upload')
+                ->title(__('owner.gallery.notifications.some_failed'))
+                ->body(__('owner.gallery.notifications.some_failed_body', [
+                    'count' => count($this->failedUploads),
+                ]))
                 ->send();
         }
 
         // Reset
         unset($this->currentImageCount);
+    }
+
+    /**
+     * Generate thumbnail for uploaded image.
+     */
+    protected function generateThumbnailForPath(string $imagePath): void
+    {
+        try {
+            if (!class_exists(\Intervention\Image\ImageManager::class)) {
+                return;
+            }
+
+            $sourcePath = Storage::disk('public')->path($imagePath);
+
+            if (!file_exists($sourcePath)) {
+                return;
+            }
+
+            $filename = pathinfo($imagePath, PATHINFO_FILENAME);
+            $extension = pathinfo($imagePath, PATHINFO_EXTENSION);
+            $thumbnailPath = 'halls/thumbnails/' . $filename . '_thumb.' . $extension;
+
+            $manager = new \Intervention\Image\ImageManager(
+                new \Intervention\Image\Drivers\Gd\Driver()
+            );
+
+            $thumbnail = $manager->read($sourcePath)->cover(300, 200);
+            Storage::disk('public')->put($thumbnailPath, $thumbnail->toJpeg(80));
+
+            // Update the record
+            HallImage::where('image_path', $imagePath)
+                ->update(['thumbnail_path' => $thumbnailPath]);
+
+        } catch (\Exception $e) {
+            Log::warning('Thumbnail generation failed during bulk upload: ' . $e->getMessage());
+        }
     }
 
     /**

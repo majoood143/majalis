@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
  *
  * Visual gallery management with drag-and-drop reordering.
  */
-class ManageGallery extends Page
+class ManageGallery1 extends Page
 {
     /**
      * The resource this page belongs to.
@@ -75,7 +75,7 @@ class ManageGallery extends Page
      */
     public function getTitle(): string
     {
-        return __('owner.gallery.manage.title') ?? 'Manage Gallery';
+        return __('owner.gallery.manage.title');
     }
 
     /**
@@ -83,7 +83,7 @@ class ManageGallery extends Page
      */
     public function getHeading(): string
     {
-        return __('owner.gallery.manage.heading') ?? 'Visual Gallery Manager';
+        return __('owner.gallery.manage.heading');
     }
 
     /**
@@ -91,7 +91,7 @@ class ManageGallery extends Page
      */
     public function getSubheading(): ?string
     {
-        return __('owner.gallery.manage.subheading') ?? 'Drag to reorder, click to manage images';
+        return __('owner.gallery.manage.subheading');
     }
 
     /**
@@ -103,16 +103,16 @@ class ManageGallery extends Page
     {
         return [
             Actions\Action::make('back')
-                ->label(__('owner.gallery.actions.back_to_gallery') ?? 'Back to Gallery')
+                ->label(__('owner.gallery.actions.back_to_gallery'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
 
             Actions\Action::make('bulk_upload')
-                ->label(__('owner.gallery.actions.bulk_upload') ?? 'Bulk Upload')
+                ->label(__('owner.gallery.actions.bulk_upload'))
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')
-                ->url(fn () => GalleryResource::getUrl('upload') . 
+                ->url(fn () => GalleryResource::getUrl('upload') .
                     ($this->selectedHallId ? '?hall_id=' . $this->selectedHallId : '')),
         ];
     }
@@ -245,7 +245,9 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title($image->is_featured ? 'Marked as Featured' : 'Removed from Featured')
+            ->title($image->is_featured
+                ? __('owner.gallery.notifications.marked_featured')
+                : __('owner.gallery.notifications.unmarked_featured'))
             ->duration(2000)
             ->send();
     }
@@ -268,7 +270,9 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title($image->is_active ? 'Image Activated' : 'Image Deactivated')
+            ->title($image->is_active
+                ? __('owner.gallery.notifications.activated')
+                : __('owner.gallery.notifications.deactivated'))
             ->duration(2000)
             ->send();
     }
@@ -299,7 +303,7 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title('Image Deleted')
+            ->title(__('owner.gallery.notifications.deleted'))
             ->duration(2000)
             ->send();
     }
@@ -321,7 +325,7 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title('Order Updated')
+            ->title(__('owner.gallery.notifications.order_updated'))
             ->duration(2000)
             ->send();
     }
@@ -352,8 +356,8 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title('Hall Cover Set')
-            ->body('This image is now the hall\'s main cover image')
+            ->title(__('owner.gallery.notifications.set_featured'))
+            ->body(__('owner.gallery.notifications.set_featured_body'))
             ->send();
     }
 
@@ -374,7 +378,7 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title('Image type changed')
+            ->title(__('owner.gallery.notifications.type_changed'))
             ->duration(2000)
             ->send();
     }
