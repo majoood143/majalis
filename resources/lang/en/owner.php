@@ -673,6 +673,142 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Features Resource
+    |--------------------------------------------------------------------------
+    */
+    'features' => [
+        // Navigation & Labels
+        'navigation' => 'Features & Amenities',
+        'singular' => 'Feature',
+        'plural' => 'Features & Amenities',
+        'title' => 'Features & Amenities',
+        'heading' => 'Hall Features',
+        'subheading' => 'Browse and manage features for your halls',
+
+        // Columns
+        'columns' => [
+            'name' => 'Feature',
+            'description' => 'Description',
+            'your_halls' => 'Your Halls',
+            'added' => 'Added',
+        ],
+
+        // Fields
+        'fields' => [
+            'icon' => 'Icon',
+            'name' => 'Feature Name',
+            'description' => 'Description',
+            'select_halls' => 'Select Halls to Add Feature',
+            'select_halls_remove' => 'Select Halls to Remove Feature From',
+            'your_halls_with' => 'Your Halls with This Feature',
+            'feature_name_en' => 'Feature Name (English)',
+            'feature_name_ar' => 'Feature Name (Arabic)',
+        ],
+
+        // Placeholders
+        'placeholders' => [
+            'describe_feature' => 'Describe why you need this feature...',
+        ],
+
+        // Filters
+        'filters' => [
+            'all' => 'All Features',
+            'added_status' => 'Added Status',
+            'added_only' => 'Added to My Halls',
+            'not_added' => 'Not Added Yet',
+        ],
+
+        // Tabs
+        'tabs' => [
+            'all' => 'All Features',
+            'added' => 'Added to Halls',
+            'not_added' => 'Not Added',
+            'popular' => 'Most Popular',
+        ],
+
+        // Actions
+        'actions' => [
+            'view' => 'View Details',
+            'add_to_hall' => 'Add to Hall',
+            'remove_from_hall' => 'Remove from Hall',
+            'confirm_remove' => 'Confirm Remove Feature',
+            'manage_halls' => 'Manage Hall Features',
+            'request_feature' => 'Request New Feature',
+            'back_to_list' => 'Back to Features',
+            'save_changes' => 'Save All Changes',
+            'select_all' => 'Select All',
+            'deselect_all' => 'Deselect All',
+            'copy_from' => 'Copy features from',
+        ],
+
+        // Bulk Actions
+        'bulk' => [
+            'add_to_hall' => 'Add Selected to Hall',
+        ],
+
+        // Notifications
+        'notifications' => [
+            'added' => 'Feature Added',
+            'added_body' => ':feature added to :count hall(s)',
+            'already_added' => 'Already Added',
+            'already_added_body' => ':count hall(s) already have this feature',
+            'removed' => 'Feature Removed',
+            'removed_body' => ':feature removed from :count hall(s)',
+            'bulk_added' => 'Features Added',
+            'bulk_added_body' => ':count feature(s) added successfully',
+            'request_sent' => 'Request Submitted',
+            'request_sent_body' => 'Your feature request has been submitted for admin review. You will be notified once it\'s approved.',
+            'feature_added' => ':feature added',
+            'feature_removed' => ':feature removed',
+            'all_added' => 'All features added',
+            'all_removed' => 'All features removed',
+            'copied' => 'Features Copied',
+            'copied_body' => 'Features copied from :source',
+            'all_saved' => 'All changes saved',
+        ],
+
+        // Empty State
+        'empty' => [
+            'heading' => 'No Features Available',
+            'description' => 'There are no features available in the system yet.',
+        ],
+
+        // Info
+        'no_description' => 'No description available',
+        'not_added_yet' => 'Not added to any of your halls yet',
+        'items' => 'features',
+
+        // Stats
+        'stats' => [
+            'selected' => 'Selected',
+            'available' => 'Available',
+            'coverage' => 'Coverage',
+        ],
+
+        // Legend
+        'legend' => [
+            'title' => 'Legend',
+            'selected' => 'Feature is selected',
+            'not_selected' => 'Feature is not selected',
+        ],
+
+        // Manage Page
+        'manage' => [
+            'title' => 'Manage Hall Features',
+            'heading' => 'Manage Features',
+            'subheading' => 'Add or remove features from your halls',
+            'select_hall' => 'Select a Hall',
+            'available_features' => 'Available Features',
+            'matrix_view' => 'Matrix View',
+            'single_view' => 'Single Hall View',
+            'feature' => 'Feature',
+            'no_hall_selected' => 'No Hall Selected',
+            'select_hall_prompt' => 'Please select a hall to manage its features',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Images
     |--------------------------------------------------------------------------
     */
@@ -695,6 +831,237 @@ return [
             'panorama' => 'Panorama',
             'exterior' => 'Exterior',
             'interior' => 'Interior',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gallery Resource
+    |--------------------------------------------------------------------------
+    */
+    'gallery' => [
+        // Navigation & Labels
+        'navigation' => 'Gallery',
+        'singular' => 'Image',
+        'plural' => 'Gallery Images',
+        'title' => 'Gallery Management',
+        'heading' => 'Hall Gallery',
+        'subheading' => 'Manage images for your halls',
+
+        // Sections
+        'sections' => [
+            'image' => 'Image Upload',
+            'image_desc' => 'Upload and configure the image',
+            'metadata' => 'Image Metadata',
+            'metadata_desc' => 'Optional title, caption and SEO information',
+            'preview' => 'Image Preview',
+            'info' => 'Image Information',
+        ],
+
+        // Fields
+        'fields' => [
+            'hall' => 'Hall',
+            'image' => 'Image',
+            'type' => 'Image Type',
+            'is_featured' => 'Featured Image',
+            'is_active' => 'Active',
+            'order' => 'Display Order',
+            'title' => 'Title',
+            'title_en' => 'Title (English)',
+            'title_ar' => 'Title (Arabic)',
+            'caption' => 'Caption',
+            'caption_en' => 'Caption (English)',
+            'caption_ar' => 'Caption (Arabic)',
+            'alt_text' => 'Alt Text',
+            'file_size' => 'File Size',
+            'dimensions' => 'Dimensions',
+            'format' => 'Format',
+            'uploaded_at' => 'Uploaded At',
+        ],
+
+        // Placeholders
+        'placeholders' => [
+            'title' => 'e.g., Main Hall Entrance',
+            'title_ar' => 'مثال: مدخل القاعة الرئيسية',
+        ],
+
+        // Helpers
+        'helpers' => [
+            'image' => 'Max 5MB. Formats: JPEG, PNG, WebP. Recommended: 1920×1080 pixels',
+            'is_featured' => 'Show this image in featured sections and thumbnails',
+            'is_active' => 'Only active images are shown to customers',
+            'alt_text' => 'Describe the image for accessibility and SEO',
+        ],
+
+        // Types
+        'types' => [
+            'gallery' => 'Gallery',
+            'featured' => 'Featured',
+            'floor_plan' => 'Floor Plan',
+            'exterior' => 'Exterior',
+            'interior' => 'Interior',
+        ],
+
+        // Columns
+        'columns' => [
+            'image' => 'Image',
+            'hall' => 'Hall',
+            'title' => 'Title',
+            'type' => 'Type',
+            'featured' => 'Featured',
+            'active' => 'Active',
+            'size' => 'Size',
+            'dimensions' => 'Dimensions',
+            'order' => 'Order',
+            'uploaded' => 'Uploaded',
+        ],
+
+        // Filters
+        'filters' => [
+            'hall' => 'Filter by Hall',
+            'type' => 'Image Type',
+            'featured' => 'Featured',
+            'featured_only' => 'Featured Only',
+            'not_featured' => 'Not Featured',
+            'status' => 'Status',
+            'active_only' => 'Active Only',
+            'inactive_only' => 'Inactive Only',
+            'all' => 'All',
+            'all_types' => 'All Types',
+        ],
+
+        // Tabs
+        'tabs' => [
+            'all' => 'All Images',
+            'active' => 'Active',
+            'featured' => 'Featured',
+            'gallery' => 'Gallery',
+            'exterior' => 'Exterior',
+            'interior' => 'Interior',
+            'inactive' => 'Inactive',
+        ],
+
+        // Actions
+        'actions' => [
+            'upload' => 'Upload Image',
+            'bulk_upload' => 'Bulk Upload',
+            'visual_manager' => 'Visual Manager',
+            'mark_featured' => 'Mark as Featured',
+            'unmark_featured' => 'Remove Featured',
+            'activate' => 'Activate',
+            'deactivate' => 'Deactivate',
+            'download' => 'Download',
+            'delete' => 'Delete',
+            'edit_details' => 'Edit Details',
+            'back_to_gallery' => 'Back to Gallery',
+            'set_hall_featured' => 'Set as Hall Cover',
+        ],
+
+        // Bulk Actions
+        'bulk' => [
+            'activate' => 'Activate Selected',
+            'deactivate' => 'Deactivate Selected',
+            'change_type' => 'Change Type',
+        ],
+
+        // Notifications
+        'notifications' => [
+            'uploaded' => 'Image Uploaded',
+            'uploaded_body' => 'The image has been uploaded successfully.',
+            'updated' => 'Image Updated',
+            'updated_body' => 'The image details have been updated.',
+            'deleted' => 'Image Deleted',
+            'marked_featured' => 'Marked as Featured',
+            'unmarked_featured' => 'Removed from Featured',
+            'activated' => 'Image Activated',
+            'deactivated' => 'Image Deactivated',
+            'order_updated' => 'Order Updated',
+            'bulk_activated' => ':count image(s) activated',
+            'bulk_deactivated' => ':count image(s) deactivated',
+            'bulk_type_changed' => ':count image(s) type changed',
+            'bulk_uploaded' => 'Images Uploaded',
+            'bulk_uploaded_body' => ':count image(s) uploaded successfully',
+            'select_hall_first' => 'Please select a hall first',
+            'no_files' => 'No files selected',
+            'some_failed' => 'Some uploads failed',
+            'some_failed_body' => ':count image(s) failed to upload',
+            'set_featured' => 'Hall Cover Set',
+            'set_featured_body' => 'This image is now the hall\'s main cover image',
+            'type_changed' => 'Image type changed',
+        ],
+
+        // Empty State
+        'empty' => [
+            'heading' => 'No Images Yet',
+            'description' => 'Upload images to showcase your hall to potential customers.',
+            'action' => 'Upload First Image',
+        ],
+
+        // Create/Edit
+        'create' => [
+            'title' => 'Upload Image',
+            'heading' => 'Upload New Image',
+        ],
+        'edit' => [
+            'title' => 'Edit Image',
+        ],
+
+        // Stats
+        'stats' => [
+            'total' => 'total',
+            'active' => 'active',
+            'featured' => 'featured',
+        ],
+
+        // Status
+        'status' => [
+            'inactive' => 'Inactive',
+        ],
+
+        // Badges
+        'badges' => [
+            'featured' => 'Featured',
+        ],
+
+        // Confirm
+        'confirm_delete' => 'Are you sure you want to delete this image? This action cannot be undone.',
+
+        // Bulk Upload Page
+        'bulk_upload' => [
+            'title' => 'Bulk Upload',
+            'heading' => 'Bulk Image Upload',
+            'subheading' => 'Upload multiple images at once',
+            'select_hall' => 'Select a hall...',
+            'current_images' => 'Current images',
+            'max_20' => 'Max 20 images per upload',
+            'upload_images' => 'Upload Images',
+            'drag_drop' => 'Drag and drop images here',
+            'or' => 'or',
+            'browse' => 'Browse Files',
+            'allowed_formats' => 'JPEG, PNG, WebP • Max 5MB each • Up to 20 files',
+            'uploading' => 'Uploading...',
+            'selected_files' => 'Selected Files',
+            'clear_all' => 'Clear All',
+            'cancel' => 'Cancel',
+            'upload_all' => 'Upload All Images',
+            'success_count' => ':count image(s) uploaded successfully',
+            'failed_count' => ':count image(s) failed',
+            'instructions_title' => 'Upload Tips',
+            'instruction_1' => 'Use high-quality images (1920×1080 or larger recommended)',
+            'instruction_2' => 'Images will be automatically resized and optimized',
+            'instruction_3' => 'You can reorder images after uploading',
+            'instruction_4' => 'Set featured images to highlight key photos',
+        ],
+
+        // Manage Page
+        'manage' => [
+            'title' => 'Manage Gallery',
+            'heading' => 'Visual Gallery Manager',
+            'subheading' => 'Drag to reorder, click to manage images',
+            'no_hall_selected' => 'No Hall Selected',
+            'select_hall_prompt' => 'Please select a hall to manage its gallery',
+            'gallery_images' => 'Gallery Images',
+            'drag_to_reorder' => 'Drag images to reorder',
         ],
     ],
 
@@ -986,6 +1353,232 @@ return [
             'bulk_created' => 'Slots Created',
             'bulk_created_body' => ':count availability slots have been created.',
             'select_hall_first' => 'Please select a hall first',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pricing Resource
+    |--------------------------------------------------------------------------
+    */
+    'pricing' => [
+        // Navigation & Labels
+        'navigation' => 'Pricing Rules',
+        'singular' => 'Pricing Rule',
+        'plural' => 'Pricing Rules',
+        'title' => 'Pricing Management',
+        'heading' => 'Pricing Rules',
+        'subheading' => 'Manage seasonal pricing, discounts, and special rates',
+
+        // Sections
+        'sections' => [
+            'basic' => 'Basic Information',
+            'basic_desc' => 'Set up the pricing rule name and type',
+            'date_range' => 'Date Range',
+            'date_range_desc' => 'When this pricing rule should apply',
+            'adjustment' => 'Price Adjustment',
+            'adjustment_desc' => 'How the price should be modified',
+            'status' => 'Status & Notes',
+        ],
+
+        // Fields
+        'fields' => [
+            'hall' => 'Hall',
+            'name_en' => 'Rule Name (English)',
+            'name_ar' => 'Rule Name (Arabic)',
+            'type' => 'Rule Type',
+            'priority' => 'Priority',
+            'start_date' => 'Start Date',
+            'end_date' => 'End Date',
+            'is_recurring' => 'Recurring Rule',
+            'recurrence_type' => 'Recurrence Type',
+            'days_of_week' => 'Days of Week',
+            'adjustment_type' => 'Adjustment Type',
+            'adjustment_value' => 'Adjustment Value',
+            'percentage_value' => 'Percentage',
+            'increase_amount' => 'Increase Amount',
+            'fixed_amount' => 'Fixed Price',
+            'min_price' => 'Minimum Price',
+            'max_price' => 'Maximum Price',
+            'apply_to_slots' => 'Apply to Time Slots',
+            'is_active' => 'Active',
+            'notes' => 'Notes',
+            'weekend_increase' => 'Weekend Price Increase',
+            'time_slot' => 'Time Slot',
+            'date' => 'Date',
+        ],
+
+        // Placeholders
+        'placeholders' => [
+            'name_en' => 'e.g., Eid Holiday Pricing',
+            'name_ar' => 'e.g., أسعار عيد الفطر',
+            'no_minimum' => 'No minimum',
+            'no_maximum' => 'No maximum',
+        ],
+
+        // Helpers
+        'helpers' => [
+            'priority' => 'Higher priority rules are applied first (0-100)',
+            'is_recurring' => 'Rule will repeat based on recurrence type',
+            'percentage' => 'Enter positive number for increase (e.g., 20 = +20%), negative for discount (e.g., -10 = 10% off)',
+            'fixed_increase' => 'Amount to add to the base price',
+            'fixed_price' => 'Override the base price with this exact amount',
+            'min_price' => 'Final price will not go below this amount',
+            'max_price' => 'Final price will not exceed this amount',
+            'apply_to_slots' => 'Leave empty to apply to all time slots',
+            'is_active' => 'Inactive rules will not affect pricing',
+        ],
+
+        // Types
+        'types' => [
+            'seasonal' => 'Seasonal',
+            'holiday' => 'Holiday',
+            'weekend' => 'Weekend',
+            'special_event' => 'Special Event',
+            'early_bird' => 'Early Bird',
+            'last_minute' => 'Last Minute',
+        ],
+
+        // Adjustment Types
+        'adjustment_types' => [
+            'percentage' => 'Percentage (+/-)',
+            'fixed_increase' => 'Fixed Increase (+OMR)',
+            'fixed_price' => 'Fixed Price (OMR)',
+        ],
+
+        // Recurrence Types
+        'recurrence' => [
+            'weekly' => 'Weekly (Same days every week)',
+            'yearly' => 'Yearly (Same dates every year)',
+        ],
+
+        // Days of Week
+        'days' => [
+            'sunday' => 'Sunday',
+            'monday' => 'Monday',
+            'tuesday' => 'Tuesday',
+            'wednesday' => 'Wednesday',
+            'thursday' => 'Thursday',
+            'friday' => 'Friday',
+            'saturday' => 'Saturday',
+        ],
+
+        // Status
+        'status' => [
+            'active' => 'Active',
+            'inactive' => 'Inactive',
+            'expired' => 'Expired',
+            'scheduled' => 'Scheduled',
+            'recurring' => 'Recurring',
+        ],
+
+        // Columns
+        'columns' => [
+            'hall' => 'Hall',
+            'name' => 'Rule Name',
+            'type' => 'Type',
+            'date_range' => 'Date Range',
+            'adjustment' => 'Adjustment',
+            'priority' => 'Priority',
+            'status' => 'Status',
+            'slots' => 'Slots',
+            'all_slots' => 'All Slots',
+            'every_week' => 'Every Week',
+            'every_year' => 'Every Year',
+        ],
+
+        // Filters
+        'filters' => [
+            'hall' => 'Filter by Hall',
+            'type' => 'Rule Type',
+            'status' => 'Status',
+            'recurring' => 'Recurrence',
+            'active_only' => 'Active Only',
+            'inactive_only' => 'Inactive Only',
+            'recurring_only' => 'Recurring Only',
+            'one_time_only' => 'One-time Only',
+        ],
+
+        // Tabs
+        'tabs' => [
+            'all' => 'All Rules',
+            'active' => 'Active',
+            'seasonal' => 'Seasonal',
+            'weekend' => 'Weekend',
+            'holiday' => 'Holiday',
+            'expired' => 'Expired',
+        ],
+
+        // Actions
+        'actions' => [
+            'create' => 'Add Pricing Rule',
+            'activate' => 'Activate',
+            'deactivate' => 'Deactivate',
+            'duplicate' => 'Duplicate',
+            'calculator' => 'Price Calculator',
+            'quick_weekend' => 'Quick Weekend Pricing',
+            'back_to_list' => 'Back to List',
+        ],
+
+        // Bulk Actions
+        'bulk' => [
+            'activate' => 'Activate Selected',
+            'deactivate' => 'Deactivate Selected',
+        ],
+
+        // Notifications
+        'notifications' => [
+            'created' => 'Pricing Rule Created',
+            'created_body' => 'The pricing rule has been created successfully.',
+            'updated' => 'Pricing Rule Updated',
+            'updated_body' => 'The pricing rule has been updated successfully.',
+            'activated' => 'Pricing Rule Activated',
+            'deactivated' => 'Pricing Rule Deactivated',
+            'duplicated' => 'Pricing Rule Duplicated',
+            'deleted' => 'Pricing Rule Deleted',
+            'weekend_created' => 'Weekend Pricing Rule Created',
+            'bulk_activated' => ':count rules activated',
+            'bulk_deactivated' => ':count rules deactivated',
+        ],
+
+        // Empty State
+        'empty' => [
+            'heading' => 'No Pricing Rules',
+            'description' => 'Create pricing rules to set special rates for holidays, weekends, and seasonal periods.',
+            'action' => 'Create First Rule',
+        ],
+
+        // Create/Edit
+        'create' => [
+            'title' => 'Create Pricing Rule',
+        ],
+        'edit' => [
+            'title' => 'Edit: :name',
+        ],
+
+        // Calculator
+        'calculator' => [
+            'title' => 'Price Calculator',
+            'heading' => 'Price Calculator',
+            'subheading' => 'Preview how pricing rules affect the final price',
+            'select_options' => 'Select Options',
+            'select_hall' => 'Select a hall...',
+            'breakdown' => 'Price Breakdown',
+            'slot_comparison' => 'Compare All Slots',
+            'week_preview' => '7-Day Preview',
+            'base_price' => 'Base Price',
+            'slot_price' => 'Slot Price',
+            'custom_date_price' => 'Custom Date Price',
+            'rules_applied' => 'Applied Rules',
+            'no_rules_applied' => 'No pricing rules apply to this selection',
+            'final_price' => 'Final Price',
+            'from_base' => 'from base price',
+            'weekend' => 'Weekend',
+            'custom' => 'Custom',
+            'has_rules' => 'Has pricing rules',
+            'rules' => 'rule|rules',
+            'empty_title' => 'Select Options to Calculate',
+            'empty_description' => 'Choose a hall, date, and time slot to see the price breakdown.',
         ],
     ],
 ];
