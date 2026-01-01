@@ -267,6 +267,25 @@ return [
             'status' => 'Status',
             'booking_settings' => 'Booking Settings',
             'details' => 'Hall Details',
+            'status' => 'Hall Status',
+            'status_desc' => 'Control the visibility and status of your hall',
+            'booking_settings' => 'Booking Settings',
+            'booking_settings_desc' => 'Configure how bookings are handled for this hall',
+            'seo' => 'SEO Settings',
+            'seo_desc' => 'Optimize your hall for search engines (optional)',
+            'statistics' => 'Hall Statistics',
+            'statistics_desc' => 'Overview of your hall performance',
+        ],
+
+        'badges' => [
+            'inactive' => 'Inactive',
+            'featured' => 'Featured',
+            'pending' => 'Pending',
+        ],
+
+        'fieldsets' => [
+            'seo_english' => 'English SEO',
+            'seo_arabic' => 'Arabic SEO (العربية)',
         ],
 
         // Fields
@@ -311,6 +330,15 @@ return [
             'requires_approval' => 'Require Booking Approval',
             'cancellation_hours' => 'Cancellation Notice',
             'cancellation_fee' => 'Cancellation Fee',
+            'is_active' => 'Hall Active',
+            'is_featured' => 'Featured Status',
+            'requires_approval' => 'Require Booking Approval',
+            'cancellation_hours' => 'Free Cancellation Period',
+            'cancellation_fee' => 'Late Cancellation Fee',
+            'cancellation_policy' => 'Cancellation Policy Summary',
+            'meta_title' => 'SEO Title',
+            'meta_description' => 'SEO Description',
+            'meta_keywords' => 'SEO Keywords',
         ],
 
         // Helpers
@@ -327,16 +355,94 @@ return [
             'featured_admin_only' => 'Featured status is managed by administrators',
             'requires_approval' => 'Bookings will require your approval before being confirmed',
             'cancellation_hours' => 'Hours before event when cancellation is allowed',
+            'is_active' => 'When disabled, your hall will not appear in search results or be available for bookings.',
+            'featured_admin_only' => 'Featured status is managed by platform administrators.',
+            'requires_approval' => 'When enabled, all bookings will require your manual approval before being confirmed.',
+            'cancellation_hours' => 'Customers can cancel for free if they cancel at least this many hours before the event.',
+            'cancellation_fee' => 'Percentage of the booking total charged for late cancellations.',
+            'meta_title' => 'Recommended: 50-60 characters. This appears in search engine results.',
+            'meta_description' => 'Recommended: 150-160 characters. A brief description for search engines.',
+            'meta_keywords' => 'Comma-separated keywords related to your hall. Example: wedding, conference, muscat',
         ],
 
         // Placeholders
         'placeholders' => [
             'use_base' => 'Use base price',
+            'not_available' => 'Not available',
+            'meta_title' => 'Enter SEO title for your hall...',
+            'meta_title_ar' => 'أدخل عنوان تحسين محركات البحث...',
+            'meta_description' => 'Enter a brief description for search engines...',
+            'meta_description_ar' => 'أدخل وصفًا موجزًا لمحركات البحث...',
+            'meta_keywords' => 'wedding, conference, events, muscat',
+            'meta_keywords_ar' => 'زفاف، مؤتمر، فعاليات، مسقط',
+        ],
+        'status' => [
+            'active' => 'Active',
+            'inactive' => 'Inactive',
+            'featured' => 'Featured',
+            'not_featured' => 'Not Featured',
+            'pending_approval' => 'Pending Approval',
+            'approved' => 'Approved',
+        ],
+        'alerts' => [
+            'inactive_title' => 'Hall is Currently Inactive',
+            'inactive_message' => 'This hall is hidden from customers. Enable it to start receiving bookings.',
+            'active_title' => 'Hall is Active',
+            'active_message' => 'Your hall is visible to customers and can receive bookings.',
+            'approval_enabled_title' => 'Manual Approval Required',
+            'approval_enabled_message' => 'All new bookings will be marked as "Pending" and require your approval before confirmation.',
+            'auto_approval_title' => 'Automatic Confirmation',
+            'auto_approval_message' => 'Bookings will be automatically confirmed after payment.',
+        ],
+
+        // =========================================================
+        // TIME LABELS (NEW)
+        // =========================================================
+        'time' => [
+            'hours' => 'hours',
+            'days' => 'days',
+            'and' => 'and',
+            'before' => 'before',
+            'after' => 'after',
+        ],
+
+        // =========================================================
+        // CANCELLATION POLICY (NEW)
+        // =========================================================
+        'policy' => [
+            'title' => 'Current Cancellation Policy',
+            'free_before' => 'Free cancellation up to :time before the event',
+            'fee_after' => 'Late cancellation fee: :fee% of booking total',
+            'no_fee' => 'No late cancellation fee applied',
+        ],
+
+        // =========================================================
+        // SEO TIPS (NEW)
+        // =========================================================
+        'seo' => [
+            'tips_title' => 'SEO Tips',
+            'tip_1' => 'Include your hall name and location in the title',
+            'tip_2' => 'Write a unique description highlighting key features',
+            'tip_3' => 'Use relevant keywords that customers might search for',
+        ],
+
+        // =========================================================
+        // STATISTICS (NEW)
+        // =========================================================
+        'stats' => [
+            'total_bookings' => 'Total Bookings',
+            'average_rating' => 'Average Rating',
+            'total_reviews' => 'Total Reviews',
+            'created_at' => 'Listed Since',
+            'this_month' => 'This Month',
+            'revenue' => 'Total Revenue',
         ],
 
         // Suffixes
         'suffixes' => [
             'hours' => 'hours',
+            'percent' => '%',
+            'characters' => 'characters',
         ],
 
         // Advance Types

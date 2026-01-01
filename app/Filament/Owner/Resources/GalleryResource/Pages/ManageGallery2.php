@@ -10,6 +10,7 @@ use App\Models\HallImage;
 use Filament\Resources\Pages\Page;
 use Filament\Actions;
 use Filament\Notifications\Notification;
+use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -17,9 +18,9 @@ use Illuminate\Support\Facades\Storage;
 /**
  * ManageGallery Page for Owner Panel
  *
- * Visual gallery management with simple grid view.
+ * Visual gallery management with drag-and-drop reordering.
  */
-class ManageGallery extends Page
+class ManageGallery2 extends Page
 {
     /**
      * The resource this page belongs to.
@@ -37,12 +38,21 @@ class ManageGallery extends Page
     public ?int $selectedHallId = null;
 
     /**
+     * Filter by type.
+     */
+    public ?string $typeFilter = null;
+
+    /**
+     * Filter by status.
+     */
+    public ?string $statusFilter = null;
+
+    /**
      * Mount the page.
      */
     public function mount(): void
     {
-        $user = Auth::user();
-        $halls = Hall::where('owner_id', $user?->id)->get();
+        $halls = $this->getOwnerHalls();
 
         // Pre-select first hall if available
         if ($halls->count() > 0) {
@@ -53,6 +63,7 @@ class ManageGallery extends Page
         if (request()->has('hall_id')) {
             $hallId = (int) request()->get('hall_id');
             $hall = Hall::find($hallId);
+
             if ($hall && $hall->owner_id === Auth::id()) {
                 $this->selectedHallId = $hallId;
             }
@@ -64,7 +75,7 @@ class ManageGallery extends Page
      */
     public function getTitle(): string
     {
-        return 'Manage Gallery';
+        return __('owner.gallery.manage.title') ?? 'Manage Gallery';
     }
 
     /**
@@ -72,7 +83,7 @@ class ManageGallery extends Page
      */
     public function getHeading(): string
     {
-        return 'Visual Gallery Manager';
+        return __('owner.gallery.manage.heading') ?? 'Visual Gallery Manager';
     }
 
     /**
@@ -80,26 +91,28 @@ class ManageGallery extends Page
      */
     public function getSubheading(): ?string
     {
-        return 'Click images to manage them';
+        return __('owner.gallery.manage.subheading') ?? 'Drag to reorder, click to manage images';
     }
 
     /**
      * Get header actions.
+     *
+     * @return array<Actions\Action>
      */
     protected function getHeaderActions(): array
     {
         return [
             Actions\Action::make('back')
-                ->label('Back to Gallery')
+                ->label(__('owner.gallery.actions.back_to_gallery') ?? 'Back to Gallery')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
 
             Actions\Action::make('bulk_upload')
-                ->label('Bulk Upload')
+                ->label(__('owner.gallery.actions.bulk_upload') ?? 'Bulk Upload')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')
-                ->url(fn () => GalleryResource::getUrl('upload') . 
+                ->url(fn () => GalleryResource::getUrl('upload') .
                     ($this->selectedHallId ? '?hall_id=' . $this->selectedHallId : '')),
         ];
     }
@@ -107,6 +120,7 @@ class ManageGallery extends Page
     /**
      * Get owner's halls.
      */
+    #[Computed]
     public function getOwnerHalls(): Collection
     {
         $user = Auth::user();
@@ -120,7 +134,8 @@ class ManageGallery extends Page
     /**
      * Get the selected hall.
      */
-    public function getSelectedHall(): ?Hall
+    #[Computed]
+    public function selectedHall(): ?Hall
     {
         if (!$this->selectedHallId) {
             return null;
@@ -132,28 +147,46 @@ class ManageGallery extends Page
     /**
      * Get images for the selected hall.
      */
-    public function getHallImages(): Collection
+    #[Computed]
+    public function hallImages(): Collection
     {
         if (!$this->selectedHallId) {
             return collect();
         }
 
-        return HallImage::where('hall_id', $this->selectedHallId)
+        $query = HallImage::where('hall_id', $this->selectedHallId)
             ->orderBy('order')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        // Apply type filter
+        if ($this->typeFilter) {
+            $query->where('type', $this->typeFilter);
+        }
+
+        // Apply status filter
+        if ($this->statusFilter === 'active') {
+            $query->where('is_active', true);
+        } elseif ($this->statusFilter === 'inactive') {
+            $query->where('is_active', false);
+        } elseif ($this->statusFilter === 'featured') {
+            $query->where('is_featured', true);
+        }
+
+        return $query->get();
     }
 
     /**
      * Get gallery statistics.
      */
-    public function getGalleryStats(): array
+    #[Computed]
+    public function galleryStats(): array
     {
         if (!$this->selectedHallId) {
             return [
                 'total' => 0,
                 'active' => 0,
                 'featured' => 0,
+                'inactive' => 0,
             ];
         }
 
@@ -161,15 +194,37 @@ class ManageGallery extends Page
             'total' => HallImage::where('hall_id', $this->selectedHallId)->count(),
             'active' => HallImage::where('hall_id', $this->selectedHallId)->where('is_active', true)->count(),
             'featured' => HallImage::where('hall_id', $this->selectedHallId)->where('is_featured', true)->count(),
+            'inactive' => HallImage::where('hall_id', $this->selectedHallId)->where('is_active', false)->count(),
         ];
     }
 
     /**
      * Set selected hall.
      */
-    public function setHall(int $hallId): void
+    public function setHall(?int $hallId): void
     {
         $this->selectedHallId = $hallId;
+        unset($this->selectedHall);
+        unset($this->hallImages);
+        unset($this->galleryStats);
+    }
+
+    /**
+     * Set type filter.
+     */
+    public function setTypeFilter(?string $type): void
+    {
+        $this->typeFilter = $type;
+        unset($this->hallImages);
+    }
+
+    /**
+     * Set status filter.
+     */
+    public function setStatusFilter(?string $status): void
+    {
+        $this->statusFilter = $status;
+        unset($this->hallImages);
     }
 
     /**
@@ -184,6 +239,9 @@ class ManageGallery extends Page
         }
 
         $image->update(['is_featured' => !$image->is_featured]);
+
+        unset($this->hallImages);
+        unset($this->galleryStats);
 
         Notification::make()
             ->success()
@@ -204,6 +262,9 @@ class ManageGallery extends Page
         }
 
         $image->update(['is_active' => !$image->is_active]);
+
+        unset($this->hallImages);
+        unset($this->galleryStats);
 
         Notification::make()
             ->success()
@@ -233,9 +294,87 @@ class ManageGallery extends Page
 
         $image->delete();
 
+        unset($this->hallImages);
+        unset($this->galleryStats);
+
         Notification::make()
             ->success()
             ->title('Image Deleted')
+            ->duration(2000)
+            ->send();
+    }
+
+    /**
+     * Update image order after drag-and-drop.
+     */
+    public function updateOrder(array $orderedIds): void
+    {
+        foreach ($orderedIds as $index => $imageId) {
+            $image = HallImage::find($imageId);
+
+            if ($image && $image->hall->owner_id === Auth::id()) {
+                $image->update(['order' => $index]);
+            }
+        }
+
+        unset($this->hallImages);
+
+        Notification::make()
+            ->success()
+            ->title('Order Updated')
+            ->duration(2000)
+            ->send();
+    }
+
+    /**
+     * Set as hall featured image.
+     */
+    public function setAsFeaturedImage(int $imageId): void
+    {
+        $image = HallImage::find($imageId);
+
+        if (!$image || $image->hall->owner_id !== Auth::id()) {
+            return;
+        }
+
+        // Update hall's featured_image
+        $image->hall->update(['featured_image' => $image->image_path]);
+
+        // Mark this image as featured and unmark others
+        HallImage::where('hall_id', $image->hall_id)
+            ->where('id', '!=', $imageId)
+            ->update(['is_featured' => false]);
+
+        $image->update(['is_featured' => true]);
+
+        unset($this->hallImages);
+        unset($this->galleryStats);
+
+        Notification::make()
+            ->success()
+            ->title('Hall Cover Set')
+            ->body('This image is now the hall\'s main cover image')
+            ->send();
+    }
+
+    /**
+     * Change image type.
+     */
+    public function changeType(int $imageId, string $type): void
+    {
+        $image = HallImage::find($imageId);
+
+        if (!$image || $image->hall->owner_id !== Auth::id()) {
+            return;
+        }
+
+        $image->update(['type' => $type]);
+
+        unset($this->hallImages);
+
+        Notification::make()
+            ->success()
+            ->title('Image type changed')
             ->duration(2000)
             ->send();
     }

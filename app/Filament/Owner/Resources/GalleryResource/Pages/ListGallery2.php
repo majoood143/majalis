@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
  *
  * Lists all gallery images with filtering tabs.
  */
-class ListGallery extends ListRecords
+class ListGallery2 extends ListRecords
 {
     /**
      * The resource this page belongs to.
@@ -30,7 +30,7 @@ class ListGallery extends ListRecords
      */
     public function getTitle(): string
     {
-        return __('owner.gallery.title') ?? 'Gallery Management';
+        return __('owner.gallery.title');
     }
 
     /**
@@ -38,7 +38,7 @@ class ListGallery extends ListRecords
      */
     public function getHeading(): string
     {
-        return __('owner.gallery.heading') ?? 'Hall Gallery';
+        return __('owner.gallery.heading');
     }
 
     /**
@@ -46,7 +46,7 @@ class ListGallery extends ListRecords
      */
     public function getSubheading(): ?string
     {
-        return __('owner.gallery.subheading') ?? 'Manage images for your halls';
+        return __('owner.gallery.subheading');
     }
 
     /**
@@ -59,21 +59,21 @@ class ListGallery extends ListRecords
         return [
             // Visual Gallery Manager
             Actions\Action::make('manage')
-                ->label(__('owner.gallery.actions.visual_manager') ?? 'Visual Manager')
+                ->label(__('owner.gallery.actions.visual_manager'))
                 ->icon('heroicon-o-squares-2x2')
                 ->color('info')
                 ->url(fn () => GalleryResource::getUrl('manage')),
 
             // Bulk Upload
             Actions\Action::make('bulk_upload')
-                ->label(__('owner.gallery.actions.bulk_upload') ?? 'Bulk Upload')
+                ->label(__('owner.gallery.actions.bulk_upload'))
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('warning')
                 ->url(fn () => GalleryResource::getUrl('upload')),
 
             // Single Upload
             Actions\CreateAction::make()
-                ->label(__('owner.gallery.actions.upload') ?? 'Upload Image')
+                ->label(__('owner.gallery.actions.upload'))
                 ->icon('heroicon-o-plus'),
         ];
     }
@@ -91,28 +91,38 @@ class ListGallery extends ListRecords
         $baseQuery = fn () => HallImage::whereIn('hall_id', $ownerHallIds);
 
         return [
-            'all' => Tab::make(__('owner.gallery.tabs.all') ?? 'All Images')
+            'all' => Tab::make(__('owner.gallery.tabs.all'))
                 ->badge($baseQuery()->count())
                 ->badgeColor('primary'),
 
-            'active' => Tab::make(__('owner.gallery.tabs.active') ?? 'Active')
+            'active' => Tab::make(__('owner.gallery.tabs.active'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', true))
                 ->badge($baseQuery()->where('is_active', true)->count())
                 ->badgeColor('success')
                 ->icon('heroicon-o-check-circle'),
 
-            'featured' => Tab::make(__('owner.gallery.tabs.featured') ?? 'Featured')
+            'featured' => Tab::make(__('owner.gallery.tabs.featured'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_featured', true))
                 ->badge($baseQuery()->where('is_featured', true)->count())
                 ->badgeColor('warning')
                 ->icon('heroicon-o-star'),
 
-            'gallery' => Tab::make(__('owner.gallery.tabs.gallery') ?? 'Gallery')
+            'gallery' => Tab::make(__('owner.gallery.tabs.gallery'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'gallery'))
                 ->badge($baseQuery()->where('type', 'gallery')->count())
                 ->badgeColor('info'),
 
-            'inactive' => Tab::make(__('owner.gallery.tabs.inactive') ?? 'Inactive')
+            'exterior' => Tab::make(__('owner.gallery.tabs.exterior'))
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'exterior'))
+                ->badge($baseQuery()->where('type', 'exterior')->count())
+                ->badgeColor('success'),
+
+            'interior' => Tab::make(__('owner.gallery.tabs.interior'))
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'interior'))
+                ->badge($baseQuery()->where('type', 'interior')->count())
+                ->badgeColor('purple'),
+
+            'inactive' => Tab::make(__('owner.gallery.tabs.inactive'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', false))
                 ->badge($baseQuery()->where('is_active', false)->count())
                 ->badgeColor('gray')

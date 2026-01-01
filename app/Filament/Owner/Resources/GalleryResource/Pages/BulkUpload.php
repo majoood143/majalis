@@ -9,10 +9,11 @@ use App\Models\Hall;
 use App\Models\HallImage;
 use Filament\Resources\Pages\Page;
 use Filament\Actions;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
-use Livewire\Attributes\Computed;
-use Livewire\WithFileUploads;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -21,10 +22,11 @@ use Illuminate\Support\Facades\Log;
  * BulkUpload Page for Owner Panel
  *
  * Upload multiple images at once to a hall gallery.
+ * Uses Filament form components for simple integration.
  */
-class BulkUpload extends Page
+class BulkUpload extends Page implements HasForms
 {
-    use WithFileUploads;
+    use InteractsWithForms;
 
     /**
      * The resource this page belongs to.
@@ -37,61 +39,37 @@ class BulkUpload extends Page
     protected static string $view = 'filament.owner.resources.gallery-resource.pages.bulk-upload';
 
     /**
-     * Selected hall ID.
+     * Form data.
      */
-    public ?int $selectedHallId = null;
-
-    /**
-     * Image type for all uploads.
-     */
-    public string $imageType = 'gallery';
-
-    /**
-     * Uploaded files.
-     */
-    public array $uploadedFiles = [];
-
-    /**
-     * Upload progress.
-     */
-    public int $uploadProgress = 0;
-
-    /**
-     * Whether upload is in progress.
-     */
-    public bool $isUploading = false;
-
-    /**
-     * Successfully uploaded count.
-     */
-    public int $successCount = 0;
-
-    /**
-     * Failed uploads.
-     */
-    public array $failedUploads = [];
+    public ?array $data = [];
 
     /**
      * Mount the page.
      */
     public function mount(): void
     {
-        $halls = $this->getOwnerHalls();
+        $user = Auth::user();
+        $halls = Hall::where('owner_id', $user?->id)->where('is_active', true)->get();
 
         // Pre-select first hall if only one
+        $defaultHallId = null;
         if ($halls->count() === 1) {
-            $this->selectedHallId = $halls->first()->id;
+            $defaultHallId = $halls->first()->id;
         }
 
         // Check for hall_id in URL
         if (request()->has('hall_id')) {
             $hallId = (int) request()->get('hall_id');
             $hall = Hall::find($hallId);
-
             if ($hall && $hall->owner_id === Auth::id()) {
-                $this->selectedHallId = $hallId;
+                $defaultHallId = $hallId;
             }
         }
+
+        $this->form->fill([
+            'hall_id' => $defaultHallId,
+            'type' => 'gallery',
+        ]);
     }
 
     /**
@@ -99,7 +77,7 @@ class BulkUpload extends Page
      */
     public function getTitle(): string
     {
-        return __('owner.gallery.bulk_upload.title') ?? 'Bulk Upload';
+        return 'Bulk Upload';
     }
 
     /**
@@ -107,7 +85,7 @@ class BulkUpload extends Page
      */
     public function getHeading(): string
     {
-        return __('owner.gallery.bulk_upload.heading') ?? 'Bulk Image Upload';
+        return 'Bulk Image Upload';
     }
 
     /**
@@ -115,19 +93,17 @@ class BulkUpload extends Page
      */
     public function getSubheading(): ?string
     {
-        return __('owner.gallery.bulk_upload.subheading') ?? 'Upload multiple images at once';
+        return 'Upload multiple images at once';
     }
 
     /**
      * Get header actions.
-     *
-     * @return array<Actions\Action>
      */
     protected function getHeaderActions(): array
     {
         return [
             Actions\Action::make('back')
-                ->label(__('owner.gallery.actions.back_to_gallery') ?? 'Back to Gallery')
+                ->label('Back to Gallery')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
@@ -135,194 +111,140 @@ class BulkUpload extends Page
     }
 
     /**
-     * Get owner's halls.
+     * Define the form.
      */
-    #[Computed]
-    public function getOwnerHalls(): Collection
+    public function form(Form $form): Form
     {
         $user = Auth::user();
 
-        return Hall::where('owner_id', $user?->id)
-            ->where('is_active', true)
-            ->orderBy('name->en')
-            ->get();
+        return $form
+            ->schema([
+                Forms\Components\Section::make('Upload Settings')
+                    ->schema([
+                        Forms\Components\Select::make('hall_id')
+                            ->label('Hall')
+                            ->options(
+                                Hall::where('owner_id', $user?->id)
+                                    ->where('is_active', true)
+                                    ->get()
+                                    ->mapWithKeys(fn ($hall) => [
+                                        $hall->id => $hall->getTranslation('name', app()->getLocale())
+                                    ])
+                            )
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->native(false),
+
+                        Forms\Components\Select::make('type')
+                            ->label('Image Type')
+                            ->options([
+                                'gallery' => 'Gallery',
+                                'exterior' => 'Exterior',
+                                'interior' => 'Interior',
+                                'floor_plan' => 'Floor Plan',
+                            ])
+                            ->default('gallery')
+                            ->required()
+                            ->native(false),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Images')
+                    ->schema([
+                        Forms\Components\FileUpload::make('images')
+                            ->label('Select Images')
+                            ->image()
+                            ->multiple()
+                            ->reorderable()
+                            ->disk('public')
+                            ->directory('halls/images')
+                            ->visibility('public')
+                            ->maxFiles(20)
+                            ->maxSize(5120) // 5MB
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->helperText('Max 20 images, 5MB each. Formats: JPEG, PNG, WebP')
+                            ->columnSpanFull(),
+                    ]),
+            ])
+            ->statePath('data');
     }
 
     /**
-     * Get the selected hall.
+     * Process the uploads.
      */
-    #[Computed]
-    public function selectedHall(): ?Hall
+    public function upload(): void
     {
-        if (!$this->selectedHallId) {
-            return null;
-        }
+        $data = $this->form->getState();
 
-        return Hall::find($this->selectedHallId);
-    }
-
-    /**
-     * Get current image count for selected hall.
-     */
-    #[Computed]
-    public function currentImageCount(): int
-    {
-        if (!$this->selectedHallId) {
-            return 0;
-        }
-
-        return HallImage::where('hall_id', $this->selectedHallId)->count();
-    }
-
-    /**
-     * Set selected hall.
-     */
-    public function setHall(?int $hallId): void
-    {
-        $this->selectedHallId = $hallId;
-        unset($this->selectedHall);
-        unset($this->currentImageCount);
-    }
-
-    /**
-     * Set image type.
-     */
-    public function setType(string $type): void
-    {
-        $this->imageType = $type;
-    }
-
-    /**
-     * Handle file upload via Livewire.
-     */
-    public function updatedUploadedFiles(): void
-    {
-        $this->validate([
-            'uploadedFiles' => 'array|max:20',
-            'uploadedFiles.*' => 'image|max:5120', // 5MB max per file
-        ]);
-    }
-
-    /**
-     * Process and save uploaded files.
-     */
-    public function processUploads(): void
-    {
-        if (!$this->selectedHallId) {
+        if (empty($data['hall_id'])) {
             Notification::make()
                 ->warning()
-                ->title(__('owner.gallery.notifications.select_hall_first') ?? 'Please select a hall first')
+                ->title('Please select a hall first')
                 ->send();
             return;
         }
 
-        if (empty($this->uploadedFiles)) {
+        if (empty($data['images'])) {
             Notification::make()
                 ->warning()
-                ->title(__('owner.gallery.notifications.no_files') ?? 'No files selected')
+                ->title('No images selected')
                 ->send();
             return;
         }
 
         // Verify hall ownership
-        $hall = Hall::find($this->selectedHallId);
+        $hall = Hall::find($data['hall_id']);
         if (!$hall || $hall->owner_id !== Auth::id()) {
             Notification::make()
                 ->danger()
-                ->title(__('owner.errors.unauthorized') ?? 'Unauthorized')
+                ->title('Unauthorized')
                 ->send();
             return;
         }
 
-        $this->isUploading = true;
-        $this->successCount = 0;
-        $this->failedUploads = [];
+        $successCount = 0;
+        $currentOrder = HallImage::where('hall_id', $data['hall_id'])->max('order') ?? 0;
 
-        $totalFiles = count($this->uploadedFiles);
-        $currentOrder = HallImage::where('hall_id', $this->selectedHallId)->max('order') ?? 0;
-
-        foreach ($this->uploadedFiles as $index => $file) {
+        foreach ($data['images'] as $imagePath) {
             try {
-                // Store file
-                $path = $file->store('halls/images', 'public');
-
-                if (!$path) {
-                    throw new \Exception('Failed to store file');
-                }
-
                 // Extract metadata
-                $fullPath = Storage::disk('public')->path($path);
+                $fullPath = Storage::disk('public')->path($imagePath);
                 $imageInfo = @getimagesize($fullPath);
 
                 // Create record
                 HallImage::create([
-                    'hall_id' => $this->selectedHallId,
-                    'image_path' => $path,
-                    'type' => $this->imageType,
+                    'hall_id' => $data['hall_id'],
+                    'image_path' => $imagePath,
+                    'type' => $data['type'],
                     'is_active' => true,
                     'is_featured' => false,
                     'order' => ++$currentOrder,
-                    'file_size' => Storage::disk('public')->size($path),
-                    'mime_type' => Storage::disk('public')->mimeType($path),
+                    'file_size' => Storage::disk('public')->size($imagePath),
+                    'mime_type' => Storage::disk('public')->mimeType($imagePath),
                     'width' => $imageInfo[0] ?? null,
                     'height' => $imageInfo[1] ?? null,
                 ]);
 
-                $this->successCount++;
-
+                $successCount++;
             } catch (\Exception $e) {
-                Log::error('Bulk upload failed for file: ' . $e->getMessage());
-                $this->failedUploads[] = [
-                    'name' => $file->getClientOriginalName(),
-                    'error' => $e->getMessage(),
-                ];
+                Log::error('Bulk upload failed: ' . $e->getMessage());
             }
-
-            // Update progress
-            $this->uploadProgress = (int) round((($index + 1) / $totalFiles) * 100);
         }
 
-        $this->isUploading = false;
-        $this->uploadedFiles = [];
-
-        // Show result notification
-        if ($this->successCount > 0) {
+        if ($successCount > 0) {
             Notification::make()
                 ->success()
-                ->title(__('owner.gallery.notifications.bulk_uploaded') ?? 'Images Uploaded')
-                ->body($this->successCount . ' image(s) uploaded successfully')
+                ->title('Images Uploaded')
+                ->body("{$successCount} image(s) uploaded successfully")
                 ->send();
+
+            // Reset form
+            $this->form->fill([
+                'hall_id' => $data['hall_id'],
+                'type' => 'gallery',
+                'images' => [],
+            ]);
         }
-
-        if (!empty($this->failedUploads)) {
-            Notification::make()
-                ->warning()
-                ->title(__('owner.gallery.notifications.some_failed') ?? 'Some uploads failed')
-                ->body(count($this->failedUploads) . ' image(s) failed to upload')
-                ->send();
-        }
-
-        // Reset
-        unset($this->currentImageCount);
-    }
-
-    /**
-     * Clear all uploaded files.
-     */
-    public function clearFiles(): void
-    {
-        $this->uploadedFiles = [];
-        $this->uploadProgress = 0;
-        $this->successCount = 0;
-        $this->failedUploads = [];
-    }
-
-    /**
-     * Remove a specific file from the upload queue.
-     */
-    public function removeFile(int $index): void
-    {
-        unset($this->uploadedFiles[$index]);
-        $this->uploadedFiles = array_values($this->uploadedFiles);
     }
 }

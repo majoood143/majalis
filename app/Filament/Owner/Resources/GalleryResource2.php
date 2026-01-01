@@ -9,6 +9,7 @@ use App\Models\Hall;
 use App\Models\HallImage;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
@@ -24,12 +25,10 @@ use Illuminate\Support\Facades\Storage;
  *
  * Comprehensive gallery management for hall owners.
  * Upload, organize, and manage images for halls.
- * 
- * IMPORTANT: Extends OwnerResource for automatic owner scoping.
  *
  * @package App\Filament\Owner\Resources
  */
-class GalleryResource extends OwnerResource
+class GalleryResource2 extends OwnerResource
 {
     /**
      * The model the resource corresponds to.
@@ -106,24 +105,16 @@ class GalleryResource extends OwnerResource
     }
 
     /**
-     * Apply owner scope to images query.
-     * Only shows images belonging to halls owned by the current user.
-     * 
-     * This overrides the parent OwnerResource method for HallImage specific scoping.
-     */
-    protected static function applyOwnerScope(Builder $query, $user): Builder
-    {
-        return $query->whereHas('hall', function (Builder $q) use ($user) {
-            $q->where('owner_id', $user->id);
-        });
-    }
-
-    /**
      * Get the Eloquent query scoped to owner's halls.
      */
     public static function getEloquentQuery(): Builder
     {
+        $user = Auth::user();
+
         return parent::getEloquentQuery()
+            ->whereHas('hall', function (Builder $query) use ($user) {
+                $query->where('owner_id', $user?->id);
+            })
             ->with(['hall'])
             ->orderBy('hall_id')
             ->orderBy('order');
@@ -276,16 +267,31 @@ class GalleryResource extends OwnerResource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
+                // Title
+                Tables\Columns\TextColumn::make('title')
+                    ->label(__('owner.gallery.columns.title') ?? 'Title')
+                    ->formatStateUsing(function ($record) {
+                        $title = $record->getTranslation('title', app()->getLocale());
+                        return $title ?: '-';
+                    })
+                    ->limit(30)
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where(function ($q) use ($search) {
+                            $q->whereRaw("LOWER(JSON_EXTRACT(title, '$.en')) LIKE ?", ['%' . strtolower($search) . '%'])
+                                ->orWhereRaw("LOWER(JSON_EXTRACT(title, '$.ar')) LIKE ?", ['%' . strtolower($search) . '%']);
+                        });
+                    }),
+
                 // Type
                 Tables\Columns\TextColumn::make('type')
                     ->label(__('owner.gallery.columns.type') ?? 'Type')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'gallery' => 'Gallery',
-                        'featured' => 'Featured',
-                        'floor_plan' => 'Floor Plan',
-                        'exterior' => 'Exterior',
-                        'interior' => 'Interior',
+                        'gallery' => __('owner.gallery.types.gallery') ?? 'Gallery',
+                        'featured' => __('owner.gallery.types.featured') ?? 'Featured',
+                        'floor_plan' => __('owner.gallery.types.floor_plan') ?? 'Floor Plan',
+                        'exterior' => __('owner.gallery.types.exterior') ?? 'Exterior',
+                        'interior' => __('owner.gallery.types.interior') ?? 'Interior',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
@@ -347,11 +353,11 @@ class GalleryResource extends OwnerResource
                 Tables\Filters\SelectFilter::make('type')
                     ->label(__('owner.gallery.filters.type') ?? 'Image Type')
                     ->options([
-                        'gallery' => 'Gallery',
-                        'featured' => 'Featured',
-                        'floor_plan' => 'Floor Plan',
-                        'exterior' => 'Exterior',
-                        'interior' => 'Interior',
+                        'gallery' => __('owner.gallery.types.gallery') ?? 'Gallery',
+                        'featured' => __('owner.gallery.types.featured') ?? 'Featured',
+                        'floor_plan' => __('owner.gallery.types.floor_plan') ?? 'Floor Plan',
+                        'exterior' => __('owner.gallery.types.exterior') ?? 'Exterior',
+                        'interior' => __('owner.gallery.types.interior') ?? 'Interior',
                     ]),
 
                 // Featured Filter
@@ -387,6 +393,7 @@ class GalleryResource extends OwnerResource
                 // Delete
                 Tables\Actions\DeleteAction::make()
                     ->before(function ($record): void {
+                        // Delete file from storage
                         if ($record->image_path && Storage::disk('public')->exists($record->image_path)) {
                             Storage::disk('public')->delete($record->image_path);
                         }
@@ -468,6 +475,8 @@ class GalleryResource extends OwnerResource
 
     /**
      * Get the pages for the resource.
+     *
+     * IMPORTANT: Each page must have a unique route and slug.
      */
     public static function getPages(): array
     {

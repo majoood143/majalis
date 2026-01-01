@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
  *
  * Edit image metadata and settings.
  */
-class EditGallery extends EditRecord
+class EditGallery2 extends EditRecord
 {
     /**
      * The resource this page belongs to.
@@ -29,7 +29,7 @@ class EditGallery extends EditRecord
      */
     public function getTitle(): string
     {
-        return __('owner.gallery.edit.title') ?? 'Edit Image';
+        return __('owner.gallery.edit.title');
     }
 
     /**
@@ -44,7 +44,7 @@ class EditGallery extends EditRecord
         if ($this->record->hall->owner_id !== $user->id) {
             Notification::make()
                 ->danger()
-                ->title(__('owner.errors.unauthorized') ?? 'Unauthorized')
+                ->title(__('owner.errors.unauthorized'))
                 ->send();
 
             $this->redirect(GalleryResource::getUrl('index'));
@@ -62,8 +62,8 @@ class EditGallery extends EditRecord
             // Toggle Featured
             Actions\Action::make('toggle_featured')
                 ->label(fn (): string => $this->record->is_featured
-                    ? __('owner.gallery.actions.unmark_featured') ?? 'Unmark Featured'
-                    : __('owner.gallery.actions.mark_featured') ?? 'Mark Featured')
+                    ? __('owner.gallery.actions.unmark_featured')
+                    : __('owner.gallery.actions.mark_featured'))
                 ->icon('heroicon-o-star')
                 ->color(fn (): string => $this->record->is_featured ? 'gray' : 'warning')
                 ->action(function (): void {
@@ -72,8 +72,8 @@ class EditGallery extends EditRecord
                     Notification::make()
                         ->success()
                         ->title($this->record->is_featured
-                            ? __('owner.gallery.notifications.marked_featured') ?? 'Marked as Featured'
-                            : __('owner.gallery.notifications.unmarked_featured') ?? 'Removed from Featured')
+                            ? __('owner.gallery.notifications.marked_featured')
+                            : __('owner.gallery.notifications.unmarked_featured'))
                         ->send();
 
                     $this->refreshFormData(['is_featured']);
@@ -82,8 +82,8 @@ class EditGallery extends EditRecord
             // Toggle Active
             Actions\Action::make('toggle_active')
                 ->label(fn (): string => $this->record->is_active
-                    ? __('owner.gallery.actions.deactivate') ?? 'Deactivate'
-                    : __('owner.gallery.actions.activate') ?? 'Activate')
+                    ? __('owner.gallery.actions.deactivate')
+                    : __('owner.gallery.actions.activate'))
                 ->icon(fn (): string => $this->record->is_active
                     ? 'heroicon-o-x-circle'
                     : 'heroicon-o-check-circle')
@@ -94,11 +94,24 @@ class EditGallery extends EditRecord
                     Notification::make()
                         ->success()
                         ->title($this->record->is_active
-                            ? __('owner.gallery.notifications.activated') ?? 'Image Activated'
-                            : __('owner.gallery.notifications.deactivated') ?? 'Image Deactivated')
+                            ? __('owner.gallery.notifications.activated')
+                            : __('owner.gallery.notifications.deactivated'))
                         ->send();
 
                     $this->refreshFormData(['is_active']);
+                }),
+
+            // Download
+            Actions\Action::make('download')
+                ->label(__('owner.gallery.actions.download'))
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('gray')
+                ->action(function () {
+                    return Storage::disk('public')->download(
+                        $this->record->image_path,
+                        $this->record->hall->getTranslation('name', 'en') . '_' . $this->record->id . '.' .
+                        pathinfo($this->record->image_path, PATHINFO_EXTENSION)
+                    );
                 }),
 
             // Delete
@@ -131,7 +144,7 @@ class EditGallery extends EditRecord
             if (!$hall || $hall->owner_id !== $user->id) {
                 Notification::make()
                     ->danger()
-                    ->title(__('owner.errors.unauthorized') ?? 'Unauthorized')
+                    ->title(__('owner.errors.unauthorized'))
                     ->send();
 
                 $this->halt();
@@ -153,8 +166,8 @@ class EditGallery extends EditRecord
     {
         return Notification::make()
             ->success()
-            ->title(__('owner.gallery.notifications.updated') ?? 'Image Updated')
-            ->body(__('owner.gallery.notifications.updated_body') ?? 'The image details have been updated.');
+            ->title(__('owner.gallery.notifications.updated'))
+            ->body(__('owner.gallery.notifications.updated_body'));
     }
 
     /**

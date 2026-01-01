@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Upload new images to hall gallery.
  */
-class CreateGallery extends CreateRecord
+class CreateGallery2 extends CreateRecord
 {
     /**
      * The resource this page belongs to.
@@ -30,7 +30,7 @@ class CreateGallery extends CreateRecord
      */
     public function getTitle(): string
     {
-        return __('owner.gallery.create.title') ?? 'Upload Image';
+        return __('owner.gallery.create.title');
     }
 
     /**
@@ -38,7 +38,7 @@ class CreateGallery extends CreateRecord
      */
     public function getHeading(): string
     {
-        return __('owner.gallery.create.heading') ?? 'Upload New Image';
+        return __('owner.gallery.create.heading');
     }
 
     /**
@@ -77,7 +77,7 @@ class CreateGallery extends CreateRecord
         if (!$hall || $hall->owner_id !== $user->id) {
             Notification::make()
                 ->danger()
-                ->title(__('owner.errors.unauthorized') ?? 'Unauthorized')
+                ->title(__('owner.errors.unauthorized'))
                 ->send();
 
             $this->halt();
@@ -103,6 +103,9 @@ class CreateGallery extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $record = static::getModel()::create($data);
+
+        // Generate thumbnail
+        $this->generateThumbnail($record);
 
         // Log the upload
         Log::info('Hall image uploaded by owner', [
@@ -148,14 +151,56 @@ class CreateGallery extends CreateRecord
     }
 
     /**
+     * Generate thumbnail for the image.
+     */
+    protected function generateThumbnail(Model $record): void
+    {
+        try {
+            // Check if Intervention Image is available
+            if (!class_exists(\Intervention\Image\ImageManager::class)) {
+                return;
+            }
+
+            $sourcePath = Storage::disk('public')->path($record->image_path);
+
+            if (!file_exists($sourcePath)) {
+                return;
+            }
+
+            // Generate thumbnail filename
+            $filename = pathinfo($record->image_path, PATHINFO_FILENAME);
+            $extension = pathinfo($record->image_path, PATHINFO_EXTENSION);
+            $thumbnailPath = 'halls/thumbnails/' . $filename . '_thumb.' . $extension;
+
+            // Create thumbnail using Intervention Image
+            $manager = new \Intervention\Image\ImageManager(
+                new \Intervention\Image\Drivers\Gd\Driver()
+            );
+
+            $thumbnail = $manager->read($sourcePath)
+                ->cover(300, 200);
+
+            // Save thumbnail
+            Storage::disk('public')->put($thumbnailPath, $thumbnail->toJpeg(80));
+
+            // Update record
+            $record->update(['thumbnail_path' => $thumbnailPath]);
+
+            Log::info('Thumbnail generated for image: ' . $record->id);
+        } catch (\Exception $e) {
+            Log::warning('Thumbnail generation failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get the created notification.
      */
     protected function getCreatedNotification(): ?Notification
     {
         return Notification::make()
             ->success()
-            ->title(__('owner.gallery.notifications.uploaded') ?? 'Image Uploaded')
-            ->body(__('owner.gallery.notifications.uploaded_body') ?? 'The image has been uploaded successfully.');
+            ->title(__('owner.gallery.notifications.uploaded'))
+            ->body(__('owner.gallery.notifications.uploaded_body'));
     }
 
     /**

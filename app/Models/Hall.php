@@ -209,6 +209,14 @@ class Hall extends Model
     }
 
     /**
+     * Alias for availability() - used by Filament RelationManagers.
+     */
+    public function availabilities(): HasMany
+    {
+        return $this->availability();
+    }
+
+    /**
      * Get all images for the hall.
      */
     public function images(): HasMany

@@ -35,7 +35,7 @@ use Illuminate\Support\Facades\Auth;
  *
  * @package App\Filament\Owner\Resources
  */
-class AvailabilityResource extends Resource
+class AvailabilityResource extends OwnerResource
 {
     /**
      * The model the resource corresponds to.

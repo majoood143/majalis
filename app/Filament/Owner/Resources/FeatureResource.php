@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Auth;
  *
  * @package App\Filament\Owner\Resources
  */
-class FeatureResource extends Resource
+class FeatureResource extends OwnerResource
 {
     /**
      * The model the resource corresponds to.
@@ -416,7 +416,7 @@ class FeatureResource extends Resource
                                 // Feature Name
                                 Infolists\Components\TextEntry::make('name')
                                     ->label(__('owner.features.fields.name'))
-                                    ->formatStateUsing(fn ($record) => 
+                                    ->formatStateUsing(fn ($record) =>
                                         $record->getTranslation('name', 'en') . ' / ' . $record->getTranslation('name', 'ar')
                                     ),
                             ]),
@@ -424,7 +424,7 @@ class FeatureResource extends Resource
                         // Description
                         Infolists\Components\TextEntry::make('description')
                             ->label(__('owner.features.fields.description'))
-                            ->formatStateUsing(fn ($record) => 
+                            ->formatStateUsing(fn ($record) =>
                                 $record->getTranslation('description', app()->getLocale()) ?? __('owner.features.no_description')
                             )
                             ->columnSpanFull(),
