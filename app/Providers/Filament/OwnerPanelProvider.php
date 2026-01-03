@@ -18,6 +18,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use App\Http\Middleware\SetUserLanguage;
+use App\Filament\Pages\EditProfile;
+use Filament\View\PanelsRenderHook;
+use Filament\SpatieLaravelTranslatablePlugin;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
@@ -38,22 +42,23 @@ class OwnerPanelProvider extends PanelProvider
             ])
             ->font('Cairo') // Arabic-friendly font
             ->brandName(__('owner.brand.name', ['app' => config('app.name')]))
-            ->brandLogo(asset('images/logo.svg'))
-            ->darkModeBrandLogo(asset('images/logo-dark.svg'))
-            ->favicon(asset('favicon.ico'))
+            ->brandLogo(asset('images/logo.png'))
+            ->darkModeBrandLogo(asset('images/logo.png'))
+            ->favicon(asset('images/favicon.png'))
             ->discoverResources(in: app_path('Filament/Owner/Resources'), for: 'App\\Filament\\Owner\\Resources')
             ->discoverPages(in: app_path('Filament/Owner/Pages'), for: 'App\\Filament\\Owner\\Pages')
             ->discoverWidgets(in: app_path('Filament/Owner/Widgets'), for: 'App\\Filament\\Owner\\Widgets')
             ->pages([
                 Pages\Dashboard::class,
+                EditProfile::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Owner/Widgets'), for: 'App\\Filament\\Owner\\Widgets')
             ->widgets([
                 //Widgets\AccountWidget::class,
                 //Widgets\FilamentInfoWidget::class,
-            \App\Filament\Owner\Widgets\AvailabilityCalendarWidget::class,
+                \App\Filament\Owner\Widgets\AvailabilityCalendarWidget::class,
 
-        ])
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -67,10 +72,15 @@ class OwnerPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                SetUserLanguage::class,
             ])
             ->authGuard('web')
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn(): string => view('filament.hooks.language-switcher')->render()
+            )
             ->sidebarCollapsibleOnDesktop()
             ->maxContentWidth('full')
             ->navigationGroups([
@@ -80,6 +90,10 @@ class OwnerPanelProvider extends PanelProvider
                 __('owner.nav_groups.finance'),
                 __('owner.nav_groups.settings'),
             ])
+            ->plugin(
+                SpatieLaravelTranslatablePlugin::make()
+                    ->defaultLocales(['en', 'ar'])
+            )
             /*
             |--------------------------------------------------------------------------
             | FullCalendar Plugin Configuration

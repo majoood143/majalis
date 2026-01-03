@@ -63,7 +63,7 @@ class HallPerformanceWidget extends BaseWidget
                     ->weight('bold'),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label(__('owner.halls.status'))
+                    //->label(__('owner.halls.status'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')

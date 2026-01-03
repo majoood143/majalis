@@ -1686,5 +1686,310 @@ return [
             'empty_title' => 'Select Options to Calculate',
             'empty_description' => 'Choose a hall, date, and time slot to see the price breakdown.',
         ],
+
     ],
+    'earnings' => [
+        'label' => 'Earning',
+        'plural' => 'Earnings',
+        'navigation_group' => 'Financial',
+
+        // Table Columns
+        'booking_number' => 'Booking #',
+        'hall' => 'Hall',
+        'date' => 'Date',
+        'slot' => 'Slot',
+        'customer' => 'Customer',
+        'hall_price' => 'Hall Price',
+        'services_price' => 'Services',
+        'total_amount' => 'Total',
+        'commission_amount' => 'Commission',
+        'owner_payout' => 'Your Earnings',
+        'status' => 'Status',
+
+        // Filters
+        'filter_date_range' => 'Date Range',
+        'filter_from' => 'From',
+        'filter_until' => 'Until',
+        'filter_hall' => 'Hall',
+        'filter_status' => 'Status',
+        'filter_slot' => 'Time Slot',
+        'filter_this_month' => 'This Month',
+        'filter_last_month' => 'Last Month',
+
+        // Tabs
+        'tab_all' => 'All Earnings',
+        'tab_this_month' => 'This Month',
+        'tab_last_month' => 'Last Month',
+        'tab_this_year' => 'This Year',
+
+        // Page Titles
+        'title' => 'My Earnings',
+        'heading' => 'Earnings Overview',
+        'list_title' => 'My Earnings',
+        'view_title' => 'Earning Details',
+        'subheading' => 'Total: :total OMR | This Month: :month OMR',
+
+        // Actions
+        'view_details' => 'View Details',
+        'generate_report' => 'Generate Report',
+        'export_excel' => 'Export to Excel',
+        'download_invoice' => 'Download Invoice',
+        'generate_statement' => 'Generate Statement',
+        'back_to_list' => 'Back to List',
+
+        // Report Modal
+        'report_period' => 'Report Period',
+        'report_title' => 'Generate Earnings Report',
+        'report_start_date' => 'Start Date',
+        'report_end_date' => 'End Date',
+        'report_hall' => 'Filter by Hall',
+        'report_all_halls' => 'All Halls',
+        'report_include_details' => 'Include Booking Details',
+        'report_include_breakdown' => 'Include Financial Breakdown',
+        'report_generating' => 'Generating report...',
+        'report_generated' => 'Report Generated Successfully',
+        'report_generated_desc' => 'Report includes :bookings bookings with :earnings OMR in net earnings.',
+        'report_failed' => 'Report Generation Failed',
+        'include_in_report' => 'Include in Report',
+        'summary' => 'Summary',
+        'booking_details' => 'Booking Details',
+        'hall_breakdown' => 'Hall Breakdown',
+        'chart' => 'Chart',
+
+        // Export Settings
+        'export_settings' => 'Export Settings',
+        'from_date' => 'From Date',
+        'to_date' => 'To Date',
+        'select_hall' => 'Select Hall',
+        'all_halls' => 'All Halls',
+        'include_columns' => 'Include Columns',
+
+        // Export Column Labels
+        'columns' => [
+            'booking_number' => 'Booking Number',
+            'hall' => 'Hall Name',
+            'customer' => 'Customer Name',
+            'date' => 'Booking Date',
+            'slot' => 'Time Slot',
+            'hall_price' => 'Hall Price',
+            'services_price' => 'Services Price',
+            'gross_amount' => 'Gross Amount',
+            'commission' => 'Commission',
+            'net_earnings' => 'Net Earnings',
+        ],
+
+        // Export Messages
+        'export_success' => 'Export Successful',
+        'export_success_desc' => 'Exported :count bookings with :total OMR in net earnings.',
+        'export_failed' => 'Export Failed',
+        'no_data' => 'No Data to Export',
+        'no_data_desc' => 'No earnings found for the selected period.',
+        'totals' => 'Totals',
+        'bookings' => 'bookings',
+
+        // Infolist Sections
+        'section_booking_info' => 'Booking Information',
+        'section_financial' => 'Financial Breakdown',
+        'section_services' => 'Extra Services',
+        'section_payment' => 'Payment Details',
+
+        // Widget
+        'widget_title' => 'Earnings Summary',
+        'stat_total_earnings' => 'Total Earnings',
+        'stat_this_month' => 'This Month',
+        'stat_this_week' => 'This Week',
+        'stat_avg_booking' => 'Avg/Booking',
+        'stat_gross_revenue' => 'Gross Revenue',
+        'stat_total_commission' => 'Total Commission',
+        'stat_mom_change' => ':change% from last month',
+
+        // Messages
+        'no_earnings' => 'No earnings found.',
+        'empty_state_heading' => 'No Earnings Yet',
+        'empty_state_description' => 'Your earnings from completed bookings will appear here.',
+    ],
+    // Payouts Resource
+    'payouts' => [
+        'label' => 'Payout',
+        'plural' => 'Payouts',
+        'navigation_group' => 'Financial',
+
+        // Table Columns
+        'payout_number' => 'Payout #',
+        'period' => 'Period',
+        'bookings_count' => 'Bookings',
+        'gross_revenue' => 'Gross Revenue',
+        'commission_amount' => 'Commission',
+        'commission_rate' => 'Rate',
+        'net_payout' => 'Net Payout',
+        'status' => 'Status',
+        'payment_method' => 'Method',
+        'completed_at' => 'Completed',
+        'transaction_reference' => 'Reference',
+
+        // Filters
+        'filter_status' => 'Status',
+        'filter_period' => 'Period',
+        'filter_from' => 'From',
+        'filter_until' => 'Until',
+        'filter_completed' => 'Completed Only',
+        'filter_this_year' => 'This Year',
+
+        // Tabs
+        'tab_all' => 'All Payouts',
+        'tab_pending' => 'Pending',
+        'tab_completed' => 'Completed',
+        'tab_this_year' => 'This Year',
+
+        // Page Titles
+        'list_title' => 'My Payouts',
+        'view_title' => 'Payout Details',
+        'subheading' => 'Total Received: :received OMR | Pending: :pending OMR',
+
+        // Actions
+        'download_receipt' => 'Download Receipt',
+        'contact_support' => 'Contact Support',
+        'report_issue' => 'Report Issue',
+        'back_to_list' => 'Back to List',
+
+        // Infolist Sections
+        'section_summary' => 'Payout Summary',
+        'section_financial' => 'Financial Breakdown',
+        'section_payment' => 'Payment Details',
+        'section_failure' => 'Failure Details',
+        'section_notes' => 'Notes',
+        'section_timestamps' => 'Timestamps',
+
+        // Infolist Fields
+        'period_start' => 'Period Start',
+        'period_end' => 'Period End',
+        'adjustments' => 'Adjustments',
+        'bank_details' => 'Bank Details',
+        'processed_by' => 'Processed By',
+        'processed_at' => 'Processed At',
+        'failed_at' => 'Failed At',
+        'failure_reason' => 'Failure Reason',
+        'notes' => 'Notes',
+        'created_at' => 'Created At',
+        'updated_at' => 'Updated At',
+
+        // Widget
+        'widget_title' => 'Payout Summary',
+        'stat_total_received' => 'Total Received',
+        'stat_pending' => 'Pending',
+        'stat_processing' => 'Processing',
+        'stat_avg_payout' => 'Avg Payout',
+        'stat_this_year' => 'This Year',
+        'stat_last_payout' => 'Last Payout',
+
+        // Messages
+        'no_payouts' => 'No payouts found.',
+        'empty_state_heading' => 'No Payouts Yet',
+        'empty_state_description' => 'Your payouts will appear here once processed by admin.',
+        'support_ticket_created' => 'Support ticket created successfully.',
+        'stat_received' => 'received',
+        'stat_received_desc' => 'in total payouts',
+        'stat_pending_desc' => 'awaiting processing',
+        'stat_processing_desc' => 'currently being processed',
+        'stat_average' => 'average payout',
+        'stat_average_desc' => 'average amount per payout',
+        'stat_this_year_desc' => 'total for the current year',
+        'no_payouts_yet' => 'No payouts have been processed yet.',
+        'no_payouts_desc' => 'Once your earnings are paid out, they will appear here.',
+        'heading' => 'Payouts',
+        'navigation'=>'Payouts',
+    ],
+    'reports' => [
+        'title' => 'Financial Reports',
+        'heading' => 'Financial Reports',
+        'navigation_group' => 'Financial',
+        'navigation' => 'Reports',
+
+        // Report Types
+        'type_monthly' => 'Monthly Report',
+        'type_yearly' => 'Yearly Report',
+        'type_hall' => 'Hall Performance',
+        'type_comparison' => 'Month Comparison',
+
+        // Form Fields
+        'report_type' => 'Report Type',
+        'select_year' => 'Select Year',
+        'select_month' => 'Select Month',
+        'select_hall' => 'Select Hall',
+        'all_halls' => 'All Halls',
+
+        // Actions
+        'export_pdf' => 'Export PDF',
+        'refresh' => 'Refresh',
+
+        // Section Titles
+        'summary' => 'Summary',
+        'daily_breakdown' => 'Daily Breakdown',
+        'monthly_breakdown' => 'Monthly Breakdown',
+        'hall_breakdown' => 'Hall Breakdown',
+        'slot_breakdown' => 'Time Slot Analysis',
+        'comparison' => 'Comparison',
+
+        // Stats
+        'total_bookings' => 'Total Bookings',
+        'gross_revenue' => 'Gross Revenue',
+        'hall_revenue' => 'Hall Revenue',
+        'services_revenue' => 'Services Revenue',
+        'total_commission' => 'Total Commission',
+        'net_earnings' => 'Net Earnings',
+        'avg_per_booking' => 'Average Per Booking',
+        'best_month' => 'Best Month',
+        'avg_monthly' => 'Monthly Average',
+        'year_total' => 'Year Total',
+
+        // Comparison
+        'current_month' => 'Current Month',
+        'previous_month' => 'Previous Month',
+        'change' => 'Change',
+        'increase' => 'Increase',
+        'decrease' => 'Decrease',
+        'no_change' => 'No Change',
+
+        // Messages
+        'report_generated' => 'Report generated successfully!',
+        'export_success' => 'PDF exported successfully.',
+        'no_data' => 'No data available for the selected period.',
+        'type' => 'Type',
+        'year' => 'Year',
+        'month' => 'Month',
+        'commission' => 'Commission',
+        'daily_revenue' => 'Daily Revenue',
+        'bookings'=> 'Bookings',
+        'export_failed' => 'PDF export failed.',
+        'monthly_revenue' => 'Monthly Revenue',
+        'gross'=> 'Gross',
+        'net' => 'Net',
+        'total' => 'Total',
+        'payout_summary' => 'Payout Summary',
+        'pending' => 'Pending',
+        'difference' => 'Difference',
+        'total_received' => 'Total Received',
+        'payouts' => 'Payouts',
+        'bookings_change' => 'bookings compared to previous month',
+        'revenue_change' => 'revenue compared to previous month',
+        'earnings_change' => 'earnings compared to previous month',
+        'month_over_month' => 'Month-over-Month',
+    ],
+
+    // Common
+    'months' => [
+        'january' => 'January',
+        'february' => 'February',
+        'march' => 'March',
+        'april' => 'April',
+        'may' => 'May',
+        'june' => 'June',
+        'july' => 'July',
+        'august' => 'August',
+        'september' => 'September',
+        'october' => 'October',
+        'november' => 'November',
+        'december' => 'December',
+    ],
+
 ];
