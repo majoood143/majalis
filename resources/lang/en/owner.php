@@ -297,6 +297,7 @@ return [
             'description_en' => 'Description (English)',
             'description_ar' => 'Description (Arabic)',
             'city' => 'City',
+            'owner' => 'Owner',
             'slug' => 'URL Slug',
             'address_en' => 'Address (English)',
             'address_ar' => 'Address (Arabic)',
