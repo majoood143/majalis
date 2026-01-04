@@ -6,24 +6,20 @@ namespace App\Filament\Admin\Resources\PayoutResource\Pages;
 
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource;
-use App\Services\PayoutReceiptService;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * ViewPayout Page
  *
  * Displays detailed payout information with workflow actions.
- * Automatically generates receipt PDF when payout is completed.
  *
  * @package App\Filament\Admin\Resources\PayoutResource\Pages
  */
-class ViewPayout extends ViewRecord
+class ViewPayout1 extends ViewRecord
 {
     /**
      * The resource this page belongs to.
@@ -76,7 +72,7 @@ class ViewPayout extends ViewRecord
                     }
                 }),
 
-            // Complete Action - WITH PDF GENERATION
+            // Complete Action
             Actions\Action::make('complete')
                 ->label(__('admin.payout.actions.complete'))
                 ->icon('heroicon-o-check-circle')
@@ -108,64 +104,25 @@ class ViewPayout extends ViewRecord
                 ]))
                 ->visible(fn () => $this->record->status === PayoutStatus::PROCESSING)
                 ->action(function (array $data): void {
-                    // Mark payout as completed
                     if ($this->record->markAsCompleted(
                         $data['transaction_reference'],
                         $data['payment_method']
                     )) {
-                        // Generate receipt PDF
-                        try {
-                            /** @var PayoutReceiptService $receiptService */
-                            $receiptService = app(PayoutReceiptService::class);
-                            $receiptPath = $receiptService->generateReceipt($this->record);
-
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.completed'))
-                                ->body(__('admin.payout.notifications.completed_body', [
-                                    'amount' => number_format((float) $this->record->net_payout, 3),
-                                    'owner' => $this->record->owner->name,
-                                ]))
-                                ->success()
-                                ->duration(5000)
-                                ->send();
-
-                            // Additional notification for receipt
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.receipt_generated'))
-                                ->body(__('admin.payout.notifications.receipt_generated_body'))
-                                ->success()
-                                ->send();
-
-                        } catch (\Exception $e) {
-                            // Log error but don't fail the completion
-                            Log::error('Failed to generate payout receipt', [
-                                'payout_id' => $this->record->id,
-                                'error' => $e->getMessage(),
-                            ]);
-
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.completed'))
-                                ->body(__('admin.payout.notifications.completed_body', [
-                                    'amount' => number_format((float) $this->record->net_payout, 3),
-                                    'owner' => $this->record->owner->name,
-                                ]))
-                                ->success()
-                                ->send();
-
-                            // Warning about receipt generation failure
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.receipt_failed'))
-                                ->body(__('admin.payout.notifications.receipt_failed_body'))
-                                ->warning()
-                                ->send();
-                        }
+                        Notification::make()
+                            ->title(__('admin.payout.notifications.completed'))
+                            ->body(__('admin.payout.notifications.completed_body', [
+                                'amount' => number_format((float) $this->record->net_payout, 3),
+                                'owner' => $this->record->owner->name,
+                            ]))
+                            ->success()
+                            ->duration(5000)
+                            ->send();
 
                         $this->refreshFormData([
                             'status',
                             'completed_at',
                             'payment_method',
                             'transaction_reference',
-                            'receipt_path',
                         ]);
                     }
                 }),
@@ -249,65 +206,37 @@ class ViewPayout extends ViewRecord
                     }
                 }),
 
-            // Download Receipt Action
+            // Print Receipt Action
+            Actions\Action::make('print_receipt')
+                ->label(__('admin.payout.actions.print'))
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->visible(fn () => $this->record->status === PayoutStatus::COMPLETED)
+                ->url(fn () => route('admin.payout.receipt', $this->record))
+                ->openUrlInNewTab(),
+
+            // Download Receipt Action - Fixed without named route
             Actions\Action::make('downloadReceipt')
-                ->label(__('admin.payout.actions.download_receipt'))
+                ->label(__('admin.payout.download_receipt'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
-                ->visible(fn (): bool => $this->record->status === PayoutStatus::COMPLETED
+                ->visible(fn(): bool => $this->record->status === \App\Enums\PayoutStatus::COMPLETED
                     && !empty($this->record->receipt_path))
                 ->action(function () {
                     // Check if file exists in storage
-                    if (Storage::disk('public')->exists($this->record->receipt_path)) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->record->receipt_path)) {
                         // Return download response
                         return response()->download(
-                            Storage::disk('public')->path($this->record->receipt_path),
+                            \Illuminate\Support\Facades\Storage::disk('public')->path($this->record->receipt_path),
                             "payout-receipt-{$this->record->payout_number}.pdf"
                         );
                     }
 
                     // File not found notification
-                    Notification::make()
+                    \Filament\Notifications\Notification::make()
                         ->warning()
-                        ->title(__('admin.payout.notifications.receipt_not_found'))
-                        ->body(__('admin.payout.notifications.receipt_not_found_body'))
+                        ->title(__('admin.payout.receipt_not_found'))
                         ->send();
-                }),
-
-            // Regenerate Receipt Action
-            Actions\Action::make('regenerateReceipt')
-                ->label(__('admin.payout.actions.regenerate_receipt'))
-                ->icon('heroicon-o-arrow-path')
-                ->color('gray')
-                ->requiresConfirmation()
-                ->modalHeading(__('admin.payout.modal.regenerate_receipt_title'))
-                ->modalDescription(__('admin.payout.modal.regenerate_receipt_desc'))
-                ->visible(fn (): bool => $this->record->status === PayoutStatus::COMPLETED)
-                ->action(function (): void {
-                    try {
-                        /** @var PayoutReceiptService $receiptService */
-                        $receiptService = app(PayoutReceiptService::class);
-                        $receiptPath = $receiptService->regenerateReceipt($this->record);
-
-                        Notification::make()
-                            ->success()
-                            ->title(__('admin.payout.notifications.receipt_regenerated'))
-                            ->body(__('admin.payout.notifications.receipt_regenerated_body'))
-                            ->send();
-
-                        $this->refreshFormData(['receipt_path']);
-                    } catch (\Exception $e) {
-                        Log::error('Failed to regenerate payout receipt', [
-                            'payout_id' => $this->record->id,
-                            'error' => $e->getMessage(),
-                        ]);
-
-                        Notification::make()
-                            ->danger()
-                            ->title(__('admin.payout.notifications.receipt_failed'))
-                            ->body($e->getMessage())
-                            ->send();
-                    }
                 }),
 
             // Delete Action

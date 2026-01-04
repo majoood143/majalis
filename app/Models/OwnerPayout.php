@@ -290,6 +290,20 @@ class OwnerPayout extends Model
     }
 
     /**
+     * Check if payout can be cancelled.
+     *
+     * Delegates to the PayoutStatus enum to determine if the current
+     * status allows cancellation. Only PENDING and ON_HOLD payouts
+     * can be cancelled.
+     *
+     * @return bool True if payout can be cancelled
+     */
+    public function canCancel(): bool
+    {
+        return $this->status->canCancel();
+    }
+
+    /**
      * Mark payout as processing.
      *
      * @param int|null $processedBy Admin user ID
@@ -520,4 +534,6 @@ class OwnerPayout extends Model
     {
         return $this->period_start->format('M d, Y') . ' - ' . $this->period_end->format('M d, Y');
     }
+
+
 }

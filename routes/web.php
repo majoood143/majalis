@@ -4,8 +4,10 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Models\Booking;
+use App\Models\OwnerPayout;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\PageController;
 
@@ -283,6 +285,43 @@ Route::get('/test-native-curl', function () {
         'curl_info' => $curlInfo,
     ], 200, [], JSON_PRETTY_PRINT);
 });
+
+// Admin Payout Receipt Download/Print Route
+Route::get('/admin/payout/{payout}/receipt', function ($payout) {
+    // Handle both model instance and ID
+    if (!$payout instanceof OwnerPayout) {
+        $payout = OwnerPayout::withTrashed()->find($payout);
+    }
+
+    // Check if payout exists
+    if (!$payout) {
+        Log::error('Payout not found', ['payout_id' => request()->route('payout')]);
+        abort(404, 'Payout not found.');
+    }
+
+    // Check if receipt path exists
+    if (empty($payout->receipt_path)) {
+        Log::warning('Receipt path is empty', ['payout_id' => $payout->id]);
+        abort(404, 'Receipt has not been generated yet.');
+    }
+
+    // Check if file exists in storage
+    if (!Storage::disk('public')->exists($payout->receipt_path)) {
+        Log::warning('Receipt file not found in storage', [
+            'payout_id' => $payout->id,
+            'path' => $payout->receipt_path,
+        ]);
+        abort(404, 'Receipt file not found in storage.');
+    }
+
+    // Return file download
+    return Storage::disk('public')->download(
+        $payout->receipt_path,
+        "payout-receipt-{$payout->payout_number}.pdf"
+    );
+})
+    ->name('admin.payout.receipt')
+    ->middleware(['web', 'auth']);
 
 Route::get('/diagnose-payment', function () {
     $diagnostics = [];

@@ -56,7 +56,7 @@ use Illuminate\Support\Facades\Log;
  * @property-read User|null $processor
  * @property-read HallOwner|null $hallOwner
  */
-class OwnerPayout extends Model
+class OwnerPayout1 extends Model
 {
     use HasFactory;
     use SoftDeletes;

@@ -18,7 +18,7 @@ namespace App\Enums;
  *
  * @package App\Enums
  */
-enum PayoutStatus: string
+enum PayoutStatus1: string
 {
     /**
      * Payout is pending processing.
