@@ -468,6 +468,7 @@ return [
             'status' => 'Status',
             'active' => 'Active Only',
             'inactive' => 'Inactive Only',
+            'owner' => 'Owner',
         ],
 
         // Actions

@@ -454,4 +454,45 @@ class Booking extends Model
             ->where('balance_due', '>', 0)
             ->whereNull('balance_paid_at');
     }
+
+    /**
+     * Check if this booking uses advance payment.
+     *
+     * @return bool True if advance payment was used
+     */
+    public function isAdvancePayment(): bool
+    {
+        return $this->payment_type === 'advance';
+    }
+
+    /**
+     * Check if balance payment is pending.
+     *
+     * @return bool True if advance paid but balance still due
+     */
+    public function isBalancePending(): bool
+    {
+        return $this->isAdvancePayment()
+            && $this->balance_due > 0
+            && $this->balance_paid_at === null;
+    }
+
+    /**
+     * Check if this booking is fully paid.
+     *
+     * @return bool True if payment_status is 'paid' and no balance due
+     */
+    public function isFullyPaid(): bool
+    {
+        if ($this->payment_status !== 'paid') {
+            return false;
+        }
+
+        // If it's an advance payment, check if balance is also paid
+        if ($this->isAdvancePayment()) {
+            return $this->balance_paid_at !== null;
+        }
+
+        return true;
+    }
 }

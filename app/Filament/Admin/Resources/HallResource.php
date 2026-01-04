@@ -633,7 +633,7 @@ class HallResource extends Resource
 
                 // Owner name
                 Tables\Columns\TextColumn::make('owner.name')
-                    ->label(__('owner'))
+                    //->label(__('fileds.owner'))
                     ->sortable()
                     ->searchable(),
 
@@ -701,7 +701,7 @@ class HallResource extends Resource
 
                 // Owner filter
                 Tables\Filters\SelectFilter::make('owner_id')
-                    ->label(__('owner'))
+                    //->label(__('filters.owner'))
                     ->relationship('owner', 'name')
                     ->searchable()
                     ->preload(),
