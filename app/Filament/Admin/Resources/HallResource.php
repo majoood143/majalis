@@ -31,11 +31,20 @@ use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Filament\Traits\HasTranslations;
 use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Support\Facades\Log;
 
 class HallResource extends Resource
 {
+
+    use HasTranslations;
+
+    // ✅ Use METHOD override (not property) - avoids PHP trait conflicts
+    protected static function getTranslationNamespace(): string
+    {
+        return 'admin';
+    }
     /**
      * The Eloquent model associated with this resource.
      */
@@ -55,6 +64,9 @@ class HallResource extends Resource
      * Sort order in the navigation menu.
      */
     protected static ?int $navigationSort = 1;
+
+    // Specify the translation file namespace
+    protected static ?string $translationNamespace = 'admin';
 
     /**
      * Default coordinates for Oman (Muscat).
@@ -99,7 +111,7 @@ class HallResource extends Resource
 
                                 // Owner selection (only hall owners)
                                 Forms\Components\Select::make('owner_id')
-                                    ->label(__('Owner'))
+                                    ->label(__('fields.owner'))
                                     ->options(User::where('role', 'hall_owner')->pluck('name', 'id'))
                                     ->required()
                                     ->searchable()
@@ -701,7 +713,7 @@ class HallResource extends Resource
 
                 // Owner filter
                 Tables\Filters\SelectFilter::make('owner_id')
-                    //->label(__('filters.owner'))
+                    ->label(__('fields.owner'))
                     ->relationship('owner', 'name')
                     ->searchable()
                     ->preload(),

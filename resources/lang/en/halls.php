@@ -66,6 +66,7 @@ return [
     'phone' => 'Phone',
     'email' => 'Email',
     'not_available' => 'N/A',
+    'owner' => 'Owner',
 
 
     // Booking Page

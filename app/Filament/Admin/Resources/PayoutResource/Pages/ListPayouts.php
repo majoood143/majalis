@@ -16,6 +16,7 @@ use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 
 /**
  * ListPayouts Page
@@ -297,7 +298,7 @@ class ListPayouts extends ListRecords
                 OwnerPayout::createForPeriod($owner->id, $periodStart, $periodEnd);
                 $generated++;
             } catch (\Exception $e) {
-                \Log::error('Failed to generate payout', [
+                Log::error('Failed to generate payout', [
                     'owner_id' => $owner->id,
                     'period' => [$periodStart, $periodEnd],
                     'error' => $e->getMessage(),
