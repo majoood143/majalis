@@ -143,6 +143,8 @@ return [
             'generate_title' => 'Generate Payouts',
             'generate_desc' => 'Generate payout records for owners based on completed bookings.',
             'generate_confirm' => 'Generate Payouts',
+            'regenerate_receipt_title' => 'Regenerate Receipt?',
+            'regenerate_receipt_desc' => 'This will delete the existing receipt and generate a new one. Continue?',
         ],
 
         // Notifications
@@ -173,6 +175,14 @@ return [
             'no_bookings' => 'No Bookings Found',
             'no_bookings_body' => 'No paid bookings found for this owner in the selected period.',
             'export_started' => 'Export Started',
+            'receipt_generated' => 'Receipt Generated',
+            'receipt_generated_body' => 'The payout receipt PDF has been created and saved.',
+            'receipt_failed' => 'Receipt Generation Warning',
+            'receipt_failed_body' => 'Payout completed but receipt generation failed. You can regenerate it later.',
+            'receipt_regenerated' => 'Receipt Regenerated',
+            'receipt_regenerated_body' => 'The payout receipt has been regenerated successfully.',
+            'receipt_not_found' => 'Receipt Not Found',
+            'receipt_not_found_body' => 'The receipt file could not be found. Try regenerating it.',
         ],
 
         // Stats widget
@@ -268,6 +278,8 @@ return [
             'export_csv' => 'Export CSV',
             'export_pdf' => 'Export PDF',
             'print' => 'Print',
+            'download_receipt' => 'Download Receipt',
+            'regenerate_receipt' => 'Regenerate Receipt',
         ],
 
         // Export

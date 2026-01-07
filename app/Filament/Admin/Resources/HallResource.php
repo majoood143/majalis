@@ -111,7 +111,7 @@ class HallResource extends Resource
 
                                 // Owner selection (only hall owners)
                                 Forms\Components\Select::make('owner_id')
-                                    ->label(__('fields.owner'))
+                                    //->label(__('owner'))
                                     ->options(User::where('role', 'hall_owner')->pluck('name', 'id'))
                                     ->required()
                                     ->searchable()
@@ -645,7 +645,7 @@ class HallResource extends Resource
 
                 // Owner name
                 Tables\Columns\TextColumn::make('owner.name')
-                    //->label(__('fileds.owner'))
+                    ->label(__('admin.reports.table.owner'))
                     ->sortable()
                     ->searchable(),
 
