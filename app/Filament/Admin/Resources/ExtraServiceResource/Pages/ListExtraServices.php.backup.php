@@ -21,83 +21,74 @@ class ListExtraServices extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-o-plus')
-                ->color('primary')
-                ->label(__('extra-service.actions.create')),
+                ->color('primary'),
 
             Actions\Action::make('exportServices')
-                ->label(__('extra-service.actions.export'))
+                ->label('Export Services')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(fn() => $this->exportServices())
                 ->requiresConfirmation()
-                ->modalHeading(__('extra-service.actions.export_modal.heading'))
-                ->modalDescription(__('extra-service.actions.export_modal.description'))
-                ->modalSubmitActionLabel(__('extra-service.actions.export_modal.submit_label')),
+                ->modalHeading('Export Extra Services')
+                ->modalDescription('Export all extra services data to CSV.')
+                ->modalSubmitActionLabel('Export'),
 
             Actions\Action::make('bulkPriceUpdate')
-                ->label(__('extra-service.actions.bulk_price_update'))
+                ->label('Bulk Price Update')
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
                 ->form([
                     \Filament\Forms\Components\Select::make('update_type')
-                        ->label(__('extra-service.actions.bulk_price_update_modal.update_type'))
+                        ->label('Update Type')
                         ->options([
-                            'percentage_increase' => __('extra-service.actions.bulk_price_update_modal.update_type_options.percentage_increase'),
-                            'percentage_decrease' => __('extra-service.actions.bulk_price_update_modal.update_type_options.percentage_decrease'),
-                            'fixed_increase' => __('extra-service.actions.bulk_price_update_modal.update_type_options.fixed_increase'),
-                            'fixed_decrease' => __('extra-service.actions.bulk_price_update_modal.update_type_options.fixed_decrease'),
+                            'percentage_increase' => 'Percentage Increase',
+                            'percentage_decrease' => 'Percentage Decrease',
+                            'fixed_increase' => 'Fixed Amount Increase',
+                            'fixed_decrease' => 'Fixed Amount Decrease',
                         ])
                         ->required()
                         ->reactive(),
 
                     \Filament\Forms\Components\TextInput::make('value')
-                        ->label(function ($get) {
-                            $updateType = $get('update_type') ?? '';
-                            $label = __('extra-service.actions.bulk_price_update_modal.value');
-                            
-                            if (str_contains($updateType, 'percentage')) {
-                                return $label . ' (%)';
-                            }
-                            
-                            return $label . ' (OMR)';
-                        })
+                        ->label(fn($get) => str_contains($get('update_type') ?? '', 'percentage') ? 'Percentage (%)' : 'Amount (OMR)')
                         ->numeric()
                         ->required()
                         ->minValue(0)
                         ->step(0.001),
 
                     \Filament\Forms\Components\Select::make('hall_id')
-                        ->label(__('extra-service.actions.bulk_price_update_modal.hall_optional'))
+                        ->label('Apply to Hall (Optional)')
                         ->options(\App\Models\Hall::where('is_active', true)->get()->pluck('name', 'id'))
+                        //->options(\App\Models\Hall::pluck('name', 'id'))
                         ->searchable()
                         ->preload()
-                        ->helperText(__('extra-service.actions.bulk_price_update_modal.hall_helper')),
+                        ->helperText('Leave empty to apply to all halls'),
                 ])
                 ->action(function (array $data) {
                     $this->bulkUpdatePrices($data);
                 }),
 
             Actions\Action::make('duplicateServices')
-                ->label(__('extra-service.actions.duplicate_services'))
+                ->label('Duplicate to Another Hall')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('info')
                 ->form([
                     \Filament\Forms\Components\Select::make('source_hall_id')
-                        ->label(__('extra-service.actions.duplicate_services_modal.source_hall'))
+                        ->label('Source Hall')
                         ->options(\App\Models\Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
                     \Filament\Forms\Components\Select::make('target_hall_id')
-                        ->label(__('extra-service.actions.duplicate_services_modal.target_hall'))
+                        ->label('Target Hall')
                         ->options(\App\Models\Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
                     \Filament\Forms\Components\Checkbox::make('copy_inactive')
-                        ->label(__('extra-service.actions.duplicate_services_modal.copy_inactive'))
+                        ->label('Include Inactive Services')
                         ->default(false),
                 ])
                 ->action(function (array $data) {
@@ -109,59 +100,59 @@ class ListExtraServices extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('extra-service.tabs.all'))
+            'all' => Tab::make('All Services')
                 ->icon('heroicon-o-squares-2x2')
                 ->badge(fn() => \App\Models\ExtraService::count()),
 
-            'active' => Tab::make(__('extra-service.tabs.active'))
+            'active' => Tab::make('Active')
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
                 ->badge(fn() => \App\Models\ExtraService::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('extra-service.tabs.inactive'))
+            'inactive' => Tab::make('Inactive')
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
                 ->badge(fn() => \App\Models\ExtraService::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'required' => Tab::make(__('extra-service.tabs.required'))
+            'required' => Tab::make('Required Services')
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_required', true))
                 ->badge(fn() => \App\Models\ExtraService::where('is_required', true)->count())
                 ->badgeColor('warning'),
 
-            'per_person' => Tab::make(__('extra-service.tabs.per_person'))
+            'per_person' => Tab::make('Per Person')
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'per_person'))
                 ->badge(fn() => \App\Models\ExtraService::where('unit', 'per_person')->count())
                 ->badgeColor('info'),
 
-            'per_item' => Tab::make(__('extra-service.tabs.per_item'))
+            'per_item' => Tab::make('Per Item')
                 ->icon('heroicon-o-cube')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'per_item'))
                 ->badge(fn() => \App\Models\ExtraService::where('unit', 'per_item')->count())
                 ->badgeColor('info'),
 
-            'per_hour' => Tab::make(__('extra-service.tabs.per_hour'))
+            'per_hour' => Tab::make('Per Hour')
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'per_hour'))
                 ->badge(fn() => \App\Models\ExtraService::where('unit', 'per_hour')->count())
                 ->badgeColor('info'),
 
-            'fixed' => Tab::make(__('extra-service.tabs.fixed'))
+            'fixed' => Tab::make('Fixed Price')
                 ->icon('heroicon-o-banknotes')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'fixed'))
                 ->badge(fn() => \App\Models\ExtraService::where('unit', 'fixed')->count())
                 ->badgeColor('success'),
 
-            'with_image' => Tab::make(__('extra-service.tabs.with_image'))
+            'with_image' => Tab::make('With Images')
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('image'))
                 ->badge(fn() => \App\Models\ExtraService::whereNotNull('image')->count())
                 ->badgeColor('purple'),
 
-            'without_image' => Tab::make(__('extra-service.tabs.without_image'))
+            'without_image' => Tab::make('Without Images')
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('image'))
                 ->badge(fn() => \App\Models\ExtraService::whereNull('image')->count())
@@ -183,27 +174,27 @@ class ListExtraServices extends ListRecords
         $file = fopen($path, 'w');
 
         fputcsv($file, [
-            __('extra-service.export_headers.id'),
-            __('extra-service.export_headers.hall'),
-            __('extra-service.export_headers.name_en'),
-            __('extra-service.export_headers.name_ar'),
-            __('extra-service.export_headers.description_en'),
-            __('extra-service.export_headers.description_ar'),
-            __('extra-service.export_headers.price'),
-            __('extra-service.export_headers.unit'),
-            __('extra-service.export_headers.min_quantity'),
-            __('extra-service.export_headers.max_quantity'),
-            __('extra-service.export_headers.required'),
-            __('extra-service.export_headers.active'),
-            __('extra-service.export_headers.order'),
-            __('extra-service.export_headers.has_image'),
-            __('extra-service.export_headers.created_at'),
+            'ID',
+            'Hall',
+            'Name (EN)',
+            'Name (AR)',
+            'Description (EN)',
+            'Description (AR)',
+            'Price (OMR)',
+            'Unit',
+            'Min Quantity',
+            'Max Quantity',
+            'Required',
+            'Active',
+            'Order',
+            'Has Image',
+            'Created At',
         ]);
 
         foreach ($services as $service) {
             fputcsv($file, [
                 $service->id,
-                $service->hall->name ?? __('extra-service.export_values.n_a'),
+                $service->hall->name ?? 'N/A',
                 $service->getTranslation('name', 'en'),
                 $service->getTranslation('name', 'ar'),
                 strip_tags($service->getTranslation('description', 'en')),
@@ -211,11 +202,11 @@ class ListExtraServices extends ListRecords
                 number_format($service->price, 3),
                 ucfirst(str_replace('_', ' ', $service->unit)),
                 $service->minimum_quantity,
-                $service->maximum_quantity ?? __('extra-service.export_values.unlimited'),
-                $service->is_required ? __('extra-service.export_values.yes') : __('extra-service.export_values.no'),
-                $service->is_active ? __('extra-service.export_values.yes') : __('extra-service.export_values.no'),
+                $service->maximum_quantity ?? 'Unlimited',
+                $service->is_required ? 'Yes' : 'No',
+                $service->is_active ? 'Yes' : 'No',
                 $service->order,
-                $service->image ? __('extra-service.export_values.yes') : __('extra-service.export_values.no'),
+                $service->image ? 'Yes' : 'No',
                 $service->created_at->format('Y-m-d H:i:s'),
             ]);
         }
@@ -223,13 +214,13 @@ class ListExtraServices extends ListRecords
         fclose($file);
 
         Notification::make()
-            ->title(__('extra-service.notifications.export_successful'))
+            ->title('Export Successful')
             ->success()
-            ->body(__('extra-service.notifications.export_body'))
+            ->body('Extra services exported successfully.')
             ->persistent()
             ->actions([
                 \Filament\Notifications\Actions\Action::make('download')
-                    ->label(__('extra-service.notifications.download'))
+                    ->label('Download File')
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),
             ])
@@ -284,8 +275,8 @@ class ListExtraServices extends ListRecords
 
         Notification::make()
             ->success()
-            ->title(__('extra-service.notifications.prices_updated'))
-            ->body(__('extra-service.notifications.services_updated', ['count' => $updatedCount]))
+            ->title('Prices Updated')
+            ->body("{$updatedCount} service(s) updated successfully.")
             ->send();
 
         $this->redirect(static::getUrl());
@@ -318,8 +309,8 @@ class ListExtraServices extends ListRecords
 
         Notification::make()
             ->success()
-            ->title(__('extra-service.notifications.services_duplicated'))
-            ->body(__('extra-service.notifications.services_duplicated_body', ['count' => $duplicatedCount]))
+            ->title('Services Duplicated')
+            ->body("{$duplicatedCount} service(s) duplicated successfully.")
             ->send();
 
         $this->redirect(static::getUrl());

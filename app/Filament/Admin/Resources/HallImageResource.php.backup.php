@@ -24,47 +24,31 @@ class HallImageResource extends Resource
 
     protected static ?string $label = 'Hall Image';
 
-    public static function getModelLabel(): string
-    {
-        return __('hall-image.singular');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('hall-image.plural');
-    }
-
-    public static function getNavigationLabel(): string
-    {
-        return __('hall-image.navigation_label');
-    }
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make(__('hall-image.image_information'))
+                Forms\Components\Section::make('Image Information')
                     ->schema([
                         Forms\Components\Select::make('hall_id')
-                            ->label(__('hall-image.hall'))
+                            ->label('Hall')
                             ->options(Hall::all()->pluck('name', 'id'))
                             ->required()
                             ->searchable()
                             ->preload(),
 
                         Forms\Components\Select::make('type')
-                            ->label(__('hall-image.type'))
                             ->options([
-                                'gallery' => __('hall-image.types.gallery'),
-                                'featured' => __('hall-image.types.featured'),
-                                'floor_plan' => __('hall-image.types.floor_plan'),
-                                '360_view' => __('hall-image.types.360_view'),
+                                'gallery' => 'Gallery Image',
+                                'featured' => 'Featured Image',
+                                'floor_plan' => 'Floor Plan',
+                                '360_view' => '360° View',
                             ])
                             ->default('gallery')
                             ->required(),
 
                         Forms\Components\FileUpload::make('image_path')
-                            ->label(__('hall-image.image_path'))
+                            ->label('Image')
                             ->image()
                             ->directory('halls/images')
                             ->required()
@@ -72,50 +56,47 @@ class HallImageResource extends Resource
                             ->imageEditor(),
 
                         Forms\Components\FileUpload::make('thumbnail_path')
-                            ->label(__('hall-image.thumbnail_path'))
+                            ->label('Thumbnail (Optional)')
                             ->image()
                             ->directory('halls/thumbnails')
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('hall-image.image_details'))
+                Forms\Components\Section::make('Image Details')
                     ->schema([
                         Forms\Components\TextInput::make('title.en')
-                            ->label(__('hall-image.title_en'))
+                            ->label('Title (English)')
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('title.ar')
-                            ->label(__('hall-image.title_ar'))
+                            ->label('Title (Arabic)')
                             ->maxLength(255),
 
                         Forms\Components\Textarea::make('caption.en')
-                            ->label(__('hall-image.caption_en'))
+                            ->label('Caption (English)')
                             ->rows(2),
 
                         Forms\Components\Textarea::make('caption.ar')
-                            ->label(__('hall-image.caption_ar'))
+                            ->label('Caption (Arabic)')
                             ->rows(2),
 
                         Forms\Components\TextInput::make('alt_text')
-                            ->label(__('hall-image.alt_text'))
+                            ->label('Alt Text (for SEO)')
                             ->maxLength(255),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('hall-image.settings'))
+                Forms\Components\Section::make('Settings')
                     ->schema([
                         Forms\Components\TextInput::make('order')
-                            ->label(__('hall-image.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
                         Forms\Components\Toggle::make('is_active')
-                            ->label(__('hall-image.is_active'))
                             ->default(true)
                             ->inline(false),
 
                         Forms\Components\Toggle::make('is_featured')
-                            ->label(__('hall-image.is_featured'))
                             ->inline(false),
                     ])->columns(3),
             ]);
@@ -126,86 +107,71 @@ class HallImageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image_path')
-                    ->label(__('hall-image.image'))
+                    ->label('Image')
                     ->size(80),
 
                 Tables\Columns\TextColumn::make('hall.name')
-                    ->label(__('hall-image.hall_name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->hall->name),
 
                 Tables\Columns\TextColumn::make('type')
-                    ->label(__('hall-image.type'))
                     ->badge()
-                    ->formatStateUsing(function ($record) {
-                        $typeKey = $record->type;
-                        $translations = __('hall-image.types');
-                        return $translations[$typeKey] ?? $typeKey;
-                    })
+                    ->formatStateUsing(fn($record) => $record->type_label)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->label(__('hall-image.title'))
                     ->searchable()
                     ->limit(30)
-                    ->formatStateUsing(fn($record) => $record->title ?: __('hall-image.no_title')),
+                    ->formatStateUsing(fn($record) => $record->title ?: '-'),
 
                 Tables\Columns\TextColumn::make('formatted_size')
-                    ->label(__('hall-image.size'))
+                    ->label('Size')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('dimensions')
-                    ->label(__('hall-image.dimensions'))
                     ->toggleable(),
 
                 Tables\Columns\IconColumn::make('is_featured')
-                    ->label(__('hall-image.featured'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label(__('hall-image.active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('order')
-                    ->label(__('hall-image.order'))
                     ->sortable()
                     ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('hall_id')
-                    ->label(__('hall-image.filters.hall'))
                     ->relationship('hall', 'name')
                     ->searchable()
                     ->preload(),
 
                 Tables\Filters\SelectFilter::make('type')
-                    ->label(__('hall-image.filters.type'))
                     ->options([
-                        'gallery' => __('hall-image.types.gallery'),
-                        'featured' => __('hall-image.types.featured'),
-                        'floor_plan' => __('hall-image.types.floor_plan'),
-                        '360_view' => __('hall-image.types.360_view'),
+                        'gallery' => 'Gallery Image',
+                        'featured' => 'Featured Image',
+                        'floor_plan' => 'Floor Plan',
+                        '360_view' => '360° View',
                     ]),
 
                 Tables\Filters\TernaryFilter::make('is_featured')
-                    ->label(__('hall-image.filters.featured'))
+                    ->label('Featured')
                     ->boolean()
                     ->native(false),
 
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label(__('hall-image.filters.active'))
+                    ->label('Active')
                     ->boolean()
                     ->native(false),
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
-                        ->label(__('hall-image.edit')),
-                    Tables\Actions\DeleteAction::make()
-                        ->label(__('hall-image.delete')),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
                 ])
             ])
             ->bulkActions([

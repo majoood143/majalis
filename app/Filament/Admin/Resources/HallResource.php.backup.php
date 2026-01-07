@@ -86,17 +86,17 @@ class HallResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Tabs::make(__('admin.hall_information'))
+                Forms\Components\Tabs::make('Hall Information')
                     ->tabs([
                         // =============================================
                         // TAB 1: Basic Information
                         // =============================================
-                        Forms\Components\Tabs\Tab::make(__('admin.basic_info'))
+                        Forms\Components\Tabs\Tab::make('Basic Info')
                             ->icon('heroicon-o-information-circle')
                             ->schema([
                                 // City selection with localized names
                                 Forms\Components\Select::make('city_id')
-                                    ->label(__('admin.city'))
+                                    ->label(__('City'))
                                     ->relationship('city', 'name')
                                     ->getOptionLabelFromRecordUsing(function ($record) {
                                         $locale = app()->getLocale();
@@ -111,7 +111,7 @@ class HallResource extends Resource
 
                                 // Owner selection (only hall owners)
                                 Forms\Components\Select::make('owner_id')
-                                    ->label(__('admin.owner'))
+                                    ->label(__('admin.reports.table.owner'))
                                     ->options(User::where('role', 'hall_owner')->pluck('name', 'id'))
                                     ->required()
                                     ->searchable()
@@ -120,36 +120,36 @@ class HallResource extends Resource
 
                                 // Bilingual name fields
                                 Forms\Components\TextInput::make('name.en')
-                                    ->label(__('admin.name_english'))
+                                    ->label(__('Name (English)'))
                                     ->required()
                                     ->maxLength(255)
-                                    ->placeholder(__('admin.enter_hall_name_english')),
+                                    ->placeholder('Enter hall name in English'),
 
                                 Forms\Components\TextInput::make('name.ar')
-                                    ->label(__('admin.name_arabic'))
+                                    ->label(__('Name (Arabic)'))
                                     ->required()
                                     ->maxLength(255)
-                                    ->placeholder(__('admin.enter_hall_name_arabic')),
+                                    ->placeholder('أدخل اسم القاعة بالعربية'),
 
                                 // SEO-friendly URL slug
                                 Forms\Components\TextInput::make('slug')
-                                    ->label(__('admin.url_slug'))
+                                    ->label(__('URL Slug'))
                                     ->maxLength(255)
                                     ->unique(ignoreRecord: true)
-                                    ->helperText(__('admin.auto_generate_slug'))
+                                    ->helperText(__('Leave empty to auto-generate from English name'))
                                     ->prefix(config('app.url') . '/halls/'),
 
                                 Forms\Components\TextInput::make('area')
-                                    ->label(__('admin.area'))
+                                    ->label(__('area'))
                                     ->numeric()
                                     ->required()
                                     ->minValue(0)
-                                    ->suffix(__('admin.sqm'))
-                                    ->placeholder(__('admin.enter_capacity_example')),
+                                    ->suffix(__('sqm'))
+                                    ->placeholder('e.g., 50'),
 
                                 // Rich text descriptions (bilingual)
                                 Forms\Components\RichEditor::make('description.en')
-                                    ->label(__('admin.description_english'))
+                                    ->label(__('Description (English)'))
                                     ->required()
                                     ->columnSpanFull()
                                     ->toolbarButtons([
@@ -167,7 +167,7 @@ class HallResource extends Resource
                                     ]),
 
                                 Forms\Components\RichEditor::make('description.ar')
-                                    ->label(__('admin.description_arabic'))
+                                    ->label(__('Description (Arabic)'))
                                     ->required()
                                     ->columnSpanFull()
                                     ->toolbarButtons([
@@ -186,29 +186,29 @@ class HallResource extends Resource
                             ])->columns(2),
 
 
-                        // ========== ADVANCE PAYMENT TAB ==========
-                        Forms\Components\Tabs\Tab::make(__('admin.advance_payment'))
+                        // ========== ADD THIS TAB HERE ==========
+                        Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
                             ->icon('heroicon-o-currency-dollar')
                             ->schema([
-                                Forms\Components\Section::make(__('admin.advance_payment_settings'))
-                                    ->description(__('admin.advance_payment_explanation'))
+                                Forms\Components\Section::make(__('advance_payment.advance_payment_settings'))
+                                    ->description(__('advance_payment.advance_payment_explanation'))
                                     ->schema([
 
                                         // Enable/Disable Toggle
                                         Forms\Components\Toggle::make('allows_advance_payment')
-                                            ->label(__('admin.allows_advance_payment'))
-                                            ->helperText(__('admin.allows_advance_payment_help'))
+                                            ->label(__('advance_payment.allows_advance_payment'))
+                                            ->helperText(__('advance_payment.allows_advance_payment_help'))
                                             ->reactive()
                                             ->default(false)
                                             ->columnSpanFull(),
 
                                         // Advance Payment Type Selection
                                         Forms\Components\Radio::make('advance_payment_type')
-                                            ->label(__('admin.advance_payment_type'))
-                                            ->helperText(__('admin.advance_payment_type_help'))
+                                            ->label(__('advance_payment.advance_payment_type'))
+                                            ->helperText(__('advance_payment.advance_payment_type_help'))
                                             ->options([
-                                                'fixed' => __('admin.advance_type_fixed'),
-                                                'percentage' => __('admin.advance_type_percentage'),
+                                                'fixed' => __('advance_payment.advance_type_fixed'),
+                                                'percentage' => __('advance_payment.advance_type_percentage'),
                                             ])
                                             ->default('percentage')
                                             ->reactive()
@@ -218,13 +218,13 @@ class HallResource extends Resource
 
                                         // Fixed Amount Field
                                         Forms\Components\TextInput::make('advance_payment_amount')
-                                            ->label(__('admin.advance_payment_amount'))
-                                            ->helperText(__('admin.advance_payment_amount_help'))
+                                            ->label(__('advance_payment.advance_payment_amount'))
+                                            ->helperText(__('advance_payment.advance_payment_amount_help'))
                                             ->numeric()
                                             ->prefix('OMR')
                                             ->step(0.001)
                                             ->minValue(0)
-                                            ->placeholder(__('admin.advance_payment_amount_placeholder'))
+                                            ->placeholder(__('advance_payment.advance_payment_amount_placeholder'))
                                             ->visible(fn($get) => $get('allows_advance_payment') && $get('advance_payment_type') === 'fixed')
                                             ->required(fn($get) => $get('allows_advance_payment') && $get('advance_payment_type') === 'fixed')
                                             ->rule('min:0.001')
@@ -232,14 +232,14 @@ class HallResource extends Resource
 
                                         // Percentage Field
                                         Forms\Components\TextInput::make('advance_payment_percentage')
-                                            ->label(__('admin.advance_payment_percentage'))
-                                            ->helperText(__('admin.advance_payment_percentage_help'))
+                                            ->label(__('advance_payment.advance_payment_percentage'))
+                                            ->helperText(__('advance_payment.advance_payment_percentage_help'))
                                             ->numeric()
                                             ->suffix('%')
                                             ->step(0.01)
                                             ->minValue(0.01)
                                             ->maxValue(100)
-                                            ->placeholder(__('admin.advance_payment_percentage_placeholder'))
+                                            ->placeholder(__('advance_payment.advance_payment_percentage_placeholder'))
                                             ->visible(fn($get) => $get('allows_advance_payment') && $get('advance_payment_type') === 'percentage')
                                             ->required(fn($get) => $get('allows_advance_payment') && $get('advance_payment_type') === 'percentage')
                                             ->rule('max:100')
@@ -247,20 +247,20 @@ class HallResource extends Resource
 
                                         // Minimum Advance Payment
                                         Forms\Components\TextInput::make('minimum_advance_payment')
-                                            ->label(__('admin.minimum_advance_payment'))
-                                            ->helperText(__('admin.minimum_advance_payment_help'))
+                                            ->label(__('advance_payment.minimum_advance_payment'))
+                                            ->helperText(__('advance_payment.minimum_advance_payment_help'))
                                             ->numeric()
                                             ->prefix('OMR')
                                             ->step(0.001)
                                             ->minValue(0)
-                                            ->placeholder(__('admin.minimum_advance_payment_placeholder'))
+                                            ->placeholder(__('advance_payment.minimum_advance_payment_placeholder'))
                                             ->visible(fn($get) => $get('allows_advance_payment')),
 
                                     ])->columns(2)->collapsible(),
 
                                 // Preview Section
-                                Forms\Components\Section::make(__('admin.advance_payment_preview'))
-                                    ->description(__('admin.advance_payment_preview_help'))
+                                Forms\Components\Section::make(__('advance_payment.advance_payment_preview'))
+                                    ->description(__('advance_payment.advance_payment_preview_help'))
                                     ->schema([
 
                                         Forms\Components\Placeholder::make('advance_preview')
@@ -271,8 +271,8 @@ class HallResource extends Resource
 
                                                 if (!$allowsAdvance) {
                                                     return '<div class="text-sm text-gray-500">'
-                                                        . __('admin.advance_payment') . ' '
-                                                        . __('admin.disabled')
+                                                        . __('advance_payment.advance_payment') . ' '
+                                                        . __('Disabled')
                                                         . '</div>';
                                                 }
 
@@ -309,12 +309,12 @@ class HallResource extends Resource
 
                                                 return '<div class="p-4 space-y-3 border border-blue-200 rounded-lg bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
                             <div class="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                ' . __('admin.preview_for_price', ['price' => number_format($sampleTotal, 3)]) . '
+                                ' . __('advance_payment.preview_for_price', ['price' => number_format($sampleTotal, 3)]) . '
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1">
                                     <div class="text-xs tracking-wide text-blue-700 uppercase dark:text-blue-300">
-                                        ' . __('admin.customer_pays_advance') . '
+                                        ' . __('advance_payment.customer_pays_advance') . '
                                     </div>
                                     <div class="text-2xl font-bold text-blue-900 dark:text-blue-100">
                                         ' . number_format($advanceAmount, 3) . ' <span class="text-sm font-normal">OMR</span>
@@ -322,7 +322,7 @@ class HallResource extends Resource
                                 </div>
                                 <div class="space-y-1">
                                     <div class="text-xs tracking-wide text-blue-700 uppercase dark:text-blue-300">
-                                        ' . __('admin.balance_due_before_event') . '
+                                        ' . __('advance_payment.balance_due_before_event') . '
                                     </div>
                                     <div class="text-2xl font-bold text-blue-900 dark:text-blue-100">
                                         ' . number_format($balance, 3) . ' <span class="text-sm font-normal">OMR</span>
@@ -330,7 +330,7 @@ class HallResource extends Resource
                                 </div>
                             </div>
                             <div class="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                                💡 ' . __('admin.advance_includes_services') . '
+                                💡 ' . __('advance_payment.advance_includes_services') . '
                             </div>
                         </div>';
                                             })
@@ -341,34 +341,41 @@ class HallResource extends Resource
                         // ========================================
 
                         // =============================================
-                        // TAB 3: Location with Interactive Map
+                        // TAB 2: Location with Interactive Map
                         // =============================================
-                        Forms\Components\Tabs\Tab::make(__('admin.location'))
+                        Forms\Components\Tabs\Tab::make('Location')
                             ->icon('heroicon-o-map-pin')
                             ->schema([
                                 // Address textarea
                                 Forms\Components\Textarea::make('address')
-                                    ->label(__('admin.full_address'))
+                                    ->label(__('Full Address'))
                                     ->required()
                                     ->rows(2)
                                     ->columnSpanFull()
-                                    ->placeholder(__('admin.enter_full_address')),
+                                    ->placeholder('Enter the complete street address'),
 
                                 // Localized address fields
                                 Forms\Components\TextInput::make('address_localized.en')
-                                    ->label(__('admin.address_english'))
-                                    ->placeholder(__('admin.enter_address_english')),
+                                    ->label(__('Address (English)'))
+                                    ->placeholder('Address in English'),
 
                                 Forms\Components\TextInput::make('address_localized.ar')
-                                    ->label(__('admin.address_arabic'))
-                                    ->placeholder(__('admin.enter_address_arabic')),
+                                    ->label(__('Address (Arabic)'))
+                                    ->placeholder('العنوان بالعربية'),
 
+                                // =============================================
                                 // INTERACTIVE MAP PICKER
-                                Forms\Components\Section::make(__('admin.pick_location_on_map'))
-                                    ->description(__('admin.map_helper_click'))
+                                // Uses OpenStreetMap tiles (free, no API key)
+                                // =============================================
+                                // =============================================
+                                // INTERACTIVE MAP PICKER
+                                // Uses OpenStreetMap tiles (free, no API key)
+                                // =============================================
+                                Forms\Components\Section::make(__('Pick Location on Map'))
+                                    ->description(__('Click on the map to set the hall location, or drag the marker to adjust.'))
                                     ->schema([
                                         Map::make('location')
-                                            ->label(__('admin.hall_location'))
+                                            ->label(__('Hall Location'))
                                             // Default center on Muscat, Oman
                                             ->defaultLocation(
                                                 latitude: self::DEFAULT_LATITUDE,
@@ -376,6 +383,9 @@ class HallResource extends Resource
                                             )
                                             // Allow dragging the marker
                                             ->draggable()
+                                            // Enable click to place marker
+                                            //->clickable()
+
                                             // Update latitude/longitude fields when marker moves
                                             ->afterStateUpdated(function (Set $set, ?array $state): void {
                                                 if ($state) {
@@ -402,7 +412,7 @@ class HallResource extends Resource
                                 // Hidden/Read-only coordinate fields
                                 // These get populated by the map picker
                                 Forms\Components\TextInput::make('latitude')
-                                    ->label(__('admin.latitude'))
+                                    ->label(__('Latitude'))
                                     ->numeric()
                                     ->step(0.0000001)
                                     ->required()
@@ -417,10 +427,10 @@ class HallResource extends Resource
                                             ]);
                                         }
                                     })
-                                    ->helperText(__('admin.coordinate_helper')),
+                                    ->helperText(__('Auto-filled from map. Can also enter manually.')),
 
                                 Forms\Components\TextInput::make('longitude')
-                                    ->label(__('admin.longitude'))
+                                    ->label(__('Longitude'))
                                     ->numeric()
                                     ->step(0.0000001)
                                     ->required()
@@ -435,105 +445,105 @@ class HallResource extends Resource
                                             ]);
                                         }
                                     })
-                                    ->helperText(__('admin.coordinate_helper')),
+                                    ->helperText(__('Auto-filled from map. Can also enter manually.')),
 
                                 // Optional Google Maps URL for external navigation
                                 Forms\Components\TextInput::make('google_maps_url')
-                                    ->label(__('admin.google_maps_url'))
+                                    ->label(__('Google Maps URL'))
                                     ->url()
                                     ->columnSpanFull()
-                                    ->placeholder(__('admin.video_placeholder'))
-                                    ->helperText(__('admin.optional_google_maps')),
+                                    ->placeholder('https://maps.google.com/...')
+                                    ->helperText(__('Optional: Paste a Google Maps link for this location')),
                             ])->columns(2),
 
                         // =============================================
-                        // TAB 4: Capacity & Pricing
+                        // TAB 3: Capacity & Pricing
                         // =============================================
-                        Forms\Components\Tabs\Tab::make(__('admin.capacity_pricing'))
+                        Forms\Components\Tabs\Tab::make('Capacity & Pricing')
                             ->icon('heroicon-o-currency-dollar')
                             ->schema([
                                 Forms\Components\TextInput::make('capacity_min')
-                                    ->label(__('admin.minimum_capacity'))
+                                    ->label(__('Minimum Capacity'))
                                     ->numeric()
                                     ->required()
                                     ->minValue(0)
-                                    ->suffix(__('admin.guests'))
-                                    ->placeholder(__('admin.enter_capacity_example')),
+                                    ->suffix(__('guests'))
+                                    ->placeholder('e.g., 50'),
 
                                 Forms\Components\TextInput::make('capacity_max')
-                                    ->label(__('admin.maximum_capacity'))
+                                    ->label(__('Maximum Capacity'))
                                     ->numeric()
                                     ->required()
                                     ->minValue(1)
-                                    ->suffix(__('admin.guests'))
-                                    ->placeholder(__('admin.enter_capacity_example')),
+                                    ->suffix(__('guests'))
+                                    ->placeholder('e.g., 500'),
 
                                 Forms\Components\TextInput::make('price_per_slot')
-                                    ->label(__('admin.base_price_per_slot'))
+                                    ->label(__('Base Price per Slot'))
                                     ->numeric()
                                     ->required()
                                     ->prefix('OMR')
                                     ->step(0.001)
-                                    ->placeholder(__('admin.enter_price_example')),
+                                    ->placeholder('e.g., 150.000'),
 
                                 // Slot-specific pricing overrides
                                 Forms\Components\KeyValue::make('pricing_override')
-                                    ->label(__('admin.slot_specific_pricing'))
-                                    ->keyLabel(__('admin.time_slot'))
-                                    ->valueLabel(__('admin.price_omr'))
-                                    ->helperText(__('admin.override_prices_help'))
+                                    ->label(__('Slot-Specific Pricing'))
+                                    ->keyLabel(__('Time Slot'))
+                                    ->valueLabel(__('Price (OMR)'))
+                                    ->helperText(__('Override prices for: morning, afternoon, evening, full_day'))
                                     ->columnSpanFull()
-                                    ->addActionLabel(__('admin.add_price_override')),
+                                    ->addActionLabel(__('Add Price Override')),
                             ])->columns(2),
 
                         // =============================================
-                        // TAB 5: Contact Information
+                        // TAB 4: Contact Information
                         // =============================================
-                        Forms\Components\Tabs\Tab::make(__('admin.contact'))
+                        Forms\Components\Tabs\Tab::make('Contact')
                             ->icon('heroicon-o-phone')
                             ->schema([
                                 Forms\Components\TextInput::make('phone')
-                                    ->label(__('admin.phone_number'))
+                                    ->label(__('Phone Number'))
                                     ->tel()
                                     ->required()
                                     ->maxLength(20)
-                                    ->placeholder(__('admin.phone_placeholder'))
+                                    ->placeholder('+968 XXXX XXXX')
                                     ->prefix('📞'),
 
                                 Forms\Components\TextInput::make('whatsapp')
-                                    ->label(__('admin.whatsapp'))
+                                    ->label(__('WhatsApp'))
                                     ->tel()
                                     ->maxLength(20)
-                                    ->placeholder(__('admin.whatsapp_placeholder'))
+                                    ->placeholder('+968 XXXX XXXX')
                                     ->prefix('💬'),
 
                                 Forms\Components\TextInput::make('email')
-                                    ->label(__('admin.email_address'))
+                                    ->label(__('Email Address'))
                                     ->email()
                                     ->maxLength(255)
-                                    ->placeholder(__('admin.email_placeholder'))
+                                    ->placeholder('contact@hallname.com')
                                     ->prefix('✉️'),
                             ])->columns(3),
 
                         // =============================================
-                        // TAB 6: Features & Media
+                        // TAB 5: Features & Media
                         // =============================================
-                        Forms\Components\Tabs\Tab::make(__('admin.features_media'))
+                        Forms\Components\Tabs\Tab::make('Features & Media')
                             ->icon('heroicon-o-photo')
                             ->schema([
                                 // Multi-select for hall features
                                 Forms\Components\Select::make('features')
-                                    ->label(__('admin.hall_features'))
+                                    ->label(__('Hall Features'))
                                     ->multiple()
                                     ->options(HallFeature::where('is_active', true)->pluck('name', 'id'))
                                     ->searchable()
                                     ->preload()
                                     ->columnSpanFull()
-                                    ->helperText(__('admin.select_features_help')),
+                                    ->helperText(__('Select all features available in this hall')),
 
                                 // Featured image upload
                                 Forms\Components\FileUpload::make('featured_image')
-                                    ->label(__('admin.featured_image'))
+                                    ->label(__('Featured Image'))
                                     ->image()
                                     ->directory('halls')
                                     ->columnSpanFull()
@@ -541,70 +551,70 @@ class HallResource extends Resource
                                     ->imageCropAspectRatio('16:9')
                                     ->imageResizeTargetWidth('1920')
                                     ->imageResizeTargetHeight('1080')
-                                    ->helperText(__('admin.recommended_image_size')),
+                                    ->helperText(__('Recommended: 1920x1080 pixels')),
 
                                 // Gallery images
                                 Forms\Components\FileUpload::make('gallery')
-                                    ->label(__('admin.gallery_images'))
+                                    ->label(__('Gallery Images'))
                                     ->multiple()
                                     ->image()
                                     ->directory('halls/gallery')
                                     ->maxFiles(10)
                                     ->columnSpanFull()
                                     ->reorderable()
-                                    ->helperText(__('admin.max_images')),
+                                    ->helperText(__('Maximum 10 images')),
 
                                 // Video URL
                                 Forms\Components\TextInput::make('video_url')
-                                    ->label(__('admin.video_url'))
+                                    ->label(__('Video URL'))
                                     ->url()
                                     ->columnSpanFull()
-                                    ->placeholder(__('admin.video_placeholder'))
-                                    ->helperText(__('admin.youtube_vimeo_link')),
+                                    ->placeholder('https://youtube.com/watch?v=...')
+                                    ->helperText(__('YouTube or Vimeo link')),
                             ]),
 
                         // =============================================
-                        // TAB 7: Settings
+                        // TAB 6: Settings
                         // =============================================
-                        Forms\Components\Tabs\Tab::make(__('admin.settings'))
+                        Forms\Components\Tabs\Tab::make('Settings')
                             ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
                                 Forms\Components\Toggle::make('is_active')
-                                    ->label(__('admin.active'))
+                                    ->label(__('Active'))
                                     ->inline(false)
                                     ->default(true)
-                                    ->helperText(__('admin.inactive_halls_hidden')),
+                                    ->helperText(__('Inactive halls are hidden from customers')),
 
                                 Forms\Components\Toggle::make('is_featured')
-                                    ->label(__('admin.featured'))
+                                    ->label(__('Featured'))
                                     ->inline(false)
                                     ->default(false)
-                                    ->helperText(__('admin.featured_halls_highlighted')),
+                                    ->helperText(__('Featured halls appear in highlighted sections')),
 
                                 Forms\Components\Toggle::make('requires_approval')
-                                    ->label(__('admin.requires_approval'))
-                                    ->helperText(__('admin.require_admin_approval'))
+                                    ->label(__('Requires Approval'))
+                                    ->helperText(__('Require admin approval for each booking'))
                                     ->inline(false)
                                     ->default(false),
 
                                 Forms\Components\TextInput::make('cancellation_hours')
-                                    ->label(__('admin.cancellation_window'))
+                                    ->label(__('Cancellation Window'))
                                     ->numeric()
                                     ->required()
                                     ->minValue(0)
                                     ->default(24)
-                                    ->suffix(__('admin.hours'))
-                                    ->helperText(__('admin.allow_cancellation_help')),
+                                    ->suffix(__('hours'))
+                                    ->helperText(__('Minimum hours before booking to allow cancellation')),
 
                                 Forms\Components\TextInput::make('cancellation_fee_percentage')
-                                    ->label(__('admin.cancellation_fee'))
+                                    ->label(__('Cancellation Fee'))
                                     ->numeric()
                                     ->required()
                                     ->minValue(0)
                                     ->maxValue(100)
                                     ->default(0)
                                     ->suffix('%')
-                                    ->helperText(__('admin.cancellation_fee_help')),
+                                    ->helperText(__('Fee percentage charged on cancellation')),
                             ])->columns(2),
                     ])->columnSpanFull(),
             ]);
@@ -622,13 +632,13 @@ class HallResource extends Resource
             ->columns([
                 // Featured image thumbnail
                 Tables\Columns\ImageColumn::make('featured_image')
-                    ->label(__('admin.image'))
+                    ->label(__('Image'))
                     ->circular()
                     ->defaultImageUrl(fn() => asset('images/placeholder-hall.png')),
 
                 // Hall name with translation
                 Tables\Columns\TextColumn::make('name')
-                    ->label(__('admin.name'))
+                    ->label(__('Name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->translated_name ?? 'N/A')
@@ -636,28 +646,28 @@ class HallResource extends Resource
 
                 // City name with translation
                 Tables\Columns\TextColumn::make('city.name')
-                    ->label(__('admin.city'))
+                    ->label(__('City'))
                     ->sortable()
                     ->searchable()
                     ->formatStateUsing(fn($record) => $record->city->name ?? 'N/A'),
 
                 // Owner name
                 Tables\Columns\TextColumn::make('owner.name')
-                    ->label(__('admin.owner'))
+                    ->label(__('admin.reports.table.owner'))
                     ->sortable()
                     ->searchable(),
 
                 // Maximum capacity
                 Tables\Columns\TextColumn::make('capacity_max')
-                    ->label(__('admin.capacity'))
+                    ->label(__('Capacity'))
                     ->sortable()
-                    ->suffix(' ' . __('admin.guests'))
+                    ->suffix(' ' . __('guests'))
                     ->badge()
                     ->color('info'),
 
                 // Base price
                 Tables\Columns\TextColumn::make('price_per_slot')
-                    ->label(__('admin.price'))
+                    ->label(__('Price'))
                     ->money('OMR')
                     ->sortable()
                     ->badge()
@@ -666,14 +676,14 @@ class HallResource extends Resource
                 // Bookings count
                 Tables\Columns\TextColumn::make('bookings_count')
                     ->counts('bookings')
-                    ->label(__('admin.bookings'))
+                    ->label(__('Bookings'))
                     ->badge()
                     ->color('info')
                     ->sortable(),
 
                 // Average rating
                 Tables\Columns\TextColumn::make('average_rating')
-                    ->label(__('admin.rating'))
+                    ->label(__('Rating'))
                     ->badge()
                     ->color('warning')
                     ->sortable()
@@ -681,7 +691,7 @@ class HallResource extends Resource
 
                 // Featured status
                 Tables\Columns\IconColumn::make('is_featured')
-                    ->label(__('admin.featured'))
+                    ->label(__('Featured'))
                     ->boolean()
                     ->sortable()
                     ->trueIcon('heroicon-o-star')
@@ -691,7 +701,7 @@ class HallResource extends Resource
 
                 // Active status
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label(__('admin.active'))
+                    ->label(__('Active'))
                     ->boolean()
                     ->sortable()
                     ->trueIcon('heroicon-o-check-circle')
@@ -703,7 +713,7 @@ class HallResource extends Resource
             ->filters([
                 // City filter
                 Tables\Filters\SelectFilter::make('city_id')
-                    ->label(__('admin.city_filter'))
+                    ->label(__('City'))
                     ->relationship('city', 'name')
                     ->searchable()
                     ->preload()
@@ -711,35 +721,35 @@ class HallResource extends Resource
 
                 // Owner filter
                 Tables\Filters\SelectFilter::make('owner_id')
-                    ->label(__('admin.owner_filter'))
+                    ->label(__('fields.owner'))
                     ->relationship('owner', 'name')
                     ->searchable()
                     ->preload(),
 
                 // Featured filter
                 Tables\Filters\TernaryFilter::make('is_featured')
-                    ->label(__('admin.featured_filter'))
+                    ->label(__('Featured'))
                     ->boolean()
-                    ->trueLabel(__('admin.featured_only'))
-                    ->falseLabel(__('admin.not_featured'))
+                    ->trueLabel(__('Featured only'))
+                    ->falseLabel(__('Not featured'))
                     ->native(false),
 
                 // Active filter
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label(__('admin.active_filter'))
+                    ->label(__('Active'))
                     ->boolean()
-                    ->trueLabel(__('admin.active_only'))
-                    ->falseLabel(__('admin.inactive_only'))
+                    ->trueLabel(__('Active only'))
+                    ->falseLabel(__('Inactive only'))
                     ->native(false),
 
                 // Capacity range filter
                 Tables\Filters\Filter::make('capacity')
                     ->form([
                         Forms\Components\TextInput::make('min_capacity')
-                            ->label(__('admin.min_capacity_filter'))
+                            ->label(__('Min Capacity'))
                             ->numeric(),
                         Forms\Components\TextInput::make('max_capacity')
-                            ->label(__('admin.max_capacity_filter'))
+                            ->label(__('Max Capacity'))
                             ->numeric(),
                     ])
                     ->query(function ($query, array $data) {
@@ -760,8 +770,8 @@ class HallResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->emptyStateHeading(__('admin.no_halls_found'))
-            ->emptyStateDescription(__('admin.create_first_hall'))
+            ->emptyStateHeading(__('No halls found'))
+            ->emptyStateDescription(__('Create your first hall to get started.'))
             ->emptyStateIcon('heroicon-o-building-office-2');
     }
 
@@ -820,7 +830,7 @@ class HallResource extends Resource
      */
     public static function getModelLabel(): string
     {
-        return __('admin.hall');
+        return (string) __('Hall');
     }
 
     /**
@@ -830,6 +840,6 @@ class HallResource extends Resource
      */
     public static function getPluralModelLabel(): string
     {
-        return __('admin.halls');
+        return (string) __('Hall');
     }
 }

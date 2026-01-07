@@ -21,7 +21,7 @@ class ListCommissionSettings extends ListRecords
                 ->color('primary'),
 
             Actions\Action::make('exportCommissions')
-                ->label('Export')
+                ->label(__('commission-setting.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(fn() => $this->exportCommissions())
@@ -31,7 +31,7 @@ class ListCommissionSettings extends ListRecords
                 ->modalSubmitActionLabel('Export'),
 
             Actions\Action::make('bulkActivate')
-                ->label('Bulk Activate')
+                ->label(__('commission-setting.bulk_activate'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
@@ -52,7 +52,7 @@ class ListCommissionSettings extends ListRecords
                 }),
 
             Actions\Action::make('cleanupExpired')
-                ->label('Cleanup Expired')
+                ->label(__('commission-setting.cleanup_expired'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')
                 ->requiresConfirmation()
@@ -77,53 +77,53 @@ class ListCommissionSettings extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make('All Settings')
+            'all' => Tab::make(__('commission-setting.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
                 ->badge(fn() => \App\Models\CommissionSetting::count()),
 
-            'active' => Tab::make('Active')
+            'active' => Tab::make(__('commission-setting.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
                 ->badge(fn() => \App\Models\CommissionSetting::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make('Inactive')
+            'inactive' => Tab::make(__('commission-setting.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
                 ->badge(fn() => \App\Models\CommissionSetting::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'global' => Tab::make('Global')
+            'global' => Tab::make(__('commission-setting.tabs.global'))
                 ->icon('heroicon-o-globe-alt')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('hall_id')->whereNull('owner_id'))
                 ->badge(fn() => \App\Models\CommissionSetting::whereNull('hall_id')->whereNull('owner_id')->count())
                 ->badgeColor('primary'),
 
-            'hall_specific' => Tab::make('Hall-Specific')
+            'hall_specific' => Tab::make(__('commission-setting.tabs.hall_specific'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('hall_id'))
                 ->badge(fn() => \App\Models\CommissionSetting::whereNotNull('hall_id')->count())
                 ->badgeColor('success'),
 
-            'owner_specific' => Tab::make('Owner-Specific')
+            'owner_specific' => Tab::make(__('commission-setting.tabs.owner_specific'))
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('owner_id')->whereNull('hall_id'))
                 ->badge(fn() => \App\Models\CommissionSetting::whereNotNull('owner_id')->whereNull('hall_id')->count())
                 ->badgeColor('warning'),
 
-            'percentage' => Tab::make('Percentage')
+            'percentage' => Tab::make(__('commission-setting.tabs.percentage'))
                 ->icon('heroicon-o-percent-badge')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('commission_type', 'percentage'))
                 ->badge(fn() => \App\Models\CommissionSetting::where('commission_type', 'percentage')->count())
                 ->badgeColor('info'),
 
-            'fixed' => Tab::make('Fixed Amount')
+            'fixed' => Tab::make(__('commission-setting.tabs.fixed'))
                 ->icon('heroicon-o-banknotes')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('commission_type', 'fixed'))
                 ->badge(fn() => \App\Models\CommissionSetting::where('commission_type', 'fixed')->count())
                 ->badgeColor('info'),
 
-            'expiring_soon' => Tab::make('Expiring Soon')
+            'expiring_soon' => Tab::make(__('commission-setting.tabs.expiring_soon'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(
                     fn(Builder $query) => $query
@@ -139,7 +139,7 @@ class ListCommissionSettings extends ListRecords
                 )
                 ->badgeColor('warning'),
 
-            'expired' => Tab::make('Expired')
+            'expired' => Tab::make(__('commission-setting.tabs.expired'))
                 ->icon('heroicon-o-x-mark')
                 ->modifyQueryUsing(
                     fn(Builder $query) => $query

@@ -25,7 +25,7 @@ class ListHallFeatures extends ListRecords
                 ->color('primary'),
 
             Actions\Action::make('exportFeatures')
-                ->label('Export Features')
+                ->label(__('hall-feature.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(fn() => $this->exportFeatures())
@@ -35,7 +35,7 @@ class ListHallFeatures extends ListRecords
                 ->modalSubmitActionLabel('Export'),
 
             Actions\Action::make('bulkActivate')
-                ->label('Bulk Activate')
+                ->label(__('hall-feature.bulk_activate'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
@@ -57,7 +57,7 @@ class ListHallFeatures extends ListRecords
                 }),
 
             Actions\Action::make('reorderFeatures')
-                ->label('Auto-Reorder')
+                ->label(__('hall-feature.reorder_features'))
                 ->icon('heroicon-o-bars-3-bottom-left')
                 ->color('warning')
                 ->requiresConfirmation()
@@ -83,7 +83,7 @@ class ListHallFeatures extends ListRecords
                 }),
 
             Actions\Action::make('generateSlugs')
-                ->label('Generate Missing Slugs')
+                ->label(__('hall-feature.generate_slugs'))
                 ->icon('heroicon-o-link')
                 ->color('info')
                 ->requiresConfirmation()
@@ -120,41 +120,41 @@ class ListHallFeatures extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make('All Features')
+            'all' => Tab::make(__('hall-feature.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
                 ->badge(fn() => \App\Models\HallFeature::count()),
 
-            'active' => Tab::make('Active')
+            'active' => Tab::make(__('hall-feature.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
                 ->badge(fn() => \App\Models\HallFeature::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make('Inactive')
+            'inactive' => Tab::make(__('hall-feature.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
                 ->badge(fn() => \App\Models\HallFeature::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'with_icons' => Tab::make('With Icons')
+            'with_icons' => Tab::make(__('hall-feature.tabs.with_icon'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('icon')->where('icon', '!=', ''))
                 ->badge(fn() => \App\Models\HallFeature::whereNotNull('icon')->where('icon', '!=', '')->count())
                 ->badgeColor('info'),
 
-            'without_icons' => Tab::make('Without Icons')
+            'without_icons' => Tab::make(__('hall-feature.tabs.without_icon'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('icon')->orWhere('icon', ''))
                 ->badge(fn() => \App\Models\HallFeature::whereNull('icon')->orWhere('icon', '')->count())
                 ->badgeColor('warning'),
 
-            'with_description' => Tab::make('With Description')
+            'with_description' => Tab::make(__('hall-feature.tabs.with_description'))
                 ->icon('heroicon-o-document-text')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('description->en'))
                 ->badge(fn() => \App\Models\HallFeature::whereNotNull('description->en')->count())
                 ->badgeColor('purple'),
 
-            'popular' => Tab::make('Most Used')
+            'popular' => Tab::make(__('hall-feature.tabs.most_used'))
                 ->icon('heroicon-o-fire')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('halls', '>=', 5))
                 //->badge(fn() => \App\Models\HallFeature::has('halls', '>=', 5)->count())

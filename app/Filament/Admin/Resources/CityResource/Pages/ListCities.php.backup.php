@@ -17,47 +17,46 @@ class ListCities extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-o-plus')
-                ->color('primary')
-                ->label(__('city.list_actions.create')),
+                ->color('primary'),
 
             Actions\Action::make('exportCities')
-                ->label(__('city.list_actions.export'))
+                ->label('Export Cities')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(fn() => $this->exportCities())
                 ->requiresConfirmation()
-                ->modalHeading(__('city.export_modal.heading'))
-                ->modalDescription(__('city.export_modal.description'))
-                ->modalSubmitActionLabel(__('city.export_modal.submit_label')),
+                ->modalHeading('Export Cities Data')
+                ->modalDescription('This will export all cities data to a CSV file.')
+                ->modalSubmitActionLabel('Export'),
         ];
     }
 
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('city.tabs.all'))
+            'all' => Tab::make('All Cities')
                 ->icon('heroicon-o-building-office-2')
                 ->badge(fn() => \App\Models\City::count()),
 
-            'active' => Tab::make(__('city.tabs.active'))
+            'active' => Tab::make('Active')
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
                 ->badge(fn() => \App\Models\City::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('city.tabs.inactive'))
+            'inactive' => Tab::make('Inactive')
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
                 ->badge(fn() => \App\Models\City::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'with_halls' => Tab::make(__('city.tabs.with_halls'))
+            'with_halls' => Tab::make('With Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('halls'))
                 ->badge(fn() => \App\Models\City::has('halls')->count())
                 ->badgeColor('info'),
 
-            'without_halls' => Tab::make(__('city.tabs.without_halls'))
+            'without_halls' => Tab::make('Without Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->doesntHave('halls'))
                 ->badge(fn() => \App\Models\City::doesntHave('halls')->count())
@@ -81,17 +80,17 @@ class ListCities extends ListRecords
 
         // Add CSV headers
         fputcsv($file, [
-            __('city.export_headers.id'),
-            __('city.export_headers.name_en'),
-            __('city.export_headers.name_ar'),
-            __('city.export_headers.code'),
-            __('city.export_headers.region'),
-            __('city.export_headers.latitude'),
-            __('city.export_headers.longitude'),
-            __('city.export_headers.halls_count'),
-            __('city.export_headers.active'),
-            __('city.export_headers.order'),
-            __('city.export_headers.created_at'),
+            'ID',
+            'Name (EN)',
+            'Name (AR)',
+            'Code',
+            'Region',
+            'Latitude',
+            'Longitude',
+            'Halls Count',
+            'Active',
+            'Order',
+            'Created At',
         ]);
 
         // Add data rows
@@ -101,11 +100,11 @@ class ListCities extends ListRecords
                 $city->getTranslation('name', 'en'),
                 $city->getTranslation('name', 'ar'),
                 $city->code,
-                $city->region->name ?? __('city.export_values.not_applicable'),
-                $city->latitude ?? __('city.export_values.not_applicable'),
-                $city->longitude ?? __('city.export_values.not_applicable'),
+                $city->region->name ?? 'N/A',
+                $city->latitude ?? 'N/A',
+                $city->longitude ?? 'N/A',
                 $city->halls()->count(),
-                $city->is_active ? __('city.export_values.yes') : __('city.export_values.no'),
+                $city->is_active ? 'Yes' : 'No',
                 $city->order,
                 $city->created_at->format('Y-m-d H:i:s'),
             ]);
@@ -115,13 +114,13 @@ class ListCities extends ListRecords
 
         // Notify user
         \Filament\Notifications\Notification::make()
-            ->title(__('city.notifications.export_successful'))
+            ->title('Export Successful')
             ->success()
-            ->body(__('city.notifications.export_body', ['filename' => $filename]))
+            ->body('Cities exported successfully to: ' . $filename)
             ->persistent()
             ->actions([
                 \Filament\Notifications\Actions\Action::make('download')
-                    ->label(__('city.notifications.download'))
+                    ->label('Download')
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),
             ])

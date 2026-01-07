@@ -22,35 +22,35 @@ class ListBookings extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make('All')
+            'all' => Tab::make(__('booking.tabs.all'))
                 ->badge(fn() => static::getResource()::getModel()::count()),
 
-            'pending' => Tab::make('Pending')
+            'pending' => Tab::make(__('booking.tabs.pending'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'pending'))
                 ->badge(fn() => static::getResource()::getModel()::where('status', 'pending')->count())
                 ->badgeColor('warning'),
 
-            'confirmed' => Tab::make('Confirmed')
+            'confirmed' => Tab::make(__('booking.tabs.confirmed'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'confirmed'))
                 ->badge(fn() => static::getResource()::getModel()::where('status', 'confirmed')->count())
                 ->badgeColor('success'),
 
-            'completed' => Tab::make('Completed')
+            'completed' => Tab::make(__('booking.tabs.completed'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'completed'))
                 ->badge(fn() => static::getResource()::getModel()::where('status', 'completed')->count())
                 ->badgeColor('info'),
 
-            'cancelled' => Tab::make('Cancelled')
+            'cancelled' => Tab::make(__('booking.tabs.cancelled'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'cancelled'))
                 ->badge(fn() => static::getResource()::getModel()::where('status', 'cancelled')->count())
                 ->badgeColor('danger'),
 
-            'today' => Tab::make('Today')
+            'today' => Tab::make(__('booking.tabs.today'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereDate('booking_date', today()))
                 ->badge(fn() => static::getResource()::getModel()::whereDate('booking_date', today())->count())
                 ->badgeColor('primary'),
 
-            'upcoming' => Tab::make('Upcoming')
+            'upcoming' => Tab::make(__('booking.tabs.upcoming'))
                 ->modifyQueryUsing(fn(Builder $query) => $query
                     ->where('booking_date', '>=', now())
                     ->whereIn('status', ['pending', 'confirmed']))

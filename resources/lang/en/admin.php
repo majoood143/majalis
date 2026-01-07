@@ -403,4 +403,273 @@ return [
             'confidential' => 'Confidential - For Internal Use Only',
         ],
     ],
+
+    // Resource Labels
+    'hall' => 'Hall',
+    'halls' => 'Halls',
+
+    // Tab Labels
+    'basic_info' => 'Basic Info',
+    'location' => 'Location',
+    'capacity_pricing' => 'Capacity & Pricing',
+    'contact' => 'Contact',
+    'features_media' => 'Features & Media',
+    'settings' => 'Settings',
+
+    // Basic Info Tab
+    'city' => 'City',
+    'owner' => 'Owner',
+    'name_english' => 'Name (English)',
+    'name_arabic' => 'Name (Arabic)',
+    'url_slug' => 'URL Slug',
+    'area' => 'Area',
+    'description_english' => 'Description (English)',
+    'description_arabic' => 'Description (Arabic)',
+
+    // Advance Payment Tab
+    'advance_payment' => 'Advance Payment',
+    'advance_payment_settings' => 'Advance Payment Settings',
+    'advance_payment_explanation' => 'Configure advance payment requirements for this hall. Customers will pay this amount upfront when booking.',
+    'allows_advance_payment' => 'Allow Advance Payment',
+    'allows_advance_payment_help' => 'Enable to require an advance payment for bookings',
+    'advance_payment_type' => 'Advance Payment Type',
+    'advance_payment_type_help' => 'Choose how the advance payment is calculated',
+    'advance_type_fixed' => 'Fixed Amount',
+    'advance_type_percentage' => 'Percentage of Total',
+    'advance_payment_amount' => 'Advance Payment Amount',
+    'advance_payment_amount_help' => 'Fixed amount to pay in advance (OMR)',
+    'advance_payment_amount_placeholder' => 'Enter fixed amount',
+    'advance_payment_percentage' => 'Advance Payment Percentage',
+    'advance_payment_percentage_help' => 'Percentage of total booking price to pay in advance',
+    'advance_payment_percentage_placeholder' => 'Enter percentage',
+    'minimum_advance_payment' => 'Minimum Advance Payment',
+    'minimum_advance_payment_help' => 'Ensure advance payment is at least this amount (OMR)',
+    'minimum_advance_payment_placeholder' => 'Enter minimum amount',
+    'advance_payment_preview' => 'Advance Payment Preview',
+    'advance_payment_preview_help' => 'Preview how the advance payment works with sample pricing',
+    'preview_for_price' => 'Preview for a booking of :price OMR',
+    'customer_pays_advance' => 'Customer Pays (Advance)',
+    'balance_due_before_event' => 'Balance Due (Before Event)',
+    'advance_includes_services' => 'Advance payment calculation includes services. Balance includes additional charges.',
+
+    // Location Tab
+    'full_address' => 'Full Address',
+    'address_english' => 'Address (English)',
+    'address_arabic' => 'Address (Arabic)',
+    'pick_location_on_map' => 'Pick Location on Map',
+    'hall_location' => 'Hall Location',
+    'latitude' => 'Latitude',
+    'longitude' => 'Longitude',
+    'google_maps_url' => 'Google Maps URL',
+
+    // Map Helper Texts
+    'map_helper_click' => 'Click on the map to set the hall location, or drag the marker to adjust.',
+    'coordinate_helper' => 'Auto-filled from map. Can also enter manually.',
+
+    // Capacity & Pricing Tab
+    'minimum_capacity' => 'Minimum Capacity',
+    'maximum_capacity' => 'Maximum Capacity',
+    'base_price_per_slot' => 'Base Price per Slot',
+    'slot_specific_pricing' => 'Slot-Specific Pricing',
+    'time_slot' => 'Time Slot',
+    'price_omr' => 'Price (OMR)',
+
+    // Contact Tab
+    'phone_number' => 'Phone Number',
+    'whatsapp' => 'WhatsApp',
+    'email_address' => 'Email Address',
+
+    // Features & Media Tab
+    'hall_features' => 'Hall Features',
+    'featured_image' => 'Featured Image',
+    'gallery_images' => 'Gallery Images',
+    'video_url' => 'Video URL',
+
+    // Settings Tab
+    'active' => 'Active',
+    'featured' => 'Featured',
+    'requires_approval' => 'Requires Approval',
+    'cancellation_window' => 'Cancellation Window',
+    'cancellation_fee' => 'Cancellation Fee',
+
+    // Table Columns
+    'image' => 'Image',
+    'name' => 'Name',
+    'capacity' => 'Capacity',
+    'price' => 'Price',
+    'bookings' => 'Bookings',
+    'rating' => 'Rating',
+
+    // Units
+    'sqm' => 'sqm',
+    'guests' => 'guests',
+    'hours' => 'hours',
+
+    // Helper Texts
+    'auto_generate_slug' => 'Leave empty to auto-generate from English name',
+    'recommended_image_size' => 'Recommended: 1920x1080 pixels',
+    'max_images' => 'Maximum 10 images',
+    'inactive_halls_hidden' => 'Inactive halls are hidden from customers',
+    'featured_halls_highlighted' => 'Featured halls appear in highlighted sections',
+    'allow_cancellation_help' => 'Minimum hours before booking to allow cancellation',
+    'cancellation_fee_help' => 'Fee percentage charged on cancellation',
+
+    // Placeholders
+    'enter_hall_name_english' => 'Enter hall name in English',
+    'enter_hall_name_arabic' => 'أدخل اسم القاعة بالعربية',
+    'enter_full_address' => 'Enter the complete street address',
+    'enter_address_english' => 'Address in English',
+    'enter_address_arabic' => 'العنوان بالعربية',
+    'enter_capacity_example' => 'e.g., 50',
+    'enter_price_example' => 'e.g., 150.000',
+    'phone_placeholder' => '+968 XXXX XXXX',
+    'whatsapp_placeholder' => '+968 XXXX XXXX',
+    'email_placeholder' => 'contact@hallname.com',
+    'video_placeholder' => 'https://youtube.com/watch?v=...',
+
+    // Table Filters
+    'city_filter' => 'City',
+    'owner_filter' => 'Owner',
+    'featured_filter' => 'Featured',
+    'active_filter' => 'Active',
+    'min_capacity_filter' => 'Min Capacity',
+    'max_capacity_filter' => 'Max Capacity',
+    'featured_only' => 'Featured only',
+    'not_featured' => 'Not featured',
+    'active_only' => 'Active only',
+    'inactive_only' => 'Inactive only',
+
+    // Table Empty States
+    'no_halls_found' => 'No halls found',
+    'create_first_hall' => 'Create your first hall to get started.',
+
+    // Messages
+    'hall_created' => 'Hall created successfully',
+    'hall_updated' => 'Hall updated successfully',
+    'hall_deleted' => 'Hall deleted successfully',
+
+    // Additional
+    'add_price_override' => 'Add Price Override',
+    'override_prices_help' => 'Override prices for: morning, afternoon, evening, full_day',
+    'select_features_help' => 'Select all features available in this hall',
+    'disabled' => 'Disabled',
+
+    'optional_google_maps' => 'Optional: Paste a Google Maps link for this location',
+    'youtube_vimeo_link' => 'YouTube or Vimeo link',
+    'require_admin_approval' => 'Require admin approval for each booking',
+
+    // Actions
+    'actions' => [
+        'export' => 'Export Halls',
+        'export_modal_heading' => 'Export Halls Data',
+        'export_modal_description' => 'Export all halls data to CSV.',
+        'bulk_price_update' => 'Bulk Price Update',
+        'bulk_price_modal_heading' => 'Update Prices in Bulk',
+        'bulk_price_modal_description' => 'Update prices for multiple halls at once.',
+        'generate_slugs' => 'Generate Missing Slugs',
+        'generate_slugs_modal_heading' => 'Generate Missing Slugs',
+        'generate_slugs_modal_description' => 'Generate URL slugs for halls without one.',
+        'bulk_feature' => 'Bulk Feature Management',
+        'sync_availability' => 'Sync Availability',
+        'sync_availability_modal_heading' => 'Generate Availability Records',
+        'sync_availability_modal_description' => 'Generate availability slots for all halls for the next 3 months.',
+        'bulk_activation' => 'Bulk Activation',
+        'download' => 'Download File',
+    ],
+
+    // Fields
+    'fields' => [
+        'city' => 'City',
+        'city_filter' => 'Filter by City (Optional)',
+        'update_type' => 'Update Type',
+        'percentage' => 'Percentage (%)',
+        'amount' => 'Amount (OMR)',
+        'action' => 'Action',
+        'status' => 'Status',
+    ],
+
+    // Options
+    'options' => [
+        'percentage_increase' => 'Percentage Increase',
+        'percentage_decrease' => 'Percentage Decrease',
+        'fixed_increase' => 'Fixed Amount Increase',
+        'fixed_decrease' => 'Fixed Amount Decrease',
+        'mark_featured' => 'Mark as Featured',
+        'unmark_featured' => 'Remove Featured Status',
+        'activate' => 'Activate',
+        'deactivate' => 'Deactivate',
+    ],
+
+    // Tabs
+    'tabs' => [
+        'all' => 'All Halls',
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'featured' => 'Featured',
+        'pending_approval' => 'Pending Approval',
+        'high_capacity' => 'High Capacity (500+)',
+        'premium_price' => 'Premium (1000+ OMR)',
+        'highly_rated' => 'Highly Rated (4.5+)',
+        'with_video' => 'With Video',
+        'incomplete' => 'Incomplete Profile',
+        'no_bookings' => 'No Bookings',
+    ],
+
+    // Export Headers
+    'export' => [
+        'name_en' => 'Name (EN)',
+        'name_ar' => 'Name (AR)',
+        'slug' => 'Slug',
+        'city' => 'City',
+        'owner' => 'Owner',
+        'address' => 'Address',
+        'latitude' => 'Latitude',
+        'longitude' => 'Longitude',
+        'capacity_min' => 'Min Capacity',
+        'capacity_max' => 'Max Capacity',
+        'base_price' => 'Base Price',
+        'phone' => 'Phone',
+        'email' => 'Email',
+        'total_bookings' => 'Total Bookings',
+        'average_rating' => 'Average Rating',
+        'featured' => 'Featured',
+        'active' => 'Active',
+        'created_at' => 'Created At',
+    ],
+
+    // Notifications
+    'notifications' => [
+        'export_success' => 'Export Successful',
+        'export_success_body' => 'Halls data exported successfully.',
+        'export_error' => 'Export Failed',
+        'prices_updated' => 'Prices Updated',
+        'prices_updated_body' => ':count hall(s) updated successfully.',
+        'slugs_generated' => 'Slugs Generated',
+        'slugs_generated_body' => ':count slug(s) have been generated.',
+        'feature_updated' => 'Featured Status Updated',
+        'feature_updated_body' => ':count hall(s) updated successfully.',
+        'activation_updated' => 'Status Updated',
+        'activation_updated_body' => ':count hall(s) updated successfully.',
+        'availability_synced' => 'Availability Synced',
+        'availability_synced_body' => ':count availability slot(s) created.',
+        'update_error' => 'Operation Failed',
+    ],
+
+    // Common
+    'yes' => 'Yes',
+    'no' => 'No',
+
+    // Stats
+    'stats' => [
+        'total_halls' => 'Total Halls',
+        'total_halls_desc' => 'All halls in system',
+        'active_halls' => 'Active Halls',
+        'active_halls_desc' => 'Currently active',
+        'featured_halls' => 'Featured Halls',
+        'featured_halls_desc' => 'Marked as featured',
+        'pending_halls' => 'Pending Halls',
+        'pending_halls_desc' => 'Awaiting approval',
+        'average_price' => 'Average Price',
+        'average_price_desc' => 'Per slot',
+    ],
 ];

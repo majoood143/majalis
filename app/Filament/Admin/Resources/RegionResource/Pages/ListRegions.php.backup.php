@@ -18,11 +18,10 @@ class ListRegions extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-o-plus')
-                ->color('primary')
-                ->label(__('region.list_actions.create')),
+                ->color('primary'),
 
             Actions\Action::make('exportRegions')
-                ->label(__('region.list_actions.export'))
+                ->label('Export Regions')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(fn() => $this->exportRegions()),
@@ -32,23 +31,23 @@ class ListRegions extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('region.tabs.all'))
+            'all' => Tab::make('All Regions')
                 ->icon('heroicon-o-map')
                 ->badge(fn() => \App\Models\Region::count()),
 
-            'active' => Tab::make(__('region.tabs.active'))
+            'active' => Tab::make('Active')
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
                 ->badge(fn() => \App\Models\Region::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('region.tabs.inactive'))
+            'inactive' => Tab::make('Inactive')
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
                 ->badge(fn() => \App\Models\Region::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'with_cities' => Tab::make(__('region.tabs.with_cities'))
+            'with_cities' => Tab::make('With Cities')
                 ->icon('heroicon-o-building-office')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('cities'))
                 ->badge(fn() => \App\Models\Region::has('cities')->count())
@@ -69,16 +68,7 @@ class ListRegions extends ListRecords
 
         $file = fopen($path, 'w');
 
-        fputcsv($file, [
-            __('region.export_headers.id'),
-            __('region.export_headers.name_en'),
-            __('region.export_headers.name_ar'),
-            __('region.export_headers.code'),
-            __('region.export_headers.cities'),
-            __('region.export_headers.active'),
-            __('region.export_headers.order'),
-            __('region.export_headers.created_at'),
-        ]);
+        fputcsv($file, ['ID', 'Name (EN)', 'Name (AR)', 'Code', 'Cities', 'Active', 'Order', 'Created At']);
 
         foreach ($regions as $region) {
             fputcsv($file, [
@@ -87,7 +77,7 @@ class ListRegions extends ListRecords
                 $region->getTranslation('name', 'ar'),
                 $region->code,
                 $region->cities_count,
-                $region->is_active ? __('region.export_values.yes') : __('region.export_values.no'),
+                $region->is_active ? 'Yes' : 'No',
                 $region->order,
                 $region->created_at->format('Y-m-d H:i:s'),
             ]);
@@ -97,10 +87,9 @@ class ListRegions extends ListRecords
 
         Notification::make()
             ->success()
-            ->title(__('region.notifications.export_successful'))
+            ->title('Export Successful')
             ->actions([
                 \Filament\Notifications\Actions\Action::make('download')
-                    ->label(__('region.notifications.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),
             ])

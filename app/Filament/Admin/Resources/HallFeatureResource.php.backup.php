@@ -21,67 +21,48 @@ class HallFeatureResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    public static function getModelLabel(): string
-    {
-        return __('hall-feature.singular');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('hall-feature.plural');
-    }
-
-    public static function getNavigationLabel(): string
-    {
-        return __('hall-feature.navigation_label');
-    }
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make(__('hall-feature.feature_information'))
+                Forms\Components\Section::make('Feature Information')
                     ->schema([
                         Forms\Components\TextInput::make('name.en')
-                            ->label(__('hall-feature.name_en'))
+                            ->label('Name (English)')
                             ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('name.ar')
-                            ->label(__('hall-feature.name_ar'))
+                            ->label('Name (Arabic)')
                             ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('slug')
-                            ->label(__('hall-feature.slug'))
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
-                            ->helperText(__('hall-feature.slug_helper')),
+                            ->helperText('Leave empty to auto-generate'),
 
                         Forms\Components\TextInput::make('icon')
-                            ->label(__('hall-feature.icon'))
                             ->maxLength(255)
-                            ->helperText(__('hall-feature.icon_helper')),
+                            ->helperText('Heroicon name (e.g., heroicon-o-wifi)'),
 
                         Forms\Components\Textarea::make('description.en')
-                            ->label(__('hall-feature.description_en'))
+                            ->label('Description (English)')
                             ->rows(3),
 
                         Forms\Components\Textarea::make('description.ar')
-                            ->label(__('hall-feature.description_ar'))
+                            ->label('Description (Arabic)')
                             ->rows(3),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('hall-feature.settings'))
+                Forms\Components\Section::make('Settings')
                     ->schema([
                         Forms\Components\TextInput::make('order')
-                            ->label(__('hall-feature.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
                         Forms\Components\Toggle::make('is_active')
-                            ->label(__('hall-feature.is_active'))
                             ->default(true)
                             ->inline(false),
                     ])->columns(2),
@@ -93,51 +74,43 @@ class HallFeatureResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label(__('hall-feature.name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->name),
 
                 Tables\Columns\TextColumn::make('slug')
-                    ->label(__('hall-feature.slug'))
                     ->searchable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('icon')
-                    ->label(__('hall-feature.icon'))
                     ->badge()
                     ->toggleable(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label(__('hall-feature.is_active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('order')
-                    ->label(__('hall-feature.order'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('hall-feature.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label(__('hall-feature.active'))
+                    ->label('Active')
                     ->boolean()
-                    ->trueLabel(__('hall-feature.active_only'))
-                    ->falseLabel(__('hall-feature.inactive_only'))
+                    ->trueLabel('Active only')
+                    ->falseLabel('Inactive only')
                     ->native(false),
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
-                        ->label(__('hall-feature.edit')),
-                    Tables\Actions\DeleteAction::make()
-                        ->label(__('hall-feature.delete')),
-                ]),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

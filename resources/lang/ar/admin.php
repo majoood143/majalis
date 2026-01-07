@@ -403,4 +403,273 @@ return [
             'confidential' => 'سري - للاستخدام الداخلي فقط',
         ],
     ],
+
+
+    // Resource Labels
+    'hall' => 'القاعة',
+    'halls' => 'القاعات',
+
+    // Tab Labels
+    'basic_info' => 'المعلومات الأساسية',
+    'location' => 'الموقع',
+    'capacity_pricing' => 'السعة والتسعير',
+    'contact' => 'الاتصال',
+    'features_media' => 'الميزات والوسائط',
+    'settings' => 'الإعدادات',
+
+    // Basic Info Tab
+    'city' => 'المدينة',
+    'owner' => 'المالك',
+    'name_english' => 'الاسم (الإنجليزية)',
+    'name_arabic' => 'الاسم (العربية)',
+    'url_slug' => 'رابط الموقع',
+    'area' => 'المساحة',
+    'description_english' => 'الوصف (الإنجليزية)',
+    'description_arabic' => 'الوصف (العربية)',
+
+    // Advance Payment Tab
+    'advance_payment' => 'الدفعة المقدمة',
+    'advance_payment_settings' => 'إعدادات الدفعة المقدمة',
+    'advance_payment_explanation' => 'قم بتكوين متطلبات الدفعة المقدمة لهذه القاعة. سيدفع العملاء هذا المبلغ مقدمًا عند الحجز.',
+    'allows_advance_payment' => 'السماح بالدفعة المقدمة',
+    'allows_advance_payment_help' => 'تمكين لطلب دفعة مقدمة للحجوزات',
+    'advance_payment_type' => 'نوع الدفعة المقدمة',
+    'advance_payment_type_help' => 'اختر كيفية حساب الدفعة المقدمة',
+    'advance_type_fixed' => 'مبلغ ثابت',
+    'advance_type_percentage' => 'نسبة من الإجمالي',
+    'advance_payment_amount' => 'مبلغ الدفعة المقدمة',
+    'advance_payment_amount_help' => 'المبلغ الثابت للدفع مقدمًا (ريال عماني)',
+    'advance_payment_amount_placeholder' => 'أدخل المبلغ الثابت',
+    'advance_payment_percentage' => 'نسبة الدفعة المقدمة',
+    'advance_payment_percentage_help' => 'نسبة سعر الحجز الإجمالي للدفع مقدمًا',
+    'advance_payment_percentage_placeholder' => 'أدخل النسبة',
+    'minimum_advance_payment' => 'الحد الأدنى للدفعة المقدمة',
+    'minimum_advance_payment_help' => 'تأكد من أن الدفعة المقدمة لا تقل عن هذا المبلغ (ريال عماني)',
+    'minimum_advance_payment_placeholder' => 'أدخل الحد الأدنى للمبلغ',
+    'advance_payment_preview' => 'معاينة الدفعة المقدمة',
+    'advance_payment_preview_help' => 'معاينة كيفية عمل الدفعة المقدمة مع التسعير التجريبي',
+    'preview_for_price' => 'معاينة لحجز بقيمة :price ريال عماني',
+    'customer_pays_advance' => 'يدفع العميل (مقدمًا)',
+    'balance_due_before_event' => 'الرصيد المستحق (قبل الحدث)',
+    'advance_includes_services' => 'حساب الدفعة المقدمة يشمل الخدمات. الرصيد يشمل الرسوم الإضافية.',
+
+    // Location Tab
+    'full_address' => 'العنوان الكامل',
+    'address_english' => 'العنوان (الإنجليزية)',
+    'address_arabic' => 'العنوان (العربية)',
+    'pick_location_on_map' => 'اختر الموقع على الخريطة',
+    'hall_location' => 'موقع القاعة',
+    'latitude' => 'خط العرض',
+    'longitude' => 'خط الطول',
+    'google_maps_url' => 'رابط خرائط جوجل',
+
+    // Map Helper Texts
+    'map_helper_click' => 'انقر على الخريطة لتعيين موقع القاعة، أو اسحب العلامة للتعديل.',
+    'coordinate_helper' => 'يتم ملؤه تلقائيًا من الخريطة. يمكن أيضًا الإدخال يدويًا.',
+
+    // Capacity & Pricing Tab
+    'minimum_capacity' => 'الحد الأدنى للسعة',
+    'maximum_capacity' => 'الحد الأقصى للسعة',
+    'base_price_per_slot' => 'السعر الأساسي لكل فترة',
+    'slot_specific_pricing' => 'التسعير الخاص بالفترة',
+    'time_slot' => 'الفترة الزمنية',
+    'price_omr' => 'السعر (ريال عماني)',
+
+    // Contact Tab
+    'phone_number' => 'رقم الهاتف',
+    'whatsapp' => 'واتساب',
+    'email_address' => 'عنوان البريد الإلكتروني',
+
+    // Features & Media Tab
+    'hall_features' => 'ميزات القاعة',
+    'featured_image' => 'الصورة الرئيسية',
+    'gallery_images' => 'صور المعرض',
+    'video_url' => 'رابط الفيديو',
+
+    // Settings Tab
+    'active' => 'نشط',
+    'featured' => 'مميز',
+    'requires_approval' => 'يتطلب الموافقة',
+    'cancellation_window' => 'فترة الإلغاء',
+    'cancellation_fee' => 'رسوم الإلغاء',
+
+    // Table Columns
+    'image' => 'الصورة',
+    'name' => 'الاسم',
+    'capacity' => 'السعة',
+    'price' => 'السعر',
+    'bookings' => 'الحجوزات',
+    'rating' => 'التقييم',
+
+    // Units
+    'sqm' => 'متر مربع',
+    'guests' => 'ضيف',
+    'hours' => 'ساعة',
+
+    // Helper Texts
+    'auto_generate_slug' => 'اتركه فارغًا للتوليد التلقائي من الاسم الإنجليزي',
+    'recommended_image_size' => 'مستحسن: 1920x1080 بكسل',
+    'max_images' => '10 صور كحد أقصى',
+    'inactive_halls_hidden' => 'القاعات غير النشطة مخفية عن العملاء',
+    'featured_halls_highlighted' => 'تظهر القاعات المميزة في الأقسام المميزة',
+    'allow_cancellation_help' => 'الحد الأدنى من الساعات قبل الحجوزات للسماح بالإلغاء',
+    'cancellation_fee_help' => 'نسبة الرسوم المفروضة عند الإلغاء',
+
+    // Placeholders
+    'enter_hall_name_english' => 'أدخل اسم القاعة بالإنجليزية',
+    'enter_hall_name_arabic' => 'أدخل اسم القاعة بالعربية',
+    'enter_full_address' => 'أدخل عنوان الشارع الكامل',
+    'enter_address_english' => 'العنوان بالإنجليزية',
+    'enter_address_arabic' => 'العنوان بالعربية',
+    'enter_capacity_example' => 'مثال: 50',
+    'enter_price_example' => 'مثال: 150.000',
+    'phone_placeholder' => '+968 XXXX XXXX',
+    'whatsapp_placeholder' => '+968 XXXX XXXX',
+    'email_placeholder' => 'contact@hallname.com',
+    'video_placeholder' => 'https://youtube.com/watch?v=...',
+
+    // Table Filters
+    'city_filter' => 'المدينة',
+    'owner_filter' => 'المالك',
+    'featured_filter' => 'مميز',
+    'active_filter' => 'نشط',
+    'min_capacity_filter' => 'الحد الأدنى للسعة',
+    'max_capacity_filter' => 'الحد الأقصى للسعة',
+    'featured_only' => 'المميزة فقط',
+    'not_featured' => 'غير مميز',
+    'active_only' => 'النشطة فقط',
+    'inactive_only' => 'غير النشطة فقط',
+
+    // Table Empty States
+    'no_halls_found' => 'لم يتم العثور على قاعات',
+    'create_first_hall' => 'أنشئ قاعتك الأولى للبدء.',
+
+    // Messages
+    'hall_created' => 'تم إنشاء القاعة بنجاح',
+    'hall_updated' => 'تم تحديث القاعة بنجاح',
+    'hall_deleted' => 'تم حذف القاعة بنجاح',
+
+    // Additional
+    'add_price_override' => 'إضافة تجاوز سعر',
+    'override_prices_help' => 'تجاوز الأسعار لـ: الصباح، بعد الظهر، المساء، طوال اليوم',
+    'select_features_help' => 'حدد جميع الميزات المتاحة في هذه القاعة',
+    'disabled' => 'معطل',
+    'optional_google_maps' => 'اختياري: الصق رابط خرائط جوجل لهذا الموقع',
+    'youtube_vimeo_link' => 'رابط يوتيوب أو فيميو',
+    'require_admin_approval' => 'يتطلب موافقة المسؤول لكل حجز',
+
+    // Actions
+    'actions' => [
+        'export' => 'تصدير القاعات',
+        'export_modal_heading' => 'تصدير بيانات القاعات',
+        'export_modal_description' => 'تصدير جميع بيانات القاعات إلى ملف CSV.',
+        'bulk_price_update' => 'تحديث الأسعار بالجملة',
+        'bulk_price_modal_heading' => 'تحديث الأسعار بالجملة',
+        'bulk_price_modal_description' => 'تحديث أسعار عدة قاعات دفعة واحدة.',
+        'generate_slugs' => 'إنشاء الروابط الناقصة',
+        'generate_slugs_modal_heading' => 'إنشاء الروابط الناقصة',
+        'generate_slugs_modal_description' => 'إنشاء روابط URL للقاعات التي لا تملك واحدة.',
+        'bulk_feature' => 'إدارة المميز بالجملة',
+        'sync_availability' => 'مزامنة التوفر',
+        'sync_availability_modal_heading' => 'إنشاء سجلات التوفر',
+        'sync_availability_modal_description' => 'إنشاء فترات توفر لجميع القاعات للـ 3 أشهر القادمة.',
+        'bulk_activation' => 'التفعيل بالجملة',
+        'download' => 'تحميل الملف',
+    ],
+
+    // Fields
+    'fields' => [
+        'city' => 'المدينة',
+        'city_filter' => 'تصفية حسب المدينة (اختياري)',
+        'update_type' => 'نوع التحديث',
+        'percentage' => 'النسبة المئوية (%)',
+        'amount' => 'المبلغ (ريال عماني)',
+        'action' => 'الإجراء',
+        'status' => 'الحالة',
+    ],
+
+    // Options
+    'options' => [
+        'percentage_increase' => 'زيادة نسبية',
+        'percentage_decrease' => 'تخفيض نسبي',
+        'fixed_increase' => 'زيادة مبلغ ثابت',
+        'fixed_decrease' => 'تخفيض مبلغ ثابت',
+        'mark_featured' => 'وضع كمميز',
+        'unmark_featured' => 'إزالة حالة المميز',
+        'activate' => 'تفعيل',
+        'deactivate' => 'تعطيل',
+    ],
+
+    // Tabs
+    'tabs' => [
+        'all' => 'جميع القاعات',
+        'active' => 'نشطة',
+        'inactive' => 'غير نشطة',
+        'featured' => 'مميزة',
+        'pending_approval' => 'بانتظار الموافقة',
+        'high_capacity' => 'سعة عالية (500+)',
+        'premium_price' => 'مميزة (1000+ ريال عماني)',
+        'highly_rated' => 'تقييم عالي (4.5+)',
+        'with_video' => 'تحتوي على فيديو',
+        'incomplete' => 'ملف غير مكتمل',
+        'no_bookings' => 'بدون حجوزات',
+    ],
+
+    // Export Headers
+    'export' => [
+        'name_en' => 'الاسم (الإنجليزية)',
+        'name_ar' => 'الاسم (العربية)',
+        'slug' => 'الرابط',
+        'city' => 'المدينة',
+        'owner' => 'المالك',
+        'address' => 'العنوان',
+        'latitude' => 'خط العرض',
+        'longitude' => 'خط الطول',
+        'capacity_min' => 'الحد الأدنى للسعة',
+        'capacity_max' => 'الحد الأقصى للسعة',
+        'base_price' => 'السعر الأساسي',
+        'phone' => 'الهاتف',
+        'email' => 'البريد الإلكتروني',
+        'total_bookings' => 'إجمالي الحجوزات',
+        'average_rating' => 'متوسط التقييم',
+        'featured' => 'مميز',
+        'active' => 'نشط',
+        'created_at' => 'تاريخ الإنشاء',
+    ],
+
+    // Notifications
+    'notifications' => [
+        'export_success' => 'تم التصدير بنجاح',
+        'export_success_body' => 'تم تصدير بيانات القاعات بنجاح.',
+        'export_error' => 'فشل التصدير',
+        'prices_updated' => 'تم تحديث الأسعار',
+        'prices_updated_body' => 'تم تحديث :count قاعة بنجاح.',
+        'slugs_generated' => 'تم إنشاء الروابط',
+        'slugs_generated_body' => 'تم إنشاء :count رابط.',
+        'feature_updated' => 'تم تحديث حالة التميز',
+        'feature_updated_body' => 'تم تحديث :count قاعة بنجاح.',
+        'activation_updated' => 'تم تحديث الحالة',
+        'activation_updated_body' => 'تم تحديث :count قاعة بنجاح.',
+        'availability_synced' => 'تمت مزامنة التوفر',
+        'availability_synced_body' => 'تم إنشاء :count فترة توفر.',
+        'update_error' => 'فشلت العملية',
+    ],
+
+    // Common
+    'yes' => 'نعم',
+    'no' => 'لا',
+
+    // Stats
+    'stats' => [
+        'total_halls' => 'إجمالي القاعات',
+        'total_halls_desc' => 'جميع القاعات في النظام',
+        'active_halls' => 'القاعات النشطة',
+        'active_halls_desc' => 'نشطة حالياً',
+        'featured_halls' => 'القاعات المميزة',
+        'featured_halls_desc' => 'مميزة',
+        'pending_halls' => 'القاعات المعلقة',
+        'pending_halls_desc' => 'بانتظار الموافقة',
+        'average_price' => 'متوسط السعر',
+        'average_price_desc' => 'لكل فترة',
+    ],
 ];

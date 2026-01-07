@@ -804,14 +804,18 @@ class BookingResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('customer_name')
+                ->label(static::columnLabel('customer_name'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('booking_date')
+                ->label(static::columnLabel('booking_date'))
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time_slot')
+                ->label(static::columnLabel('time_slot'))
                     ->badge(),
                 Tables\Columns\TextColumn::make('total_amount')
-                    ->label('Total Amount')
+                ->label(static::columnLabel('total_amount'))
+
                     ->money('OMR', 3)
                     ->sortable()
                     ->description(fn ($record) => $record->isAdvancePayment()
@@ -820,8 +824,10 @@ class BookingResource extends Resource
                     )
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('status')
+                ->label(static::columnLabel('status'))
                     ->badge(),
                 Tables\Columns\TextColumn::make('payment_status')
+                ->label(static::columnLabel('payment_status'))
                     ->badge(),
             Tables\Columns\TextColumn::make('payment_type')
                 ->label(__('advance_payment.payment_type'))
