@@ -57,6 +57,7 @@ class Hall extends Model
         'owner_id',
         'name',
         'slug',
+        'area',
         'description',
         'address',
         'address_localized',

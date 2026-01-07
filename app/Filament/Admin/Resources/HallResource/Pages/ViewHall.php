@@ -147,7 +147,8 @@ class ViewHall extends ViewRecord
                                     ->icon('heroicon-o-map-pin'),
 
                                 Infolists\Components\TextEntry::make('owner.name')
-                                    ->label(__('Owner'))
+                                    //->label(__('Owner'))
+                                    ->label(__('admin.reports.table.owner'))
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-user'),
@@ -275,15 +276,15 @@ class ViewHall extends ViewRecord
                             ]),
 
 
-                // =============================================
-                // INTERACTIVE MAP DISPLAY
-                // Shows the hall location on OpenStreetMap
-                // =============================================
-                Infolists\Components\ViewEntry::make('location_map')
-                    ->label(__('Hall Location on Map'))
-                    ->view('filament.infolists.components.hall-map')
-                    ->columnSpanFull()
-                    ->visible(fn($record) => $record->latitude && $record->longitude),
+                        // =============================================
+                        // INTERACTIVE MAP DISPLAY
+                        // Shows the hall location on OpenStreetMap
+                        // =============================================
+                        Infolists\Components\ViewEntry::make('location_map')
+                            ->label(__('Hall Location on Map'))
+                            ->view('filament.infolists.components.hall-map')
+                            ->columnSpanFull()
+                            ->visible(fn($record) => $record->latitude && $record->longitude),
 
                         // Google Maps link (if no coordinates)
                         Infolists\Components\TextEntry::make('google_maps_url')

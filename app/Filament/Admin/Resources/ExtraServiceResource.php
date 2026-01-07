@@ -32,7 +32,7 @@ class ExtraServiceResource extends Resource
                     ->label('Hall')
                     ->options(function () {
                         return Hall::with(['city', 'owner'])
-                            ->active()
+                            //->active()
                             ->get()
                             ->mapWithKeys(function ($hall) {
                                 //$locale = app()->getLocale();
