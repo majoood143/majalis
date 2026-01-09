@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
+use App\Jobs\SendBookingNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * Booking Model
@@ -232,7 +238,7 @@ class Booking extends Model
      */
     public function notifications(): HasMany
     {
-        return $this->hasMany(BookingNotification::class);
+        return $this->hasMany(SendBookingNotification::class);
     }
 
     /**
@@ -317,6 +323,12 @@ class Booking extends Model
     public function isPast(): bool
     {
         return $this->booking_date->isPast() && !$this->booking_date->isToday();
+    }
+
+    public function getDaysUntilBooking(): int
+    {
+        //return now()->diffInDays($this->booking_date, false);
+        return (int) now()->diffInDays($this->booking_date, false);
     }
 
     /**
@@ -534,5 +546,15 @@ class Booking extends Model
         // Assign to model properties at the end (single round-trip through cast system)
         $this->advance_amount = $advanceAmount;
         $this->balance_due = $balanceDue;
+    }
+
+
+    // Action Methods
+    public function confirm(): void
+    {
+        $this->update([
+            'status' => BookingStatus::CONFIRMED,
+            'confirmed_at' => now(),
+        ]);
     }
 }

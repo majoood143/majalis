@@ -1,10 +1,15 @@
 <?php
 
 return [
+
+
+
     // Resource Labels
     'singular' => 'إعداد العمولة',
     'plural' => 'إعدادات العمولات',
     'navigation_label' => 'إعدادات العمولات',
+    'navigation_group' => 'المالية',
+
 
     // Form Sections
     'commission_scope' => 'نطاق العمولة',

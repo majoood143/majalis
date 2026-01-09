@@ -21,7 +21,7 @@ class ListUsers extends ListRecords
                 ->color('primary'),
 
             Actions\Action::make('exportUsers')
-                ->label(__('user.export_users'))
+                ->label('Export Users')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(fn() => $this->exportUsers()),
@@ -31,46 +31,46 @@ class ListUsers extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('user.tabs.all_users'))
+            'all' => Tab::make('All Users')
                 ->badge(fn() => \App\Models\User::count()),
 
-            'admin' => Tab::make(__('user.tabs.administrators'))
+            'admin' => Tab::make('Administrators')
                 ->icon('heroicon-o-shield-check')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'admin'))
                 ->badge(fn() => \App\Models\User::where('role', 'admin')->count())
                 ->badgeColor('danger'),
 
-            'hall_owners' => Tab::make(__('user.tabs.hall_owners'))
+            'hall_owners' => Tab::make('Hall Owners')
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'hall_owner'))
                 ->badge(fn() => \App\Models\User::where('role', 'hall_owner')->count())
                 ->badgeColor('warning'),
 
-            'customers' => Tab::make(__('user.tabs.customers'))
+            'customers' => Tab::make('Customers')
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'customer'))
                 ->badge(fn() => \App\Models\User::where('role', 'customer')->count())
                 ->badgeColor('info'),
 
-            'active' => Tab::make(__('user.tabs.active'))
+            'active' => Tab::make('Active')
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
                 ->badge(fn() => \App\Models\User::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('user.tabs.inactive'))
+            'inactive' => Tab::make('Inactive')
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
                 ->badge(fn() => \App\Models\User::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'verified' => Tab::make(__('user.tabs.email_verified'))
+            'verified' => Tab::make('Email Verified')
                 ->icon('heroicon-o-check-badge')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('email_verified_at'))
                 ->badge(fn() => \App\Models\User::whereNotNull('email_verified_at')->count())
                 ->badgeColor('success'),
 
-            'unverified' => Tab::make(__('user.tabs.unverified'))
+            'unverified' => Tab::make('Unverified')
                 ->icon('heroicon-o-exclamation-triangle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('email_verified_at'))
                 ->badge(fn() => \App\Models\User::whereNull('email_verified_at')->count())
@@ -91,27 +91,17 @@ class ListUsers extends ListRecords
 
         $file = fopen($path, 'w');
 
-        fputcsv($file, [
-            __('user.export.id'),
-            __('user.export.name'),
-            __('user.export.email'),
-            __('user.export.role'),
-            __('user.export.phone'),
-            __('user.export.email_verified'),
-            __('user.export.active'),
-            __('user.export.created_at'),
-        ]);
+        fputcsv($file, ['ID', 'Name', 'Email', 'Role', 'Phone', 'Email Verified', 'Active', 'Created At']);
 
         foreach ($users as $user) {
             fputcsv($file, [
                 $user->id,
                 $user->name,
                 $user->email,
-                ucfirst($user->role->value),
-                //$user->role,
+                ucfirst($user->role),
                 $user->phone ?? '',
-                $user->email_verified_at ? __('user.yes') : __('user.no'),
-                $user->is_active ? __('user.yes') : __('user.no'),
+                $user->email_verified_at ? 'Yes' : 'No',
+                $user->is_active ? 'Yes' : 'No',
                 $user->created_at->format('Y-m-d H:i:s'),
             ]);
         }
@@ -120,11 +110,9 @@ class ListUsers extends ListRecords
 
         Notification::make()
             ->success()
-            ->title(__('user.export.success_title'))
-            ->body(__('user.export.success_body', ['filename' => $filename]))
+            ->title('Export Successful')
             ->actions([
                 \Filament\Notifications\Actions\Action::make('download')
-                    ->label(__('user.export.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),
             ])

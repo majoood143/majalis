@@ -72,10 +72,8 @@ class CreateBooking extends CreateRecord
         if ($existingBooking) {
             Notification::make()
                 ->danger()
-                ->title(__('booking.notifications.slot_already_booked_title'))
-                ->body(__('booking.notifications.slot_already_booked_body', [
-                    'booking_number' => $existingBooking->booking_number
-                ]))
+                ->title('Slot Already Booked')
+                ->body("This time slot is already booked (Booking #{$existingBooking->booking_number}). Please select a different date or time slot.")
                 ->persistent()
                 ->send();
 
@@ -88,20 +86,16 @@ class CreateBooking extends CreateRecord
             if ($data['number_of_guests'] < $hall->capacity_min) {
                 Notification::make()
                     ->warning()
-                    ->title(__('booking.notifications.guest_count_below_min_title'))
-                    ->body(__('booking.notifications.guest_count_below_min_body', [
-                        'capacity_min' => $hall->capacity_min
-                    ]))
+                    ->title('Guest Count Below Minimum')
+                    ->body("Minimum capacity is {$hall->capacity_min} guests. Guest count has been adjusted.")
                     ->send();
 
                 $data['number_of_guests'] = $hall->capacity_min;
             } elseif ($data['number_of_guests'] > $hall->capacity_max) {
                 Notification::make()
                     ->danger()
-                    ->title(__('booking.notifications.guest_count_exceeds_max_title'))
-                    ->body(__('booking.notifications.guest_count_exceeds_max_body', [
-                        'capacity_max' => $hall->capacity_max
-                    ]))
+                    ->title('Guest Count Exceeds Maximum')
+                    ->body("Maximum capacity is {$hall->capacity_max} guests.")
                     ->persistent()
                     ->send();
 
@@ -153,12 +147,12 @@ class CreateBooking extends CreateRecord
             if ($existingBooking) {
                 Notification::make()
                     ->danger()
-                    ->title(__('booking.notifications.slot_just_booked_title'))
-                    ->body(__('booking.notifications.slot_just_booked_body'))
+                    ->title('Slot Already Booked')
+                    ->body("This time slot was just booked by another user. Please select a different time slot.")
                     ->persistent()
                     ->send();
 
-                throw new \Exception(__('booking.exceptions.slot_already_booked'));
+                throw new \Exception('Slot already booked');
             }
 
             // Separate extra services for pivot table
@@ -192,11 +186,12 @@ class CreateBooking extends CreateRecord
                 // Notify admin that this is an advance payment booking
                 Notification::make()
                     ->success()
-                    ->title(__('booking.notifications.advance_payment_booking_title'))
-                    ->body(__('booking.notifications.advance_payment_booking_body', [
-                        'advance_amount' => number_format((float)$record->advance_amount, 3),
-                        'balance_due' => number_format((float)$record->balance_due, 3)
-                    ]))
+                    ->title('Advance Payment Booking')
+                    ->body(sprintf(
+                        'This booking requires advance payment. Customer must pay %s OMR upfront. Balance of %s OMR due before event.',
+                        number_format((float)$record->advance_amount, 3),
+                        number_format((float)$record->balance_due, 3)
+                    ))
                     ->send();
             }
 
@@ -269,7 +264,7 @@ class CreateBooking extends CreateRecord
      */
     protected function getCreatedNotificationTitle(): ?string
     {
-        return __('booking.notifications.booking_created_title');
+        return 'Booking created successfully';
     }
 
     /**
@@ -286,13 +281,14 @@ class CreateBooking extends CreateRecord
         if ($record->isAdvancePayment()) {
             Notification::make()
                 ->info()
-                ->title(__('booking.notifications.booking_summary_title'))
-                ->body(__('booking.notifications.booking_summary_body', [
-                    'booking_number' => $record->booking_number,
-                    'total_amount' => number_format((float)$record->total_amount, 3),
-                    'advance_amount' => number_format((float)$record->advance_amount, 3),
-                    'balance_due' => number_format((float)$record->balance_due, 3)
-                ]))
+                ->title('📋 Booking Summary')
+                ->body(sprintf(
+                    "**Booking:** %s\n**Total Amount:** %s OMR\n**Payment Type:** Advance Payment\n**Advance Required:** %s OMR\n**Balance Due:** %s OMR\n\nCustomer must pay advance amount before event confirmation.",
+                    $record->booking_number,
+                    number_format((float)$record->total_amount, 3),
+                    number_format((float)$record->advance_amount, 3),
+                    number_format((float)$record->balance_due, 3)
+                ))
                 ->persistent()
                 ->send();
         }
@@ -314,8 +310,8 @@ class CreateBooking extends CreateRecord
     {
         return parent::getCreateFormAction()
             ->requiresConfirmation()
-            ->modalHeading(__('booking.actions.create_modal_heading'))
-            ->modalDescription(__('booking.actions.create_modal_description'))
-            ->modalSubmitActionLabel(__('booking.actions.create_modal_submit_label'));
+            ->modalHeading('Confirm Booking Creation')
+            ->modalDescription('Are you sure you want to create this booking? Please verify all details are correct.')
+            ->modalSubmitActionLabel('Yes, Create Booking');
     }
 }

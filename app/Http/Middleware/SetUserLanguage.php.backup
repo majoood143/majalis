@@ -31,18 +31,6 @@ class SetUserLanguage
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check for expired session before processing
-        if ($this->hasExpiredSession($request)) {
-            $request->session()->flush();
-            Auth::logout();
-
-            // Get the appropriate redirect URL based on context
-            $redirectUrl = $this->getRedirectUrlForExpiredSession($request);
-
-            // Convert Livewire Redirector to Response
-            return redirect($redirectUrl)->response($request);
-        }
-
         // Initialize locale variable
         $locale = null;
 
@@ -89,62 +77,6 @@ class SetUserLanguage
         }
 
         return $next($request);
-    }
-
-    /**
-     * Check if session has expired
-     *
-     * @param Request $request
-     * @return bool
-     */
-    protected function hasExpiredSession(Request $request): bool
-    {
-        // Don't check expiration for login page or public pages
-        if ($request->routeIs('login') || $request->routeIs('logout') ||
-            $request->routeIs('password.*') || $request->is('auth/*')) {
-            return false;
-        }
-
-        // Check if user was previously authenticated but session expired
-        if ($request->session()->has('_token')) {
-            // Check session lifetime
-            if ($request->session()->has('last_activity')) {
-                $lastActivity = $request->session()->get('last_activity');
-                $sessionLifetime = config('session.lifetime', 120); // minutes
-
-                if (now()->diffInMinutes($lastActivity) > $sessionLifetime) {
-                    return true;
-                }
-            }
-
-            // Update last activity timestamp
-            $request->session()->put('last_activity', now());
-        }
-
-        return false;
-    }
-
-    /**
-     * Get redirect URL for expired session based on context
-     *
-     * @param Request $request
-     * @return string
-     */
-    protected function getRedirectUrlForExpiredSession(Request $request): string
-    {
-        // Check if this is an AJAX/Livewire request
-        if ($request->header('X-Livewire') || $request->ajax() || $request->wantsJson()) {
-            // For AJAX requests, we can't redirect normally, but middleware needs a Response
-            return route('login');
-        }
-
-        // Check if this is a Filament admin request
-        if (str_starts_with($request->path(), 'admin')) {
-            return route('filament.admin.auth.login');
-        }
-
-        // Default login route
-        return route('login');
     }
 
     /**

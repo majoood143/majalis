@@ -325,7 +325,8 @@ class Booking_org extends Model
 
     public function getDaysUntilBooking(): int
     {
-        return now()->diffInDays($this->booking_date, false);
+        //return now()->diffInDays($this->booking_date, false);
+        return (int) now()->diffInDays($this->booking_date, false);
     }
 
     public function getFormattedDateAttribute(): string

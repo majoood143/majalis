@@ -46,8 +46,7 @@ class ViewBooking extends ViewRecord
     {
         return [
             // Standard edit action
-            Actions\EditAction::make()
-                ->label(__('booking.actions.edit')),
+            Actions\EditAction::make(),
 
             /**
              * Confirm Booking Action
@@ -56,12 +55,9 @@ class ViewBooking extends ViewRecord
              * Only visible for pending bookings.
              */
             Actions\Action::make('confirm')
-                ->label(__('booking.actions.confirm'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
-                ->modalHeading(__('booking.actions.confirm_modal_heading'))
-                ->modalDescription(__('booking.actions.confirm_modal_description'))
                 ->action(function () {
                     // Call the confirm method on the booking model
                     $this->record->confirm();
@@ -69,10 +65,11 @@ class ViewBooking extends ViewRecord
 
                     // Send success notification
                     \Filament\Notifications\Notification::make()
-                        ->title(__('booking.notifications.booking_confirmed_title'))
+                        ->title('Booking confirmed successfully')
                         ->success()
                         ->send();
                 })
+                // FIX: Removed ->value since status is already a string
                 ->visible(fn() => $this->record->status === 'pending'),
 
             /**
@@ -82,18 +79,14 @@ class ViewBooking extends ViewRecord
              * Opens a form modal to collect cancellation reason.
              */
             Actions\Action::make('cancel')
-                ->label(__('booking.actions.cancel'))
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->requiresConfirmation()
-                ->modalHeading(__('booking.actions.cancel_modal_heading'))
-                ->modalDescription(__('booking.actions.cancel_modal_description'))
                 ->form([
                     \Filament\Forms\Components\Textarea::make('reason')
-                        ->label(__('booking.form.cancellation_reason'))
+                        ->label('Cancellation Reason')
                         ->required()
-                        ->rows(3)
-                        ->placeholder(__('booking.form.cancellation_reason_placeholder')),
+                        ->rows(3),
                 ])
                 ->action(function (array $data) {
                     // Call the cancel method with the provided reason
@@ -102,10 +95,11 @@ class ViewBooking extends ViewRecord
 
                     // Send success notification
                     \Filament\Notifications\Notification::make()
-                        ->title(__('booking.notifications.booking_cancelled_title'))
+                        ->title('Booking cancelled successfully')
                         ->success()
                         ->send();
                 })
+                // FIX: Removed ->value since status is already a string
                 ->visible(fn() => in_array($this->record->status, ['pending', 'confirmed'])),
 
             /**
@@ -115,12 +109,9 @@ class ViewBooking extends ViewRecord
              * Only visible for confirmed bookings where the booking date is in the past.
              */
             Actions\Action::make('complete')
-                ->label(__('booking.actions.complete'))
                 ->icon('heroicon-o-check-badge')
                 ->color('info')
                 ->requiresConfirmation()
-                ->modalHeading(__('booking.actions.complete_modal_heading'))
-                ->modalDescription(__('booking.actions.complete_modal_description'))
                 ->action(function () {
                     // Call the complete method on the booking model
                     $this->record->complete();
@@ -128,10 +119,11 @@ class ViewBooking extends ViewRecord
 
                     // Send success notification
                     \Filament\Notifications\Notification::make()
-                        ->title(__('booking.notifications.booking_completed_title'))
+                        ->title('Booking completed successfully')
                         ->success()
                         ->send();
                 })
+                // FIX: Removed ->value since status is already a string
                 ->visible(fn() => $this->record->status === 'confirmed' &&
                     $this->record->booking_date->isPast()),
 
@@ -142,7 +134,6 @@ class ViewBooking extends ViewRecord
              * Only visible when an invoice exists.
              */
             Actions\Action::make('downloadInvoice')
-                ->label(__('booking.actions.download_invoice'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('primary')
                 ->action(function () {
@@ -155,7 +146,7 @@ class ViewBooking extends ViewRecord
                     } else {
                         // Show warning if invoice not available
                         \Filament\Notifications\Notification::make()
-                            ->title(__('booking.notifications.invoice_not_available_title'))
+                            ->title('Invoice not available')
                             ->warning()
                             ->send();
                     }
@@ -170,7 +161,6 @@ class ViewBooking extends ViewRecord
              * Includes comprehensive error handling and logging.
              */
             Actions\Action::make('generateInvoice')
-                ->label(__('booking.actions.generate_invoice'))
                 ->icon('heroicon-o-document-plus')
                 ->color('gray')
                 ->action(function () {
@@ -191,8 +181,8 @@ class ViewBooking extends ViewRecord
 
                         // Send success notification with filename
                         \Filament\Notifications\Notification::make()
-                            ->title(__('booking.notifications.invoice_generated_title'))
-                            ->body(__('booking.notifications.invoice_generated_body', ['filename' => $filename]))
+                            ->title('Invoice generated successfully')
+                            ->body('Invoice saved as: ' . $filename)
                             ->success()
                             ->send();
                     } catch (\Exception $e) {
@@ -204,12 +194,13 @@ class ViewBooking extends ViewRecord
 
                         // Send error notification to user
                         \Filament\Notifications\Notification::make()
-                            ->title(__('booking.notifications.invoice_generation_failed_title'))
+                            ->title('Invoice generation failed')
                             ->body($e->getMessage())
                             ->danger()
                             ->send();
                     }
                 })
+                // FIX: Removed ->value since status is already a string
                 ->visible(fn() => empty($this->record->invoice_path) &&
                     $this->record->status === 'confirmed'),
 
@@ -220,12 +211,9 @@ class ViewBooking extends ViewRecord
              * Only visible for confirmed future bookings.
              */
             Actions\Action::make('sendReminder')
-                ->label(__('booking.actions.send_reminder'))
                 ->icon('heroicon-o-bell')
                 ->color('warning')
                 ->requiresConfirmation()
-                ->modalHeading(__('booking.actions.send_reminder_modal_heading'))
-                ->modalDescription(__('booking.actions.send_reminder_modal_description'))
                 ->action(function () {
                     // Get the notification service from container
                     $notificationService = app(\App\Services\NotificationService::class);
@@ -235,10 +223,11 @@ class ViewBooking extends ViewRecord
 
                     // Send success notification
                     \Filament\Notifications\Notification::make()
-                        ->title(__('booking.notifications.reminder_sent_title'))
+                        ->title('Reminder sent successfully')
                         ->success()
                         ->send();
                 })
+                // FIX: Removed ->value since status is already a string
                 ->visible(fn() => $this->record->status === 'confirmed' &&
                     $this->record->booking_date->isFuture()),
 
@@ -250,27 +239,27 @@ class ViewBooking extends ViewRecord
              * Opens a form to collect payment method, reference, and date.
              */
             Actions\Action::make('mark_balance_paid')
-                ->label(__('booking.actions.mark_balance_paid'))
+                ->label(__('advance_payment.mark_balance_as_paid'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn() => $this->record->isAdvancePayment() && $this->record->isBalancePending())
                 ->form([
                     \Filament\Forms\Components\Select::make('payment_method')
-                        ->label(__('booking.form.balance_payment_method'))
+                        ->label(__('advance_payment.balance_payment_method'))
                         ->options([
-                            'bank_transfer' => __('booking.payment_methods.bank_transfer'),
-                            'cash' => __('booking.payment_methods.cash'),
-                            'card' => __('booking.payment_methods.card'),
+                            'bank_transfer' => __('advance_payment.bank_transfer'),
+                            'cash' => __('advance_payment.cash'),
+                            'card' => __('advance_payment.card'),
                         ])
                         ->required(),
 
                     \Filament\Forms\Components\TextInput::make('reference')
-                        ->label(__('booking.form.balance_payment_reference'))
-                        ->placeholder(__('booking.form.balance_payment_reference_placeholder'))
+                        ->label(__('advance_payment.balance_payment_reference'))
+                        ->placeholder('Transaction ID or Receipt Number')
                         ->maxLength(255),
 
                     \Filament\Forms\Components\DateTimePicker::make('paid_at')
-                        ->label(__('booking.form.payment_date'))
+                        ->label(__('Payment Date'))
                         ->default(now())
                         ->required(),
                 ])
@@ -285,8 +274,8 @@ class ViewBooking extends ViewRecord
                     $this->record->refresh();
 
                     \Filament\Notifications\Notification::make()
-                        ->title(__('booking.notifications.balance_marked_paid_title'))
-                        ->body(__('booking.notifications.balance_marked_paid_body'))
+                        ->title(__('advance_payment.balance_marked_as_paid'))
+                        ->body(__('advance_payment.balance_payment_recorded'))
                         ->success()
                         ->send();
                 }),
@@ -318,25 +307,21 @@ class ViewBooking extends ViewRecord
                  *
                  * Displays the booking number, status badges, and payment status.
                  */
-                Infolists\Components\Section::make(__('booking.sections.booking_information'))
+                Infolists\Components\Section::make('Booking Information')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('booking_number')
-                                    ->label(__('booking.labels.booking_number'))
+                                    ->label('Booking Number')
                                     ->copyable()
                                     ->badge()
                                     ->color('primary'),
 
                                 Infolists\Components\TextEntry::make('status')
-                                    ->label(__('booking.labels.status'))
-                                    ->badge()
-                                    ->formatStateUsing(fn($state) => __('booking.statuses.' . $state)),
+                                    ->badge(),
 
                                 Infolists\Components\TextEntry::make('payment_status')
-                                    ->label(__('booking.labels.payment_status'))
-                                    ->badge()
-                                    ->formatStateUsing(fn($state) => __('booking.payment_statuses.' . $state)),
+                                    ->badge(),
                             ]),
                     ]),
 
@@ -345,16 +330,16 @@ class ViewBooking extends ViewRecord
                  *
                  * Shows the booked hall, location, date, time slot, and event details.
                  */
-                Infolists\Components\Section::make(__('booking.sections.hall_date_information'))
+                Infolists\Components\Section::make('Hall & Date Information')
                     ->schema([
                         Infolists\Components\Grid::make(2)
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall.name')
-                                    ->label(__('booking.labels.hall'))
+                                    ->label('Hall')
                                     ->formatStateUsing(fn($record) => $record->hall->name),
 
                                 Infolists\Components\TextEntry::make('hall.city.name')
-                                    ->label(__('booking.labels.location'))
+                                    ->label('Location')
                                     ->formatStateUsing(
                                         fn($record) =>
                                         $record->hall->city->name . ', ' .
@@ -362,28 +347,24 @@ class ViewBooking extends ViewRecord
                                     ),
 
                                 Infolists\Components\TextEntry::make('booking_date')
-                                    ->label(__('booking.labels.booking_date'))
                                     ->date('d M Y')
                                     ->icon('heroicon-o-calendar'),
 
                                 Infolists\Components\TextEntry::make('time_slot')
-                                    ->label(__('booking.labels.time_slot'))
                                     ->badge()
                                     ->formatStateUsing(
                                         fn(string $state): string =>
-                                        __('booking.time_slots.' . $state)
+                                        ucfirst(str_replace('_', ' ', $state))
                                     ),
 
                                 Infolists\Components\TextEntry::make('number_of_guests')
-                                    ->label(__('booking.labels.number_of_guests'))
-                                    ->suffix(__('booking.labels.guests_suffix'))
+                                    ->suffix(' guests')
                                     ->icon('heroicon-o-users'),
 
                                 Infolists\Components\TextEntry::make('event_type')
-                                    ->label(__('booking.labels.event_type'))
                                     ->formatStateUsing(
                                         fn(?string $state): string =>
-                                        $state ? __('booking.event_types.' . $state) : '-'
+                                        $state ? ucfirst($state) : '-'
                                     ),
                             ]),
                     ])->columns(2),
@@ -393,29 +374,25 @@ class ViewBooking extends ViewRecord
                  *
                  * Displays customer contact information and notes.
                  */
-                Infolists\Components\Section::make(__('booking.sections.customer_details'))
+                Infolists\Components\Section::make('Customer Details')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('customer_name')
-                                    ->label(__('booking.labels.customer_name'))
                                     ->icon('heroicon-o-user'),
 
                                 Infolists\Components\TextEntry::make('customer_email')
-                                    ->label(__('booking.labels.customer_email'))
                                     ->copyable()
                                     ->icon('heroicon-o-envelope'),
 
                                 Infolists\Components\TextEntry::make('customer_phone')
-                                    ->label(__('booking.labels.customer_phone'))
                                     ->copyable()
                                     ->icon('heroicon-o-phone'),
                             ]),
 
                         Infolists\Components\TextEntry::make('customer_notes')
-                            ->label(__('booking.labels.customer_notes'))
                             ->columnSpanFull()
-                            ->placeholder(__('booking.placeholders.no_notes')),
+                            ->placeholder('No notes provided'),
                     ]),
 
                 /**
@@ -429,60 +406,66 @@ class ViewBooking extends ViewRecord
                  * - Total amount
                  * - Owner payout (after commission)
                  */
-                Infolists\Components\Section::make(__('booking.sections.pricing_breakdown'))
+                Infolists\Components\Section::make('Pricing Breakdown')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall_price')
-                                    ->label(__('booking.labels.hall_price'))
-                                    ->money('OMR'),
+                                    ->money('OMR')
+                                    ->label('Hall Price'),
 
                                 Infolists\Components\TextEntry::make('services_price')
-                                    ->label(__('booking.labels.services_price'))
-                                    ->money('OMR'),
+                                    ->money('OMR')
+                                    ->label('Services'),
 
                                 Infolists\Components\TextEntry::make('subtotal')
-                                    ->label(__('booking.labels.subtotal'))
                                     ->money('OMR')
                                     ->weight('bold'),
 
                                 Infolists\Components\TextEntry::make('commission_amount')
-                                    ->label(__('booking.labels.commission_amount'))
                                     ->money('OMR')
+                                    ->label('Platform Fee')
                                     ->color('warning'),
 
                                 Infolists\Components\TextEntry::make('total_amount')
-                                    ->label(__('booking.labels.total_amount'))
                                     ->money('OMR')
                                     ->weight('bold')
                                     ->size('lg')
                                     ->color('success'),
 
                                 Infolists\Components\TextEntry::make('owner_payout')
-                                    ->label(__('booking.labels.owner_payout'))
                                     ->money('OMR')
+                                    ->label('Owner Payout')
                                     ->color('info'),
                             ]),
                     ])->columns(3),
 
                 /**
-                 * Advance Payment Details Section
+                 * ✅ ENHANCED: Advance Payment Details Section
+                 *
+                 * Shows comprehensive advance payment information:
+                 * - Payment type (Full/Advance) with color-coded badge
+                 * - Advance amount paid (large, bold, warning color)
+                 * - Balance due (large, bold, red if pending, green if paid)
+                 * - Balance paid date (if applicable)
+                 * - Balance payment status badge
+                 * - Payment method and reference (if balance paid)
+                 *
+                 * Only visible for bookings with advance payment.
+                 * Positioned right after pricing for logical flow.
                  */
-                Infolists\Components\Section::make(__('booking.sections.advance_payment_details'))
-                    ->description(function () {
-                        if ($this->record->isAdvancePayment()) {
-                            return $this->record->isBalancePending()
-                                ? __('booking.descriptions.advance_payment_pending')
-                                : __('booking.descriptions.advance_payment_paid');
-                        }
-                        return __('booking.descriptions.full_payment');
-                    })
+                Infolists\Components\Section::make('Advance Payment Details')
+                    ->description(fn() => $this->record->isAdvancePayment()
+                        ? ($this->record->isBalancePending()
+                            ? '⚠️ This booking requires advance payment. Customer must pay remaining balance before the event.'
+                            : '✅ This booking required advance payment. Balance has been paid.')
+                        : 'This is a full payment booking. Customer pays the entire amount.')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 // Payment Type Badge
                                 Infolists\Components\TextEntry::make('payment_type')
-                                    ->label(__('booking.labels.payment_type'))
+                                    ->label(__('advance_payment.payment_type'))
                                     ->badge()
                                     ->size('lg')
                                     ->color(fn(string $state): string => match ($state) {
@@ -491,12 +474,12 @@ class ViewBooking extends ViewRecord
                                         default => 'gray',
                                     })
                                     ->formatStateUsing(fn(string $state): string =>
-                                        __('booking.payment_types.' . $state)
+                                        __('advance_payment.payment_type_' . $state)
                                     ),
 
-                                // Advance Amount Paid
+                                // Advance Amount Paid (prominent display)
                                 Infolists\Components\TextEntry::make('advance_amount')
-                                    ->label(__('booking.labels.advance_amount'))
+                                    ->label(__('advance_payment.advance_paid'))
                                     ->money('OMR')
                                     ->weight('bold')
                                     ->size('lg')
@@ -505,9 +488,9 @@ class ViewBooking extends ViewRecord
                                     ->icon('heroicon-o-banknotes')
                                     ->iconColor('warning'),
 
-                                // Balance Due
+                                // Balance Due (color-coded by status)
                                 Infolists\Components\TextEntry::make('balance_due')
-                                    ->label(__('booking.labels.balance_due'))
+                                    ->label(__('advance_payment.balance_due'))
                                     ->money('OMR')
                                     ->weight('bold')
                                     ->size('lg')
@@ -520,13 +503,13 @@ class ViewBooking extends ViewRecord
 
                                 // Balance Payment Status Badge
                                 Infolists\Components\TextEntry::make('balance_payment_status')
-                                    ->label(__('booking.labels.balance_payment_status'))
+                                    ->label(__('advance_payment.balance_payment_status'))
                                     ->badge()
                                     ->size('lg')
                                     ->visible(fn() => $this->record->isAdvancePayment())
                                     ->getStateUsing(fn() => $this->record->balance_paid_at
-                                        ? __('booking.statuses.balance_paid')
-                                        : __('booking.statuses.balance_pending'))
+                                        ? __('advance_payment.balance_paid')
+                                        : __('advance_payment.balance_pending'))
                                     ->color(fn() => $this->record->balance_paid_at ? 'success' : 'danger')
                                     ->icon(fn() => $this->record->balance_paid_at
                                         ? 'heroicon-o-check-badge'
@@ -534,9 +517,9 @@ class ViewBooking extends ViewRecord
 
                                 // Balance Paid Date
                                 Infolists\Components\TextEntry::make('balance_paid_at')
-                                    ->label(__('booking.labels.balance_paid_at'))
+                                    ->label(__('advance_payment.balance_paid_on'))
                                     ->dateTime('M j, Y \a\t g:i A')
-                                    ->placeholder(__('booking.placeholders.balance_not_paid'))
+                                    ->placeholder(__('advance_payment.balance_not_paid'))
                                     ->visible(fn() => $this->record->isAdvancePayment())
                                     ->color(fn() => $this->record->balance_paid_at ? 'success' : 'gray')
                                     ->icon(fn() => $this->record->balance_paid_at ? 'heroicon-o-calendar-days' : null)
@@ -544,21 +527,21 @@ class ViewBooking extends ViewRecord
 
                                 // Balance Payment Method
                                 Infolists\Components\TextEntry::make('balance_payment_method')
-                                    ->label(__('booking.labels.balance_payment_method'))
+                                    ->label(__('advance_payment.balance_payment_method'))
                                     ->badge()
                                     ->color('info')
                                     ->visible(fn() => $this->record->balance_paid_at !== null)
                                     ->formatStateUsing(fn(string $state): string =>
-                                        __('booking.payment_methods.' . $state)
+                                        __('advance_payment.' . $state)
                                     ),
 
                                 // Balance Payment Reference
                                 Infolists\Components\TextEntry::make('balance_payment_reference')
-                                    ->label(__('booking.labels.balance_payment_reference'))
+                                    ->label(__('advance_payment.balance_payment_reference'))
                                     ->placeholder('-')
                                     ->visible(fn() => $this->record->balance_paid_at !== null)
                                     ->copyable()
-                                    ->copyMessage(__('booking.messages.reference_copied'))
+                                    ->copyMessage('Reference copied!')
                                     ->icon('heroicon-o-document-text'),
                             ]),
                     ])
@@ -573,21 +556,21 @@ class ViewBooking extends ViewRecord
                  * Lists all additional services booked with quantities and prices.
                  * Only visible if the booking has extra services.
                  */
-                Infolists\Components\Section::make(__('booking.sections.extra_services'))
+                Infolists\Components\Section::make('Extra Services')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('extraServices')
                             ->label('')
                             ->schema([
                                 Infolists\Components\TextEntry::make('pivot.service_name')
-                                    ->label(__('booking.labels.service_name')),
+                                    ->label('Service'),
                                 Infolists\Components\TextEntry::make('pivot.unit_price')
-                                    ->label(__('booking.labels.unit_price'))
-                                    ->money('OMR'),
+                                    ->money('OMR')
+                                    ->label('Unit Price'),
                                 Infolists\Components\TextEntry::make('pivot.quantity')
-                                    ->label(__('booking.labels.quantity')),
+                                    ->label('Quantity'),
                                 Infolists\Components\TextEntry::make('pivot.total_price')
-                                    ->label(__('booking.labels.total_price'))
-                                    ->money('OMR'),
+                                    ->money('OMR')
+                                    ->label('Total'),
                             ])
                             ->columns(4),
                     ])
@@ -604,26 +587,22 @@ class ViewBooking extends ViewRecord
                  *
                  * Collapsed by default to reduce clutter.
                  */
-                Infolists\Components\Section::make(__('booking.sections.timestamps'))
+                Infolists\Components\Section::make('Timestamps')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('created_at')
-                                    ->label(__('booking.labels.created_at'))
                                     ->dateTime(),
 
                                 Infolists\Components\TextEntry::make('confirmed_at')
-                                    ->label(__('booking.labels.confirmed_at'))
                                     ->dateTime()
                                     ->placeholder('-'),
 
                                 Infolists\Components\TextEntry::make('completed_at')
-                                    ->label(__('booking.labels.completed_at'))
                                     ->dateTime()
                                     ->placeholder('-'),
 
                                 Infolists\Components\TextEntry::make('cancelled_at')
-                                    ->label(__('booking.labels.cancelled_at'))
                                     ->dateTime()
                                     ->placeholder('-')
                                     ->visible(fn() => $this->record->cancelled_at),
@@ -637,16 +616,15 @@ class ViewBooking extends ViewRecord
                  * Shows cancellation reason and refund amount.
                  * Only visible for cancelled bookings.
                  */
-                Infolists\Components\Section::make(__('booking.sections.cancellation_details'))
+                Infolists\Components\Section::make('Cancellation Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('cancellation_reason')
-                            ->label(__('booking.labels.cancellation_reason'))
                             ->columnSpanFull(),
 
                         Infolists\Components\TextEntry::make('refund_amount')
-                            ->label(__('booking.labels.refund_amount'))
                             ->money('OMR'),
                     ])
+                    // FIX: Removed ->value since status is already a string
                     ->visible(fn() => $this->record->status === 'cancelled'),
 
                 /**
@@ -655,12 +633,11 @@ class ViewBooking extends ViewRecord
                  * Displays internal notes for administrators.
                  * Collapsed by default and only visible if notes exist.
                  */
-                Infolists\Components\Section::make(__('booking.sections.admin_notes'))
+                Infolists\Components\Section::make('Admin Notes')
                     ->schema([
                         Infolists\Components\TextEntry::make('admin_notes')
-                            ->label(__('booking.labels.admin_notes'))
                             ->columnSpanFull()
-                            ->placeholder(__('booking.placeholders.no_admin_notes')),
+                            ->placeholder('No admin notes'),
                     ])
                     ->collapsed()
                     ->visible(fn() => !empty($this->record->admin_notes)),

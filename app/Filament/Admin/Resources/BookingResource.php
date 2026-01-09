@@ -70,11 +70,11 @@ class BookingResource extends Resource
         return $form
             ->schema([
                 // Hall Selection Section with Region & City Filters
-                Forms\Components\Section::make('Hall Selection')
-                    ->description('Filter and select the hall for booking')
+                Forms\Components\Section::make(__('booking.sections.hall_selection.title'))
+                    ->description(__('booking.sections.hall_selection.description'))
                     ->schema([
                         Forms\Components\Select::make('region_id')
-                            ->label('Region')
+                            ->label(__('booking.fields.region_id.label'))
                             ->options(fn () => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
@@ -87,10 +87,10 @@ class BookingResource extends Resource
                                 $set('time_slot', null);
                                 $set('hall_price', 0);
                             })
-                            ->helperText('Select a region to filter cities'),
+                            ->helperText(__('booking.fields.region_id.helper')),
 
                         Forms\Components\Select::make('city_id')
-                            ->label('City')
+                            ->label(__('booking.fields.city_id.label'))
                             ->options(fn (Get $get): Collection => City::query()
                                 ->when($get('region_id'), fn ($query, $regionId) =>
                                     $query->where('region_id', $regionId)
@@ -110,10 +110,10 @@ class BookingResource extends Resource
                                 $set('hall_price', 0);
                             })
                             ->disabled(fn (Get $get): bool => !$get('region_id'))
-                            ->helperText('Select a city to filter halls'),
+                            ->helperText(__('booking.fields.region_id.helper')),
 
                         Forms\Components\Select::make('hall_id')
-                            ->label('Hall')
+                            ->label(__('booking.fields.hall_id.label'))
                             ->options(fn (Get $get): Collection => Hall::query()
                                 ->when($get('city_id'), fn ($query, $cityId) =>
                                     $query->where('city_id', $cityId)
@@ -158,15 +158,15 @@ class BookingResource extends Resource
                                 }
                             })
                             ->disabled(fn (Get $get): bool => !$get('city_id') && !$get('region_id'))
-                            ->helperText('Select a hall to proceed'),
+                            ->helperText(__('booking.fields.hall_id.helper')),
                     ])->columns(3)
                     ->collapsible(),
 
                 // Booking Details Section
-                Forms\Components\Section::make('Booking Details')
+                Forms\Components\Section::make(__('booking.sections.booking_details.title'))
                     ->schema([
                         Forms\Components\TextInput::make('booking_number')
-                            ->label('Booking Number')
+                            ->label(__('booking.fields.booking_number.label'))
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn ($context) => $context === 'edit')
@@ -180,7 +180,7 @@ class BookingResource extends Resource
                             ->columnSpan(1),
 
                 Forms\Components\DatePicker::make('booking_date')
-                    ->label('Event Date')
+                    ->label(__('booking.fields.booking_date.label'))
                     ->required()
                     ->native(false)
                     ->minDate(now())
@@ -207,7 +207,7 @@ class BookingResource extends Resource
                     ->columnSpan(1),
 
                         Forms\Components\Select::make('time_slot')
-                            ->label('Time Slot')
+                            ->label(__('booking.fields.time_slot.label'))
                             ->options(fn (Get $get): array => static::getAvailableTimeSlots(
                                 $get('hall_id'),
                                 $get('booking_date')
@@ -224,7 +224,7 @@ class BookingResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\TextInput::make('number_of_guests')
-                            ->label('Number of Guests')
+                            ->label(__('booking.fields.number_of_guests.label'))
                             ->numeric()
                             ->required()
                             ->minValue(1)
@@ -247,37 +247,37 @@ class BookingResource extends Resource
                     ])->columns(2),
 
                 // Customer Information Section
-                Forms\Components\Section::make('Customer Information')
+                Forms\Components\Section::make(__('booking.sections.customer_details'))
                     ->schema([
                         Forms\Components\TextInput::make('customer_name')
-                            ->label('Customer Name')
+                            ->label(__('booking.fields.customer_name.label'))
                             ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('customer_email')
-                            ->label('Email')
+                            ->label(__('booking.fields.customer_email.label'))
                             ->email()
                             ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('customer_phone')
-                            ->label('Phone Number')
+                            ->label(__('booking.fields.customer_phone.label'))
                             ->tel()
                             ->required()
                             ->maxLength(20),
 
                         Forms\Components\Textarea::make('customer_notes')
 
-                            ->label('Special Requests / Notes')
+                            ->label(__('booking.fields.customer_notes.label'))
                             ->rows(3)
                             ->columnSpanFull()
-                            ->placeholder('Any special requirements or notes...'),
+                            ->placeholder(__('booking.fields.customer_notes.placeholder')),
                     ])->columns(3),
 
             // Extra Services Section
             // Extra Services Section
-            Forms\Components\Section::make('Extra Services')
-                ->description('Select additional services for your booking')
+            Forms\Components\Section::make(__('booking.sections.extra_services'))
+                ->description(__('booking.sections.description'))
                 ->schema([
                     Forms\Components\Repeater::make('extra_services')
                         ->label('')
@@ -364,10 +364,10 @@ class BookingResource extends Resource
                 ->collapsible()
                 ->collapsed(fn(Get $get): bool => !$get('hall_id')),
                 // Pricing Section
-                Forms\Components\Section::make('Pricing Summary')
+                Forms\Components\Section::make(__('booking.sections.pricing_breakdown'))
                     ->schema([
                         Forms\Components\TextInput::make('hall_price')
-                            ->label('Hall Price')
+                            ->label(__('booking.fields.hall_price.label'))
                             ->numeric()
                             ->prefix('OMR')
                             ->required()
@@ -380,7 +380,7 @@ class BookingResource extends Resource
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
                         Forms\Components\TextInput::make('services_price')
-                            ->label('Services Total')
+                            ->label(__('booking.fields.services_price.label'))
                             ->numeric()
                             ->prefix('OMR')
                             ->default(0)
@@ -390,7 +390,7 @@ class BookingResource extends Resource
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
                         Forms\Components\TextInput::make('subtotal')
-                            ->label('Subtotal')
+                            ->label(__('booking.fields.subtotal.label'))
                             ->numeric()
                             ->prefix('OMR')
                             ->required()
@@ -398,7 +398,7 @@ class BookingResource extends Resource
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
                         Forms\Components\TextInput::make('commission_amount')
-                            ->label('Platform Fee')
+                            ->label(__('booking.fields.commission_amount.label'))
                             ->numeric()
                             ->prefix('OMR')
                             ->default(0)
@@ -406,7 +406,7 @@ class BookingResource extends Resource
                             ->afterStateUpdated(fn (Set $set, Get $get) => static::calculateAllTotals($set, $get)),
 
                         Forms\Components\TextInput::make('total_amount')
-                            ->label('Total Amount')
+                            ->label(__('booking.fields.total_amount.label'))
                             ->numeric()
                             ->prefix('OMR')
                             ->required()
@@ -414,7 +414,7 @@ class BookingResource extends Resource
                             ->extraAttributes(['class' => 'text-xl font-bold text-green-600']),
 
                         Forms\Components\TextInput::make('owner_payout')
-                            ->label('Owner Payout')
+                            ->label(__('booking.fields.owner_payout.label'))
                             ->numeric()
                             ->prefix('OMR')
                             ->default(0)
@@ -424,8 +424,8 @@ class BookingResource extends Resource
                     ->collapsible(),
 
                 // ✅ NEW: Advance Payment Details Section
-                Forms\Components\Section::make('Advance Payment Details')
-                    ->description('Advance payment information (auto-calculated for advance payment bookings)')
+                Forms\Components\Section::make(__('booking.sections.advance_payment_details'))
+                    ->description(__('booking.sections.description'))
                     ->schema([
                         Forms\Components\Select::make('payment_type')
                             ->label(__('advance_payment.payment_type'))
@@ -436,7 +436,7 @@ class BookingResource extends Resource
                             ->default('full')
                             ->disabled()
                             ->dehydrated()
-                            ->helperText('Set by hall configuration'),
+                            ->helperText(__('booking.sections.payment_type_helper')),
 
                         Forms\Components\TextInput::make('advance_amount')
                             ->label(__('advance_payment.advance_amount'))
@@ -475,10 +475,10 @@ class BookingResource extends Resource
                     ->collapsed(fn (Get $get) => $get('payment_type') !== 'advance'),
 
                 // Event Details Section
-                Forms\Components\Section::make('Event Details')
+                Forms\Components\Section::make(__('booking.infolist.event_details'))
                     ->schema([
                         Forms\Components\Select::make('event_type')
-                            ->label('Event Type')
+                            ->label(__('booking.fields.event_type.label'))
                             ->options([
                                 'wedding' => 'Wedding',
                                 'birthday' => 'Birthday Party',
@@ -491,18 +491,19 @@ class BookingResource extends Resource
                             ->searchable(),
 
                         Forms\Components\Textarea::make('event_details')
-                            ->label('Event Details')
+                            ->label(__('booking.infolist.event_details'))
                             ->rows(3)
                             ->columnSpanFull()
-                            ->placeholder('Describe your event...'),
+                            ->placeholder(__('booking.infolist.event_details_placeholder')),
                     ])->columns(2)
                     ->collapsible()
                     ->collapsed(),
 
                 // Status Section (Only visible when editing)
-                Forms\Components\Section::make('Booking Status')
+                Forms\Components\Section::make(__('booking.fields.status.label'))
                     ->schema([
                         Forms\Components\Select::make('status')
+                        ->label(__('booking.fields.status.label'))
                             ->options([
                                 'pending' => 'Pending',
                                 'confirmed' => 'Confirmed',
@@ -513,6 +514,7 @@ class BookingResource extends Resource
                             ->required(),
 
                         Forms\Components\Select::make('payment_status')
+                        ->label(__('booking.fields.payment_status.label'))
                             ->options([
                                 'pending' => 'Pending',
                                 'paid' => 'Paid',
@@ -577,7 +579,7 @@ class BookingResource extends Resource
     protected static function getTimeSlotHelperText($hallId, $bookingDate): string
     {
         if (!$hallId || !$bookingDate) {
-            return 'Select hall and date first';
+            return __('booking.fields.hall_id.helper');
         }
 
         // Get slots marked as available
@@ -607,7 +609,7 @@ class BookingResource extends Resource
     protected static function getCapacityHelperText($hallId): string
     {
         if (!$hallId) {
-            return 'Select a hall first';
+            return __('booking.fields.hall_id.helper');
         }
 
         $hall = Hall::find($hallId);
@@ -742,7 +744,8 @@ class BookingResource extends Resource
     protected static function getPriceHelperText($hallId, $bookingDate, $timeSlot): string
     {
         if (!$hallId || !$bookingDate || !$timeSlot) {
-            return 'Select hall, date, and time slot to see pricing';
+            return __('booking.fields.hall_id.select_hall_first');
+
         }
 
         $availability = HallAvailability::where('hall_id', $hallId)
@@ -763,7 +766,7 @@ class BookingResource extends Resource
     protected static function getDateHelperText($hallId, $bookingDate): string
     {
         if (!$hallId) {
-            return 'Select a hall first';
+            return __('booking.fields.hall_id.helper');
         }
 
         if (!$bookingDate) {
@@ -816,7 +819,7 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('total_amount')
                 ->label(static::columnLabel('total_amount'))
 
-                    ->money('OMR', 3)
+                    ->money('OMR')
                     ->sortable()
                     ->description(fn ($record) => $record->isAdvancePayment()
                         ? '⚡ Advance: ' . number_format($record->advance_amount, 3) . ' OMR'
@@ -1165,7 +1168,7 @@ class BookingResource extends Resource
                     ->collapsible(),
 
                 // Event Details
-                Infolists\Components\Section::make('Event Details')
+                Infolists\Components\Section::make(__('booking.infolist.event_details'))
                     ->schema([
                         Infolists\Components\TextEntry::make('event_type')
                             ->label('Event Type')

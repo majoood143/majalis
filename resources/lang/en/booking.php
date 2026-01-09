@@ -85,6 +85,17 @@ return [
             'title' => 'Admin Notes',
             'description' => 'Internal notes for administrators',
         ],
+
+        'booking_information' => 'Booking Information',
+        'hall_date_information' => 'Hall & Date Information',
+        'customer_details' => 'Customer Details',
+        'pricing_breakdown' => 'Pricing Breakdown',
+        'advance_payment_details' => 'Advance Payment Details',
+        'payment_type_helper' => 'Set by hall configuration ',
+        'extra_services' => 'Extra Services',
+        'timestamps' => 'Timestamps',
+        'cancellation_details' => 'Cancellation Details',
+        'admin_notes' => 'Admin Notes',
     ],
 
     /*
@@ -111,6 +122,7 @@ return [
             'label' => 'Hall',
             'placeholder' => 'Select a hall',
             'helper' => 'Select a hall to proceed',
+            'select_hall_first' => 'Select hall, date, and time slot to see pricing',
         ],
 
         // Booking Details
@@ -445,6 +457,26 @@ return [
         ],
         'add_service' => 'Add Service',
         'remove_service' => 'Remove Service',
+
+        'edit' => 'Edit',
+        'confirm' => 'Confirm Booking',
+        'confirm_modal_heading' => 'Confirm Booking',
+        'confirm_modal_description' => 'Are you sure you want to confirm this booking? This will notify the customer.',
+        'cancel' => 'Cancel Booking',
+        'cancel_modal_heading' => 'Cancel Booking',
+        'cancel_modal_description' => 'Are you sure you want to cancel this booking? This action cannot be undone.',
+        'complete' => 'Complete Booking',
+        'complete_modal_heading' => 'Complete Booking',
+        'complete_modal_description' => 'Mark this booking as completed? This will finalize the booking.',
+        'download_invoice' => 'Download Invoice',
+        'generate_invoice' => 'Generate Invoice',
+        'send_reminder' => 'Send Reminder',
+        'send_reminder_modal_heading' => 'Send Reminder',
+        'send_reminder_modal_description' => 'Send a reminder notification to the customer about their upcoming booking?',
+        'mark_balance_paid' => 'Mark Balance as Paid',
+        'create_modal_heading' => 'Confirm Booking Creation',
+        'create_modal_description' => 'Are you sure you want to create this booking? Please verify all details are correct.',
+        'create_modal_submit_label' => 'Yes, Create Booking',
     ],
 
     /*
@@ -512,6 +544,19 @@ return [
             'title' => 'Reminder Sent',
             'body' => 'Reminder notification has been sent to the customer.',
         ],
+        'slot_already_booked_title' => 'Slot Already Booked',
+        'slot_already_booked_body' => 'This time slot is already booked (Booking #:booking_number). Please select a different date or time slot.',
+        'guest_count_below_min_title' => 'Guest Count Below Minimum',
+        'guest_count_below_min_body' => 'Minimum capacity is :capacity_min guests. Guest count has been adjusted.',
+        'guest_count_exceeds_max_title' => 'Guest Count Exceeds Maximum',
+        'guest_count_exceeds_max_body' => 'Maximum capacity is :capacity_max guests.',
+        'slot_just_booked_title' => 'Slot Already Booked',
+        'slot_just_booked_body' => 'This time slot was just booked by another user. Please select a different time slot.',
+        'advance_payment_booking_title' => 'Advance Payment Booking',
+        'advance_payment_booking_body' => 'This booking requires advance payment. Customer must pay :advance_amount OMR upfront. Balance of :balance_due OMR due before event.',
+        'booking_created_title' => 'Booking created successfully',
+        'booking_summary_title' => '📋 Booking Summary',
+        'booking_summary_body' => "**Booking:** :booking_number\n**Total Amount:** :total_amount OMR\n**Payment Type:** Advance Payment\n**Advance Required:** :advance_amount OMR\n**Balance Due:** :balance_due OMR\n\nCustomer must pay advance amount before event confirmation.",
     ],
 
     /*
@@ -546,6 +591,7 @@ return [
     'infolist' => [
         'booking_info' => 'Booking Information',
         'event_details' => 'Event Details',
+        'event_details_placeholder' => 'Describe your event...',
         'hall_info' => 'Hall Information',
         'financial_summary' => 'Financial Summary',
         'service_details' => 'Service Details',
@@ -569,5 +615,148 @@ return [
         'guests_max' => 'Number of guests cannot exceed :max.',
         'slot_not_available' => 'The selected time slot is not available.',
         'date_past' => 'Booking date cannot be in the past.',
+    ],
+
+
+
+    // Form
+    'form' => [
+        'cancellation_reason' => 'Cancellation Reason',
+        'cancellation_reason_placeholder' => 'Enter the reason for cancellation...',
+        'balance_payment_method' => 'Payment Method',
+        'balance_payment_reference' => 'Payment Reference',
+        'balance_payment_reference_placeholder' => 'Transaction ID or Receipt Number',
+        'payment_date' => 'Payment Date',
+    ],
+
+    // Notifications
+    'notifications' => [
+        'booking_confirmed_title' => 'Booking confirmed successfully',
+        'booking_cancelled_title' => 'Booking cancelled successfully',
+        'booking_completed_title' => 'Booking completed successfully',
+        'invoice_not_available_title' => 'Invoice not available',
+        'invoice_generated_title' => 'Invoice generated successfully',
+        'invoice_generated_body' => 'Invoice saved as: :filename',
+        'invoice_generation_failed_title' => 'Invoice generation failed',
+        'reminder_sent_title' => 'Reminder sent successfully',
+        'balance_marked_paid_title' => 'Balance marked as paid',
+        'balance_marked_paid_body' => 'Balance payment has been recorded successfully.',
+    ],
+
+
+    // Labels
+    'labels' => [
+        'booking_number' => 'Booking Number',
+        'status' => 'Status',
+        'payment_status' => 'Payment Status',
+        'hall' => 'Hall',
+        'location' => 'Location',
+        'booking_date' => 'Booking Date',
+        'time_slot' => 'Time Slot',
+        'number_of_guests' => 'Number of Guests',
+        'guests_suffix' => ' guests',
+        'event_type' => 'Event Type',
+        'customer_name' => 'Customer Name',
+        'customer_email' => 'Customer Email',
+        'customer_phone' => 'Customer Phone',
+        'customer_notes' => 'Customer Notes',
+        'hall_price' => 'Hall Price',
+        'services_price' => 'Services Price',
+        'subtotal' => 'Subtotal',
+        'commission_amount' => 'Platform Fee',
+        'total_amount' => 'Total Amount',
+        'owner_payout' => 'Owner Payout',
+        'payment_type' => 'Payment Type',
+        'advance_amount' => 'Advance Amount',
+        'balance_due' => 'Balance Due',
+        'balance_payment_status' => 'Balance Payment Status',
+        'balance_paid_at' => 'Balance Paid On',
+        'balance_payment_method' => 'Payment Method',
+        'balance_payment_reference' => 'Payment Reference',
+        'service_name' => 'Service',
+        'unit_price' => 'Unit Price',
+        'quantity' => 'Quantity',
+        'total_price' => 'Total',
+        'created_at' => 'Created At',
+        'confirmed_at' => 'Confirmed At',
+        'completed_at' => 'Completed At',
+        'cancelled_at' => 'Cancelled At',
+        'cancellation_reason' => 'Cancellation Reason',
+        'refund_amount' => 'Refund Amount',
+        'admin_notes' => 'Admin Notes',
+    ],
+
+    // Placeholders
+    'placeholders' => [
+        'no_notes' => 'No notes provided',
+        'balance_not_paid' => 'Balance not paid yet',
+        'no_admin_notes' => 'No admin notes',
+    ],
+
+    // Descriptions
+    'descriptions' => [
+        'advance_payment_pending' => '⚠️ This booking requires advance payment. Customer must pay remaining balance before the event.',
+        'advance_payment_paid' => '✅ This booking required advance payment. Balance has been paid.',
+        'full_payment' => 'This is a full payment booking. Customer pays the entire amount.',
+    ],
+
+    // Statuses
+    'statuses' => [
+        'pending' => 'Pending',
+        'confirmed' => 'Confirmed',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'balance_paid' => 'Balance Paid',
+        'balance_pending' => 'Balance Pending',
+    ],
+
+    // Payment Statuses
+    'payment_statuses' => [
+        'pending' => 'Pending',
+        'paid' => 'Paid',
+        'failed' => 'Failed',
+        'refunded' => 'Refunded',
+        'partially_paid' => 'Partially Paid',
+    ],
+
+    // Payment Types
+    'payment_types' => [
+        'full' => 'Full Payment',
+        'advance' => 'Advance Payment',
+    ],
+
+    // Time Slots
+    'time_slots' => [
+        'morning' => 'Morning',
+        'afternoon' => 'Afternoon',
+        'evening' => 'Evening',
+        'night' => 'Night',
+        'full_day' => 'Full Day',
+    ],
+
+    // Event Types
+    'event_types' => [
+        'wedding' => 'Wedding',
+        'birthday' => 'Birthday',
+        'corporate' => 'Corporate',
+        'graduation' => 'Graduation',
+        'engagement' => 'Engagement',
+        'other' => 'Other',
+    ],
+
+    // Payment Methods
+    'payment_methods' => [
+        'bank_transfer' => 'Bank Transfer',
+        'cash' => 'Cash',
+        'card' => 'Card',
+    ],
+
+    // Messages
+    'messages' => [
+        'reference_copied' => 'Reference copied!',
+    ],
+
+    'exceptions' => [
+        'slot_already_booked' => 'Slot already booked',
     ],
 ];

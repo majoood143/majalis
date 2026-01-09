@@ -18,7 +18,10 @@ class CommissionSettingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = 'Financial';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('commission-setting.navigation_group');
+    }
 
     protected static ?int $navigationSort = 1;
 
@@ -143,7 +146,7 @@ class CommissionSettingResource extends Resource
                     ->label(__('commission-setting.commission_type'))
                     ->badge()
                     ->formatStateUsing(function ($state) {
-                        return $state->value === 'percentage' 
+                        return $state->value === 'percentage'
                             ? __('commission-setting.percentage')
                             : __('commission-setting.fixed');
                     })

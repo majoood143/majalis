@@ -1,10 +1,13 @@
 <?php
 
 return [
+
+
     // Resource Labels
     'singular' => 'Commission Setting',
     'plural' => 'Commission Settings',
     'navigation_label' => 'Commission Settings',
+    'navigation_group' => 'Financial',
 
     // Form Sections
     'commission_scope' => 'Commission Scope',
