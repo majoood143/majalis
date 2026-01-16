@@ -25,6 +25,9 @@ use App\Livewire\LanguageSwitcher;
 use Filament\View\PanelsRenderHook;
 use App\Filament\Pages\EditProfile;
 use Illuminate\Support\Facades\Auth;
+use Rmsramos\Activitylog\ActivitylogPlugin;
+use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
+use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -59,8 +62,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
-            //Widgets\AccountWidget::class,
-            \App\Filament\Admin\Widgets\PayoutStatsWidget::class,
+                //Widgets\AccountWidget::class,
+                \App\Filament\Admin\Widgets\PayoutStatsWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -76,6 +79,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
+                ActivitylogPlugin::make(),
+                FilamentSpatieLaravelBackupPlugin::make(),
+            FilamentSpatieLaravelHealthPlugin::make()
             ])
             ->authMiddleware([
                 //Authenticate::class,

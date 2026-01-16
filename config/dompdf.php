@@ -298,6 +298,9 @@ return [
          * @var bool
          */
         'enable_html5_parser' => true,
+
+        'paper_size' => 'A4', // Ensure this is 'A4'
+        'paper_orientation' => 'portrait', // Or 'landscape' if needed
     ],
 
 ];

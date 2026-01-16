@@ -19,6 +19,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use App\Events\Booking\BookingApproved;
+use App\Events\Booking\BookingRejected;
 
 /**
  * BookingResource for Owner Panel
@@ -529,70 +531,145 @@ class BookingResource extends OwnerResource
                 Tables\Actions\ViewAction::make()
                     ->iconButton(),
 
-                // Approve Action (for pending bookings that require approval)
-                Tables\Actions\Action::make('approve')
-                    ->label(__('owner_booking.actions.approve.label'))
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading(__('owner_booking.actions.approve.modal_heading'))
-                    ->modalDescription(__('owner_booking.actions.approve.modal_description'))
-                    ->modalSubmitActionLabel(__('owner_booking.actions.approve.modal_submit_label'))
-                    ->visible(fn(Booking $record): bool =>
-                        $record->status === 'pending' &&
+            // Approve Action (for pending bookings that require approval)
+            // Tables\Actions\Action::make('approve')
+            //     ->label(__('owner_booking.actions.approve.label'))
+            //     ->icon('heroicon-o-check-circle')
+            //     ->color('success')
+            //     ->requiresConfirmation()
+            //     ->modalHeading(__('owner_booking.actions.approve.modal_heading'))
+            //     ->modalDescription(__('owner_booking.actions.approve.modal_description'))
+            //     ->modalSubmitActionLabel(__('owner_booking.actions.approve.modal_submit_label'))
+            //     ->visible(fn(Booking $record): bool =>
+            //         $record->status === 'pending' &&
+            //         $record->hall?->requires_approval
+            //     )
+            //     ->action(function (Booking $record): void {
+            //         $record->update([
+            //             'status' => 'confirmed',
+            //             'confirmed_at' => now(),
+            //         ]);
+
+            //         // TODO: Send notification to customer
+            //         // event(new BookingApproved($record));
+
+            //         Notification::make()
+            //             ->title(__('owner_booking.notifications.approve.title'))
+            //             ->body(__('owner_booking.notifications.approve.body', ['number' => $record->booking_number]))
+            //             ->success()
+            //             ->send();
+            //     }),
+
+
+            Tables\Actions\Action::make('approve')
+                ->label(__('Approve'))
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading(__('Approve Booking'))
+                ->modalDescription(__('Are you sure you want to approve this booking? The customer will receive an email notification.'))
+                ->modalSubmitActionLabel(__('Yes, Approve'))
+                ->visible(
+                    fn(Booking $record): bool =>
+                    $record->status === 'pending' &&
                         $record->hall?->requires_approval
-                    )
-                    ->action(function (Booking $record): void {
-                        $record->update([
-                            'status' => 'confirmed',
-                            'confirmed_at' => now(),
-                        ]);
+                )
+                ->action(function (Booking $record): void {
+                    $record->update([
+                        'status' => 'confirmed',
+                        'confirmed_at' => now(),
+                    ]);
 
-                        // TODO: Send notification to customer
-                        // event(new BookingApproved($record));
+                    // Dispatch event - triggers email notification
+                    event(new BookingApproved(
+                        booking: $record,
+                        approvedBy: auth()->id()
+                    ));
 
-                        Notification::make()
-                            ->title(__('owner_booking.notifications.approve.title'))
-                            ->body(__('owner_booking.notifications.approve.body', ['number' => $record->booking_number]))
-                            ->success()
-                            ->send();
-                    }),
+                    Notification::make()
+                        ->title(__('Booking Approved'))
+                        ->body(__('Booking :number has been approved. Customer notified via email.', [
+                            'number' => $record->booking_number
+                        ]))
+                        ->success()
+                        ->send();
+                }),
 
-                // Reject Action (for pending bookings that require approval)
-                Tables\Actions\Action::make('reject')
-                    ->label(__('owner_booking.actions.reject.label'))
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalHeading(__('owner_booking.actions.reject.modal_heading'))
-                    ->modalDescription(__('owner_booking.actions.reject.modal_description'))
-                    ->form([
-                        Forms\Components\Textarea::make('rejection_reason')
-                            ->label(__('owner_booking.actions.reject.reason_label'))
-                            ->required()
-                            ->maxLength(500)
-                            ->placeholder(__('owner_booking.actions.reject.reason_placeholder')),
-                    ])
-                    ->visible(fn(Booking $record): bool =>
-                        $record->status === 'pending' &&
+            // Reject Action (for pending bookings that require approval)
+            // Tables\Actions\Action::make('reject')
+            //     ->label(__('owner_booking.actions.reject.label'))
+            //     ->icon('heroicon-o-x-circle')
+            //     ->color('danger')
+            //     ->requiresConfirmation()
+            //     ->modalHeading(__('owner_booking.actions.reject.modal_heading'))
+            //     ->modalDescription(__('owner_booking.actions.reject.modal_description'))
+            //     ->form([
+            //         Forms\Components\Textarea::make('rejection_reason')
+            //             ->label(__('owner_booking.actions.reject.reason_label'))
+            //             ->required()
+            //             ->maxLength(500)
+            //             ->placeholder(__('owner_booking.actions.reject.reason_placeholder')),
+            //     ])
+            //     ->visible(fn(Booking $record): bool =>
+            //         $record->status === 'pending' &&
+            //         $record->hall?->requires_approval
+            //     )
+            //     ->action(function (Booking $record, array $data): void {
+            //         $record->update([
+            //             'status' => 'cancelled',
+            //             'cancelled_at' => now(),
+            //             'cancellation_reason' => __('owner_booking.actions.reject.cancellation_reason_prefix') . $data['rejection_reason'],
+            //         ]);
+
+            //         // TODO: Send notification to customer
+            //         // event(new BookingRejected($record));
+
+            //         Notification::make()
+            //             ->title(__('owner_booking.notifications.reject.title'))
+            //             ->body(__('owner_booking.notifications.reject.body', ['number' => $record->booking_number]))
+            //             ->warning()
+            //             ->send();
+            //     }),
+
+            Tables\Actions\Action::make('reject')
+                ->label(__('Reject'))
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading(__('Reject Booking'))
+                ->modalDescription(__('The customer will be notified via email.'))
+                ->form([
+                    Forms\Components\Textarea::make('rejection_reason')
+                        ->label(__('Reason for Rejection'))
+                        ->required()
+                        ->maxLength(500)
+                        ->helperText(__('This will be included in the customer email.')),
+                ])
+                ->visible(
+                    fn(Booking $record): bool =>
+                    $record->status === 'pending' &&
                         $record->hall?->requires_approval
-                    )
-                    ->action(function (Booking $record, array $data): void {
-                        $record->update([
-                            'status' => 'cancelled',
-                            'cancelled_at' => now(),
-                            'cancellation_reason' => __('owner_booking.actions.reject.cancellation_reason_prefix') . $data['rejection_reason'],
-                        ]);
+                )
+                ->action(function (Booking $record, array $data): void {
+                    $record->update([
+                        'status' => 'cancelled',
+                        'cancelled_at' => now(),
+                        'cancellation_reason' => 'Rejected: ' . $data['rejection_reason'],
+                    ]);
 
-                        // TODO: Send notification to customer
-                        // event(new BookingRejected($record));
+                    // Dispatch event - triggers email notification
+                    event(new BookingRejected(
+                        booking: $record,
+                        reason: $data['rejection_reason'],
+                        rejectedBy: auth()->id()
+                    ));
 
-                        Notification::make()
-                            ->title(__('owner_booking.notifications.reject.title'))
-                            ->body(__('owner_booking.notifications.reject.body', ['number' => $record->booking_number]))
-                            ->warning()
-                            ->send();
-                    }),
+                    Notification::make()
+                        ->title(__('Booking Rejected'))
+                        ->body(__('Customer notified via email.'))
+                        ->warning()
+                        ->send();
+                }),
 
                 // Mark Balance Received (for advance payment bookings)
                 Tables\Actions\Action::make('mark_balance_received')

@@ -251,7 +251,7 @@ class ViewPayout extends ViewRecord
 
             // Download Receipt Action
             Actions\Action::make('downloadReceipt')
-                ->label(__('admin.payout.actions.download_receipt'))
+                ->label(__('admin.reports.actions.download_receipt'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
                 ->visible(fn (): bool => $this->record->status === PayoutStatus::COMPLETED
@@ -276,7 +276,7 @@ class ViewPayout extends ViewRecord
 
             // Regenerate Receipt Action
             Actions\Action::make('regenerateReceipt')
-                ->label(__('admin.payout.actions.regenerate_receipt'))
+                ->label(__('admin.reports.actions.regenerate_receipt'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
                 ->requiresConfirmation()
