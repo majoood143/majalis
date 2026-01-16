@@ -21,6 +21,12 @@ return [
         'create_title' => 'Create Payout',
         'edit_title' => 'Edit Payout',
         'view_title' => 'Payout Details',
+        'singular' => 'Payout',
+        'plural' => 'Payouts',
+        'heading' => 'Owner Payouts',
+        'subheading' => 'Manage payouts to hall owners',
+        'navigation_group' => 'Financials',
+        'navigation_label' => 'Payouts',
 
         // Sections
         'sections' => [
@@ -100,6 +106,7 @@ return [
             'calculate' => 'Calculate from Bookings',
             'export' => 'Export',
             'print' => 'Print Receipt',
+
         ],
 
         // Bulk actions
@@ -242,7 +249,11 @@ return [
         'title' => 'Reports & Analytics',
         'heading' => 'Platform Reports',
         'subheading' => 'Comprehensive analytics and insights for platform performance',
-
+        'navigation_label' => 'Reports',
+        'navigation_group' => 'Analytics',
+        'overview' => 'Reports Overview',
+        'singular' => 'Report',
+        'plural' => 'Reports',
         // Tabs
         'tabs' => [
             'overview' => 'Overview',
@@ -575,6 +586,8 @@ return [
         'sync_availability_modal_description' => 'Generate availability slots for all halls for the next 3 months.',
         'bulk_activation' => 'Bulk Activation',
         'download' => 'Download File',
+        'create_hall' => 'Create New Hall',
+        'create_hall_description' => 'Create a new hall in the system',
     ],
 
     // Fields
@@ -672,4 +685,7 @@ return [
         'average_price' => 'Average Price',
         'average_price_desc' => 'Per slot',
     ],
+
+    'hall_navigation_group' => 'Majalis Management',
+
 ];

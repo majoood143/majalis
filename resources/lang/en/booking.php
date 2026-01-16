@@ -477,6 +477,16 @@ return [
         'create_modal_heading' => 'Confirm Booking Creation',
         'create_modal_description' => 'Are you sure you want to create this booking? Please verify all details are correct.',
         'create_modal_submit_label' => 'Yes, Create Booking',
+        'download_invoice' => 'Download Invoice',
+        'print_invoice' => 'Print Invoice',
+        'send_invoice_email' => 'Email Invoice',
+        'send_email' => 'Send Email',
+        'send_reminder' => 'Send Reminder',
+        'contact_customer' => 'WhatsApp Customer',
+        'add_note' => 'Add Note',
+        'duplicate' => 'Duplicate Booking',
+        'request_review' => 'Request Review',
+        'view_new_booking' => 'View New Booking',
     ],
 
     /*
@@ -557,6 +567,30 @@ return [
         'booking_created_title' => 'Booking created successfully',
         'booking_summary_title' => '📋 Booking Summary',
         'booking_summary_body' => "**Booking:** :booking_number\n**Total Amount:** :total_amount OMR\n**Payment Type:** Advance Payment\n**Advance Required:** :advance_amount OMR\n**Balance Due:** :balance_due OMR\n\nCustomer must pay advance amount before event confirmation.",
+        'invoice_email_queued' => 'Invoice Email Queued',
+        'invoice_email_queued_body' => 'The invoice will be sent to :email shortly.',
+        'email_failed' => 'Email Failed',
+        'reminder_sent' => 'Reminder Sent',
+        'note_saved' => 'Note Saved',
+        'booking_duplicated' => 'Booking Duplicated',
+        'booking_duplicated_body' => 'New booking :number created successfully.',
+        'review_request_sent' => 'Review Request Sent',
+        'booking_confirmed_title' => 'Booking confirmed successfully',
+        'booking_cancelled_title' => 'Booking cancelled successfully',
+        'booking_completed_title' => 'Booking completed successfully',
+        'invoice_not_available_title' => 'Invoice not available',
+        'invoice_generated_title' => 'Invoice generated successfully',
+        'invoice_generated_body' => 'Invoice saved as: :filename',
+        'invoice_generation_failed_title' => 'Invoice generation failed',
+        'reminder_sent_title' => 'Reminder sent successfully',
+        'balance_marked_paid_title' => 'Balance marked as paid',
+        'balance_marked_paid_body' => 'Balance payment has been recorded successfully.',
+        'email_sent_title' => 'Email sent successfully',
+        'email_sent_body' => 'The email has been sent to the customer.',
+        'email_failed_title' => 'Email sending failed',
+        'booking_completed' => 'Booking has been marked as completed.',
+        'booking_cancelled' => 'Booking has been cancelled successfully.',
+        'booking_confirmed' => 'Booking has been confirmed successfully.',
     ],
 
     /*
@@ -627,20 +661,19 @@ return [
         'balance_payment_reference' => 'Payment Reference',
         'balance_payment_reference_placeholder' => 'Transaction ID or Receipt Number',
         'payment_date' => 'Payment Date',
-    ],
-
-    // Notifications
-    'notifications' => [
-        'booking_confirmed_title' => 'Booking confirmed successfully',
-        'booking_cancelled_title' => 'Booking cancelled successfully',
-        'booking_completed_title' => 'Booking completed successfully',
-        'invoice_not_available_title' => 'Invoice not available',
-        'invoice_generated_title' => 'Invoice generated successfully',
-        'invoice_generated_body' => 'Invoice saved as: :filename',
-        'invoice_generation_failed_title' => 'Invoice generation failed',
-        'reminder_sent_title' => 'Reminder sent successfully',
-        'balance_marked_paid_title' => 'Balance marked as paid',
-        'balance_marked_paid_body' => 'Balance payment has been recorded successfully.',
+        'recipient_email' => 'Recipient Email',
+        'email_subject' => 'Subject',
+        'email_message' => 'Message',
+        'email_message_helper' => 'This message will appear in the email body',
+        'attach_pdf' => 'Attach Invoice PDF',
+        'notification_channels' => 'Send Via',
+        'channel_email' => 'Email',
+        'channel_sms' => 'SMS',
+        'custom_message' => 'Custom Message (Optional)',
+        'custom_message_placeholder' => 'Add a personalized message...',
+        'new_booking_date' => 'New Booking Date',
+        'admin_notes' => 'Admin Notes',
+        'admin_notes_placeholder' => 'Internal notes about this booking...',
     ],
 
 
@@ -700,7 +733,7 @@ return [
         'full_payment' => 'This is a full payment booking. Customer pays the entire amount.',
     ],
 
-    // Statuses
+    //Statuses
     'statuses' => [
         'pending' => 'Pending',
         'confirmed' => 'Confirmed',
@@ -708,9 +741,14 @@ return [
         'cancelled' => 'Cancelled',
         'balance_paid' => 'Balance Paid',
         'balance_pending' => 'Balance Pending',
+        'no_show' => 'No Show',
+        'partial' => 'Partial',
+        'refunded' => 'Refunded',
+        'failed' => 'Failed',
+        'paid' => 'Paid',
     ],
 
-    // Payment Statuses
+    //Payment Statuses
     'payment_statuses' => [
         'pending' => 'Pending',
         'paid' => 'Paid',
@@ -758,5 +796,179 @@ return [
 
     'exceptions' => [
         'slot_already_booked' => 'Slot already booked',
+    ],
+
+    'modals' => [
+        'send_invoice_email' => 'Send Invoice via Email',
+        'send_reminder' => 'Send Booking Reminder',
+        'admin_notes' => 'Admin Notes',
+        'duplicate_booking' => 'Duplicate Booking',
+        'duplicate_booking_description' => 'Create a new booking with the same details for a different date.',
+        'request_review' => 'Request Customer Review',
+        'request_review_description' => 'Send a review request email to the customer.',
+        'complete_booking_description' => 'Mark this booking as completed. This action cannot be undone.',
+        'confirm_booking_description' => 'Confirm this booking and notify the customer.',
+        'cancel_booking_description' => 'Cancel this booking. This action cannot be undone.',
+        'mark_balance_paid_description' => 'Mark the balance as paid for this booking.',
+        'complete_booking' => 'Complete Booking',
+        'confirm_booking' => 'Confirm Booking',
+        'cancel_booking' => 'Cancel Booking',
+        'mark_balance_paid' => 'Mark Balance as Paid',
+    ],
+    'email' => [
+        'invoice_subject' => 'Invoice for Booking #:number',
+        'invoice_default_message' => 'Please find attached the invoice for your booking. Thank you for choosing us!',
+        // =========================================================
+        // INVOICE EMAIL
+        // =========================================================
+        'invoice_subject' => 'Invoice for Booking #:number',
+        'invoice_default_message' => 'Please find attached the invoice for your booking. Thank you for choosing us!',
+
+        // =========================================================
+        // REVIEW REQUEST EMAIL
+        // =========================================================
+        'review_request_subject' => 'How was your experience at :hall?',
+        'review_greeting' => 'Hello :name,',
+        'review_intro' => 'We hope you had a wonderful time at :hall on :date.',
+        'review_message' => 'We would love to hear about your experience! Your feedback helps us improve our service and helps other customers make informed decisions.',
+        'review_button' => 'Leave a Review',
+        'booking_details' => 'Booking Details',
+        'booking_number' => 'Booking Number',
+        'hall' => 'Hall',
+        'event_date' => 'Event Date',
+        'time_slot' => 'Time Slot',
+        'review_importance' => 'Your honest review, whether positive or constructive, is valuable to us. It only takes a minute and makes a big difference!',
+        'review_thanks' => 'Thank you for taking the time to share your experience with us.',
+        'regards' => 'Best regards',
+        'review_footer_note' => 'If you have any concerns about your booking that you would prefer to discuss privately, please reply to this email and we will be happy to assist you.',
+
+        // =========================================================
+        // BOOKING REMINDER EMAIL
+        // =========================================================
+        'reminder_subject' => 'Reminder: Your booking at :hall is in :days days',
+        'reminder_greeting' => 'Hello :name,',
+        'reminder_today' => 'Your booking is TODAY!',
+        'reminder_tomorrow' => 'Your booking is TOMORROW!',
+        'reminder_days' => 'Your booking is in :days days',
+        'your_booking_details' => 'Your Booking Details',
+        'location' => 'Location',
+        'guests' => 'Guests',
+        'persons' => 'persons',
+
+        // Balance reminder
+        'balance_reminder_title' => 'Payment Reminder',
+        'balance_reminder_message' => 'You have an outstanding balance of :amount OMR that needs to be paid before your event.',
+        'pay_balance_button' => 'Pay Balance Now',
+
+        // Preparation tips
+        'preparation_tips_title' => 'Preparation Tips',
+        'tip_arrive_early' => 'Please arrive 30 minutes before your scheduled time for setup.',
+        'tip_contact_hall' => 'Contact the hall directly if you have any special requirements.',
+        'tip_bring_confirmation' => 'Bring your booking confirmation (this email) for reference.',
+
+        // Closing
+        'questions_contact' => 'If you have any questions, please do not hesitate to contact us.',
+        'we_look_forward' => 'We look forward to hosting your event!',
+
+        // =========================================================
+        // BOOKING CONFIRMATION EMAIL
+        // =========================================================
+        'confirmation_subject' => 'Booking Confirmed - :hall on :date',
+        'confirmation_greeting' => 'Great news, :name!',
+        'confirmation_intro' => 'Your booking has been confirmed. Here are your booking details:',
+        'confirmation_footer' => 'Please keep this email for your records.',
+
+        // =========================================================
+        // BOOKING CANCELLATION EMAIL
+        // =========================================================
+        'cancellation_subject' => 'Booking Cancelled - #:number',
+        'cancellation_greeting' => 'Hello :name,',
+        'cancellation_intro' => 'We are sorry to inform you that your booking has been cancelled.',
+        'cancellation_reason' => 'Reason',
+        'cancellation_refund' => 'Refund Amount',
+        'cancellation_refund_note' => 'If applicable, your refund will be processed within 5-7 business days.',
+
+        // =========================================================
+        // GENERAL
+        // =========================================================
+        'view_booking_button' => 'View Booking',
+        'contact_support' => 'Contact Support',
+        'footer_address' => 'Muscat, Oman',
+        'unsubscribe_note' => 'You are receiving this email because you have a booking with us.',
+    ],
+
+    // =========================================================
+    // SMS MESSAGES
+    // =========================================================
+    'sms' => [
+        'reminder_default' => 'Hi :name! Reminder: Your booking at :hall is on :date (:time). Booking #:booking_number. See you soon! - Majalis',
+        'confirmation' => 'Booking confirmed! :hall on :date. Booking #:booking_number. Thank you! - Majalis',
+        'cancellation' => 'Your booking #:booking_number has been cancelled. Contact us for questions. - Majalis',
+    ],
+
+    'whatsapp' => [
+        'greeting' => 'Hello :name! This is regarding your booking #:booking with Majalis.',
+        'reminder' => 'Hi :name! Just a reminder about your upcoming booking at :hall on :date. Looking forward to seeing you!',
+    ],
+
+    'invoice' => [
+        // Header
+        'title' => 'Invoice',
+        'number' => 'Invoice No',
+        'date' => 'Date',
+        'print' => 'Print',
+        'close' => 'Close',
+
+        // Company
+        'company_tagline' => 'Premium Hall Booking Platform',
+        'phone' => 'Phone',
+        'email' => 'Email',
+
+        // Bill To Section
+        'bill_to' => 'Bill To',
+        'customer_name' => 'Name',
+        'account' => 'Account',
+
+        // Booking Details
+        'booking_details' => 'Booking Details',
+        'booking_date' => 'Event Date',
+        'time_slot' => 'Time Slot',
+        'guests' => 'Guests',
+        'persons' => 'persons',
+        'event_type' => 'Event Type',
+        'capacity' => 'Capacity',
+
+        // Table Headers
+        'description' => 'Description',
+        'quantity' => 'Qty',
+        'unit_price' => 'Unit Price',
+        'total' => 'Total',
+
+        // Line Items
+        'hall_rental' => 'Hall Rental',
+
+        // Totals
+        'hall_price' => 'Hall Price',
+        'services_total' => 'Services Total',
+        'subtotal' => 'Subtotal',
+        'platform_fee' => 'Platform Fee',
+        'grand_total' => 'Grand Total',
+        'currency' => 'OMR',
+
+        // Advance Payment
+        'advance_payment_details' => 'Advance Payment Details',
+        'advance_paid' => 'Advance Paid',
+        'balance_due' => 'Balance Due',
+        'balance_status' => 'Status',
+        'paid_on' => 'Paid on',
+        'pending_payment' => 'Pending Payment',
+
+        // Footer
+        'customer_notes' => 'Customer Notes',
+        'terms_title' => 'Terms & Conditions',
+        'terms_1' => 'Payment is due upon confirmation of booking.',
+        'terms_2' => 'Cancellation policy applies as per hall terms.',
+        'terms_3' => 'Please arrive 30 minutes before your event.',
+        'thank_you' => 'Thank you for choosing us!',
     ],
 ];

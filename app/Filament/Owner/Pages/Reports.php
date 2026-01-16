@@ -28,6 +28,13 @@ use Livewire\Attributes\Computed;
  * and export capabilities.
  *
  * @package App\Filament\Owner\Pages
+ *
+ * @property-read array $dashboardStats Dashboard statistics computed property
+ * @property-read array $revenueTrend Revenue trend data computed property
+ * @property-read array $bookingDistribution Booking status distribution computed property
+ * @property-read \Illuminate\Support\Collection $hallPerformance Hall performance data computed property
+ * @property-read array $timeSlotDistribution Time slot distribution computed property
+ * @property-read array $monthlyComparison Monthly comparison data computed property
  */
 class Reports extends Page implements HasForms
 {
@@ -99,10 +106,13 @@ class Reports extends Page implements HasForms
     /**
      * Mount the page.
      *
+     * Initializes the date range to current month by default.
+     *
      * @return void
      */
     public function mount(): void
     {
+        // Set default date range to current month
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
@@ -114,7 +124,7 @@ class Reports extends Page implements HasForms
      */
     public function getTitle(): string
     {
-        return __('owner.reports.title');
+        return __('owner_report.reports.title');
     }
 
     /**
@@ -124,7 +134,7 @@ class Reports extends Page implements HasForms
      */
     public function getHeading(): string
     {
-        return __('owner.reports.heading');
+        return __('owner_report.reports.heading');
     }
 
     /**
@@ -134,7 +144,7 @@ class Reports extends Page implements HasForms
      */
     public function getSubheading(): ?string
     {
-        return __('owner.reports.subheading');
+        return __('owner_report.reports.subheading');
     }
 
     /**
@@ -144,14 +154,16 @@ class Reports extends Page implements HasForms
      */
     public static function getNavigationLabel(): string
     {
-        return __('owner.reports.nav_label');
+        return __('owner_report.reports.nav_label');
     }
 
     /**
      * Define the filter form.
      *
-     * @param Form $form
-     * @return Form
+     * Creates the form with date pickers, hall selector, and preset options.
+     *
+     * @param Form $form The form instance
+     * @return Form The configured form
      */
     public function form(Form $form): Form
     {
@@ -159,48 +171,53 @@ class Reports extends Page implements HasForms
             ->schema([
                 Forms\Components\Grid::make(5)
                     ->schema([
+                        // Start date filter with live updates
                         Forms\Components\DatePicker::make('startDate')
-                            ->label(__('owner.reports.filters.start_date'))
+                            ->label(__('owner_report.reports.filters.start_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
                             ->maxDate(now())
                             ->live()
                             ->afterStateUpdated(fn () => $this->loadData()),
 
+                        // End date filter with live updates
                         Forms\Components\DatePicker::make('endDate')
-                            ->label(__('owner.reports.filters.end_date'))
+                            ->label(__('owner_report.reports.filters.end_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
                             ->maxDate(now())
                             ->live()
                             ->afterStateUpdated(fn () => $this->loadData()),
 
+                        // Hall selector for filtering by specific hall
                         Forms\Components\Select::make('hallId')
-                            ->label(__('owner.reports.filters.hall'))
+                            ->label(__('owner_report.reports.filters.hall'))
                             ->options(fn () => $this->getOwnerHalls())
-                            ->placeholder(__('owner.reports.filters.all_halls'))
+                            ->placeholder(__('owner_report.reports.filters.all_halls'))
                             ->live()
                             ->afterStateUpdated(fn () => $this->loadData()),
 
+                        // Quick preset selector for common date ranges
                         Forms\Components\Select::make('preset')
-                            ->label(__('owner.reports.filters.preset'))
+                            ->label(__('owner_report.reports.filters.preset'))
                             ->options([
-                                'today' => __('owner.reports.presets.today'),
-                                'yesterday' => __('owner.reports.presets.yesterday'),
-                                'this_week' => __('owner.reports.presets.this_week'),
-                                'last_week' => __('owner.reports.presets.last_week'),
-                                'this_month' => __('owner.reports.presets.this_month'),
-                                'last_month' => __('owner.reports.presets.last_month'),
-                                'this_quarter' => __('owner.reports.presets.this_quarter'),
-                                'this_year' => __('owner.reports.presets.this_year'),
+                                'today' => __('owner_report.reports.presets.today'),
+                                'yesterday' => __('owner_report.reports.presets.yesterday'),
+                                'this_week' => __('owner_report.reports.presets.this_week'),
+                                'last_week' => __('owner_report.reports.presets.last_week'),
+                                'this_month' => __('owner_report.reports.presets.this_month'),
+                                'last_month' => __('owner_report.reports.presets.last_month'),
+                                'this_quarter' => __('owner_report.reports.presets.this_quarter'),
+                                'this_year' => __('owner_report.reports.presets.this_year'),
                             ])
-                            ->placeholder(__('owner.reports.filters.custom'))
+                            ->placeholder(__('owner_report.reports.filters.custom'))
                             ->live()
                             ->afterStateUpdated(fn ($state) => $this->applyPreset($state)),
 
+                        // Refresh action button
                         Forms\Components\Actions::make([
                             Forms\Components\Actions\Action::make('refresh')
-                                ->label(__('owner.reports.actions.refresh'))
+                                ->label(__('owner_report.reports.actions.refresh'))
                                 ->icon('heroicon-o-arrow-path')
                                 ->action(fn () => $this->loadData()),
                         ])->verticallyAlignEnd(),
@@ -209,15 +226,19 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * Get owner's halls for filter.
+     * Get owner's halls for filter dropdown.
      *
-     * @return array
+     * Retrieves all halls belonging to the current owner with proper
+     * locale handling for translatable names.
+     *
+     * @return array<int, string> Array of hall names keyed by ID
      */
     protected function getOwnerHalls(): array
     {
         return Hall::where('owner_id', Auth::id())
             ->pluck('name', 'id')
             ->map(function ($name) {
+                // Handle translatable name field
                 return is_array($name) ? ($name[app()->getLocale()] ?? $name['en'] ?? '') : $name;
             })
             ->toArray();
@@ -226,7 +247,9 @@ class Reports extends Page implements HasForms
     /**
      * Apply date preset.
      *
-     * @param string|null $preset
+     * Sets the start and end dates based on the selected preset option.
+     *
+     * @param string|null $preset The preset identifier
      * @return void
      */
     public function applyPreset(?string $preset): void
@@ -235,6 +258,7 @@ class Reports extends Page implements HasForms
             return;
         }
 
+        // Determine date range based on preset
         [$start, $end] = match ($preset) {
             'today' => [now()->startOfDay(), now()],
             'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
@@ -253,28 +277,47 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * Load report data.
+     * Load/refresh report data.
+     *
+     * Clears computed property caches to force data refresh
+     * and dispatches event to reinitialize charts.
+     *
+     * IMPORTANT: In Livewire 3, computed properties are cached per-request.
+     * We use unset() to clear the cached values which forces recalculation
+     * on next access.
      *
      * @return void
      */
     public function loadData(): void
     {
-        // Clear computed property caches
-        unset($this->dashboardStats);
-        unset($this->revenueTrend);
-        unset($this->bookingDistribution);
-        unset($this->hallPerformance);
-        unset($this->monthlyComparison);
+        // Clear computed property caches using Livewire 3 approach
+        // This forces the computed properties to recalculate on next access
+        unset(
+            $this->dashboardStats,
+            $this->revenueTrend,
+            $this->bookingDistribution,
+            $this->hallPerformance,
+            $this->timeSlotDistribution,
+            $this->monthlyComparison
+        );
+
+        // Dispatch event to reinitialize charts in JavaScript
+        // This is critical for charts to update with new data
+        $this->dispatch('chartsDataUpdated');
     }
 
     /**
      * Get dashboard statistics.
      *
-     * @return array
+     * Computed property that retrieves comprehensive statistics
+     * for the owner's dashboard within the selected date range.
+     *
+     * @return array<string, mixed> Array of dashboard statistics
      */
     #[Computed]
     public function dashboardStats(): array
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
 
         return $service->getOwnerDashboardStats(
@@ -287,16 +330,21 @@ class Reports extends Page implements HasForms
     /**
      * Get revenue trend data.
      *
-     * @return array
+     * Computed property that retrieves revenue and payout trends
+     * over the selected date range. Automatically determines the
+     * best grouping (day/week/month) based on range length.
+     *
+     * @return array{labels: array, revenue: array, payout: array, bookings: array}
      */
     #[Computed]
     public function revenueTrend(): array
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
         $start = Carbon::parse($this->startDate);
         $end = Carbon::parse($this->endDate);
 
-        // Determine grouping based on date range
+        // Determine optimal grouping based on date range length
         $days = $start->diffInDays($end);
         $groupBy = match (true) {
             $days <= 31 => 'day',
@@ -306,6 +354,7 @@ class Reports extends Page implements HasForms
 
         $data = $service->getRevenueTrend($start, $end, Auth::id(), $groupBy);
 
+        // Return formatted data for Chart.js
         return [
             'labels' => $data->pluck('period')->toArray(),
             'revenue' => $data->pluck('revenue')->map(fn ($v) => (float) $v)->toArray(),
@@ -317,11 +366,15 @@ class Reports extends Page implements HasForms
     /**
      * Get booking status distribution.
      *
-     * @return array
+     * Computed property that retrieves the count of bookings
+     * grouped by their status within the selected date range.
+     *
+     * @return array{labels: array, data: array}
      */
     #[Computed]
     public function bookingDistribution(): array
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
 
         $data = $service->getBookingStatusDistribution(
@@ -330,8 +383,9 @@ class Reports extends Page implements HasForms
             Auth::id()
         );
 
+        // Return formatted data with translated labels
         return [
-            'labels' => $data->pluck('status')->map(fn ($s) => __('owner.reports.status.' . $s))->toArray(),
+            'labels' => $data->pluck('status')->map(fn ($s) => __('owner_report.reports.status.' . $s))->toArray(),
             'data' => $data->pluck('count')->toArray(),
         ];
     }
@@ -339,11 +393,15 @@ class Reports extends Page implements HasForms
     /**
      * Get hall performance data.
      *
+     * Computed property that retrieves performance metrics
+     * for all halls owned by the current user.
+     *
      * @return \Illuminate\Support\Collection
      */
     #[Computed]
     public function hallPerformance(): \Illuminate\Support\Collection
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
 
         return $service->getTopHalls(
@@ -357,11 +415,15 @@ class Reports extends Page implements HasForms
     /**
      * Get time slot distribution.
      *
-     * @return array
+     * Computed property that retrieves the count of bookings
+     * grouped by time slot (morning, afternoon, evening, full_day).
+     *
+     * @return array{labels: array, data: array}
      */
     #[Computed]
     public function timeSlotDistribution(): array
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
 
         $data = $service->getTimeSlotDistribution(
@@ -370,6 +432,7 @@ class Reports extends Page implements HasForms
             Auth::id()
         );
 
+        // Return formatted data with translated slot names
         return [
             'labels' => $data->pluck('time_slot')->map(fn ($s) => __('slots.' . $s))->toArray(),
             'data' => $data->pluck('count')->toArray(),
@@ -377,13 +440,17 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * Get monthly comparison.
+     * Get monthly comparison data.
      *
-     * @return array
+     * Computed property that retrieves comparison metrics
+     * between current and previous month.
+     *
+     * @return array<string, mixed>
      */
     #[Computed]
     public function monthlyComparison(): array
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
 
         return $service->getMonthlyComparison(Auth::id());
@@ -392,40 +459,42 @@ class Reports extends Page implements HasForms
     /**
      * Get header actions.
      *
-     * @return array
+     * Defines the export and print actions available in the page header.
+     *
+     * @return array<Action>
      */
     protected function getHeaderActions(): array
     {
         return [
-            // Export CSV
+            // Export CSV Action
             Action::make('export_csv')
-                ->label(__('owner.reports.actions.export_csv'))
+                ->label(__('owner_report.reports.actions.export_csv'))
                 ->icon('heroicon-o-table-cells')
                 ->color('success')
                 ->form([
                     Forms\Components\Select::make('report_type')
-                        ->label(__('owner.reports.export.type'))
+                        ->label(__('owner_report.reports.export.type'))
                         ->options([
-                            'summary' => __('owner.reports.export.summary'),
-                            'bookings' => __('owner.reports.export.bookings'),
-                            'revenue' => __('owner.reports.export.revenue'),
-                            'halls' => __('owner.reports.export.halls'),
+                            'summary' => __('owner_report.reports.export.summary'),
+                            'bookings' => __('owner_report.reports.export.bookings'),
+                            'revenue' => __('owner_report.reports.export.revenue'),
+                            'halls' => __('owner_report.reports.export.halls'),
                         ])
                         ->required()
                         ->default('summary'),
                 ])
                 ->action(fn (array $data) => $this->exportCSV($data['report_type'])),
 
-            // Export PDF
+            // Export PDF Action
             Action::make('export_pdf')
-                ->label(__('owner.reports.actions.export_pdf'))
+                ->label(__('owner_report.reports.actions.export_pdf'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('danger')
                 ->action(fn () => $this->exportPDF()),
 
-            // Print
+            // Print Action
             Action::make('print')
-                ->label(__('owner.reports.actions.print'))
+                ->label(__('owner_report.reports.actions.print'))
                 ->icon('heroicon-o-printer')
                 ->color('gray')
                 ->extraAttributes([
@@ -437,11 +506,14 @@ class Reports extends Page implements HasForms
     /**
      * Export report as CSV.
      *
-     * @param string $reportType
+     * Generates a CSV file download with the selected report type data.
+     *
+     * @param string $reportType The type of report to export
      * @return \Symfony\Component\HttpFoundation\StreamedResponse|null
      */
     public function exportCSV(string $reportType)
     {
+        /** @var ReportService $service */
         $service = app(ReportService::class);
 
         $data = $service->generateExportData(
@@ -451,9 +523,10 @@ class Reports extends Page implements HasForms
             Auth::id()
         );
 
+        // Check for empty data
         if (empty($data)) {
             Notification::make()
-                ->title(__('owner.reports.notifications.no_data'))
+                ->title(__('owner_report.reports.notifications.no_data'))
                 ->warning()
                 ->send();
             return null;
@@ -464,15 +537,15 @@ class Reports extends Page implements HasForms
         return Response::streamDownload(function () use ($data): void {
             $handle = fopen('php://output', 'w');
 
-            // UTF-8 BOM for Excel
+            // Add UTF-8 BOM for proper Excel encoding
             fwrite($handle, "\xEF\xBB\xBF");
 
-            // Headers
+            // Write header row
             if (!empty($data)) {
                 fputcsv($handle, array_keys($data[0]));
             }
 
-            // Data rows
+            // Write data rows
             foreach ($data as $row) {
                 fputcsv($handle, $row);
             }
@@ -486,6 +559,8 @@ class Reports extends Page implements HasForms
     /**
      * Export report as PDF.
      *
+     * Generates a PDF file download with owner dashboard summary.
+     *
      * @return \Illuminate\Http\Response
      */
     public function exportPDF()
@@ -493,6 +568,7 @@ class Reports extends Page implements HasForms
         $user = Auth::user();
         $hallOwner = $user->hallOwner;
 
+        // Generate PDF from view template
         $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
             'stats' => $this->dashboardStats,
             'hallPerformance' => $this->hallPerformance,
@@ -516,12 +592,23 @@ class Reports extends Page implements HasForms
     /**
      * Set active tab.
      *
-     * @param string $tab
+     * Switches to the specified tab and dispatches event
+     * to reinitialize charts on the new tab.
+     *
+     * FIX: This method now dispatches the event that JavaScript
+     * listens for to reinitialize Chart.js charts.
+     *
+     * @param string $tab The tab identifier to switch to
      * @return void
      */
     public function setActiveTab(string $tab): void
     {
         $this->activeTab = $tab;
+
+        // CRITICAL FIX: Dispatch event for chart reinitialization
+        // This event is listened to by the JavaScript in the blade template
+        // Without this, charts won't render when switching tabs
+        $this->dispatch('activeTabUpdated', tab: $tab);
     }
 
     /**

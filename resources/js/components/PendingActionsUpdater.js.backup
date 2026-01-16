@@ -1,0 +1,70 @@
+export class PendingActionsUpdater {
+    constructor(widgetId) {
+        this.widgetId = widgetId;
+        this.pollingInterval = 30000; // 30 seconds
+        this.isPolling = false;
+        this.initialize();
+    }
+
+    initialize() {
+        this.setupPolling();
+        this.setupEventListeners();
+    }
+
+    setupPolling() {
+        if (window.livewire) {
+            this.isPolling = true;
+            setInterval(() => {
+                if (document.hidden) return; // Don't poll when tab is hidden
+                window.livewire.dispatch('refresh-pending-actions');
+            }, this.pollingInterval);
+        }
+    }
+
+    setupEventListeners() {
+        // Listen for booking/payment changes
+        window.addEventListener('booking-updated', () => this.refreshWidget());
+        window.addEventListener('payment-processed', () => this.refreshWidget());
+        
+        // Listen for review responses
+        window.addEventListener('review-responded', () => this.refreshWidget());
+        
+        // Listen for manual refresh
+        window.addEventListener('refresh-pending-widget', () => this.refreshWidget());
+    }
+
+    refreshWidget() {
+        if (window.livewire && this.widgetId) {
+            window.livewire.find(this.widgetId).refresh();
+        }
+    }
+
+    markAsDone(actionId, actionType) {
+        fetch('/api/owner/actions/mark-done', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                action_id: actionId,
+                action_type: actionType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.refreshWidget();
+                window.dispatchEvent(new CustomEvent('action-completed', { 
+                    detail: { actionId, actionType }
+                }));
+            }
+        });
+    }
+
+    destroy() {
+        this.isPolling = false;
+        window.removeEventListener('booking-updated', this.refreshWidget);
+        window.removeEventListener('payment-processed', this.refreshWidget);
+    }
+}

@@ -124,7 +124,7 @@ class CreateCommissionSetting extends CreateRecord
         ]);
 
         // Clear commission cache
-        Cache::tags(['commissions'])->flush();
+        //Cache::tags(['commissions'])->flush();
 
         // Notify relevant parties if needed
         if ($this->record->owner_id) {
@@ -212,7 +212,6 @@ class CreateCommissionSetting extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCreateAnotherFormAction()
@@ -224,11 +223,11 @@ class CreateCommissionSetting extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Create Commission Setting';
+        return __('commission-setting.create');
     }
 
     public function getSubheading(): ?string
     {
-        return 'Configure commission rates for halls, owners, or globally';
+        return __('commission-setting.subheading');
     }
 }

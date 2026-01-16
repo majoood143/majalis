@@ -18,7 +18,12 @@ class ExtraServiceResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-gift';
 
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin.hall_navigation_group');
+    }
 
     protected static ?int $navigationSort = 4;
 
@@ -51,20 +56,20 @@ class ExtraServiceResource extends Resource
                                     ->mapWithKeys(function ($hall) {
                                         // Get hall name with fallback
                                         $hallName = $hall->name ?? __('extra-service.unnamed_hall');
-                                        
+
                                         // Get city name with fallback
                                         $cityName = $hall->city->name ?? __('extra-service.unknown_city');
-                                        
+
                                         // Get owner name with fallback
                                         $ownerName = $hall->owner->name ?? __('extra-service.no_owner');
-                                        
+
                                         // Format label using translation
                                         $label = __('extra-service.hall_label_format', [
                                             'hall_name' => $hallName,
                                             'city_name' => $cityName,
                                             'owner_name' => $ownerName,
                                         ]);
-                                        
+
                                         return [$hall->id => $label];
                                     });
                             })

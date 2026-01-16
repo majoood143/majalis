@@ -14,7 +14,7 @@ use Illuminate\Contracts\Support\Htmlable;
 
 /**
  * ViewBooking Page for Owner Panel
- * 
+ *
  * Displays comprehensive booking details with contextual actions
  * for approve/reject (if requires_approval) and recording balance payments.
  */
@@ -41,7 +41,7 @@ class ViewBooking extends ViewRecord
         $hall = $this->record->hall;
         $hallName = $hall?->name[app()->getLocale()] ?? $hall?->name['en'] ?? 'N/A';
 
-        return $hallName . ' • ' . $this->record->booking_date->format('l, d M Y') . ' • ' . 
+        return $hallName . ' • ' . $this->record->booking_date->format('l, d M Y') . ' • ' .
             ucfirst(str_replace('_', ' ', $this->record->time_slot));
     }
 
@@ -61,8 +61,8 @@ class ViewBooking extends ViewRecord
                 ->modalHeading(__('Approve Booking'))
                 ->modalDescription(__('Are you sure you want to approve this booking? The customer will receive a confirmation notification.'))
                 ->modalSubmitActionLabel(__('Yes, Approve'))
-                ->visible(fn(): bool => 
-                    $this->record->status === 'pending' && 
+                ->visible(fn(): bool =>
+                    $this->record->status === 'pending' &&
                     $this->record->hall?->requires_approval
                 )
                 ->action(function (): void {
@@ -100,8 +100,8 @@ class ViewBooking extends ViewRecord
                         ->placeholder(__('e.g., Hall unavailable due to maintenance, double booking error, etc.'))
                         ->helperText(__('This reason will be shared with the customer.')),
                 ])
-                ->visible(fn(): bool => 
-                    $this->record->status === 'pending' && 
+                ->visible(fn(): bool =>
+                    $this->record->status === 'pending' &&
                     $this->record->hall?->requires_approval
                 )
                 ->action(function (array $data): void {
@@ -136,7 +136,7 @@ class ViewBooking extends ViewRecord
                         ->schema([
                             Forms\Components\Placeholder::make('balance_summary')
                                 ->label(__('Balance Summary'))
-                                ->content(fn(): string => 
+                                ->content(fn(): string =>
                                     __('Total: OMR :total | Advance Paid: OMR :advance | Balance Due: OMR :balance', [
                                         'total' => number_format((float) $this->record->total_amount, 3),
                                         'advance' => number_format((float) $this->record->advance_amount, 3),
@@ -184,8 +184,8 @@ class ViewBooking extends ViewRecord
                         ])
                         ->columns(2),
                 ])
-                ->visible(fn(): bool => 
-                    $this->record->payment_type === 'advance' && 
+                ->visible(fn(): bool =>
+                    $this->record->payment_type === 'advance' &&
                     (float) ($this->record->balance_due ?? 0) > 0 &&
                     $this->record->balance_paid_at === null &&
                     in_array($this->record->status, ['confirmed', 'pending'])
@@ -239,14 +239,14 @@ class ViewBooking extends ViewRecord
                 Actions\Action::make('email')
                     ->label(__('Send Email'))
                     ->icon('heroicon-o-envelope')
-                    ->url(fn(): string => "mailto:{$this->record->customer_email}?subject=" . 
+                    ->url(fn(): string => "mailto:{$this->record->customer_email}?subject=" .
                         urlencode(__('Regarding Booking :number', ['number' => $this->record->booking_number])))
                     ->openUrlInNewTab(),
 
                 Actions\Action::make('whatsapp')
                     ->label(__('WhatsApp Message'))
                     ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                    ->url(fn(): string => "https://wa.me/" . preg_replace('/[^0-9]/', '', $this->record->customer_phone) . 
+                    ->url(fn(): string => "https://api.whatsapp.com/send?phone=" . preg_replace('/[^0-9]/', '', $this->record->customer_phone) .
                         "?text=" . urlencode(__('Hello! Regarding your booking :number at :hall on :date.', [
                             'number' => $this->record->booking_number,
                             'hall' => $this->record->hall?->name[app()->getLocale()] ?? $this->record->hall?->name['en'] ?? 'our hall',

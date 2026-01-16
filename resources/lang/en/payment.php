@@ -1,6 +1,13 @@
 <?php
 
 return [
+
+    'title' => 'Payments',
+    'title_singular' => 'Payment',
+    'breadcrumb' => 'Payments',
+    'singleton' => 'Payment',
+    'plural' => 'Payments',
+    'navigation_label' => 'Payments',
     // Sections
     'sections' => [
         'payment_information' => 'Payment Information',
@@ -54,6 +61,11 @@ return [
         'failed' => 'Failed',
         'refunded' => 'Refunded',
         'partially_refunded' => 'Partially Refunded',
+        'refund_in_progress' => 'Refund In Progress',
+        'retrying' => 'Retrying',
+        'reconciliation_pending' => 'Reconciliation Pending',
+        'processing' => 'Processing',
+        'canceled' => 'Canceled',
     ],
 
     // Actions

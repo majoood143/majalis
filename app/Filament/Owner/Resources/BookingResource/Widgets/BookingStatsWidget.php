@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * BookingStatsWidget for Owner Panel
- * 
+ *
  * Displays key booking statistics for the authenticated owner's halls.
  * Shows counts and revenue metrics relevant to hall owners.
  */
@@ -29,7 +29,7 @@ class BookingStatsWidget extends StatsOverviewWidget
 
     /**
      * Get the stats for this widget.
-     * 
+     *
      * @return array<Stat>
      */
     protected function getStats(): array
@@ -87,37 +87,37 @@ class BookingStatsWidget extends StatsOverviewWidget
 
         return [
             // Pending Bookings (needs attention)
-            Stat::make(__('Pending Approval'), (string) $pendingBookings)
-                ->description($pendingBookings > 0 
-                    ? __(':count bookings need your review', ['count' => $pendingBookings])
-                    : __('All bookings reviewed'))
+            Stat::make(__('owner_booking.stats.pending_approval'), (string) $pendingBookings)
+                ->description($pendingBookings > 0
+                    ? __('owner_booking.stats.pending_bookings_description', ['count' => $pendingBookings])
+                    : __('owner_booking.stats.all_reviewed'))
                 ->descriptionIcon($pendingBookings > 0 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-circle')
                 ->color($pendingBookings > 0 ? 'warning' : 'success')
                 ->chart($this->getPendingTrend($ownerId)),
 
             // Upcoming Events
-            Stat::make(__('Upcoming Events'), (string) $upcomingBookings)
-                ->description($todayEvents > 0 
-                    ? __(':count event(s) today', ['count' => $todayEvents])
-                    : __('Confirmed upcoming bookings'))
+            Stat::make(__('owner_booking.stats.upcoming_events'), (string) $upcomingBookings)
+                ->description($todayEvents > 0
+                    ? __('owner_booking.stats.today_events_description', ['count' => $todayEvents])
+                    : __('owner_booking.stats.upcoming_bookings_description'))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color($todayEvents > 0 ? 'success' : 'info')
                 ->chart($this->getUpcomingTrend($ownerId)),
 
             // This Month Revenue
-            Stat::make(__('This Month Earnings'), 'OMR ' . number_format((float) $thisMonthRevenue, 3))
-                ->description($revenueTrend >= 0 
-                    ? __(':percent% increase from last month', ['percent' => abs($revenueTrend)])
-                    : __(':percent% decrease from last month', ['percent' => abs($revenueTrend)]))
+            Stat::make(__('owner_booking.stats.this_month_earnings'), 'OMR ' . number_format((float) $thisMonthRevenue, 3))
+                ->description($revenueTrend >= 0
+                    ? __('owner_booking.stats.revenue_increase', ['percent' => abs($revenueTrend)])
+                    : __('owner_booking.stats.revenue_decrease', ['percent' => abs($revenueTrend)]))
                 ->descriptionIcon($revenueTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($revenueTrend >= 0 ? 'success' : 'danger')
                 ->chart($this->getRevenueTrend($ownerId)),
 
             // Pending Balance Collection
-            Stat::make(__('Balance to Collect'), 'OMR ' . number_format((float) $pendingBalance, 3))
+            Stat::make(__('owner_booking.stats.balance_to_collect'), 'OMR ' . number_format((float) $pendingBalance, 3))
                 ->description($pendingBalance > 0
-                    ? __('From advance payment bookings')
-                    : __('No pending balances'))
+                    ? __('owner_booking.stats.balance_from_advance')
+                    : __('owner_booking.stats.no_pending_balances'))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color($pendingBalance > 0 ? 'warning' : 'gray'),
         ];
@@ -125,7 +125,7 @@ class BookingStatsWidget extends StatsOverviewWidget
 
     /**
      * Get trend data for pending bookings (last 7 days).
-     * 
+     *
      * @param int $ownerId
      * @return array<int>
      */
@@ -146,7 +146,7 @@ class BookingStatsWidget extends StatsOverviewWidget
 
     /**
      * Get trend data for upcoming bookings (next 7 days).
-     * 
+     *
      * @param int $ownerId
      * @return array<int>
      */
@@ -167,7 +167,7 @@ class BookingStatsWidget extends StatsOverviewWidget
 
     /**
      * Get trend data for revenue (last 7 days).
-     * 
+     *
      * @param int $ownerId
      * @return array<int>
      */

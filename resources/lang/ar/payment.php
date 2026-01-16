@@ -1,6 +1,14 @@
 <?php
 
 return [
+
+    'title' => 'المدفوعات',
+    'title_singular' => 'الدفع',
+    'breadcrumb' => 'المدفوعات',
+    'singleton' => 'الدفع',
+    'plural' => 'المدفوعات',
+    'navigation_label' => 'المدفوعات',
+
     // Sections
     'sections' => [
         'payment_information' => 'معلومات الدفع',
@@ -50,10 +58,16 @@ return [
     // Status
     'status' => [
         'pending' => 'قيد الانتظار',
+        'processing' => 'قيد المعالجة',
+        'canceled' => 'ملغي',
         'paid' => 'مدفوع',
         'failed' => 'فشل',
         'refunded' => 'تم الاسترداد',
         'partially_refunded' => 'تم الاسترداد جزئياً',
+        'refund_in_progress' => 'جاري الاسترداد',
+        'retrying' => 'إعادة المحاولة',
+        'reconciliation_pending' => 'مطابقة معلقة',
+
     ],
 
     // Actions

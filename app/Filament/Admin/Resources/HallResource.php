@@ -58,8 +58,13 @@ class HallResource extends Resource
     /**
      * Navigation group for organizing menu items.
      */
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
 
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin.hall_navigation_group');
+    }
     /**
      * Sort order in the navigation menu.
      */

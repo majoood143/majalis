@@ -17,7 +17,12 @@ class HallFeatureResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-star';
 
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin.hall_navigation_group');
+    }
 
     protected static ?int $navigationSort = 2;
 

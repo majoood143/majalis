@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('owner.reports.pdf.title') }} - {{ $owner->name }}</title>
+    <title>{{ __('owner_report.reports.pdf.title') }} - {{ $owner->name }}</title>
     <style>
         /* Base Styles */
         * {
@@ -258,38 +258,38 @@
 <body>
     {{-- Header --}}
     <div class="header">
-        <div class="header-title">{{ __('owner.reports.pdf.earnings_report') }}</div>
+        <div class="header-title">{{ __('owner_report.reports.pdf.earnings_report') }}</div>
         @if($hallOwner)
             <div class="header-business">{{ $hallOwner->business_name ?? $owner->name }}</div>
         @endif
-        <div class="header-subtitle">{{ __('owner.reports.pdf.subtitle') }}</div>
+        <div class="header-subtitle">{{ __('owner_report.reports.pdf.subtitle') }}</div>
         <div class="header-meta">
-            {{ __('owner.reports.pdf.period') }}: {{ $startDate }} → {{ $endDate }} |
-            {{ __('owner.reports.pdf.generated') }}: {{ $generatedAt }}
+            {{ __('owner_report.reports.pdf.period') }}: {{ $startDate }} → {{ $endDate }} |
+            {{ __('owner_report.reports.pdf.generated') }}: {{ $generatedAt }}
         </div>
     </div>
 
     {{-- Owner Info --}}
     @if($hallOwner)
         <div class="owner-info">
-            <div class="owner-info-title">{{ __('owner.reports.pdf.owner_details') }}</div>
+            <div class="owner-info-title">{{ __('owner_report.reports.pdf.owner_details') }}</div>
             <div class="owner-info-row">
-                <span class="owner-info-label">{{ __('owner.reports.pdf.owner_name') }}:</span>
+                <span class="owner-info-label">{{ __('owner_report.reports.pdf.owner_name') }}:</span>
                 <span class="owner-info-value">{{ $owner->name }}</span>
             </div>
             <div class="owner-info-row">
-                <span class="owner-info-label">{{ __('owner.reports.pdf.email') }}:</span>
+                <span class="owner-info-label">{{ __('owner_report.reports.pdf.email') }}:</span>
                 <span class="owner-info-value">{{ $owner->email }}</span>
             </div>
             @if($hallOwner->business_name)
                 <div class="owner-info-row">
-                    <span class="owner-info-label">{{ __('owner.reports.pdf.business') }}:</span>
+                    <span class="owner-info-label">{{ __('owner_report.reports.pdf.business') }}:</span>
                     <span class="owner-info-value">{{ $hallOwner->business_name }}</span>
                 </div>
             @endif
             @if($hallOwner->phone)
                 <div class="owner-info-row">
-                    <span class="owner-info-label">{{ __('owner.reports.pdf.phone') }}:</span>
+                    <span class="owner-info-label">{{ __('owner_report.reports.pdf.phone') }}:</span>
                     <span class="owner-info-value">{{ $hallOwner->phone }}</span>
                 </div>
             @endif
@@ -299,29 +299,29 @@
     {{-- Net Earnings Highlight --}}
     <div class="earnings-highlight">
         <div class="earnings-amount">{{ number_format($stats['total_earnings'], 3) }} OMR</div>
-        <div class="earnings-label">{{ __('owner.reports.pdf.net_earnings') }}</div>
+        <div class="earnings-label">{{ __('owner_report.reports.pdf.net_earnings') }}</div>
     </div>
 
     {{-- Financial Overview --}}
     <div class="section">
-        <div class="section-title">💰 {{ __('owner.reports.pdf.financial_overview') }}</div>
+        <div class="section-title">💰 {{ __('owner_report.reports.pdf.financial_overview') }}</div>
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stat-box">
                     <div class="stat-value">{{ number_format($stats['total_revenue'], 3) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.gross_revenue') }} (OMR)</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.gross_revenue') }} (OMR)</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value danger">{{ number_format($stats['platform_commission'], 3) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.platform_fee') }} (OMR)</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.platform_fee') }} (OMR)</div>
                 </div>
                 <div class="stat-box highlight">
                     <div class="stat-value success">{{ number_format($stats['total_earnings'], 3) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.net_earnings') }} (OMR)</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.net_earnings') }} (OMR)</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value warning">{{ number_format($stats['pending_payouts'], 3) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.pending_payout') }} (OMR)</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.pending_payout') }} (OMR)</div>
                 </div>
             </div>
         </div>
@@ -330,19 +330,19 @@
     {{-- Monthly Comparison --}}
     @if(!empty($comparison))
         <div class="section">
-            <div class="section-title">📈 {{ __('owner.reports.pdf.monthly_comparison') }}</div>
+            <div class="section-title">📈 {{ __('owner_report.reports.pdf.monthly_comparison') }}</div>
             <div class="comparison-grid">
                 <div class="comparison-box">
                     <div class="comparison-change {{ $comparison['revenue_change'] >= 0 ? 'positive' : 'negative' }}">
                         {{ $comparison['revenue_change'] >= 0 ? '+' : '' }}{{ $comparison['revenue_change'] }}%
                     </div>
-                    <div class="comparison-label">{{ __('owner.reports.pdf.earnings_change') }}</div>
+                    <div class="comparison-label">{{ __('owner_report.reports.pdf.earnings_change') }}</div>
                 </div>
                 <div class="comparison-box">
                     <div class="comparison-change {{ $comparison['bookings_change'] >= 0 ? 'positive' : 'negative' }}">
                         {{ $comparison['bookings_change'] >= 0 ? '+' : '' }}{{ $comparison['bookings_change'] }}%
                     </div>
-                    <div class="comparison-label">{{ __('owner.reports.pdf.bookings_change') }}</div>
+                    <div class="comparison-label">{{ __('owner_report.reports.pdf.bookings_change') }}</div>
                 </div>
             </div>
         </div>
@@ -350,41 +350,41 @@
 
     {{-- Booking Statistics --}}
     <div class="section">
-        <div class="section-title">📅 {{ __('owner.reports.pdf.booking_stats') }}</div>
+        <div class="section-title">📅 {{ __('owner_report.reports.pdf.booking_stats') }}</div>
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stat-box">
                     <div class="stat-value">{{ number_format($stats['total_bookings']) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.total_bookings') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.total_bookings') }}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value success">{{ number_format($stats['confirmed_bookings']) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.confirmed') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.confirmed') }}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value primary">{{ number_format($stats['completed_bookings']) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.completed') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.completed') }}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value danger">{{ number_format($stats['cancelled_bookings']) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.cancelled') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.cancelled') }}</div>
                 </div>
             </div>
         </div>
 
         <div class="summary-box">
-            <div class="summary-title">{{ __('owner.reports.pdf.additional_stats') }}</div>
+            <div class="summary-title">{{ __('owner_report.reports.pdf.additional_stats') }}</div>
             <table>
                 <tr>
-                    <td>{{ __('owner.reports.pdf.total_guests') }}</td>
+                    <td>{{ __('owner_report.reports.pdf.total_guests') }}</td>
                     <td class="text-right"><strong>{{ number_format($stats['total_guests']) }}</strong></td>
                 </tr>
                 <tr>
-                    <td>{{ __('owner.reports.pdf.avg_booking_value') }}</td>
+                    <td>{{ __('owner_report.reports.pdf.avg_booking_value') }}</td>
                     <td class="text-right currency">{{ number_format($stats['average_booking_value'], 3) }} OMR</td>
                 </tr>
                 <tr>
-                    <td>{{ __('owner.reports.pdf.total_paid_out') }}</td>
+                    <td>{{ __('owner_report.reports.pdf.total_paid_out') }}</td>
                     <td class="text-right currency success">{{ number_format($stats['completed_payouts'], 3) }} OMR</td>
                 </tr>
             </table>
@@ -394,15 +394,15 @@
     {{-- Hall Performance --}}
     @if($hallPerformance->isNotEmpty())
         <div class="section page-break">
-            <div class="section-title">🏢 {{ __('owner.reports.pdf.hall_performance') }}</div>
+            <div class="section-title">🏢 {{ __('owner_report.reports.pdf.hall_performance') }}</div>
             <table>
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>{{ __('owner.reports.pdf.hall_name') }}</th>
-                        <th class="text-center">{{ __('owner.reports.pdf.bookings') }}</th>
-                        <th class="text-right">{{ __('owner.reports.pdf.revenue') }}</th>
-                        <th class="text-right">{{ __('owner.reports.pdf.avg_booking') }}</th>
+                        <th>{{ __('owner_report.reports.pdf.hall_name') }}</th>
+                        <th class="text-center">{{ __('owner_report.reports.pdf.bookings') }}</th>
+                        <th class="text-right">{{ __('owner_report.reports.pdf.revenue') }}</th>
+                        <th class="text-right">{{ __('owner_report.reports.pdf.avg_booking') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -421,7 +421,7 @@
                 </tbody>
                 <tfoot>
                     <tr style="background: #f3f4f6; font-weight: bold;">
-                        <td colspan="2">{{ __('owner.reports.pdf.total') }}</td>
+                        <td colspan="2">{{ __('owner_report.reports.pdf.total') }}</td>
                         <td class="text-center">{{ $hallPerformance->sum('bookings_count') }}</td>
                         <td class="text-right currency success">{{ number_format((float) $hallPerformance->sum('total_revenue'), 3) }} OMR</td>
                         <td class="text-right">—</td>
@@ -433,30 +433,30 @@
 
     {{-- Hall Summary --}}
     <div class="section">
-        <div class="section-title">📊 {{ __('owner.reports.pdf.hall_summary') }}</div>
+        <div class="section-title">📊 {{ __('owner_report.reports.pdf.hall_summary') }}</div>
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stat-box">
                     <div class="stat-value primary">{{ $stats['total_halls'] }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.total_halls') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.total_halls') }}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value success">{{ $stats['active_halls'] }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.active_halls') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.active_halls') }}</div>
                 </div>
                 <div class="stat-box">
                     @php
                         $avgPerHall = $stats['total_halls'] > 0 ? $stats['total_bookings'] / $stats['total_halls'] : 0;
                     @endphp
                     <div class="stat-value">{{ number_format($avgPerHall, 1) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.avg_bookings_per_hall') }}</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.avg_bookings_per_hall') }}</div>
                 </div>
                 <div class="stat-box">
                     @php
                         $avgEarningsPerHall = $stats['total_halls'] > 0 ? $stats['total_earnings'] / $stats['total_halls'] : 0;
                     @endphp
                     <div class="stat-value success">{{ number_format($avgEarningsPerHall, 3) }}</div>
-                    <div class="stat-label">{{ __('owner.reports.pdf.avg_earnings_per_hall') }} (OMR)</div>
+                    <div class="stat-label">{{ __('owner_report.reports.pdf.avg_earnings_per_hall') }} (OMR)</div>
                 </div>
             </div>
         </div>
@@ -464,8 +464,8 @@
 
     {{-- Footer --}}
     <div class="footer">
-        <p>{{ __('owner.reports.pdf.footer', ['app' => config('app.name')]) }}</p>
-        <p>{{ __('owner.reports.pdf.thank_you') }}</p>
+        <p>{{ __('owner_report.reports.pdf.footer', ['app' => config('app.name')]) }}</p>
+        <p>{{ __('owner_report.reports.pdf.thank_you') }}</p>
     </div>
 </body>
 </html>

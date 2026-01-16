@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
 use App\Filament\Admin\Resources\HallResource;
@@ -13,10 +15,25 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * ListHalls Page - Admin Panel
+ * 
+ * Displays a list of all halls with filtering, exporting, and bulk operations.
+ * 
+ * @package App\Filament\Admin\Resources\HallResource\Pages
+ */
 class ListHalls extends ListRecords
 {
+    /**
+     * The resource this page belongs to.
+     */
     protected static string $resource = HallResource::class;
 
+    /**
+     * Get the header actions for this page.
+     *
+     * @return array<Actions\Action>
+     */
     protected function getHeaderActions(): array
     {
         return [
@@ -141,6 +158,11 @@ class ListHalls extends ListRecords
         ];
     }
 
+    /**
+     * Get the tabs for filtering halls.
+     *
+     * @return array<string, Tab>
+     */
     public function getTabs(): array
     {
         return [
@@ -220,23 +242,39 @@ class ListHalls extends ListRecords
         ];
     }
 
+    /**
+     * Export halls data to CSV file.
+     * 
+     * FIX: Uses withCount('bookings') to get the actual count of related bookings
+     * instead of relying on the cached 'total_bookings' column which may be out of sync.
+     *
+     * @return void
+     */
     protected function exportHalls(): void
     {
         try {
-            $halls = \App\Models\Hall::with(['city', 'owner'])->get();
+            // FIX: Added withCount('bookings') to dynamically count related bookings
+            // This ensures we get the actual booking count from the relationship,
+            // not the potentially stale cached 'total_bookings' column
+            $halls = \App\Models\Hall::with(['city', 'owner'])
+                ->withCount('bookings')  // Adds 'bookings_count' attribute to each Hall
+                ->get();
 
+            // Generate unique filename with timestamp
             $filename = 'halls_export_' . now()->format('Y_m_d_His') . '.csv';
             $path = storage_path('app/public/exports/' . $filename);
 
+            // Ensure exports directory exists
             if (!file_exists(dirname($path))) {
                 mkdir(dirname($path), 0755, true);
             }
 
             $file = fopen($path, 'w');
 
-            // Add UTF-8 BOM for better Excel compatibility
+            // Add UTF-8 BOM for better Excel compatibility with Arabic text
             fputs($file, "\xEF\xBB\xBF");
 
+            // Write CSV header row
             fputcsv($file, [
                 'ID',
                 __('admin.export.name_en'),
@@ -259,6 +297,7 @@ class ListHalls extends ListRecords
                 __('admin.export.created_at'),
             ]);
 
+            // Write data rows
             foreach ($halls as $hall) {
                 fputcsv($file, [
                     $hall->id,
@@ -272,10 +311,13 @@ class ListHalls extends ListRecords
                     $hall->longitude ?? '',
                     $hall->capacity_min,
                     $hall->capacity_max,
-                    number_format($hall->price_per_slot, 3),
+                    // PHP 8.4 strict types: Cast to float for number_format()
+                    number_format((float) $hall->price_per_slot, 3),
                     $hall->phone,
                     $hall->email ?? '',
-                    $hall->total_bookings ?? 0,
+                    // FIX: Use bookings_count from withCount() instead of cached total_bookings
+                    // This ensures we export the actual count of related bookings
+                    $hall->bookings_count ?? 0,
                     $hall->average_rating ?? 0,
                     $hall->is_featured ? __('admin.yes') : __('admin.no'),
                     $hall->is_active ? __('admin.yes') : __('admin.no'),
@@ -285,6 +327,7 @@ class ListHalls extends ListRecords
 
             fclose($file);
 
+            // Show success notification with download link
             Notification::make()
                 ->title(__('admin.notifications.export_success'))
                 ->success()
@@ -299,6 +342,7 @@ class ListHalls extends ListRecords
                 ->send();
 
         } catch (\Exception $e) {
+            // Handle export errors gracefully
             Notification::make()
                 ->title(__('admin.notifications.export_error'))
                 ->danger()
@@ -307,6 +351,12 @@ class ListHalls extends ListRecords
         }
     }
 
+    /**
+     * Bulk update prices for halls based on city filter and update type.
+     *
+     * @param array<string, mixed> $data Form data containing city_id, update_type, and value
+     * @return void
+     */
     protected function bulkUpdatePrices(array $data): void
     {
         DB::beginTransaction();
@@ -314,6 +364,7 @@ class ListHalls extends ListRecords
         try {
             $query = \App\Models\Hall::query();
 
+            // Apply city filter if provided
             if (isset($data['city_id'])) {
                 $query->where('city_id', $data['city_id']);
             }
@@ -324,6 +375,7 @@ class ListHalls extends ListRecords
             foreach ($halls as $hall) {
                 $newPrice = $hall->price_per_slot;
 
+                // Calculate new price based on update type
                 switch ($data['update_type']) {
                     case 'percentage_increase':
                         $newPrice = $hall->price_per_slot * (1 + ($data['value'] / 100));
@@ -344,6 +396,7 @@ class ListHalls extends ListRecords
                 $hall->save();
                 $updatedCount++;
 
+                // Log the activity for audit trail
                 activity()
                     ->performedOn($hall)
                     ->causedBy(Auth::user())
@@ -377,6 +430,11 @@ class ListHalls extends ListRecords
         }
     }
 
+    /**
+     * Generate missing slugs for halls that don't have one.
+     *
+     * @return void
+     */
     protected function generateMissingSlugs(): void
     {
         DB::beginTransaction();
@@ -390,6 +448,7 @@ class ListHalls extends ListRecords
                 $baseSlug = $slug;
                 $counter = 1;
 
+                // Ensure unique slug
                 while (\App\Models\Hall::where('slug', $slug)->where('id', '!=', $hall->id)->exists()) {
                     $slug = $baseSlug . '-' . $counter;
                     $counter++;
@@ -420,6 +479,12 @@ class ListHalls extends ListRecords
         }
     }
 
+    /**
+     * Bulk manage featured status for halls.
+     *
+     * @param array<string, mixed> $data Form data containing action and city_id
+     * @return void
+     */
     protected function bulkFeatureManagement(array $data): void
     {
         DB::beginTransaction();
@@ -455,6 +520,12 @@ class ListHalls extends ListRecords
         }
     }
 
+    /**
+     * Bulk activate or deactivate halls.
+     *
+     * @param array<string, mixed> $data Form data containing status and city_id
+     * @return void
+     */
     protected function bulkActivation(array $data): void
     {
         DB::beginTransaction();
@@ -490,6 +561,12 @@ class ListHalls extends ListRecords
         }
     }
 
+    /**
+     * Sync hall availability for the next 3 months.
+     * Creates availability records for all active halls if they don't exist.
+     *
+     * @return void
+     */
     protected function syncHallAvailability(): void
     {
         DB::beginTransaction();
@@ -546,6 +623,11 @@ class ListHalls extends ListRecords
         }
     }
 
+    /**
+     * Get the header widgets for this page.
+     *
+     * @return array<class-string>
+     */
     protected function getHeaderWidgets(): array
     {
         return [

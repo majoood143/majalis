@@ -1802,6 +1802,8 @@ return [
         'label' => 'دفعة',
         'plural' => 'المدفوعات',
         'navigation_group' => 'المالية',
+        'view_subheading' => 'تفاصيل الدفعة لـ ',
+
 
         // أعمدة الجدول
         'payout_number' => 'الدفعة #',
@@ -1843,6 +1845,8 @@ return [
 
         // أقسام Infolist
         'section_summary' => 'ملخص الدفعة',
+        'summary' => 'بند الملخص',
+        'financial_breakdown' => 'التفصيل المالي',
         'section_financial' => 'التفصيل المالي',
         'section_payment' => 'تفاصيل الدفع',
         'section_failure' => 'تفاصيل الفشل',
@@ -1887,12 +1891,66 @@ return [
         'no_payouts_desc' => 'بمجرد دفع أرباحك، ستظهر هنا.',
         'heading' => 'المدفوعات',
         'navigation' => 'المدفوعات',
+        'methods' => [
+            'bank_transfer' => 'التحويل البنكي',
+            'paypal' => 'باي بال',
+            'stripe' => 'سترايب',
+        ],
+        // Modal titles and descriptions
+        'report_issue_modal_title' => 'الإبلاغ عن مشكلة في الدفعة',
+        'report_issue_modal_description' => 'أرسل تذكرة دعم بخصوص الدفعة :payout. سيقوم فريقنا بالمراجعة والرد خلال 24-48 ساعة.',
+        'submit_issue' => 'إرسال المشكلة',
+
+        // Form field labels
+        'issue_type' => 'نوع المشكلة',
+        'issue_priority' => 'الأولوية',
+        'issue_subject' => 'الموضوع',
+        'issue_description' => 'الوصف',
+        'issue_description_placeholder' => 'يرجى وصف مشكلتك بالتفصيل. قم بتضمين أي معلومات ذات صلة مثل المبلغ المتوقع أو التناقضات أو الأسئلة.',
+        'related_payout' => 'الدفعة المرتبطة',
+
+        // Issue type options
+        'issue_types' => [
+            'claim' => 'تناقض في الدفع / مطالبة',
+            'complaint' => 'شكوى خدمة',
+            'inquiry' => 'استفسار عام',
+        ],
+
+        // Priority options
+        'priorities' => [
+            'low' => 'منخفض - سؤال عام',
+            'medium' => 'متوسط - يحتاج اهتمام',
+            'high' => 'عالي - مشكلة عاجلة',
+        ],
+
+        // Default subject template
+        'default_subject' => 'مشكلة في الدفعة: :payout',
+
+        // Success messages
+        'issue_submitted' => 'تم الإبلاغ عن المشكلة بنجاح',
+        'issue_submitted_body' => 'تم إنشاء تذكرة الدعم رقم #:ticket. سنرد خلال 24-48 ساعة.',
+        'view_ticket' => 'عرض التذكرة',
+
+        // Error messages
+        'issue_failed' => 'فشل في إرسال المشكلة',
+        'issue_failed_body' => 'حدث خطأ أثناء إرسال مشكلتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم مباشرة.',
+
+        // Receipt messages
+        'receipt_not_found_body' => 'لم يتم العثور على ملف الإيصال. يرجى الاتصال بالدعم إذا كنت بحاجة إلى نسخة.',
+
     ],
     'reports' => [
         'title' => 'التقارير المالية',
         'heading' => 'التقارير المالية',
         'navigation_group' => 'المالية',
         'navigation' => 'التقارير',
+        'subheading' => 'إنشاء وعرض تقارير مفصلة عن أداء قاعاتك',
+        'list_title' => 'التقارير المالية',
+        'export_title' => 'تصدير التقرير',
+        'export_csv' => 'تصدير CSV',
+        'hall'=>'القاعة',
+        'total_halls'=>'إجمالي القاعات',
+        'avg_booking'=> 'متوسط/حجز',
 
         // أنواع التقارير
         'type_monthly' => 'تقرير شهري',

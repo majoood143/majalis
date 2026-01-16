@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     {{-- Calendar Legend --}}
-    <div class="mb-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+    <div class="p-4 mb-4 bg-white shadow-sm dark:bg-gray-800 rounded-xl">
+        <h3 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ __('owner.availability.legend') }}
         </h3>
         <div class="flex flex-wrap gap-3 sm:gap-6">
@@ -33,12 +33,12 @@
     </div>
 
     {{-- Instructions Panel --}}
-    <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+    <div class="p-4 mb-4 border border-blue-200 bg-blue-50 dark:bg-blue-900/20 rounded-xl dark:border-blue-800">
         <div class="flex items-start gap-3">
             <x-heroicon-o-information-circle class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div class="text-sm text-blue-700 dark:text-blue-300">
-                <p class="font-medium mb-1">{{ __('owner.fullcalendar.instructions.title') }}</p>
-                <ul class="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-400">
+                <p class="mb-1 font-medium">{{ __('owner.fullcalendar.instructions.title') }}</p>
+                <ul class="space-y-1 text-blue-600 list-disc list-inside dark:text-blue-400">
                     <li>{{ __('owner.fullcalendar.instructions.click_date') }}</li>
                     <li>{{ __('owner.fullcalendar.instructions.click_event') }}</li>
                     <li>{{ __('owner.fullcalendar.instructions.drag_event') }}</li>
@@ -49,5 +49,5 @@
     </div>
 
     {{-- The Calendar Widget --}}
-    @livewire(\App\Filament\Owner\Widgets\AvailabilityCalendarWidget::class)
+    {{-- @livewire(\App\Filament\Owner\Widgets\AvailabilityCalendarWidget::class) --}}
 </x-filament-panels::page>

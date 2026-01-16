@@ -101,6 +101,13 @@ class Hall extends Model
      * @var array<string, string>
      */
     protected $casts = [
+
+        'pricing_override' => 'array',
+        'allows_advance_payment' => 'boolean',
+        'advance_payment_amount' => 'decimal:3',
+        'advance_payment_percentage' => 'decimal:2',
+        'minimum_advance_payment' => 'decimal:3',
+
         'name' => 'array',
         'description' => 'array',
         'address_localized' => 'array',

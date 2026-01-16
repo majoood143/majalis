@@ -11,7 +11,7 @@ use Filament\Tables\Table;
 
 /**
  * PaymentsRelationManager for Owner Panel
- * 
+ *
  * Displays payment history for a booking.
  * Owners can only view payments, not modify them.
  * Commission details are hidden from owners.
@@ -156,13 +156,36 @@ class PaymentsRelationManager extends RelationManager
                     ->placeholder(__('Not paid'))
                     ->toggleable(),
 
-                // Refund Info (if applicable)
+                /**
+                 * Refund Amount Column
+                 *
+                 * FIX: The visible() method on columns is evaluated at the TABLE level,
+                 * not per-row. The $record parameter is null during column visibility
+                 * evaluation because visibility determines if the entire column shows.
+                 *
+                 * Solution: Use formatStateUsing() to conditionally display content
+                 * based on the record's status, or use placeholder() for null values.
+                 *
+                 * @see https://filamentphp.com/docs/3.x/tables/columns/getting-started#conditional-formatting
+                 */
                 Tables\Columns\TextColumn::make('refund_amount')
                     ->label(__('Refund'))
                     ->money('OMR')
-                    ->visible(fn($record): bool => $record->status === 'refunded')
                     ->color('danger')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    // Use placeholder for null/empty values instead of visible()
+                    ->placeholder(__('N/A'))
+                    // Alternative: Only show formatted value when status is refunded
+                    ->formatStateUsing(function ($state, $record): ?string {
+                        // Safely check if record exists and has refunded status
+                        if ($record === null || $record->status !== 'refunded') {
+                            return null; // Will show placeholder
+                        }
+
+                        // Return null to let money() formatter handle it
+                        // or return formatted string if needed
+                        return $state;
+                    }),
 
                 // Transaction ID (external)
                 Tables\Columns\TextColumn::make('transaction_id')

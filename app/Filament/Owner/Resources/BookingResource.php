@@ -44,7 +44,12 @@ class BookingResource extends OwnerResource
     /**
      * Navigation group for organizing menu items.
      */
-    protected static ?string $navigationGroup = 'Bookings';
+
+    // public static function getNavigationGroup(): ?string
+    // {
+    //     return __('owner_booking.navigation.group');
+    // }
+    //protected static ?string $navigationGroup = ('owner_booking.navigation.group');
 
     /**
      * Sort order within the navigation group.
@@ -56,16 +61,16 @@ class BookingResource extends OwnerResource
      */
     public static function getPluralModelLabel(): string
     {
-        return __('Bookings');
+        return __('owner_booking.bookings');
     }
 
     /**
      * Get the singular label for this resource.
      */
-    // public static function getModelLabel(): string
-    // {
-    //     return __('Booking');
-    // }
+    public static function getModelLabel(): string
+    {
+        return __('owner_booking.booking');
+    }
 
     /**
      * Modify the base query to scope bookings to the authenticated owner's halls.
@@ -89,69 +94,69 @@ class BookingResource extends OwnerResource
         return $form
             ->schema([
                 // Booking Information Section
-                Forms\Components\Section::make(__('Booking Information'))
-                    ->description(__('Basic booking details'))
+                Forms\Components\Section::make(__('owner_booking.form.sections.booking_information'))
+                    ->description(__('owner_booking.form.sections.booking_information_description'))
                     ->icon('heroicon-o-information-circle')
                     ->schema([
                         Forms\Components\TextInput::make('booking_number')
-                            ->label(__('Booking Number'))
+                            ->label(__('owner_booking.form.fields.booking_number'))
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('hall.name')
-                            ->label(__('Hall'))
+                            ->label(__('owner_booking::form.fields.hall'))
                             ->formatStateUsing(function ($record) {
                                 if (!$record?->hall) {
-                                    return 'N/A';
+                                    return __('owner_booking.general.na');
                                 }
                                 $name = $record->hall->name;
-                                return $name[app()->getLocale()] ?? $name['en'] ?? 'N/A';
+                                return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
                             })
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\DatePicker::make('booking_date')
-                            ->label(__('Event Date'))
+                            ->label(__('owner_booking::form.fields.event_date'))
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('time_slot')
-                            ->label(__('Time Slot'))
+                            ->label(__('owner_booking.form.fields.time_slot'))
                             ->formatStateUsing(fn(?string $state): string => match ($state) {
-                                'morning' => __('Morning'),
-                                'afternoon' => __('Afternoon'),
-                                'evening' => __('Evening'),
-                                'full_day' => __('Full Day'),
-                                default => $state ?? 'N/A',
+                                'morning' => __('owner_booking.time_slots.morning'),
+                                'afternoon' => __('owner_booking.time_slots.afternoon'),
+                                'evening' => __('owner_booking.time_slots.evening'),
+                                'full_day' => __('owner_booking.time_slots.full_day'),
+                                default => $state ?? __('owner_booking.general.na'),
                             })
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('event_type')
-                            ->label(__('Event Type'))
-                            ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : 'N/A')
+                            ->label(__('owner_booking.form.fields.event_type'))
+                            ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : __('owner_booking.general.na'))
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('number_of_guests')
-                            ->label(__('Number of Guests'))
+                            ->label(__('owner_booking.form.fields.number_of_guests'))
                             ->disabled()
                             ->dehydrated(false),
                     ])
                     ->columns(3),
 
                 // Customer Information Section
-                Forms\Components\Section::make(__('Customer Information'))
-                    ->description(__('Contact details for the customer'))
+                Forms\Components\Section::make(__('owner_booking.form.sections.customer_information'))
+                    ->description(__('owner_booking.form.sections.customer_information_description'))
                     ->icon('heroicon-o-user')
                     ->schema([
                         Forms\Components\TextInput::make('customer_name')
-                            ->label(__('Customer Name'))
+                            ->label(__('owner_booking.form.fields.customer_name'))
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('customer_email')
-                            ->label(__('Email'))
+                            ->label(__('owner_booking.form.fields.email'))
                             ->disabled()
                             ->dehydrated(false)
                             ->suffixAction(
@@ -162,7 +167,7 @@ class BookingResource extends OwnerResource
                             ),
 
                         Forms\Components\TextInput::make('customer_phone')
-                            ->label(__('Phone'))
+                            ->label(__('owner_booking.form.fields.phone'))
                             ->disabled()
                             ->dehydrated(false)
                             ->suffixAction(
@@ -172,7 +177,7 @@ class BookingResource extends OwnerResource
                             ),
 
                         Forms\Components\Textarea::make('customer_notes')
-                            ->label(__('Customer Notes'))
+                            ->label(__('owner_booking.form.fields.customer_notes'))
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpanFull(),
@@ -180,47 +185,47 @@ class BookingResource extends OwnerResource
                     ->columns(3),
 
                 // Payment Information Section
-                Forms\Components\Section::make(__('Payment Information'))
-                    ->description(__('Financial details for this booking'))
+                Forms\Components\Section::make(__('owner_booking.form.sections.payment_information'))
+                    ->description(__('owner_booking.form.sections.payment_information_description'))
                     ->icon('heroicon-o-banknotes')
                     ->schema([
                         Forms\Components\TextInput::make('hall_price')
-                            ->label(__('Hall Price'))
+                            ->label(__('owner_booking.form.fields.hall_price'))
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('services_price')
-                            ->label(__('Services Price'))
+                            ->label(__('owner_booking.form.fields.services_price'))
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('total_amount')
-                            ->label(__('Total Amount'))
+                            ->label(__('owner_booking.form.fields.total_amount'))
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated(false)
                             ->extraAttributes(['class' => 'font-bold']),
 
                         Forms\Components\TextInput::make('owner_payout')
-                            ->label(__('Your Earnings'))
+                            ->label(__('owner_booking.form.fields.your_earnings'))
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated(false)
-                            ->helperText(__('Amount after platform commission'))
+                            ->helperText(__('owner_booking.form.fields.your_earnings_help'))
                             ->extraAttributes(['class' => 'font-bold text-success-600']),
 
                         // Advance payment fields (conditional)
                         Forms\Components\TextInput::make('advance_amount')
-                            ->label(__('Advance Paid'))
+                            ->label(__('owner_booking.form.fields.advance_paid'))
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn($record) => $record?->payment_type === 'advance'),
 
                         Forms\Components\TextInput::make('balance_due')
-                            ->label(__('Balance Due'))
+                            ->label(__('owner_booking.form.fields.balance_due'))
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated(false)
@@ -230,10 +235,10 @@ class BookingResource extends OwnerResource
                     ->columns(3),
 
                 // Status Section
-                Forms\Components\Section::make(__('Booking Status'))
+                Forms\Components\Section::make(__('owner_booking.form.sections.booking_status'))
                     ->schema([
                         Forms\Components\Placeholder::make('status_display')
-                            ->label(__('Current Status'))
+                            ->label(__('owner_booking.form.fields.current_status'))
                             ->content(fn($record) => view('filament.components.booking-status-badge', [
                                 'status' => $record?->status ?? 'pending',
                                 'paymentStatus' => $record?->payment_status ?? 'pending',
@@ -258,11 +263,11 @@ class BookingResource extends OwnerResource
         }
 
         return match ($record->status) {
-            'pending' => __('This booking is awaiting confirmation. Please review and approve or reject.'),
-            'confirmed' => __('This booking is confirmed. The customer has been notified.'),
-            'completed' => __('This event has been completed successfully.'),
-            'cancelled' => __('This booking was cancelled.') .
-                ($record->cancellation_reason ? ' ' . __('Reason:') . ' ' . $record->cancellation_reason : ''),
+            'pending' => __('owner_booking.status.pending_info'),
+            'confirmed' => __('owner_booking.status.confirmed_info'),
+            'completed' => __('owner_booking.status.completed_info'),
+            'cancelled' => __('owner_booking.status.cancelled_info') .
+                ($record->cancellation_reason ? ' ' . __('owner_booking.status.cancelled_reason') . ' ' . $record->cancellation_reason : ''),
             default => '',
         };
     }
@@ -276,23 +281,23 @@ class BookingResource extends OwnerResource
             ->columns([
                 // Booking Number with copy functionality
                 Tables\Columns\TextColumn::make('booking_number')
-                    ->label(__('Booking #'))
+                    ->label(__('owner_booking.table.columns.booking_number'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
-                    ->copyMessage(__('Booking number copied'))
+                    ->copyMessage(__('owner_booking.table.copy_messages.booking_number'))
                     ->weight(FontWeight::Bold)
                     ->color('primary'),
 
                 // Hall Name (translatable)
                 Tables\Columns\TextColumn::make('hall.name')
-                    ->label(__('Hall'))
+                    ->label(__('owner_booking.table.columns.hall'))
                     ->formatStateUsing(function ($record): string {
                         if (!$record?->hall) {
-                            return 'N/A';
+                            return __('owner_booking.general.na');
                         }
                         $name = $record->hall->name;
-                        return $name[app()->getLocale()] ?? $name['en'] ?? 'N/A';
+                        return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
                     })
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereHas('hall', function (Builder $q) use ($search): void {
@@ -304,14 +309,14 @@ class BookingResource extends OwnerResource
 
                 // Customer Name
                 Tables\Columns\TextColumn::make('customer_name')
-                    ->label(__('Customer'))
+                    ->label(__('owner_booking.table.columns.customer'))
                     ->searchable()
                     ->sortable()
                     ->description(fn($record): string => $record->customer_phone ?? ''),
 
                 // Event Date with relative time
                 Tables\Columns\TextColumn::make('booking_date')
-                    ->label(__('Event Date'))
+                    ->label(__('owner_booking.table.columns.event_date'))
                     ->date('d M Y')
                     ->sortable()
                     ->description(fn($record): string => $record->booking_date?->diffForHumans() ?? '')
@@ -324,13 +329,13 @@ class BookingResource extends OwnerResource
 
                 // Time Slot Badge
                 Tables\Columns\TextColumn::make('time_slot')
-                    ->label(__('Time'))
+                    ->label(__('owner_booking.table.columns.time'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'morning' => __('Morning'),
-                        'afternoon' => __('Afternoon'),
-                        'evening' => __('Evening'),
-                        'full_day' => __('Full Day'),
+                        'morning' => __('owner_booking.time_slots.morning'),
+                        'afternoon' => __('owner_booking.time_slots.afternoon'),
+                        'evening' => __('owner_booking.time_slots.evening'),
+                        'full_day' => __('owner_booking.time_slots.full_day'),
                         default => ucfirst(str_replace('_', ' ', $state)),
                     })
                     ->color(fn(string $state): string => match ($state) {
@@ -343,13 +348,13 @@ class BookingResource extends OwnerResource
 
                 // Booking Status Badge
                 Tables\Columns\TextColumn::make('status')
-                    ->label(__('Status'))
+                    ->label(__('owner_booking.table.columns.status'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'pending' => __('Pending'),
-                        'confirmed' => __('Confirmed'),
-                        'completed' => __('Completed'),
-                        'cancelled' => __('Cancelled'),
+                        'pending' => __('owner_booking.status.pending'),
+                        'confirmed' => __('owner_booking.status.confirmed'),
+                        'completed' => __('owner_booking.status.completed'),
+                        'cancelled' => __('owner_booking.status.cancelled'),
                         default => ucfirst($state),
                     })
                     ->color(fn(string $state): string => match ($state) {
@@ -369,7 +374,7 @@ class BookingResource extends OwnerResource
 
                 // Owner Payout (what owner earns)
                 Tables\Columns\TextColumn::make('owner_payout')
-                    ->label(__('Your Earnings'))
+                    ->label(__('owner_booking.table.columns.your_earnings'))
                     ->money('OMR')
                     ->sortable()
                     ->color('success')
@@ -377,14 +382,14 @@ class BookingResource extends OwnerResource
 
                 // Payment Status Badge
                 Tables\Columns\TextColumn::make('payment_status')
-                    ->label(__('Payment'))
+                    ->label(__('owner_booking.table.columns.payment'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'pending' => __('Pending'),
-                        'partial' => __('Partial'),
-                        'paid' => __('Paid'),
-                        'failed' => __('Failed'),
-                        'refunded' => __('Refunded'),
+                        'pending' => __('owner_booking.payment.pending'),
+                        'partial' => __('owner_booking.payment.partial'),
+                        'paid' => __('owner_booking.payment.paid'),
+                        'failed' => __('owner_booking.payment.failed'),
+                        'refunded' => __('owner_booking.payment.refunded'),
                         default => ucfirst($state),
                     })
                     ->color(fn(string $state): string => match ($state) {
@@ -406,7 +411,7 @@ class BookingResource extends OwnerResource
 
                 // Balance Due (for advance payments)
                 Tables\Columns\TextColumn::make('balance_due')
-                    ->label(__('Balance'))
+                    ->label(__('owner_booking.table.columns.balance'))
                     ->money('OMR')
                     ->sortable()
                     ->color('warning')
@@ -415,14 +420,14 @@ class BookingResource extends OwnerResource
 
                 // Number of Guests
                 Tables\Columns\TextColumn::make('number_of_guests')
-                    ->label(__('Guests'))
+                    ->label(__('owner_booking.table.columns.guests'))
                     ->numeric()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 // Created Date
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('Booked On'))
+                    ->label(__('owner_booking.table.columns.booked_on'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -430,36 +435,36 @@ class BookingResource extends OwnerResource
             ->filters([
                 // Hall Filter
                 Tables\Filters\SelectFilter::make('hall_id')
-                    ->label(__('Hall'))
+                    ->label(__('owner_booking.filters.hall'))
                     ->relationship(
                         'hall',
                         'name',
                         fn(Builder $query) => $query->where('owner_id', Auth::id())
                     )
-                    ->getOptionLabelFromRecordUsing(fn($record) => $record->name[app()->getLocale()] ?? $record->name['en'] ?? 'N/A')
+                    ->getOptionLabelFromRecordUsing(fn($record) => $record->name[app()->getLocale()] ?? $record->name['en'] ?? __('owner_booking.general.na'))
                     ->searchable()
                     ->preload(),
 
                 // Status Filter
                 Tables\Filters\SelectFilter::make('status')
-                    ->label(__('Booking Status'))
+                    ->label(__('owner_booking.filters.booking_status'))
                     ->options([
-                        'pending' => __('Pending'),
-                        'confirmed' => __('Confirmed'),
-                        'completed' => __('Completed'),
-                        'cancelled' => __('Cancelled'),
+                        'pending' => __('owner_booking.status.pending'),
+                        'confirmed' => __('owner_booking.status.confirmed'),
+                        'completed' => __('owner_booking.status.completed'),
+                        'cancelled' => __('owner_booking.status.cancelled'),
                     ])
                     ->multiple(),
 
                 // Payment Status Filter
                 Tables\Filters\SelectFilter::make('payment_status')
-                    ->label(__('Payment Status'))
+                    ->label(__('owner_booking.filters.payment_status'))
                     ->options([
-                        'pending' => __('Pending'),
-                        'partial' => __('Partial'),
-                        'paid' => __('Paid'),
-                        'failed' => __('Failed'),
-                        'refunded' => __('Refunded'),
+                        'pending' => __('owner_booking.payment.pending'),
+                        'partial' => __('owner_booking.payment.partial'),
+                        'paid' => __('owner_booking.payment.paid'),
+                        'failed' => __('owner_booking.payment.failed'),
+                        'refunded' => __('owner_booking.payment.refunded'),
                     ])
                     ->multiple(),
 
@@ -467,9 +472,9 @@ class BookingResource extends OwnerResource
                 Tables\Filters\Filter::make('booking_date')
                     ->form([
                         Forms\Components\DatePicker::make('from')
-                            ->label(__('From Date')),
+                            ->label(__('owner_booking.filters.from_date')),
                         Forms\Components\DatePicker::make('until')
-                            ->label(__('Until Date')),
+                            ->label(__('owner_booking.filters.until_date')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -485,20 +490,20 @@ class BookingResource extends OwnerResource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['from'] ?? null) {
-                            $indicators['from'] = __('From') . ' ' . \Carbon\Carbon::parse($data['from'])->toFormattedDateString();
+                            $indicators['from'] = __('owner_booking.filters.from') . ' ' . \Carbon\Carbon::parse($data['from'])->toFormattedDateString();
                         }
                         if ($data['until'] ?? null) {
-                            $indicators['until'] = __('Until') . ' ' . \Carbon\Carbon::parse($data['until'])->toFormattedDateString();
+                            $indicators['until'] = __('owner_booking.filters.until') . ' ' . \Carbon\Carbon::parse($data['until'])->toFormattedDateString();
                         }
                         return $indicators;
                     }),
 
                 // Quick Filters
                 Tables\Filters\TernaryFilter::make('upcoming')
-                    ->label(__('Upcoming Events'))
-                    ->placeholder(__('All bookings'))
-                    ->trueLabel(__('Upcoming only'))
-                    ->falseLabel(__('Past only'))
+                    ->label(__('owner_booking.filters.upcoming_events'))
+                    ->placeholder(__('owner_booking.filters.all_bookings'))
+                    ->trueLabel(__('owner_booking.filters.upcoming_only'))
+                    ->falseLabel(__('owner_booking.filters.past_only'))
                     ->queries(
                         true: fn(Builder $query) => $query->where('booking_date', '>=', now()->toDateString()),
                         false: fn(Builder $query) => $query->where('booking_date', '<', now()->toDateString()),
@@ -507,7 +512,7 @@ class BookingResource extends OwnerResource
 
                 // Needs Action Filter (pending or balance due)
                 Tables\Filters\Filter::make('needs_action')
-                    ->label(__('Needs Action'))
+                    ->label(__('owner_booking.filters.needs_action'))
                     ->query(fn(Builder $query): Builder => $query->where(function (Builder $q) {
                         $q->where('status', 'pending')
                             ->orWhere(function (Builder $q2) {
@@ -526,13 +531,13 @@ class BookingResource extends OwnerResource
 
                 // Approve Action (for pending bookings that require approval)
                 Tables\Actions\Action::make('approve')
-                    ->label(__('Approve'))
+                    ->label(__('owner_booking.actions.approve.label'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading(__('Approve Booking'))
-                    ->modalDescription(__('Are you sure you want to approve this booking? The customer will be notified.'))
-                    ->modalSubmitActionLabel(__('Yes, Approve'))
+                    ->modalHeading(__('owner_booking.actions.approve.modal_heading'))
+                    ->modalDescription(__('owner_booking.actions.approve.modal_description'))
+                    ->modalSubmitActionLabel(__('owner_booking.actions.approve.modal_submit_label'))
                     ->visible(fn(Booking $record): bool =>
                         $record->status === 'pending' &&
                         $record->hall?->requires_approval
@@ -547,26 +552,26 @@ class BookingResource extends OwnerResource
                         // event(new BookingApproved($record));
 
                         Notification::make()
-                            ->title(__('Booking Approved'))
-                            ->body(__('Booking :number has been approved successfully.', ['number' => $record->booking_number]))
+                            ->title(__('owner_booking.notifications.approve.title'))
+                            ->body(__('owner_booking.notifications.approve.body', ['number' => $record->booking_number]))
                             ->success()
                             ->send();
                     }),
 
                 // Reject Action (for pending bookings that require approval)
                 Tables\Actions\Action::make('reject')
-                    ->label(__('Reject'))
+                    ->label(__('owner_booking.actions.reject.label'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading(__('Reject Booking'))
-                    ->modalDescription(__('Are you sure you want to reject this booking? This action cannot be undone.'))
+                    ->modalHeading(__('owner_booking.actions.reject.modal_heading'))
+                    ->modalDescription(__('owner_booking.actions.reject.modal_description'))
                     ->form([
                         Forms\Components\Textarea::make('rejection_reason')
-                            ->label(__('Reason for Rejection'))
+                            ->label(__('owner_booking.actions.reject.reason_label'))
                             ->required()
                             ->maxLength(500)
-                            ->placeholder(__('Please provide a reason for rejecting this booking...')),
+                            ->placeholder(__('owner_booking.actions.reject.reason_placeholder')),
                     ])
                     ->visible(fn(Booking $record): bool =>
                         $record->status === 'pending' &&
@@ -576,48 +581,48 @@ class BookingResource extends OwnerResource
                         $record->update([
                             'status' => 'cancelled',
                             'cancelled_at' => now(),
-                            'cancellation_reason' => __('Rejected by hall owner: ') . $data['rejection_reason'],
+                            'cancellation_reason' => __('owner_booking.actions.reject.cancellation_reason_prefix') . $data['rejection_reason'],
                         ]);
 
                         // TODO: Send notification to customer
                         // event(new BookingRejected($record));
 
                         Notification::make()
-                            ->title(__('Booking Rejected'))
-                            ->body(__('Booking :number has been rejected.', ['number' => $record->booking_number]))
+                            ->title(__('owner_booking.notifications.reject.title'))
+                            ->body(__('owner_booking.notifications.reject.body', ['number' => $record->booking_number]))
                             ->warning()
                             ->send();
                     }),
 
                 // Mark Balance Received (for advance payment bookings)
                 Tables\Actions\Action::make('mark_balance_received')
-                    ->label(__('Record Balance'))
+                    ->label(__('owner_booking.actions.mark_balance.label'))
                     ->icon('heroicon-o-banknotes')
                     ->color('info')
-                    ->modalHeading(__('Record Balance Payment'))
-                    ->modalDescription(__('Record that the remaining balance has been received from the customer.'))
+                    ->modalHeading(__('owner_booking.actions.mark_balance.modal_heading'))
+                    ->modalDescription(__('owner_booking.actions.mark_balance.modal_description'))
                     ->form([
                         Forms\Components\Placeholder::make('balance_info')
-                            ->label(__('Balance Due'))
+                            ->label(__('owner_booking.actions.mark_balance.balance_info'))
                             ->content(fn(Booking $record): string => 'OMR ' . number_format((float) $record->balance_due, 3)),
 
                         Forms\Components\Select::make('payment_method')
-                            ->label(__('Payment Method'))
+                            ->label(__('owner_booking.actions.mark_balance.payment_method_label'))
                             ->options([
-                                'cash' => __('Cash'),
-                                'bank_transfer' => __('Bank Transfer'),
-                                'card' => __('Card (POS)'),
+                                'cash' => __('owner_booking.payment_methods.cash'),
+                                'bank_transfer' => __('owner_booking.payment_methods.bank_transfer'),
+                                'card' => __('owner_booking.payment_methods.card'),
                             ])
                             ->required(),
 
                         Forms\Components\TextInput::make('reference')
-                            ->label(__('Reference/Receipt Number'))
-                            ->placeholder(__('Optional reference number'))
+                            ->label(__('owner_booking.actions.mark_balance.reference_label'))
+                            ->placeholder(__('owner_booking.actions.mark_balance.reference_placeholder'))
                             ->maxLength(100),
 
                         Forms\Components\Textarea::make('notes')
-                            ->label(__('Notes'))
-                            ->placeholder(__('Any additional notes...'))
+                            ->label(__('owner_booking.actions.mark_balance.notes_label'))
+                            ->placeholder(__('owner_booking.actions.mark_balance.notes_placeholder'))
                             ->maxLength(500),
                     ])
                     ->visible(fn(Booking $record): bool =>
@@ -633,17 +638,17 @@ class BookingResource extends OwnerResource
                             'balance_payment_reference' => $data['reference'] ?? null,
                             'payment_status' => 'paid',
                             'admin_notes' => ($record->admin_notes ? $record->admin_notes . "\n" : '') .
-                                __('Balance of OMR :amount received via :method on :date', [
+                                __('owner_booking.actions.mark_balance.admin_note', [
                                     'amount' => number_format((float) $record->balance_due, 3),
                                     'method' => $data['payment_method'],
                                     'date' => now()->format('d M Y H:i'),
                                 ]) .
-                                ($data['notes'] ? "\n" . __('Notes: ') . $data['notes'] : ''),
+                                ($data['notes'] ? "\n" . __('owner_booking.actions.mark_balance.notes_prefix') . $data['notes'] : ''),
                         ]);
 
                         Notification::make()
-                            ->title(__('Balance Payment Recorded'))
-                            ->body(__('Balance payment for booking :number has been recorded.', ['number' => $record->booking_number]))
+                            ->title(__('owner_booking.notifications.mark_balance.title'))
+                            ->body(__('owner_booking.notifications.mark_balance.body', ['number' => $record->booking_number]))
                             ->success()
                             ->send();
                     }),
@@ -651,25 +656,25 @@ class BookingResource extends OwnerResource
                 // Contact Customer Action
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('call')
-                        ->label(__('Call Customer'))
+                        ->label(__('owner_booking.actions.contact.call'))
                         ->icon('heroicon-o-phone')
                         ->url(fn(Booking $record): string => "tel:{$record->customer_phone}")
                         ->openUrlInNewTab(),
 
                     Tables\Actions\Action::make('email')
-                        ->label(__('Email Customer'))
+                        ->label(__('owner_booking.actions.contact.email'))
                         ->icon('heroicon-o-envelope')
                         ->url(fn(Booking $record): string => "mailto:{$record->customer_email}")
                         ->openUrlInNewTab(),
 
                     Tables\Actions\Action::make('whatsapp')
-                        ->label(__('WhatsApp'))
+                        ->label(__('owner_booking.actions.contact.whatsapp'))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                        ->url(fn(Booking $record): string => "https://wa.me/{$record->customer_phone}")
+                        ->url(fn(Booking $record): string => "https://api.whatsapp.com/send?phone={$record->customer_phone}")
                         ->openUrlInNewTab()
                         ->visible(fn(Booking $record): bool => !empty($record->customer_phone)),
                 ])
-                    ->label(__('Contact'))
+                    ->label(__('owner_booking.actions.contact.label'))
                     ->icon('heroicon-o-chat-bubble-bottom-center-text')
                     ->color('gray')
                     ->button(),
@@ -678,13 +683,13 @@ class BookingResource extends OwnerResource
                 // Owners have limited bulk actions
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('export')
-                        ->label(__('Export Selected'))
+                        ->label(__('owner_booking.actions.bulk.export'))
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             // TODO: Implement export functionality
                             Notification::make()
-                                ->title(__('Export Started'))
-                                ->body(__('Your export is being prepared...'))
+                                ->title(__('owner_booking.notifications.export.title'))
+                                ->body(__('owner_booking.notifications.export.body'))
                                 ->info()
                                 ->send();
                         }),
@@ -693,8 +698,8 @@ class BookingResource extends OwnerResource
             ->defaultSort('booking_date', 'desc')
             ->poll('30s')
             ->striped()
-            ->emptyStateHeading(__('No bookings yet'))
-            ->emptyStateDescription(__('When customers book your halls, they will appear here.'))
+            ->emptyStateHeading(__('owner_booking.table.empty_state.heading'))
+            ->emptyStateDescription(__('owner_booking.table.empty_state.description'))
             ->emptyStateIcon('heroicon-o-calendar');
     }
 
@@ -712,20 +717,20 @@ class BookingResource extends OwnerResource
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('booking_number')
-                                    ->label(__('Booking Number'))
+                                    ->label(__('owner_booking.infolist.sections.header.booking_number'))
                                     ->weight(FontWeight::Bold)
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
                                     ->copyable()
-                                    ->copyMessage(__('Copied!')),
+                                    ->copyMessage(__('owner_booking.infolist.copy_messages.copied')),
 
                                 Infolists\Components\TextEntry::make('status')
-                                    ->label(__('Status'))
+                                    ->label(__('owner_booking.infolist.sections.header.status'))
                                     ->badge()
                                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                                        'pending' => __('Pending'),
-                                        'confirmed' => __('Confirmed'),
-                                        'completed' => __('Completed'),
-                                        'cancelled' => __('Cancelled'),
+                                        'pending' => __('owner_booking.status.pending'),
+                                        'confirmed' => __('owner_booking.status.confirmed'),
+                                        'completed' => __('owner_booking.status.completed'),
+                                        'cancelled' => __('owner_booking.status.cancelled'),
                                         default => ucfirst($state),
                                     })
                                     ->color(fn(string $state): string => match ($state) {
@@ -737,14 +742,14 @@ class BookingResource extends OwnerResource
                                     }),
 
                                 Infolists\Components\TextEntry::make('payment_status')
-                                    ->label(__('Payment'))
+                                    ->label(__('owner_booking.infolist.sections.header.payment'))
                                     ->badge()
                                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                                        'pending' => __('Pending'),
-                                        'partial' => __('Partial'),
-                                        'paid' => __('Paid'),
-                                        'failed' => __('Failed'),
-                                        'refunded' => __('Refunded'),
+                                        'pending' => __('owner_booking.payment.pending'),
+                                        'partial' => __('owner_booking.payment.partial'),
+                                        'paid' => __('owner_booking.payment.paid'),
+                                        'failed' => __('owner_booking.payment.failed'),
+                                        'refunded' => __('owner_booking.payment.refunded'),
                                         default => ucfirst($state),
                                     })
                                     ->color(fn(string $state): string => match ($state) {
@@ -757,29 +762,29 @@ class BookingResource extends OwnerResource
                                     }),
 
                                 Infolists\Components\TextEntry::make('created_at')
-                                    ->label(__('Booked On'))
+                                    ->label(__('owner_booking.infolist.sections.header.booked_on'))
                                     ->dateTime('d M Y H:i'),
                             ]),
                     ]),
 
                 // Event Details Section
-                Infolists\Components\Section::make(__('Event Details'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.event_details'))
                     ->icon('heroicon-o-calendar-days')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall.name')
-                                    ->label(__('Hall'))
+                                    ->label(__('owner_booking.infolist.sections.event_details.hall'))
                                     ->formatStateUsing(function ($record): string {
                                         if (!$record?->hall) {
-                                            return 'N/A';
+                                            return __('owner_booking.general.na');
                                         }
                                         $name = $record->hall->name;
-                                        return $name[app()->getLocale()] ?? $name['en'] ?? 'N/A';
+                                        return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
                                     }),
 
                                 Infolists\Components\TextEntry::make('booking_date')
-                                    ->label(__('Event Date'))
+                                    ->label(__('owner_booking.infolist.sections.event_details.event_date'))
                                     ->date('l, d F Y')
                                     ->color(fn($record): string => match (true) {
                                         $record->booking_date?->isPast() => 'gray',
@@ -788,123 +793,123 @@ class BookingResource extends OwnerResource
                                     }),
 
                                 Infolists\Components\TextEntry::make('time_slot')
-                                    ->label(__('Time Slot'))
+                                    ->label(__('owner_booking.infolist.sections.event_details.time_slot'))
                                     ->badge()
                                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                                        'morning' => __('Morning'),
-                                        'afternoon' => __('Afternoon'),
-                                        'evening' => __('Evening'),
-                                        'full_day' => __('Full Day'),
+                                        'morning' => __('owner_booking.time_slots.morning'),
+                                        'afternoon' => __('owner_booking.time_slots.afternoon'),
+                                        'evening' => __('owner_booking.time_slots.evening'),
+                                        'full_day' => __('owner_booking.time_slots.full_day'),
                                         default => ucfirst($state),
                                     }),
 
                                 Infolists\Components\TextEntry::make('event_type')
-                                    ->label(__('Event Type'))
-                                    ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : __('Not specified'))
-                                    ->placeholder(__('Not specified')),
+                                    ->label(__('owner_booking.infolist.sections.event_details.event_type'))
+                                    ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : __('owner_booking.infolist.placeholders.not_specified'))
+                                    ->placeholder(__('owner_booking.infolist.placeholders.not_specified')),
 
                                 Infolists\Components\TextEntry::make('number_of_guests')
-                                    ->label(__('Expected Guests'))
+                                    ->label(__('owner_booking.infolist.sections.event_details.expected_guests'))
                                     ->numeric()
-                                    ->suffix(' ' . __('guests')),
+                                    ->suffix(' ' . __('owner_booking.infolist.sections.event_details.guests_suffix')),
                             ]),
                     ]),
 
                 // Customer Information Section
-                Infolists\Components\Section::make(__('Customer Information'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.customer_information'))
                     ->icon('heroicon-o-user')
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('customer_name')
-                                    ->label(__('Name'))
+                                    ->label(__('owner_booking.infolist.sections.customer_information.name'))
                                     ->weight(FontWeight::Bold),
 
                                 Infolists\Components\TextEntry::make('customer_email')
-                                    ->label(__('Email'))
+                                    ->label(__('owner_booking.infolist.sections.customer_information.email'))
                                     ->icon('heroicon-o-envelope')
                                     ->url(fn($record): string => "mailto:{$record->customer_email}")
                                     ->copyable(),
 
                                 Infolists\Components\TextEntry::make('customer_phone')
-                                    ->label(__('Phone'))
+                                    ->label(__('owner_booking.infolist.sections.customer_information.phone'))
                                     ->icon('heroicon-o-phone')
                                     ->url(fn($record): string => "tel:{$record->customer_phone}")
                                     ->copyable(),
                             ]),
 
                         Infolists\Components\TextEntry::make('customer_notes')
-                            ->label(__('Customer Notes'))
-                            ->placeholder(__('No notes provided'))
+                            ->label(__('owner_booking.infolist.sections.customer_information.customer_notes'))
+                            ->placeholder(__('owner_booking.infolist.placeholders.no_notes'))
                             ->columnSpanFull()
                             ->markdown(),
                     ]),
 
                 // Financial Summary Section
-                Infolists\Components\Section::make(__('Financial Summary'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.financial_summary'))
                     ->icon('heroicon-o-banknotes')
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall_price')
-                                    ->label(__('Hall Price'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.hall_price'))
                                     ->money('OMR'),
 
                                 Infolists\Components\TextEntry::make('services_price')
-                                    ->label(__('Services'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.services'))
                                     ->money('OMR'),
 
                                 Infolists\Components\TextEntry::make('total_amount')
-                                    ->label(__('Total Amount'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.total_amount'))
                                     ->money('OMR')
                                     ->weight(FontWeight::Bold),
 
                                 Infolists\Components\TextEntry::make('owner_payout')
-                                    ->label(__('Your Earnings'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.your_earnings'))
                                     ->money('OMR')
                                     ->weight(FontWeight::Bold)
                                     ->color('success'),
                             ]),
 
                         // Advance Payment Details (if applicable)
-                        Infolists\Components\Fieldset::make(__('Advance Payment Details'))
+                        Infolists\Components\Fieldset::make(__('owner_booking.infolist.sections.financial_summary.advance_payment_details'))
                             ->schema([
                                 Infolists\Components\TextEntry::make('advance_amount')
-                                    ->label(__('Advance Paid'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.advance_paid'))
                                     ->money('OMR'),
 
                                 Infolists\Components\TextEntry::make('balance_due')
-                                    ->label(__('Balance Due'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.balance_due'))
                                     ->money('OMR')
                                     ->color(fn($record): string => (float) ($record->balance_due ?? 0) > 0 ? 'warning' : 'success'),
 
                                 Infolists\Components\TextEntry::make('balance_paid_at')
-                                    ->label(__('Balance Received'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.balance_received'))
                                     ->dateTime('d M Y H:i')
-                                    ->placeholder(__('Not yet received')),
+                                    ->placeholder(__('owner_booking.infolist.placeholders.not_yet_received')),
 
                                 Infolists\Components\TextEntry::make('balance_payment_method')
-                                    ->label(__('Payment Method'))
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.payment_method'))
                                     ->formatStateUsing(fn(?string $state): string => match ($state) {
-                                        'cash' => __('Cash'),
-                                        'bank_transfer' => __('Bank Transfer'),
-                                        'card' => __('Card'),
-                                        default => $state ?? __('N/A'),
+                                        'cash' => __('owner_booking.payment_methods.cash'),
+                                        'bank_transfer' => __('owner_booking.payment_methods.bank_transfer'),
+                                        'card' => __('owner_booking.payment_methods.card'),
+                                        default => $state ?? __('owner_booking.general.na'),
                                     })
-                                    ->placeholder(__('N/A')),
+                                    ->placeholder(__('owner_booking.general.na')),
                             ])
                             ->columns(4)
                             ->visible(fn($record): bool => $record->payment_type === 'advance'),
                     ]),
 
                 // Extra Services Section
-                Infolists\Components\Section::make(__('Extra Services'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.extra_services'))
                     ->icon('heroicon-o-sparkles')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('extraServices')
                             ->schema([
                                 Infolists\Components\TextEntry::make('service_name')
-                                    ->label(__('Service'))
+                                    ->label(__('owner_booking.infolist.sections.extra_services.service'))
                                     ->formatStateUsing(function ($state): string {
                                         if (is_string($state)) {
                                             $decoded = json_decode($state, true);
@@ -917,14 +922,14 @@ class BookingResource extends OwnerResource
                                     }),
 
                                 Infolists\Components\TextEntry::make('quantity')
-                                    ->label(__('Qty')),
+                                    ->label(__('owner_booking.infolist.sections.extra_services.qty')),
 
                                 Infolists\Components\TextEntry::make('unit_price')
-                                    ->label(__('Unit Price'))
+                                    ->label(__('owner_booking.infolist.sections.extra_services.unit_price'))
                                     ->money('OMR'),
 
                                 Infolists\Components\TextEntry::make('total_price')
-                                    ->label(__('Total'))
+                                    ->label(__('owner_booking.infolist.sections.extra_services.total'))
                                     ->money('OMR')
                                     ->weight(FontWeight::Bold),
                             ])
@@ -935,38 +940,38 @@ class BookingResource extends OwnerResource
                     ->collapsible(),
 
                 // Timeline Section
-                Infolists\Components\Section::make(__('Booking Timeline'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.booking_timeline'))
                     ->icon('heroicon-o-clock')
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('created_at')
-                                    ->label(__('Booked'))
+                                    ->label(__('owner_booking.infolist.sections.booking_timeline.booked'))
                                     ->dateTime('d M Y H:i')
                                     ->icon('heroicon-o-plus-circle'),
 
                                 Infolists\Components\TextEntry::make('confirmed_at')
-                                    ->label(__('Confirmed'))
+                                    ->label(__('owner_booking.infolist.sections.booking_timeline.confirmed'))
                                     ->dateTime('d M Y H:i')
-                                    ->placeholder(__('Not confirmed'))
+                                    ->placeholder(__('owner_booking.infolist.placeholders.not_confirmed'))
                                     ->icon('heroicon-o-check-circle'),
 
                                 Infolists\Components\TextEntry::make('completed_at')
-                                    ->label(__('Completed'))
+                                    ->label(__('owner_booking.infolist.sections.booking_timeline.completed'))
                                     ->dateTime('d M Y H:i')
-                                    ->placeholder(__('Not completed'))
+                                    ->placeholder(__('owner_booking.infolist.placeholders.not_completed'))
                                     ->icon('heroicon-o-check-badge'),
 
                                 Infolists\Components\TextEntry::make('cancelled_at')
-                                    ->label(__('Cancelled'))
+                                    ->label(__('owner_booking.infolist.sections.booking_timeline.cancelled'))
                                     ->dateTime('d M Y H:i')
-                                    ->placeholder(__('Not cancelled'))
+                                    ->placeholder(__('owner_booking.infolist.placeholders.not_cancelled'))
                                     ->icon('heroicon-o-x-circle')
                                     ->color('danger'),
                             ]),
 
                         Infolists\Components\TextEntry::make('cancellation_reason')
-                            ->label(__('Cancellation Reason'))
+                            ->label(__('owner_booking.infolist.sections.booking_timeline.cancellation_reason'))
                             ->visible(fn($record): bool => !empty($record->cancellation_reason))
                             ->columnSpanFull(),
                     ])
@@ -1053,6 +1058,6 @@ class BookingResource extends OwnerResource
      */
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return __('Pending bookings requiring attention');
+        return __('owner_booking.navigation.badge_tooltip');
     }
 }

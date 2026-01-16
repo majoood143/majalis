@@ -172,7 +172,7 @@ class PayoutResource extends Resource
             ->columns([
                 // Payout number
                 Tables\Columns\TextColumn::make('payout_number')
-                    ->label(__('owner.payouts.number'))
+                    ->label(__('owner.payouts.payout_number'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
@@ -191,7 +191,7 @@ class PayoutResource extends Resource
 
                 // Bookings count
                 Tables\Columns\TextColumn::make('bookings_count')
-                    ->label(__('owner.payouts.bookings'))
+                    ->label(__('owner.payouts.bookings_count'))
                     ->sortable()
                     ->alignCenter()
                     ->badge()
@@ -199,7 +199,7 @@ class PayoutResource extends Resource
 
                 // Gross revenue
                 Tables\Columns\TextColumn::make('gross_revenue')
-                    ->label(__('owner.payouts.gross'))
+                    ->label(__('owner.payouts.gross_revenue'))
                     ->money('OMR')
                     ->sortable()
                     ->summarize(Sum::make()->money('OMR'))
@@ -208,7 +208,7 @@ class PayoutResource extends Resource
 
                 // Commission
                 Tables\Columns\TextColumn::make('commission_amount')
-                    ->label(__('owner.payouts.commission'))
+                    ->label(__('owner.payouts.commission_amount'))
                     ->money('OMR')
                     ->sortable()
                     ->summarize(Sum::make()->money('OMR'))
@@ -226,7 +226,7 @@ class PayoutResource extends Resource
 
                 // Net payout
                 Tables\Columns\TextColumn::make('net_payout')
-                    ->label(__('owner.payouts.net'))
+                    ->label(__('owner.payouts.net_payout'))
                     ->money('OMR')
                     ->sortable()
                     ->summarize(Sum::make()->money('OMR'))
@@ -245,7 +245,7 @@ class PayoutResource extends Resource
 
                 // Payment method
                 Tables\Columns\TextColumn::make('payment_method')
-                    ->label(__('owner.payouts.method'))
+                    ->label(__('owner.payouts.payment_method'))
                     ->formatStateUsing(fn ($state): string => $state
                         ? __("owner.payouts.methods.{$state}")
                         : '-')
@@ -367,7 +367,7 @@ class PayoutResource extends Resource
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('payout_number')
-                                    ->label(__('owner.payouts.number'))
+                                    ->label(__('owner.payouts.payout_number'))
                                     ->weight('bold')
                                     ->copyable(),
 
@@ -384,7 +384,7 @@ class PayoutResource extends Resource
                                         $record->period_end->format('M d, Y')),
 
                                 Infolists\Components\TextEntry::make('bookings_count')
-                                    ->label(__('owner.payouts.bookings'))
+                                    ->label(__('owner.payouts.bookings_count'))
                                     ->badge()
                                     ->color('info'),
                             ]),
@@ -396,18 +396,18 @@ class PayoutResource extends Resource
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('gross_revenue')
-                                    ->label(__('owner.payouts.gross'))
+                                    ->label(__('owner.payouts.gross_revenue'))
                                     ->money('OMR')
                                     ->size('lg'),
 
                                 Infolists\Components\TextEntry::make('commission_amount')
-                                    ->label(__('owner.payouts.commission'))
+                                    ->label(__('owner.payouts.commission_amount'))
                                     ->money('OMR')
                                     ->size('lg')
                                     ->color('danger'),
 
                                 Infolists\Components\TextEntry::make('commission_rate')
-                                    ->label(__('owner.payouts.rate'))
+                                    ->label(__('owner.payouts.commission_rate'))
                                     ->formatStateUsing(fn ($state): string => number_format((float) $state, 2) . '%')
                                     ->size('lg'),
 
@@ -420,7 +420,7 @@ class PayoutResource extends Resource
 
                         // Net Payout Highlight
                         Infolists\Components\TextEntry::make('net_payout')
-                            ->label(__('owner.payouts.your_payout'))
+                            ->label(__('owner.payouts.net_payout'))
                             ->money('OMR')
                             ->size('xl')
                             ->weight('bold')
@@ -430,12 +430,12 @@ class PayoutResource extends Resource
                     ->columns(1),
 
                 // Payment Details Section
-                Infolists\Components\Section::make(__('owner.payouts.payment_details'))
+                Infolists\Components\Section::make(__('owner.payouts.section_payment'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('payment_method')
-                                    ->label(__('owner.payouts.method'))
+                                    ->label(__('owner.payouts.payment_method'))
                                     ->formatStateUsing(fn ($state): string => $state
                                         ? __("owner.payouts.methods.{$state}")
                                         : '-')
@@ -443,7 +443,7 @@ class PayoutResource extends Resource
                                     ->placeholder('-'),
 
                                 Infolists\Components\TextEntry::make('transaction_reference')
-                                    ->label(__('owner.payouts.reference'))
+                                    ->label(__('owner.payouts.transaction_reference'))
                                     ->copyable()
                                     ->placeholder('-'),
 
@@ -495,7 +495,7 @@ class PayoutResource extends Resource
                     ->visible(fn ($record): bool => !empty($record->notes)),
 
                 // Timestamps
-                Infolists\Components\Section::make(__('owner.payouts.timestamps'))
+                Infolists\Components\Section::make(__('owner.payouts.section_timestamps'))
                     ->schema([
                         Infolists\Components\Grid::make(2)
                             ->schema([

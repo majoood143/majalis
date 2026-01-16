@@ -140,7 +140,7 @@ class ViewHall extends ViewRecord
                                     ->icon('heroicon-o-building-office-2'),
 
                                 Infolists\Components\TextEntry::make('city.name')
-                                    ->label(__('City'))
+                                    ->label(__('admin.fields.city'))
                                     ->formatStateUsing(fn($record) => $record->city->name ?? 'N/A')
                                     ->badge()
                                     ->color('success')
@@ -214,6 +214,137 @@ class ViewHall extends ViewRecord
                     ])
                     ->icon('heroicon-o-currency-dollar')
                     ->collapsible(),
+
+            // =============================================
+            // SECTION: Time Slots & Pricing
+            // Displays pricing for each time slot with visual indicators
+            // =============================================
+            Infolists\Components\Section::make(__('Time Slots & Pricing'))
+                ->schema([
+                    // Pricing explanation
+                    Infolists\Components\TextEntry::make('pricing_note')
+                        ->hiddenLabel()
+                        ->state(__('Prices shown per slot. Custom slot prices override the base price.'))
+                        ->color('gray')
+                        ->size(Infolists\Components\TextEntry\TextEntrySize::Small)
+                        ->columnSpanFull(),
+
+                    // Base Price Display
+                    Infolists\Components\TextEntry::make('base_price_display')
+                        ->label(__('Base Price (Default)'))
+                        ->state(fn($record) => number_format((float) $record->price_per_slot, 3) . ' OMR')
+                        ->badge()
+                        ->color('gray')
+                        ->icon('heroicon-o-banknotes')
+                        ->columnSpanFull(),
+
+                    // Time Slots Grid
+                    Infolists\Components\Grid::make(4)
+                        ->schema([
+                            // Morning Slot
+                            Infolists\Components\TextEntry::make('price_morning')
+                                ->label(__('Morning'))
+                                ->helperText('8:00 AM - 12:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('morning');
+                                    $isOverride = isset($record->pricing_override['morning']);
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['morning']) ? 'success' : 'info')
+                                ->icon('heroicon-o-sun'),
+
+                            // Afternoon Slot
+                            Infolists\Components\TextEntry::make('price_afternoon')
+                                ->label(__('Afternoon'))
+                                ->helperText('12:00 PM - 5:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('afternoon');
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['afternoon']) ? 'success' : 'info')
+                                ->icon('heroicon-o-cloud'),
+
+                            // Evening Slot
+                            Infolists\Components\TextEntry::make('price_evening')
+                                ->label(__('Evening'))
+                                ->helperText('5:00 PM - 11:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('evening');
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['evening']) ? 'success' : 'info')
+                                ->icon('heroicon-o-moon'),
+
+                            // Full Day Slot
+                            Infolists\Components\TextEntry::make('price_full_day')
+                                ->label(__('Full Day'))
+                                ->helperText('8:00 AM - 11:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('full_day');
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['full_day']) ? 'success' : 'info')
+                                ->icon('heroicon-o-calendar-days'),
+                        ]),
+
+                    // Legend for color coding
+                    Infolists\Components\Grid::make(2)
+                        ->schema([
+                            Infolists\Components\TextEntry::make('legend_base')
+                                ->hiddenLabel()
+                                ->state(__('🔵 Blue = Base Price'))
+                                ->color('info')
+                                ->size(Infolists\Components\TextEntry\TextEntrySize::Small),
+
+                            Infolists\Components\TextEntry::make('legend_custom')
+                                ->hiddenLabel()
+                                ->state(__('🟢 Green = Custom Slot Price'))
+                                ->color('success')
+                                ->size(Infolists\Components\TextEntry\TextEntrySize::Small),
+                        ]),
+
+                    // Advance Payment Info (if enabled)
+                    Infolists\Components\Fieldset::make(__('Advance Payment Settings'))
+                        ->schema([
+                            Infolists\Components\IconEntry::make('allows_advance_payment')
+                                ->label(__('Advance Payment'))
+                                ->boolean()
+                                ->trueIcon('heroicon-o-check-circle')
+                                ->falseIcon('heroicon-o-x-circle')
+                                ->trueColor('success')
+                                ->falseColor('gray'),
+
+                            Infolists\Components\TextEntry::make('advance_payment_percentage')
+                                ->label(__('Advance Percentage'))
+                                ->suffix('%')
+                                ->badge()
+                                ->color('warning')
+                                ->visible(fn($record) => $record->allows_advance_payment && $record->advance_payment_percentage),
+
+                            Infolists\Components\TextEntry::make('advance_payment_amount')
+                                ->label(__('Fixed Advance'))
+                                ->money('OMR')
+                                ->badge()
+                                ->color('warning')
+                                ->visible(fn($record) => $record->allows_advance_payment && $record->advance_payment_amount),
+
+                            Infolists\Components\TextEntry::make('minimum_advance_payment')
+                                ->label(__('Minimum Advance'))
+                                ->money('OMR')
+                                ->badge()
+                                ->color('info')
+                                ->visible(fn($record) => $record->allows_advance_payment && $record->minimum_advance_payment),
+                        ])
+                        ->columns(4)
+                        ->visible(fn($record) => $record->allows_advance_payment),
+                ])
+                ->icon('heroicon-o-clock')
+                ->description(__('Pricing breakdown for each booking time slot'))
+                ->collapsible(),
 
                 // =============================================
                 // SECTION: Contact Information

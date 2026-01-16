@@ -556,6 +556,19 @@ Route::get('/diagnose-payment', function () {
 })->name('diagnose.payment');
 
 
+// Add this route for print invoice functionality
+Route::get('/bookings/{booking}/invoice/print', function (Booking $booking) {
+    // Authorization check
+    abort_unless(
+        auth()->user()?->can('view', $booking) ||
+            auth('filament')->check(),
+        403
+    );
+
+    return view('invoices.print', ['booking' => $booking->load(['hall', 'extraServices', 'user'])]);
+})->name('bookings.invoice.print')->middleware(['auth:web,filament']);
+
+
 
 
 

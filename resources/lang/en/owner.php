@@ -1900,12 +1900,77 @@ return [
         'no_payouts_desc' => 'Once your earnings are paid out, they will appear here.',
         'heading' => 'Payouts',
         'navigation'=>'Payouts',
+
+        'methods' => [
+            'bank_transfer' => 'Bank Transfer',
+            'paypal' => 'PayPal',
+            'check' => 'Check',
+            'other' => 'Other',
+        ],
+
+        // Modal titles and descriptions
+        'report_issue_modal_title' => 'Report Payout Issue',
+        'report_issue_modal_description' => 'Submit a support ticket regarding payout :payout. Our team will review and respond within 24-48 hours.',
+        'submit_issue' => 'Submit Issue',
+
+        // Form field labels
+        'issue_type' => 'Issue Type',
+        'issue_priority' => 'Priority',
+        'issue_subject' => 'Subject',
+        'issue_description' => 'Description',
+        'issue_description_placeholder' => 'Please describe your issue in detail. Include any relevant information such as expected amount, discrepancies, or questions.',
+        'related_payout' => 'Related Payout',
+
+        // Issue type options
+        'issue_types' => [
+            'claim' => 'Payment Discrepancy / Claim',
+            'complaint' => 'Service Complaint',
+            'inquiry' => 'General Inquiry',
+        ],
+
+        // Priority options
+        'priorities' => [
+            'low' => 'Low - General Question',
+            'medium' => 'Medium - Needs Attention',
+            'high' => 'High - Urgent Issue',
+        ],
+
+        // Default subject template
+        'default_subject' => 'Payout Issue: :payout',
+
+        // Success messages
+        'issue_submitted' => 'Issue Reported Successfully',
+        'issue_submitted_body' => 'Your support ticket #:ticket has been created. We will respond within 24-48 hours.',
+        'view_ticket' => 'View Ticket',
+
+        // Error messages
+        'issue_failed' => 'Failed to Submit Issue',
+        'issue_failed_body' => 'An error occurred while submitting your issue. Please try again or contact support directly.',
+
+        // Receipt messages
+        'receipt_not_found_body' => 'The receipt file could not be found. Please contact support if you need a copy.',
+
     ],
     'reports' => [
         'title' => 'Financial Reports',
         'heading' => 'Financial Reports',
         'navigation_group' => 'Financial',
         'navigation' => 'Reports',
+        'subheading' => 'Generate detailed financial reports for your halls',
+        'generate_report' => 'Generate Report',
+        'select_report_type' => 'Select Report Type',
+        'select_year' => 'Select Year',
+        'select_month' => 'Select Month',
+        'select_hall' => 'Select Hall',
+        'all_halls' => 'All Halls',
+        'generate' => 'Generate',
+        'generating' => 'Generating report...',
+        'report_generated' => 'Report Generated',
+        'report_generated_desc' => 'The financial report for the selected period has been generated.',
+        'hall' => 'Hall',
+        'total_halls' => 'Total Halls',
+        'avg_booking'=> 'Avg/Booking',
+        'total_bookings' => 'Total Bookings',
 
         // Report Types
         'type_monthly' => 'Monthly Report',
@@ -1922,6 +1987,7 @@ return [
 
         // Actions
         'export_pdf' => 'Export PDF',
+        'export_csv' => 'Export CSV',
         'refresh' => 'Refresh',
 
         // Section Titles

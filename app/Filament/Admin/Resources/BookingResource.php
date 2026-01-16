@@ -75,7 +75,7 @@ class BookingResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('region_id')
                             ->label(__('booking.fields.region_id.label'))
-                            ->options(fn () => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
+                            ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->live()
@@ -91,13 +91,16 @@ class BookingResource extends Resource
 
                         Forms\Components\Select::make('city_id')
                             ->label(__('booking.fields.city_id.label'))
-                            ->options(fn (Get $get): Collection => City::query()
-                                ->when($get('region_id'), fn ($query, $regionId) =>
-                                    $query->where('region_id', $regionId)
-                                )
-                                ->where('is_active', true)
-                                ->ordered()
-                                ->pluck('name', 'id')
+                            ->options(
+                                fn(Get $get): Collection => City::query()
+                                    ->when(
+                                        $get('region_id'),
+                                        fn($query, $regionId) =>
+                                        $query->where('region_id', $regionId)
+                                    )
+                                    ->where('is_active', true)
+                                    ->ordered()
+                                    ->pluck('name', 'id')
                             )
                             ->searchable()
                             ->preload()
@@ -109,34 +112,39 @@ class BookingResource extends Resource
                                 $set('time_slot', null);
                                 $set('hall_price', 0);
                             })
-                            ->disabled(fn (Get $get): bool => !$get('region_id'))
+                            ->disabled(fn(Get $get): bool => !$get('region_id'))
                             ->helperText(__('booking.fields.region_id.helper')),
 
                         Forms\Components\Select::make('hall_id')
                             ->label(__('booking.fields.hall_id.label'))
-                            ->options(fn (Get $get): Collection => Hall::query()
-                                ->when($get('city_id'), fn ($query, $cityId) =>
-                                    $query->where('city_id', $cityId)
-                                )
-                                ->when(!$get('city_id') && $get('region_id'), fn ($query) =>
-                                    $query->whereHas('city', fn ($q) => $q->where('region_id', $get('region_id')))
-                                )
-                                ->where('is_active', true)
-                                ->with(['city', 'owner'])
-                                ->get()
-                                ->mapWithKeys(function ($hall) {
-                                    $hallName = is_array($hall->name)
-                                        ? ($hall->name['en'] ?? $hall->name['ar'] ?? 'Unnamed Hall')
-                                        : $hall->name;
+                            ->options(
+                                fn(Get $get): Collection => Hall::query()
+                                    ->when(
+                                        $get('city_id'),
+                                        fn($query, $cityId) =>
+                                        $query->where('city_id', $cityId)
+                                    )
+                                    ->when(
+                                        !$get('city_id') && $get('region_id'),
+                                        fn($query) =>
+                                        $query->whereHas('city', fn($q) => $q->where('region_id', $get('region_id')))
+                                    )
+                                    ->where('is_active', true)
+                                    ->with(['city', 'owner'])
+                                    ->get()
+                                    ->mapWithKeys(function ($hall) {
+                                        $hallName = is_array($hall->name)
+                                            ? ($hall->name['en'] ?? $hall->name['ar'] ?? 'Unnamed Hall')
+                                            : $hall->name;
 
-                                    $cityName = is_array($hall->city->name)
-                                        ? ($hall->city->name['en'] ?? $hall->city->name['ar'] ?? 'Unknown')
-                                        : $hall->city->name;
+                                        $cityName = is_array($hall->city->name)
+                                            ? ($hall->city->name['en'] ?? $hall->city->name['ar'] ?? 'Unknown')
+                                            : $hall->city->name;
 
-                                    $ownerName = $hall->owner->name ?? 'Unknown Owner';
+                                        $ownerName = $hall->owner->name ?? 'Unknown Owner';
 
-                                    return [$hall->id => "{$hallName} - {$cityName} ({$ownerName})"];
-                                })
+                                        return [$hall->id => "{$hallName} - {$cityName} ({$ownerName})"];
+                                    })
                             )
                             ->required()
                             ->searchable()
@@ -157,7 +165,7 @@ class BookingResource extends Resource
                                     }
                                 }
                             })
-                            ->disabled(fn (Get $get): bool => !$get('city_id') && !$get('region_id'))
+                            ->disabled(fn(Get $get): bool => !$get('city_id') && !$get('region_id'))
                             ->helperText(__('booking.fields.hall_id.helper')),
                     ])->columns(3)
                     ->collapsible(),
@@ -169,7 +177,7 @@ class BookingResource extends Resource
                             ->label(__('booking.fields.booking_number.label'))
                             ->disabled()
                             ->dehydrated(false)
-                            ->visible(fn ($context) => $context === 'edit')
+                            ->visible(fn($context) => $context === 'edit')
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('user_id')
@@ -179,36 +187,36 @@ class BookingResource extends Resource
                             ->preload()
                             ->columnSpan(1),
 
-                Forms\Components\DatePicker::make('booking_date')
-                    ->label(__('booking.fields.booking_date.label'))
-                    ->required()
-                    ->native(false)
-                    ->minDate(now())
-                    ->live()
-                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
-                        // Reset time slot when date changes
-                        $set('time_slot', null);
-                        $set('hall_price', 0);
+                        Forms\Components\DatePicker::make('booking_date')
+                            ->label(__('booking.fields.booking_date.label'))
+                            ->required()
+                            ->native(false)
+                            ->minDate(now())
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                                // Reset time slot when date changes
+                                $set('time_slot', null);
+                                $set('hall_price', 0);
 
-                        // Check if date has any available slots
-                        if ($state && $get('hall_id')) {
-                            $availableSlots = static::getAvailableTimeSlots($get('hall_id'), $state);
-                            if (empty($availableSlots)) {
-                                Notification::make()
-                                    ->warning()
-                                    ->title('No Available Slots')
-                                    ->body('All time slots are booked for this date. Please select another date.')
-                                    ->send();
-                            }
-                        }
-                    })
-                    ->disabled(fn(Get $get): bool => !$get('hall_id'))
-                    ->helperText(fn(Get $get) => static::getDateHelperText($get('hall_id'), $get('booking_date')))
-                    ->columnSpan(1),
+                                // Check if date has any available slots
+                                if ($state && $get('hall_id')) {
+                                    $availableSlots = static::getAvailableTimeSlots($get('hall_id'), $state);
+                                    if (empty($availableSlots)) {
+                                        Notification::make()
+                                            ->warning()
+                                            ->title('No Available Slots')
+                                            ->body('All time slots are booked for this date. Please select another date.')
+                                            ->send();
+                                    }
+                                }
+                            })
+                            ->disabled(fn(Get $get): bool => !$get('hall_id'))
+                            ->helperText(fn(Get $get) => static::getDateHelperText($get('hall_id'), $get('booking_date')))
+                            ->columnSpan(1),
 
                         Forms\Components\Select::make('time_slot')
                             ->label(__('booking.fields.time_slot.label'))
-                            ->options(fn (Get $get): array => static::getAvailableTimeSlots(
+                            ->options(fn(Get $get): array => static::getAvailableTimeSlots(
                                 $get('hall_id'),
                                 $get('booking_date')
                             ))
@@ -219,8 +227,8 @@ class BookingResource extends Resource
                                     static::updateHallPrice($set, $get('hall_id'), $get('booking_date'), $state);
                                 }
                             })
-                            ->disabled(fn (Get $get): bool => !$get('booking_date'))
-                            ->helperText(fn (Get $get) => static::getTimeSlotHelperText($get('hall_id'), $get('booking_date')))
+                            ->disabled(fn(Get $get): bool => !$get('booking_date'))
+                            ->helperText(fn(Get $get) => static::getTimeSlotHelperText($get('hall_id'), $get('booking_date')))
                             ->columnSpan(1),
 
                         Forms\Components\TextInput::make('number_of_guests')
@@ -242,7 +250,7 @@ class BookingResource extends Resource
                                     }
                                 }
                             })
-                            ->helperText(fn (Get $get) => static::getCapacityHelperText($get('hall_id')))
+                            ->helperText(fn(Get $get) => static::getCapacityHelperText($get('hall_id')))
                             ->columnSpan(1),
                     ])->columns(2),
 
@@ -274,95 +282,95 @@ class BookingResource extends Resource
                             ->placeholder(__('booking.fields.customer_notes.placeholder')),
                     ])->columns(3),
 
-            // Extra Services Section
-            // Extra Services Section
-            Forms\Components\Section::make(__('booking.sections.extra_services'))
-                ->description(__('booking.sections.description'))
-                ->schema([
-                    Forms\Components\Repeater::make('extra_services')
-                        ->label('')
-                        ->schema([
-                            Forms\Components\Select::make('service_id')
-                                ->label('Service')
-                                ->options(fn(Get $get) => static::getExtraServicesOptions($get('../../hall_id')))
-                                ->required()
-                                ->live()
-                        ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                            if ($state) {
-                                $service = ExtraService::find($state);
-                                if ($service) {
-                                    // Store the full name array (not just English)
-                                    $set('service_name', $service->name); // This is already an array
-                                    $set('unit_price', $service->price);
-                                    $set('quantity', $service->minimum_quantity ?? 1);
-                                    $set('unit', $service->unit);
+                // Extra Services Section
+                // Extra Services Section
+                Forms\Components\Section::make(__('booking.sections.extra_services'))
+                    ->description(__('booking.sections.description'))
+                    ->schema([
+                        Forms\Components\Repeater::make('extra_services')
+                            ->label('')
+                            ->schema([
+                                Forms\Components\Select::make('service_id')
+                                    ->label(__('booking.fields.service_id.label'))
+                                    ->options(fn(Get $get) => static::getExtraServicesOptions($get('../../hall_id')))
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                        if ($state) {
+                                            $service = ExtraService::find($state);
+                                            if ($service) {
+                                                // Store the full name array (not just English)
+                                                $set('service_name', $service->name); // This is already an array
+                                                $set('unit_price', $service->price);
+                                                $set('quantity', $service->minimum_quantity ?? 1);
+                                                $set('unit', $service->unit);
 
-                                    // Calculate line total
-                                    static::calculateServiceTotal($set, $get);
+                                                // Calculate line total
+                                                static::calculateServiceTotal($set, $get);
 
-                                    // Calculate overall totals
-                                    static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
-                                }
-                            }
-                                })
-                                ->columnSpan(2),
+                                                // Calculate overall totals
+                                                static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
+                                            }
+                                        }
+                                    })
+                                    ->columnSpan(2),
 
-                            Forms\Components\TextInput::make('quantity')
-                                ->label('Quantity')
-                                ->numeric()
-                                ->required()
-                                ->minValue(1)
-                                ->default(1)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function (Set $set, Get $get) {
-                                    // Calculate line total
-                                    static::calculateServiceTotal($set, $get);
+                                Forms\Components\TextInput::make('quantity')
+                                    ->label(__('booking.fields.quantity.label'))
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(1)
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Set $set, Get $get) {
+                                        // Calculate line total
+                                        static::calculateServiceTotal($set, $get);
 
-                                    // Calculate overall totals
-                                    static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
-                                })
-                                ->columnSpan(1),
+                                        // Calculate overall totals
+                                        static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
+                                    })
+                                    ->columnSpan(1),
 
-                            Forms\Components\TextInput::make('unit_price')
-                                ->label('Unit Price')
-                                ->numeric()
-                                ->prefix('OMR')
-                                ->required()
-                                ->readOnly()
-                                ->columnSpan(1),
+                                Forms\Components\TextInput::make('unit_price')
+                                    ->label(__('booking.fields.unit_price.label'))
+                                    ->numeric()
+                                    ->prefix('OMR')
+                                    ->required()
+                                    ->readOnly()
+                                    ->columnSpan(1),
 
-                            Forms\Components\TextInput::make('total_price')
-                                ->label('Total')
-                                ->numeric()
-                                ->prefix('OMR')
-                                ->required()
-                                ->readOnly()
-                                ->columnSpan(1),
+                                Forms\Components\TextInput::make('total_price')
+                                    ->label(__('booking.fields.total_price.label'))
+                                    ->numeric()
+                                    ->prefix('OMR')
+                                    ->required()
+                                    ->readOnly()
+                                    ->columnSpan(1),
 
-                            // Hidden fields for data storage
-                            Forms\Components\Hidden::make('service_name'),
-                            Forms\Components\Hidden::make('unit'),
-                        ])
-                        ->columns(5)
-                        ->defaultItems(0)
-                        ->addActionLabel('Add Service')
-                        ->reorderable(false)
-                        ->collapsible()
-                        ->visible(fn(Get $get): bool => $get('hall_id') !== null)
-                        ->live()
-                        ->afterStateUpdated(function (Set $set, Get $get) {
-                            // This triggers when items are added/removed
-                            static::calculateAllTotals($set, $get);
-                        })
-                        ->deleteAction(
-                            fn($action) => $action->after(function (Set $set, Get $get) {
-                                // Recalculate when service is deleted
+                                // Hidden fields for data storage
+                                Forms\Components\Hidden::make('service_name'),
+                                Forms\Components\Hidden::make('unit'),
+                            ])
+                            ->columns(5)
+                            ->defaultItems(0)
+                            ->addActionLabel(__('booking.actions.add_service'))
+                            ->reorderable(false)
+                            ->collapsible()
+                            ->visible(fn(Get $get): bool => $get('hall_id') !== null)
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, Get $get) {
+                                // This triggers when items are added/removed
                                 static::calculateAllTotals($set, $get);
                             })
-                        ),
-                ])
-                ->collapsible()
-                ->collapsed(fn(Get $get): bool => !$get('hall_id')),
+                            ->deleteAction(
+                                fn($action) => $action->after(function (Set $set, Get $get) {
+                                    // Recalculate when service is deleted
+                                    static::calculateAllTotals($set, $get);
+                                })
+                            ),
+                    ])
+                    ->collapsible()
+                    ->collapsed(fn(Get $get): bool => !$get('hall_id')),
                 // Pricing Section
                 Forms\Components\Section::make(__('booking.sections.pricing_breakdown'))
                     ->schema([
@@ -372,7 +380,7 @@ class BookingResource extends Resource
                             ->prefix('OMR')
                             ->required()
                             ->readOnly()
-                            ->helperText(fn (Get $get) => static::getPriceHelperText(
+                            ->helperText(fn(Get $get) => static::getPriceHelperText(
                                 $get('hall_id'),
                                 $get('booking_date'),
                                 $get('time_slot')
@@ -403,7 +411,7 @@ class BookingResource extends Resource
                             ->prefix('OMR')
                             ->default(0)
                             ->live()
-                            ->afterStateUpdated(fn (Set $set, Get $get) => static::calculateAllTotals($set, $get)),
+                            ->afterStateUpdated(fn(Set $set, Get $get) => static::calculateAllTotals($set, $get)),
 
                         Forms\Components\TextInput::make('total_amount')
                             ->label(__('booking.fields.total_amount.label'))
@@ -444,7 +452,7 @@ class BookingResource extends Resource
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated()
-                            ->visible(fn (Get $get) => $get('payment_type') === 'advance')
+                            ->visible(fn(Get $get) => $get('payment_type') === 'advance')
                             ->helperText('Amount paid upfront'),
 
                         Forms\Components\TextInput::make('balance_due')
@@ -453,26 +461,26 @@ class BookingResource extends Resource
                             ->prefix('OMR')
                             ->disabled()
                             ->dehydrated()
-                            ->visible(fn (Get $get) => $get('payment_type') === 'advance')
+                            ->visible(fn(Get $get) => $get('payment_type') === 'advance')
                             ->helperText('Amount to be paid before event'),
 
                         Forms\Components\DateTimePicker::make('balance_paid_at')
                             ->label(__('advance_payment.balance_paid_at'))
                             ->disabled()
                             ->dehydrated()
-                            ->visible(fn (Get $get) => $get('payment_type') === 'advance')
+                            ->visible(fn(Get $get) => $get('payment_type') === 'advance')
                             ->helperText('When balance was paid'),
 
                         Forms\Components\Placeholder::make('advance_payment_note')
                             ->label('')
-                            ->content(fn (Get $get) => $get('payment_type') === 'advance'
+                            ->content(fn(Get $get) => $get('payment_type') === 'advance'
                                 ? '⚠️ Advance payment booking. Customer paid ' . number_format((float)($get('advance_amount') ?? 0), 3) . ' OMR upfront. Balance of ' . number_format((float)($get('balance_due') ?? 0), 3) . ' OMR must be paid before the event.'
                                 : '✅ Full payment booking. Customer pays the entire amount.')
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
                     ->collapsible()
-                    ->collapsed(fn (Get $get) => $get('payment_type') !== 'advance'),
+                    ->collapsed(fn(Get $get) => $get('payment_type') !== 'advance'),
 
                 // Event Details Section
                 Forms\Components\Section::make(__('booking.infolist.event_details'))
@@ -503,18 +511,18 @@ class BookingResource extends Resource
                 Forms\Components\Section::make(__('booking.fields.status.label'))
                     ->schema([
                         Forms\Components\Select::make('status')
-                        ->label(__('booking.fields.status.label'))
+                            ->label(__('booking.fields.status.label'))
                             ->options([
-                                'pending' => 'Pending',
-                                'confirmed' => 'Confirmed',
-                                'completed' => 'Completed',
-                                'cancelled' => 'Cancelled',
+                                'pending' => __('booking.statuses.booking.pending'),
+                                'confirmed' => __('booking.statuses.booking.confirmed'),
+                                'completed' => __('booking.statuses.booking.completed'),
+                                'cancelled' => __('booking.statuses.booking.cancelled'),
                             ])
                             ->default('pending')
                             ->required(),
 
                         Forms\Components\Select::make('payment_status')
-                        ->label(__('booking.fields.payment_status.label'))
+                            ->label(__('booking.fields.payment_status.label'))
                             ->options([
                                 'pending' => 'Pending',
                                 'paid' => 'Paid',
@@ -525,7 +533,7 @@ class BookingResource extends Resource
                             ->default('pending')
                             ->required(),
                     ])->columns(2)
-                    ->visible(fn ($context) => $context === 'edit')
+                    ->visible(fn($context) => $context === 'edit')
                     ->collapsible(),
             ]);
     }
@@ -597,10 +605,13 @@ class BookingResource extends Resource
         $actuallyAvailable = $availableCount - $bookedCount;
 
         if ($actuallyAvailable === 0) {
-            return '⚠️ All slots are booked for this date';
+            return __('booking.fields.time_slot.helper_all_booked');
+            //return '⚠️ All slots are booked for this date';
         }
 
-        return "✓ {$actuallyAvailable} slot(s) available";
+        //return "✓ {$actuallyAvailable} slot(s) available";
+        //return '✓ Slots available';
+        return __('booking.fields.time_slot.helper_available', ['count' => $actuallyAvailable]);
     }
 
     /**
@@ -617,7 +628,11 @@ class BookingResource extends Resource
             return '';
         }
 
-        return "Capacity: {$hall->capacity_min} - {$hall->capacity_max} guests";
+        //return "Capacity: {$hall->capacity_min} - {$hall->capacity_max} guests";
+        return __('booking.fields.number_of_guests.helper', [
+            'min' => $hall->capacity_min,
+            'max' => $hall->capacity_max,
+        ]);
     }
 
     /**
@@ -638,7 +653,7 @@ class BookingResource extends Resource
                     ? ($service->name['en'] ?? $service->name['ar'] ?? 'Unnamed Service')
                     : $service->name;
 
-                $unit = match($service->unit) {
+                $unit = match ($service->unit) {
                     'per_person' => 'per person',
                     'per_item' => 'per item',
                     'per_hour' => 'per hour',
@@ -745,7 +760,6 @@ class BookingResource extends Resource
     {
         if (!$hallId || !$bookingDate || !$timeSlot) {
             return __('booking.fields.hall_id.select_hall_first');
-
         }
 
         $availability = HallAvailability::where('hall_id', $hallId)
@@ -789,7 +803,7 @@ class BookingResource extends Resource
             return '❌ Fully booked';
         }
 
-        return "✓ {$actuallyAvailable} slot(s) available";
+        return __('booking.fields.time_slot.helper_available', ['count' => $actuallyAvailable]);
     }
 
     // ... Rest of your table, infolist, and pages methods remain the same ...
@@ -799,216 +813,661 @@ class BookingResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('booking_number')
-                ->label(static::columnLabel('booking_number'))
+                    ->label(static::columnLabel('booking_number'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('hall.name')
-                ->label(static::columnLabel('hall'))
+                    ->label(static::columnLabel('hall'))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('customer_name')
-                ->label(static::columnLabel('customer_name'))
+                    ->label(static::columnLabel('customer_name'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('booking_date')
-                ->label(static::columnLabel('booking_date'))
+                    ->label(static::columnLabel('booking_date'))
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time_slot')
-                ->label(static::columnLabel('time_slot'))
-                    ->badge(),
+                    ->label(static::columnLabel('time_slot'))
+                    ->badge()
+                    ->colors([
+                        'primary' => 'morning',
+                        'success' => 'afternoon',
+                        'warning' => 'evening',
+                        'info' => 'full_day',
+                    ])
+                    ->formatStateUsing(
+                        fn(string $state): string =>
+                        match ($state) {
+                            'morning' => __('booking.time_slots.morning'),
+                            'afternoon' => __('booking.time_slots.afternoon'),
+                            'evening' => __('booking.time_slots.evening'),
+                            'full_day' => __('booking.time_slots.full_day'),
+                            default => ucfirst(str_replace('_', ' ', $state)),
+                        }
+                    )
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total_amount')
-                ->label(static::columnLabel('total_amount'))
+                    ->label(static::columnLabel('total_amount'))
 
                     ->money('OMR')
                     ->sortable()
-                    ->description(fn ($record) => $record->isAdvancePayment()
-                        ? '⚡ Advance: ' . number_format($record->advance_amount, 3) . ' OMR'
-                        : null
+                    ->description(
+                        fn($record) => $record->isAdvancePayment()
+                            ? '⚡ Advance: ' . number_format($record->advance_amount, 3) . ' OMR'
+                            : null
                     )
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('status')
-                ->label(static::columnLabel('status'))
-                    ->badge(),
+                    ->label(static::columnLabel('status'))
+                    ->badge()
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'confirmed',
+                        'primary' => 'completed',
+                        'danger' => 'cancelled',
+                    ])
+                    ->sortable()
+                    ->formatStateUsing(
+                        fn(string $state): string =>
+                        __('booking.statuses.' . $state)
+                    ),
                 Tables\Columns\TextColumn::make('payment_status')
-                ->label(static::columnLabel('payment_status'))
-                    ->badge(),
-            Tables\Columns\TextColumn::make('payment_type')
-                ->label(__('advance_payment.payment_type'))
-                ->badge()
-                ->color(fn(string $state): string => match ($state) {
-                    'full' => 'success',
-                    'advance' => 'warning',
-                    default => 'gray',
-                })
-                ->formatStateUsing(
-                    fn(string $state): string =>
-                    __('advance_payment.payment_type_' . $state)
-                ),
+                    ->label(static::columnLabel('payment_status'))
+                    ->badge()
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'paid',
+                        'info' => 'partially_paid',
+                        'danger' => 'failed',
+                        'secondary' => 'refunded',
+                    ])
+                    ->sortable()
+                    ->formatStateUsing(
+                        fn(string $state): string =>
+                        __('booking.statuses.' . $state)
+                    ),
+                Tables\Columns\TextColumn::make('payment_type')
+                    ->label(__('advance_payment.payment_type'))
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'full' => 'success',
+                        'advance' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(
+                        fn(string $state): string =>
+                        __('advance_payment.payment_type_' . $state)
+                    ),
 
-            Tables\Columns\TextColumn::make('advance_amount')
-                ->label(__('advance_payment.advance_paid'))
-                ->money('OMR', 3)
-                ->visible(fn($record) => $record && $record->isAdvancePayment()),
+                Tables\Columns\TextColumn::make('advance_amount')
+                    ->label(__('advance_payment.advance_paid'))
+                    ->money('OMR', 3)
+                    ->visible(fn($record) => $record && $record->isAdvancePayment()),
 
-            Tables\Columns\TextColumn::make('balance_due')
-                ->label(__('advance_payment.balance_due'))
-                ->money('OMR', 3)
-                ->color(fn($record) => $record && $record->isBalancePending() ? 'danger' : 'success')
-                ->visible(fn($record) => $record && $record->isAdvancePayment()),
+                Tables\Columns\TextColumn::make('balance_due')
+                    ->label(__('advance_payment.balance_due'))
+                    ->money('OMR', 3)
+                    ->color(fn($record) => $record && $record->isBalancePending() ? 'danger' : 'success')
+                    ->visible(fn($record) => $record && $record->isAdvancePayment()),
 
-            Tables\Columns\IconColumn::make('balance_paid')
-                ->label(__('advance_payment.balance_payment_status'))
-                ->boolean()
-                ->getStateUsing(fn($record) => $record->balance_paid_at !== null)
-                ->visible(fn($record) => $record && $record->isAdvancePayment()),
+                Tables\Columns\IconColumn::make('balance_paid')
+                    ->label(__('advance_payment.balance_payment_status'))
+                    ->boolean()
+                    ->getStateUsing(fn($record) => $record->balance_paid_at !== null)
+                    ->visible(fn($record) => $record && $record->isAdvancePayment()),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 ActionGroup::make([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                // In your BookingResource table or view page
-                Tables\Actions\Action::make('mark_balance_paid')
-                    ->label(__('advance_payment.mark_balance_as_paid'))
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn(Booking $record) => $record->isBalancePending())
-                    ->form([
-                        Forms\Components\Select::make('payment_method')
-                            ->label(__('advance_payment.balance_payment_method'))
-                            ->options([
-                                'bank_transfer' => __('advance_payment.bank_transfer'),
-                                'cash' => __('advance_payment.cash'),
-                                'card' => __('advance_payment.card'),
-                            ])
-                            ->required(),
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    // In your BookingResource table or view page
+                    Tables\Actions\Action::make('mark_balance_paid')
+                        ->label(__('advance_payment.mark_balance_as_paid'))
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn(Booking $record) => $record->isBalancePending())
+                        ->form([
+                            Forms\Components\Select::make('payment_method')
+                                ->label(__('advance_payment.balance_payment_method'))
+                                ->options([
+                                    'bank_transfer' => __('advance_payment.bank_transfer'),
+                                    'cash' => __('advance_payment.cash'),
+                                    'card' => __('advance_payment.card'),
+                                ])
+                                ->required(),
 
-                        Forms\Components\TextInput::make('reference')
-                            ->label(__('advance_payment.balance_payment_reference'))
-                            ->placeholder('Transaction ID or Receipt Number')
-                            ->maxLength(255),
+                            Forms\Components\TextInput::make('reference')
+                                ->label(__('advance_payment.balance_payment_reference'))
+                                ->placeholder('Transaction ID or Receipt Number')
+                                ->maxLength(255),
 
-                        Forms\Components\DateTimePicker::make('paid_at')
-                            ->label(__('Payment Date'))
-                            ->default(now())
-                            ->required(),
-                    ])
-                    ->action(function (Booking $record, array $data) {
-                        $record->markBalanceAsPaid(
-                            method: $data['payment_method'],
-                            reference: $data['reference'] ?? null
-                        );
-
-                        // Update payment timestamp if provided
-                        if (isset($data['paid_at'])) {
-                            $record->balance_paid_at = $data['paid_at'];
-                            $record->save();
-                        }
-
-                        Notification::make()
-                            ->success()
-                            ->title(__('advance_payment.balance_marked_as_paid'))
-                            ->send();
-                    }),
-
-                // ✅ PDF Invoice Download Actions
-                Tables\Actions\Action::make('download_advance_invoice')
-                    ->label(__('Advance Invoice PDF'))
-                    ->icon('heroicon-o-document-text')
-                    ->color('warning')
-                    ->visible(fn (Booking $record): bool => $record->isAdvancePayment())
-                    ->action(function (Booking $record) {
-                        try {
-                            $invoiceService = app(InvoiceService::class);
-                            $pdf = $invoiceService->generateAdvanceInvoice($record);
-
-                            // Return the response directly
-                            return response()->streamDownload(
-                                function () use ($pdf) {
-                                    echo $pdf->output();
-                                },
-                                "advance-invoice-{$record->booking_number}.pdf",
-                                [
-                                    'Content-Type' => 'application/pdf',
-                                    'Content-Disposition' => 'attachment; filename="advance-invoice-' . $record->booking_number . '.pdf"',
-                                ]
+                            Forms\Components\DateTimePicker::make('paid_at')
+                                ->label(__('Payment Date'))
+                                ->default(now())
+                                ->required(),
+                        ])
+                        ->action(function (Booking $record, array $data) {
+                            $record->markBalanceAsPaid(
+                                method: $data['payment_method'],
+                                reference: $data['reference'] ?? null
                             );
-                        } catch (\Exception $e) {
+
+                            // Update payment timestamp if provided
+                            if (isset($data['paid_at'])) {
+                                $record->balance_paid_at = $data['paid_at'];
+                                $record->save();
+                            }
+
                             Notification::make()
-                                ->danger()
-                                ->title('PDF Generation Failed')
-                                ->body($e->getMessage())
+                                ->success()
+                                ->title(__('advance_payment.balance_marked_as_paid'))
                                 ->send();
-                            return null;
-                        }
-                    })
-                    ->requiresConfirmation(false),
+                        }),
 
-                Tables\Actions\Action::make('download_balance_invoice')
-                    ->label(__('Balance Due PDF'))
-                    ->icon('heroicon-o-exclamation-triangle')
-                    ->color('danger')
-                    ->visible(fn (Booking $record): bool =>
-                        $record->isAdvancePayment() && $record->isBalancePending()
-                    )
-                    ->action(function (Booking $record) {
-                        try {
-                            $invoiceService = app(InvoiceService::class);
-                            $pdf = $invoiceService->generateBalanceInvoice($record);
+                    // ✅ PDF Invoice Download Actions
+                    Tables\Actions\Action::make('download_advance_invoice')
+                        ->label(__('Advance Invoice PDF'))
+                        ->icon('heroicon-o-document-text')
+                        ->color('warning')
+                        ->visible(fn(Booking $record): bool => $record->isAdvancePayment())
+                        ->action(function (Booking $record) {
+                            try {
+                                $invoiceService = app(InvoiceService::class);
+                                $pdf = $invoiceService->generateAdvanceInvoice($record);
 
-                            return response()->streamDownload(
-                                function () use ($pdf) {
-                                    echo $pdf->output();
-                                },
-                                "balance-invoice-{$record->booking_number}.pdf",
-                                [
-                                    'Content-Type' => 'application/pdf',
-                                    'Content-Disposition' => 'attachment; filename="balance-invoice-' . $record->booking_number . '.pdf"',
-                                ]
+                                // Return the response directly
+                                return response()->streamDownload(
+                                    function () use ($pdf) {
+                                        echo $pdf->output();
+                                    },
+                                    "advance-invoice-{$record->booking_number}.pdf",
+                                    [
+                                        'Content-Type' => 'application/pdf',
+                                        'Content-Disposition' => 'attachment; filename="advance-invoice-' . $record->booking_number . '.pdf"',
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('PDF Generation Failed')
+                                    ->body($e->getMessage())
+                                    ->send();
+                                return null;
+                            }
+                        })
+                        ->requiresConfirmation(false),
+
+                    Tables\Actions\Action::make('download_balance_invoice')
+                        ->label(__('Balance Due PDF'))
+                        ->icon('heroicon-o-exclamation-triangle')
+                        ->color('danger')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            $record->isAdvancePayment() && $record->isBalancePending()
+                        )
+                        ->action(function (Booking $record) {
+                            try {
+                                $invoiceService = app(InvoiceService::class);
+                                $pdf = $invoiceService->generateBalanceInvoice($record);
+
+                                return response()->streamDownload(
+                                    function () use ($pdf) {
+                                        echo $pdf->output();
+                                    },
+                                    "balance-invoice-{$record->booking_number}.pdf",
+                                    [
+                                        'Content-Type' => 'application/pdf',
+                                        'Content-Disposition' => 'attachment; filename="balance-invoice-' . $record->booking_number . '.pdf"',
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('PDF Generation Failed')
+                                    ->body($e->getMessage())
+                                    ->send();
+                                return null;
+                            }
+                        })
+                        ->requiresConfirmation(false),
+
+                    Tables\Actions\Action::make('download_receipt')
+                        ->label(__('Full Receipt PDF'))
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn(Booking $record): bool => $record->isFullyPaid())
+                        ->action(function (Booking $record) {
+                            try {
+                                $invoiceService = app(InvoiceService::class);
+                                $pdf = $invoiceService->generateFullReceipt($record);
+
+                                return response()->streamDownload(
+                                    function () use ($pdf) {
+                                        echo $pdf->output();
+                                    },
+                                    "receipt-{$record->booking_number}.pdf",
+                                    [
+                                        'Content-Type' => 'application/pdf',
+                                        'Content-Disposition' => 'attachment; filename="receipt-' . $record->booking_number . '.pdf"',
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('PDF Generation Failed')
+                                    ->body($e->getMessage())
+                                    ->send();
+                                return null;
+                            }
+                        })
+                        ->requiresConfirmation(false),
+                    // =========================================================
+                    // 📄 INVOICE ACTIONS FOR CONFIRMED BOOKINGS
+                    // =========================================================
+
+                    /**
+                     * Download Invoice Action
+                     *
+                     * Downloads the booking invoice PDF for confirmed/completed bookings.
+                     * Uses the InvoiceService to generate a professional invoice.
+                     */
+                    Tables\Actions\Action::make('download_invoice')
+                        ->label(__('booking.actions.download_invoice'))
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('primary')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            in_array($record->status, ['confirmed', 'completed']) &&
+                                $record->payment_status === 'paid'
+                        )
+                        ->action(function (Booking $record) {
+                            try {
+                                $invoiceService = app(InvoiceService::class);
+                                $pdf = $invoiceService->generateInvoice($record);
+
+                                return response()->streamDownload(
+                                    fn() => print($pdf->output()),
+                                    "invoice-{$record->booking_number}.pdf",
+                                    ['Content-Type' => 'application/pdf']
+                                );
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title(__('booking.notifications.pdf_generation_failed'))
+                                    ->body($e->getMessage())
+                                    ->send();
+                                return null;
+                            }
+                        }),
+
+                    /**
+                     * Print Invoice Action
+                     *
+                     * Opens invoice in new tab for printing.
+                     * Uses a dedicated print route with print-optimized CSS.
+                     */
+                    Tables\Actions\Action::make('print_invoice')
+                        ->label(__('booking.actions.print_invoice'))
+                        ->icon('heroicon-o-printer')
+                        ->color('gray')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            in_array($record->status, ['confirmed', 'completed']) &&
+                                $record->payment_status === 'paid'
+                        )
+                        ->url(
+                            fn(Booking $record): string =>
+                            route('bookings.invoice.print', ['booking' => $record->id])
+                        )
+                        ->openUrlInNewTab(),
+
+                    /**
+                     * Send Invoice via Email Action
+                     *
+                     * Sends invoice PDF to customer email with customizable message.
+                     * Queues the email job for better performance.
+                     */
+                    Tables\Actions\Action::make('send_invoice_email')
+                        ->label(__('booking.actions.send_invoice_email'))
+                        ->icon('heroicon-o-envelope')
+                        ->color('info')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            in_array($record->status, ['confirmed', 'completed']) &&
+                                $record->payment_status === 'paid' &&
+                                !empty($record->customer_email)
+                        )
+                        ->form([
+                            Forms\Components\TextInput::make('email')
+                                ->label(__('booking.form.recipient_email'))
+                                ->email()
+                                ->required()
+                                ->default(fn(Booking $record): string => $record->customer_email ?? ''),
+
+                            Forms\Components\TextInput::make('subject')
+                                ->label(__('booking.form.email_subject'))
+                                ->required()
+                                ->default(
+                                    fn(Booking $record): string =>
+                                    __('booking.email.invoice_subject', ['number' => $record->booking_number])
+                                ),
+
+                            Forms\Components\Textarea::make('message')
+                                ->label(__('booking.form.email_message'))
+                                ->rows(4)
+                                ->default(__('booking.email.invoice_default_message'))
+                                ->helperText(__('booking.form.email_message_helper')),
+
+                            Forms\Components\Toggle::make('attach_pdf')
+                                ->label(__('booking.form.attach_pdf'))
+                                ->default(true),
+                        ])
+                        ->action(function (Booking $record, array $data) {
+                            try {
+                                // Dispatch email job (recommended for production)
+                                \App\Jobs\SendBookingInvoiceEmail::dispatch(
+                                    $record,
+                                    $data['email'],
+                                    $data['subject'],
+                                    $data['message'],
+                                    $data['attach_pdf']
+                                );
+
+                                Notification::make()
+                                    ->success()
+                                    ->title(__('booking.notifications.invoice_email_queued'))
+                                    ->body(__('booking.notifications.invoice_email_queued_body', [
+                                        'email' => $data['email']
+                                    ]))
+                                    ->send();
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title(__('booking.notifications.email_failed'))
+                                    ->body($e->getMessage())
+                                    ->send();
+                            }
+                        })
+                        ->modalHeading(__('booking.modals.send_invoice_email'))
+                        ->modalSubmitActionLabel(__('booking.actions.send_email')),
+
+                    // =========================================================
+                    // 🔄 STATUS TRANSITION ACTIONS
+                    // =========================================================
+
+                    /**
+                     * Confirm Booking Action
+                     *
+                     * Transitions pending booking to confirmed status.
+                     */
+                    Tables\Actions\Action::make('confirm_booking')
+                        ->label(__('booking.actions.confirm'))
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn(Booking $record): bool => $record->status === 'pending')
+                        ->requiresConfirmation()
+                        ->modalHeading(__('booking.modals.confirm_booking'))
+                        ->modalDescription(__('booking.modals.confirm_booking_description'))
+                        ->action(function (Booking $record) {
+                            $record->confirm();
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('booking.notifications.booking_confirmed'))
+                                ->send();
+                        }),
+
+                    /**
+                     * Cancel Booking Action
+                     *
+                     * Cancels booking with reason and optional refund calculation.
+                     */
+                    Tables\Actions\Action::make('cancel_booking')
+                        ->label(__('booking.actions.cancel'))
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            in_array($record->status, ['pending', 'confirmed'])
+                        )
+                        ->requiresConfirmation()
+                        ->modalHeading(__('booking.modals.cancel_booking'))
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label(__('booking.form.cancellation_reason'))
+                                ->required()
+                                ->rows(3)
+                                ->placeholder(__('booking.form.cancellation_reason_placeholder')),
+                        ])
+                        ->action(function (Booking $record, array $data) {
+                            $record->cancel($data['reason']);
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('booking.notifications.booking_cancelled'))
+                                ->send();
+                        }),
+
+                    /**
+                     * Complete Booking Action
+                     *
+                     * Marks confirmed booking as completed (post-event).
+                     */
+                    Tables\Actions\Action::make('complete_booking')
+                        ->label(__('booking.actions.complete'))
+                        ->icon('heroicon-o-check-badge')
+                        ->color('info')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            $record->status === 'confirmed' &&
+                                $record->booking_date->isPast()
+                        )
+                        ->requiresConfirmation()
+                        ->modalHeading(__('booking.modals.complete_booking'))
+                        ->modalDescription(__('booking.modals.complete_booking_description'))
+                        ->action(function (Booking $record) {
+                            $record->complete();
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('booking.notifications.booking_completed'))
+                                ->send();
+                        }),
+
+                    // =========================================================
+                    // 📱 COMMUNICATION ACTIONS
+                    // =========================================================
+
+                    /**
+                     * Send Reminder SMS/Email Action
+                     *
+                     * Sends booking reminder to customer.
+                     */
+                    Tables\Actions\Action::make('send_reminder')
+                        ->label(__('booking.actions.send_reminder'))
+                        ->icon('heroicon-o-bell-alert')
+                        ->color('warning')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            $record->status === 'confirmed' &&
+                                $record->booking_date->isFuture() &&
+                                $record->booking_date->diffInDays(now()) <= 7
+                        )
+                        ->form([
+                            Forms\Components\CheckboxList::make('channels')
+                                ->label(__('booking.form.notification_channels'))
+                                ->options([
+                                    'email' => __('booking.form.channel_email'),
+                                    'sms' => __('booking.form.channel_sms'),
+                                ])
+                                ->default(['email'])
+                                ->required(),
+
+                            Forms\Components\Textarea::make('custom_message')
+                                ->label(__('booking.form.custom_message'))
+                                ->rows(3)
+                                ->placeholder(__('booking.form.custom_message_placeholder')),
+                        ])
+                        ->action(function (Booking $record, array $data) {
+                            // Dispatch reminder notification job
+                            \App\Jobs\SendBookingReminder::dispatch(
+                                $record,
+                                $data['channels'],
+                                $data['custom_message'] ?? null
                             );
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->danger()
-                                ->title('PDF Generation Failed')
-                                ->body($e->getMessage())
-                                ->send();
-                            return null;
-                        }
-                    })
-                    ->requiresConfirmation(false),
 
-                Tables\Actions\Action::make('download_receipt')
-                    ->label(__('Full Receipt PDF'))
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (Booking $record): bool => $record->isFullyPaid())
-                    ->action(function (Booking $record) {
-                        try {
-                            $invoiceService = app(InvoiceService::class);
-                            $pdf = $invoiceService->generateFullReceipt($record);
-
-                            return response()->streamDownload(
-                                function () use ($pdf) {
-                                    echo $pdf->output();
-                                },
-                                "receipt-{$record->booking_number}.pdf",
-                                [
-                                    'Content-Type' => 'application/pdf',
-                                    'Content-Disposition' => 'attachment; filename="receipt-' . $record->booking_number . '.pdf"',
-                                ]
-                            );
-                        } catch (\Exception $e) {
                             Notification::make()
-                                ->danger()
-                                ->title('PDF Generation Failed')
-                                ->body($e->getMessage())
+                                ->success()
+                                ->title(__('booking.notifications.reminder_sent'))
                                 ->send();
-                            return null;
-                        }
-                    })
-                    ->requiresConfirmation(false),
+                        })
+                        ->modalHeading(__('booking.modals.send_reminder')),
+
+                    /**
+                     * Contact Customer Action
+                     *
+                     * Quick links to call or WhatsApp customer.
+                     */
+                    Tables\Actions\Action::make('contact_customer')
+                        ->label(__('booking.actions.contact_customer'))
+                        ->icon('heroicon-o-phone')
+                        ->color('gray')
+                        ->visible(fn(Booking $record): bool => !empty($record->customer_phone))
+                        ->url(
+                            fn(Booking $record): string =>
+                            "https://wa.me/{$record->customer_phone}?text=" .
+                                urlencode(__('booking.whatsapp.greeting', [
+                                    'name' => $record->customer_name,
+                                    'booking' => $record->booking_number
+                                ]))
+                        )
+                        ->openUrlInNewTab(),
+
+                    // =========================================================
+                    // 📋 ADMINISTRATIVE ACTIONS
+                    // =========================================================
+
+                    /**
+                     * Add Admin Note Action
+                     *
+                     * Allows adding internal notes to the booking.
+                     */
+                    Tables\Actions\Action::make('add_admin_note')
+                        ->label(__('booking.actions.add_note'))
+                        ->icon('heroicon-o-pencil-square')
+                        ->color('gray')
+                        ->form([
+                            Forms\Components\Textarea::make('admin_notes')
+                                ->label(__('booking.form.admin_notes'))
+                                ->rows(4)
+                                ->default(fn(Booking $record): ?string => $record->admin_notes)
+                                ->placeholder(__('booking.form.admin_notes_placeholder')),
+                        ])
+                        ->action(function (Booking $record, array $data) {
+                            $record->update(['admin_notes' => $data['admin_notes']]);
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('booking.notifications.note_saved'))
+                                ->send();
+                        })
+                        ->modalHeading(__('booking.modals.admin_notes')),
+
+                    /**
+                     * Duplicate Booking Action
+                     *
+                     * Creates a new booking with same details (for repeat customers).
+                     */
+                    Tables\Actions\Action::make('duplicate_booking')
+                        ->label(__('booking.actions.duplicate'))
+                        ->icon('heroicon-o-document-duplicate')
+                        ->color('gray')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            in_array($record->status, ['completed', 'confirmed'])
+                        )
+                        ->requiresConfirmation()
+                        ->modalHeading(__('booking.modals.duplicate_booking'))
+                        ->modalDescription(__('booking.modals.duplicate_booking_description'))
+                        ->form([
+                            Forms\Components\DatePicker::make('new_booking_date')
+                                ->label(__('booking.form.new_booking_date'))
+                                ->required()
+                                ->minDate(now()->addDay())
+                                ->default(now()->addMonth()),
+                        ])
+                        ->action(function (Booking $record, array $data) {
+                            $newBooking = $record->replicate([
+                                'booking_number',
+                                'status',
+                                'payment_status',
+                                'confirmed_at',
+                                'completed_at',
+                                'cancelled_at',
+                                'cancellation_reason',
+                                'invoice_path',
+                                'balance_paid_at',
+                                'balance_payment_method',
+                                'balance_payment_reference',
+                            ]);
+
+                            $newBooking->booking_date = $data['new_booking_date'];
+                            $newBooking->status = 'pending';
+                            $newBooking->payment_status = 'pending';
+                            $newBooking->save();
+
+                            // Copy extra services
+                            foreach ($record->extraServices as $service) {
+                                $newBooking->extraServices()->attach($service->id, [
+                                    'quantity' => $service->pivot->quantity,
+                                    'unit_price' => $service->pivot->unit_price,
+                                    'total_price' => $service->pivot->total_price,
+                                ]);
+                            }
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('booking.notifications.booking_duplicated'))
+                                ->body(__('booking.notifications.booking_duplicated_body', [
+                                    'number' => $newBooking->booking_number
+                                ]))
+                                ->actions([
+                                    \Filament\Notifications\Actions\Action::make('view')
+                                        ->label(__('booking.actions.view_new_booking'))
+                                        ->url(BookingResource::getUrl('view', ['record' => $newBooking]))
+                                ])
+                                ->send();
+                        }),
+
+                    /**
+                     * Request Review Action
+                     *
+                     * Sends review request to customer after completed booking.
+                     */
+                    Tables\Actions\Action::make('request_review')
+                        ->label(__('booking.actions.request_review'))
+                        ->icon('heroicon-o-star')
+                        ->color('warning')
+                        ->visible(
+                            fn(Booking $record): bool =>
+                            $record->status === 'completed' &&
+                                !$record->review()->exists()
+                        )
+                        ->requiresConfirmation()
+                        ->modalHeading(__('booking.modals.request_review'))
+                        ->modalDescription(__('booking.modals.request_review_description'))
+                        ->action(function (Booking $record) {
+                            \App\Jobs\SendReviewRequest::dispatch($record);
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('booking.notifications.review_request_sent'))
+                                ->send();
+                        }),
 
                 ])
             ])
@@ -1092,19 +1551,20 @@ class BookingResource extends Resource
 
                 // ✅ Advance Payment Section
                 Infolists\Components\Section::make('Advance Payment Details')
-                    ->description(fn ($record) => $record->isAdvancePayment()
+                    ->description(fn($record) => $record->isAdvancePayment()
                         ? 'This booking requires advance payment. Customer must pay balance before the event.'
                         : 'This is a full payment booking.')
                     ->schema([
                         Infolists\Components\TextEntry::make('payment_type')
                             ->label(__('advance_payment.payment_type'))
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
+                            ->color(fn(string $state): string => match ($state) {
                                 'full' => 'success',
                                 'advance' => 'warning',
                                 default => 'gray',
                             })
-                            ->formatStateUsing(fn (string $state): string =>
+                            ->formatStateUsing(
+                                fn(string $state): string =>
                                 __('advance_payment.payment_type_' . $state)
                             )
                             ->size('lg'),
@@ -1112,7 +1572,7 @@ class BookingResource extends Resource
                         Infolists\Components\TextEntry::make('advance_amount')
                             ->label(__('advance_payment.advance_paid'))
                             ->money('OMR', 3)
-                            ->visible(fn ($record) => $record->isAdvancePayment())
+                            ->visible(fn($record) => $record->isAdvancePayment())
                             ->color('warning')
                             ->weight('bold')
                             ->size('lg'),
@@ -1120,26 +1580,26 @@ class BookingResource extends Resource
                         Infolists\Components\TextEntry::make('balance_due')
                             ->label(__('advance_payment.balance_due'))
                             ->money('OMR', 3)
-                            ->visible(fn ($record) => $record->isAdvancePayment())
-                            ->color(fn ($record) => $record->isBalancePending() ? 'danger' : 'success')
+                            ->visible(fn($record) => $record->isAdvancePayment())
+                            ->color(fn($record) => $record->isBalancePending() ? 'danger' : 'success')
                             ->weight('bold')
                             ->size('lg'),
 
                         Infolists\Components\TextEntry::make('balance_paid_at')
                             ->label(__('advance_payment.balance_paid_at'))
                             ->dateTime()
-                            ->visible(fn ($record) => $record->isAdvancePayment() && $record->balance_paid_at)
+                            ->visible(fn($record) => $record->isAdvancePayment() && $record->balance_paid_at)
                             ->color('success'),
 
                         Infolists\Components\TextEntry::make('balance_payment_status')
                             ->label(__('advance_payment.balance_payment_status'))
                             ->badge()
-                            ->visible(fn ($record) => $record->isAdvancePayment())
-                            ->getStateUsing(fn ($record) => $record->balance_paid_at ? 'Paid' : 'Pending')
-                            ->color(fn ($record) => $record->balance_paid_at ? 'success' : 'danger'),
+                            ->visible(fn($record) => $record->isAdvancePayment())
+                            ->getStateUsing(fn($record) => $record->balance_paid_at ? 'Paid' : 'Pending')
+                            ->color(fn($record) => $record->balance_paid_at ? 'success' : 'danger'),
                     ])
                     ->columns(3)
-                    ->visible(fn ($record) => $record->payment_type !== null),
+                    ->visible(fn($record) => $record->payment_type !== null),
 
                 // Extra Services
                 Infolists\Components\Section::make('Extra Services')
@@ -1148,23 +1608,23 @@ class BookingResource extends Resource
                             ->label('')
                             ->schema([
                                 Infolists\Components\TextEntry::make('name')
-                                    ->label('Service'),
+                                    ->label(__('booking.fields.service_id.label')),
 
                                 Infolists\Components\TextEntry::make('pivot.quantity')
-                                    ->label('Quantity'),
+                                    ->label(__('booking.fields.quantity.label')),
 
                                 Infolists\Components\TextEntry::make('pivot.unit_price')
-                                    ->label('Unit Price')
+                                    ->label(__('booking.fields.unit_price.label'))
                                     ->money('OMR', 3),
 
                                 Infolists\Components\TextEntry::make('pivot.total_price')
-                                    ->label('Total')
+                                    ->label(__('booking.fields.total_price.label'))
                                     ->money('OMR', 3)
                                     ->weight('bold'),
                             ])
                             ->columns(4),
                     ])
-                    ->visible(fn ($record) => $record->extraServices->count() > 0)
+                    ->visible(fn($record) => $record->extraServices->count() > 0)
                     ->collapsible(),
 
                 // Event Details

@@ -22,7 +22,12 @@ class HallAvailabilityResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
-    protected static ?string $label = 'Hall Availability';
+    //protected static ?string $label = 'Hall Availability';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin.hall_navigation_group');
+    }
 
     public static function getModelLabel(): string
     {
@@ -225,8 +230,8 @@ class HallAvailabilityResource extends Resource
                         ->label(__('hall-availability.table_actions.delete')),
 
                     Tables\Actions\Action::make('toggle')
-                        ->label(fn($record) => $record->is_available ? 
-                            __('hall-availability.table_actions.block') : 
+                        ->label(fn($record) => $record->is_available ?
+                            __('hall-availability.table_actions.block') :
                             __('hall-availability.table_actions.unblock'))
                         ->icon(fn($record) => $record->is_available ? 'heroicon-o-lock-closed' : 'heroicon-o-lock-open')
                         ->color(fn($record) => $record->is_available ? 'danger' : 'success')

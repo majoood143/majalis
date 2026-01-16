@@ -557,4 +557,59 @@ class Booking extends Model
             'confirmed_at' => now(),
         ]);
     }
+
+    /**
+     * Cancel the booking with a reason.
+     *
+     * Transitions booking status to 'cancelled'.
+     * Records the cancellation reason and timestamp.
+     * Calculates refund amount based on cancellation policy if applicable.
+     *
+     * @param string|null $reason The reason for cancellation
+     * @return void
+     */
+    public function cancel(?string $reason = null): void
+    {
+        // Calculate refund amount if booking was paid
+        $refundAmount = null;
+
+        if ($this->isPaid()) {
+            // Load hall relationship if not already loaded for cancellation policy
+            if (!$this->relationLoaded('hall')) {
+                $this->load('hall');
+            }
+
+            // Calculate refund based on hall's cancellation fee percentage
+            // Default to full refund if no cancellation policy exists
+            $cancellationFeePercentage = (float) ($this->hall?->cancellation_fee_percentage ?? 0);
+            $totalAmount = (float) ($this->total_amount ?? 0);
+
+            $cancellationFee = ($totalAmount * $cancellationFeePercentage) / 100;
+            $refundAmount = $totalAmount - $cancellationFee;
+        }
+
+        $this->update([
+            'status' => BookingStatus::CANCELLED,
+            'cancelled_at' => now(),
+            'cancellation_reason' => $reason,
+            'refund_amount' => $refundAmount,
+        ]);
+    }
+
+    /**
+     * Complete the booking.
+     *
+     * Transitions booking status from 'confirmed' to 'completed'.
+     * Sets the completed_at timestamp.
+     * Should only be called after the event date has passed.
+     *
+     * @return void
+     */
+    public function complete(): void
+    {
+        $this->update([
+            'status' => BookingStatus::COMPLETED,
+            'completed_at' => now(),
+        ]);
+    }
 }

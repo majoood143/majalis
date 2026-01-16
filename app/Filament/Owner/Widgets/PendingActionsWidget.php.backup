@@ -1,0 +1,462 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Owner\Widgets;
+
+use App\Models\Booking;
+use App\Models\Payment;
+use App\Models\Review;
+use App\Models\Ticket;
+use App\Models\Hall;
+use Filament\Widgets\Widget;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
+
+class PendingActionsWidget extends Widget
+{
+    /**
+     * Widget view
+     */
+    protected static string $view = 'filament.owner.widgets.pending-actions';
+
+    /**
+     * Widget column span
+     */
+    protected int | string | array $columnSpan = [
+        'sm' => 'full',
+        'md' => 1,
+        'lg' => 2,
+        'xl' => 1,
+    ];
+
+    /**
+     * Widget height
+     */
+    protected static ?string $maxHeight = '450px';
+
+    /**
+     * Widget polling interval - configurable based on environment
+     */
+    protected static ?string $pollingInterval = null;
+
+    /**
+     * Cache lifetime in seconds
+     */
+    protected int $cacheLifetime = 60; // 1 minute
+
+    /**
+     * Initialize polling based on environment
+     */
+    public static function canPoll(): bool
+    {
+        return config('app.env') !== 'local'; // Disable polling in local for better DX
+    }
+
+    /**
+     * Get view data with caching
+     */
+    public function getViewData(): array
+    {
+        $user = Auth::user();
+        $cacheKey = "pending_actions_widget_{$user->id}_{$user->updated_at->timestamp}";
+
+        return Cache::remember($cacheKey, $this->cacheLifetime, function () use ($user) {
+            // Get hall IDs for this owner
+            $hallIds = Hall::where('owner_id', $user->id)->pluck('id');
+
+            if ($hallIds->isEmpty()) {
+                return $this->getEmptyViewData();
+            }
+
+            // Collect all pending actions in parallel
+            $pendingActions = $this->collectPendingActions($user, $hallIds);
+
+            // Sort by priority and urgency
+            $sortedActions = $this->sortActionsByPriority($pendingActions);
+
+            // Get action counts by type
+            $actionCounts = $this->getActionCounts($pendingActions);
+
+            // Calculate statistics
+            $stats = $this->calculateStatistics($sortedActions, $hallIds);
+
+            return [
+                'actions' => $sortedActions,
+                'counts' => $actionCounts,
+                'stats' => $stats,
+                'totalActions' => $pendingActions->count(),
+                'urgentActions' => $pendingActions->where('priority', 'urgent')->count(),
+                'highPriorityActions' => $pendingActions->whereIn('priority', ['urgent', 'high'])->count(),
+                'hasData' => $pendingActions->isNotEmpty(),
+            ];
+        });
+    }
+
+    /**
+     * Empty state data
+     */
+    protected function getEmptyViewData(): array
+    {
+        return [
+            'actions' => collect(),
+            'counts' => [],
+            'stats' => [],
+            'totalActions' => 0,
+            'urgentActions' => 0,
+            'highPriorityActions' => 0,
+            'hasData' => false,
+        ];
+    }
+
+    /**
+     * Collect all pending actions efficiently
+     */
+    protected function collectPendingActions($user, Collection $hallIds): Collection
+    {
+        $actions = collect();
+
+        // 1. Pending booking confirmations
+        $actions = $actions->merge($this->getPendingBookings($hallIds));
+
+        // 2. Pending payments
+        $actions = $actions->merge($this->getPendingPayments($hallIds));
+
+        // 3. Unanswered reviews
+        if ($this->reviewsEnabled()) {
+            $actions = $actions->merge($this->getUnansweredReviews($hallIds));
+        }
+
+        // 4. Open support tickets
+        if ($this->ticketsEnabled()) {
+            $actions = $actions->merge($this->getOpenTickets($user, $hallIds));
+        }
+
+        // 5. Incomplete hall profiles
+        $actions = $actions->merge($this->getIncompleteProfiles($hallIds));
+
+        // 6. Availability updates needed
+        $actions = $actions->merge($this->getAvailabilityUpdates($hallIds));
+
+        return $actions;
+    }
+
+    /**
+     * Get pending bookings
+     */
+    protected function getPendingBookings(Collection $hallIds): Collection
+    {
+        return Booking::whereIn('hall_id', $hallIds)
+            ->where('status', 'pending')
+            ->where('booking_date', '>=', now())
+            ->orderBy('booking_date')
+            ->limit(20) // Limit for performance
+            ->get()
+            ->map(function ($booking) {
+                $daysUntilEvent = now()->diffInDays($booking->booking_date, false);
+                $isUrgent = $daysUntilEvent <= 1;
+
+                return (object)[
+                    'type' => 'booking_confirmation',
+                    'title' => __('owner.actions.confirm_booking'),
+                    'description' => __('owner.actions.booking_needs_confirmation', [
+                        'number' => $booking->booking_number,
+                        'date' => $booking->booking_date->format('M j, Y'),
+                        'time' => $booking->booking_date->format('g:i A'),
+                    ]),
+                    'icon' => 'heroicon-o-calendar',
+                    'color' => $isUrgent ? 'danger' : 'warning',
+                    'priority' => $isUrgent ? 'urgent' : ($daysUntilEvent <= 3 ? 'high' : 'normal'),
+                    'action_url' => route('filament.owner.resources.bookings.view', $booking),
+                    'created_at' => $booking->created_at,
+                    'due_date' => $booking->booking_date,
+                    'data' => $booking,
+                ];
+            });
+    }
+
+    /**
+     * Get pending payments
+     */
+    protected function getPendingPayments(Collection $hallIds): Collection
+    {
+        return Booking::whereIn('hall_id', $hallIds)
+            ->where('booking_date', '>=', now()->subDays(60))
+            ->where(function (Builder $query) {
+                $query->where('payment_status', 'pending')
+                    ->orWhere('payment_status', 'partial')
+                    ->orWhere(function ($q) {
+                        $q->where('payment_type', 'advance')
+                            ->whereColumn('balance_due', '>', 0)
+                            ->whereNull('balance_paid_at');
+                    });
+            })
+            ->with('payments') // Eager load payments
+            ->orderBy('booking_date')
+            ->limit(15)
+            ->get()
+            ->map(function ($booking) {
+                $daysUntilEvent = now()->diffInDays($booking->booking_date, false);
+                $isOverdue = $daysUntilEvent < 0;
+                $pendingAmount = (float) ($booking->balance_due ?: $booking->total_amount);
+                $paidAmount = (float) ($booking->total_amount - $booking->balance_due);
+
+                return (object)[
+                    'type' => 'payment_follow_up',
+                    'title' => __('owner.actions.payment_pending'),
+                    'description' => __('owner.actions.payment_needs_follow_up', [
+                        'amount' => number_format($pendingAmount, 3),
+                        'paid' => number_format($paidAmount, 3),
+                        'total' => number_format($booking->total_amount, 3),
+                        'days' => abs($daysUntilEvent),
+                        'status' => $isOverdue ? __('owner.actions.overdue') : __('owner.actions.due_soon'),
+                    ]),
+                    'icon' => 'heroicon-o-banknotes',
+                    'color' => $isOverdue ? 'danger' : ($pendingAmount > 1000 ? 'warning' : 'info'),
+                    'priority' => $isOverdue ? 'urgent' : ($daysUntilEvent <= 3 ? 'high' : 'normal'),
+                    'action_url' => route('filament.owner.resources.bookings.view', $booking) . '#payments',
+                    'created_at' => $booking->created_at,
+                    'due_date' => $booking->booking_date,
+                    'amount' => $pendingAmount,
+                    'data' => $booking,
+                ];
+            });
+    }
+
+    /**
+     * Get unanswered reviews
+     */
+    protected function getUnansweredReviews(Collection $hallIds): Collection
+    {
+        return Review::whereIn('hall_id', $hallIds)
+            ->whereNull('owner_response')
+            ->where('created_at', '>=', now()->subDays(14))
+            ->with('user')
+            ->orderBy('rating')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($review) {
+                $ageInDays = now()->diffInDays($review->created_at);
+
+                return (object)[
+                    'type' => 'review_response',
+                    'title' => __('owner.actions.respond_to_review'),
+                    'description' => __('owner.actions.review_needs_response', [
+                        'rating' => str_repeat('⭐', (int) $review->rating),
+                        'customer' => $review->user->name ?? __('owner.actions.guest'),
+                        'age' => $ageInDays,
+                    ]),
+                    'icon' => 'heroicon-o-star',
+                    'color' => $review->rating >= 4 ? 'success' : ($review->rating >= 3 ? 'warning' : 'danger'),
+                    'priority' => $review->rating <= 2 ? 'high' : ($ageInDays >= 3 ? 'high' : 'normal'),
+                    'action_url' => route('filament.owner.resources.reviews.edit', $review),
+                    'created_at' => $review->created_at,
+                    'rating' => $review->rating,
+                    'data' => $review,
+                ];
+            });
+    }
+
+    /**
+     * Get open support tickets
+     */
+    protected function getOpenTickets($user, Collection $hallIds): Collection
+    {
+        if (!class_exists(Ticket::class) || !Schema::hasTable('tickets')) {
+            return collect();
+        }
+
+        return Ticket::where('owner_id', $user->id)
+            ->orWhereIn('hall_id', $hallIds)
+            ->whereIn('status', ['open', 'pending'])
+            ->where('priority', '!=', 'low')
+            ->orderBy('priority')
+            ->orderBy('created_at', 'desc')
+            ->limit(8)
+            ->get()
+            ->map(function ($ticket) {
+                $priorityColors = [
+                    'critical' => 'danger',
+                    'high' => 'warning',
+                    'medium' => 'info',
+                    'low' => 'gray'
+                ];
+
+                return (object)[
+                    'type' => 'support_ticket',
+                    'title' => __('owner.actions.support_ticket'),
+                    'description' => __('owner.actions.ticket_needs_attention', [
+                        'id' => $ticket->ticket_number,
+                        'subject' => Str::limit($ticket->subject, 40),
+                    ]),
+                    'icon' => 'heroicon-o-chat-bubble-left-right',
+                    'color' => $priorityColors[$ticket->priority] ?? 'info',
+                    'priority' => $ticket->priority === 'critical' ? 'urgent' : $ticket->priority,
+                    'action_url' => route('filament.owner.resources.tickets.view', $ticket),
+                    'created_at' => $ticket->created_at,
+                    'data' => $ticket,
+                ];
+            });
+    }
+
+    /**
+     * Get incomplete hall profiles
+     */
+    protected function getIncompleteProfiles(Collection $hallIds): Collection
+    {
+        return Hall::whereIn('id', $hallIds)
+            ->where(function (Builder $query) {
+                $query->whereNull('description')
+                    ->orWhere('description', '')
+                    ->orWhereNull('address')
+                    ->orWhereNull('main_image')
+                    ->orWhere('is_active', false);
+            })
+            ->limit(5)
+            ->get()
+            ->map(function ($hall) {
+                $missingFields = collect();
+                if (empty($hall->description)) $missingFields->push('description');
+                if (empty($hall->address)) $missingFields->push('address');
+                if (empty($hall->main_image)) $missingFields->push('photos');
+                if (!$hall->is_active) $missingFields->push('activation');
+
+                return (object)[
+                    'type' => 'hall_profile',
+                    'title' => __('owner.actions.complete_profile'),
+                    'description' => __('owner.actions.profile_incomplete', [
+                        'hall' => $hall->name,
+                        'missing' => $missingFields->join(', '),
+                    ]),
+                    'icon' => 'heroicon-o-building-office',
+                    'color' => 'info',
+                    'priority' => 'normal',
+                    'action_url' => route('filament.owner.resources.halls.edit', $hall),
+                    'created_at' => $hall->created_at,
+                    'data' => $hall,
+                ];
+            });
+    }
+
+    /**
+     * Get availability updates
+     */
+    protected function getAvailabilityUpdates(Collection $hallIds): Collection
+    {
+        return Hall::whereIn('id', $hallIds)
+            ->where('availability_updated_at', '<', now()->subDays(7))
+            ->limit(3)
+            ->get()
+            ->map(function ($hall) {
+                $daysSinceUpdate = now()->diffInDays($hall->availability_updated_at);
+
+                return (object)[
+                    'type' => 'availability_update',
+                    'title' => __('owner.actions.update_availability'),
+                    'description' => __('owner.actions.availability_stale', [
+                        'hall' => $hall->name,
+                        'days' => $daysSinceUpdate,
+                    ]),
+                    'icon' => 'heroicon-o-calendar-days',
+                    'color' => 'warning',
+                    'priority' => $daysSinceUpdate > 14 ? 'high' : 'normal',
+                    'action_url' => route('filament.owner.resources.halls.availability', $hall),
+                    'created_at' => $hall->availability_updated_at,
+                    'data' => $hall,
+                ];
+            });
+    }
+
+    /**
+     * Sort actions by priority
+     */
+    protected function sortActionsByPriority(Collection $actions): Collection
+    {
+        $priorityOrder = [
+            'urgent' => 1,
+            'high' => 2,
+            'normal' => 3,
+            'low' => 4,
+        ];
+
+        return $actions->sortBy([
+            fn($action) => $priorityOrder[$action->priority] ?? 5,
+            fn($action) => $action->due_date ?? $action->created_at,
+            fn($action) => $action->amount ?? 0, // Sort by amount for payments
+        ])->values();
+    }
+
+    /**
+     * Get action counts by type
+     */
+    protected function getActionCounts(Collection $actions): array
+    {
+        return [
+            'booking_confirmation' => $actions->where('type', 'booking_confirmation')->count(),
+            'payment_follow_up' => $actions->where('type', 'payment_follow_up')->count(),
+            'review_response' => $actions->where('type', 'review_response')->count(),
+            'support_ticket' => $actions->where('type', 'support_ticket')->count(),
+            'hall_profile' => $actions->where('type', 'hall_profile')->count(),
+            'availability_update' => $actions->where('type', 'availability_update')->count(),
+        ];
+    }
+
+    /**
+     * Calculate statistics
+     */
+    protected function calculateStatistics(Collection $actions, Collection $hallIds): array
+    {
+        $totalPendingAmount = Booking::whereIn('hall_id', $hallIds)
+            ->whereIn('payment_status', ['pending', 'partial'])
+            ->where('balance_due', '>', 0)
+            ->sum('balance_due');
+
+        $avgResponseTime = Review::whereIn('hall_id', $hallIds)
+            ->whereNotNull('owner_response_at')
+            ->whereNotNull('created_at')
+            ->average(\DB::raw('TIMESTAMPDIFF(HOUR, created_at, owner_response_at)'));
+
+        return [
+            'total_pending_amount' => $totalPendingAmount,
+            'avg_response_hours' => round($avgResponseTime ?? 0),
+            'total_halls' => $hallIds->count(),
+            'avg_rating' => Review::whereIn('hall_id', $hallIds)->avg('rating') ?? 0,
+        ];
+    }
+
+    /**
+     * Check if reviews are enabled
+     */
+    protected function reviewsEnabled(): bool
+    {
+        return class_exists(Review::class) && Schema::hasTable('reviews');
+    }
+
+    /**
+     * Check if tickets are enabled
+     */
+    protected function ticketsEnabled(): bool
+    {
+        return class_exists(Ticket::class) && Schema::hasTable('tickets');
+    }
+
+    /**
+     * Get cache key
+     */
+    protected function getCacheKey($user): string
+    {
+        return "pending_actions_widget_{$user->id}_{$user->updated_at->timestamp}";
+    }
+
+    /**
+     * Clear cache for user
+     */
+    public static function clearCache($userId): void
+    {
+        Cache::forget("pending_actions_widget_{$userId}");
+    }
+}

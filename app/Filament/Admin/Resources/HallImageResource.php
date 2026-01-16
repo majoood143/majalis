@@ -18,7 +18,12 @@ class HallImageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('admin.hall_navigation_group');
+    }
 
     protected static ?int $navigationSort = 3;
 
@@ -43,40 +48,51 @@ class HallImageResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make(__('hall-image.image_information'))
-                    ->schema([
-                        Forms\Components\Select::make('hall_id')
-                            ->label(__('hall-image.hall'))
-                            ->options(Hall::all()->pluck('name', 'id'))
-                            ->required()
-                            ->searchable()
-                            ->preload(),
+            Forms\Components\Section::make(__('hall-image.image_information'))
+                ->schema([
+                    Forms\Components\Select::make('hall_id')
+                        ->label(__('hall-image.hall'))
+                        ->options(Hall::all()->pluck('name', 'id'))
+                        ->required()
+                        ->searchable()
+                        ->preload(),
 
-                        Forms\Components\Select::make('type')
-                            ->label(__('hall-image.type'))
-                            ->options([
-                                'gallery' => __('hall-image.types.gallery'),
-                                'featured' => __('hall-image.types.featured'),
-                                'floor_plan' => __('hall-image.types.floor_plan'),
-                                '360_view' => __('hall-image.types.360_view'),
-                            ])
-                            ->default('gallery')
-                            ->required(),
+                    Forms\Components\Select::make('type')
+                        ->label(__('hall-image.type'))
+                        ->options([
+                            'gallery' => __('hall-image.types.gallery'),
+                            'featured' => __('hall-image.types.featured'),
+                            'floor_plan' => __('hall-image.types.floor_plan'),
+                            '360_view' => __('hall-image.types.360_view'),
+                        ])
+                        ->default('gallery')
+                        ->required(),
 
-                        Forms\Components\FileUpload::make('image_path')
-                            ->label(__('hall-image.image_path'))
-                            ->image()
-                            ->directory('halls/images')
-                            ->required()
-                            ->columnSpanFull()
-                            ->imageEditor(),
+                    // FIX: Added ->disk('public') to load existing images correctly
+                    Forms\Components\FileUpload::make('image_path')
+                        ->label(__('hall-image.image_path'))
+                        ->image()
+                        ->disk('public')                    // ← REQUIRED for loading existing images
+                        ->directory('halls/images')
+                        ->visibility('public')              // ← Ensures files are publicly accessible
+                        ->required()
+                        ->columnSpanFull()
+                        ->imageEditor()
+                        ->imagePreviewHeight('250')         // ← Better preview in edit form
+                        ->loadingIndicatorPosition('left')
+                        ->removeUploadedFileButtonPosition('right')
+                        ->uploadProgressIndicatorPosition('left'),
 
-                        Forms\Components\FileUpload::make('thumbnail_path')
-                            ->label(__('hall-image.thumbnail_path'))
-                            ->image()
-                            ->directory('halls/thumbnails')
-                            ->columnSpanFull(),
-                    ])->columns(2),
+                    // FIX: Added ->disk('public') to load existing thumbnails correctly
+                    Forms\Components\FileUpload::make('thumbnail_path')
+                        ->label(__('hall-image.thumbnail_path'))
+                        ->image()
+                        ->disk('public')                    // ← REQUIRED for loading existing images
+                        ->directory('halls/thumbnails')
+                        ->visibility('public')              // ← Ensures files are publicly accessible
+                        ->columnSpanFull()
+                        ->imagePreviewHeight('150'),        // ← Smaller preview for thumbnails
+                ])->columns(2),
 
                 Forms\Components\Section::make(__('hall-image.image_details'))
                     ->schema([

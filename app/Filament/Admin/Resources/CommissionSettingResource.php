@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Get;
 
 class CommissionSettingResource extends Resource
 {
@@ -47,9 +48,28 @@ class CommissionSettingResource extends Resource
                 Forms\Components\Section::make(__('commission-setting.commission_scope'))
                     ->description(__('commission-setting.scope_description'))
                     ->schema([
+                        // Forms\Components\Select::make('hall_id')
+                        //     ->label(__('commission-setting.hall'))
+                        //     ->options(Hall::all()->pluck('name', 'id'))
+                        //     ->searchable()
+                        //     ->preload()
+                        //     ->helperText(__('commission-setting.hall_helper')),
+
                         Forms\Components\Select::make('hall_id')
                             ->label(__('commission-setting.hall'))
-                            ->options(Hall::all()->pluck('name', 'id'))
+                            ->options(function (): array {
+                                return Hall::query()
+                                    ->where('is_active', true)
+                                    ->get()
+                                    ->mapWithKeys(function (Hall $hall): array {
+                                        // Handle translatable name field
+                                        $name = is_array($hall->name)
+                                            ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? 'Hall #' . $hall->id)
+                                            : $hall->name;
+                                        return [$hall->id => $name];
+                                    })
+                                    ->toArray();
+                            })
                             ->searchable()
                             ->preload()
                             ->helperText(__('commission-setting.hall_helper')),
@@ -61,9 +81,16 @@ class CommissionSettingResource extends Resource
                             ->preload()
                             ->helperText(__('commission-setting.owner_helper')),
 
+                        // Forms\Components\Placeholder::make('scope_note')
+                        //     ->label(__('commission-setting.scope_note_title'))
+                        //     ->content(__('commission-setting.scope_note'))
+                        //     ->columnSpanFull(),
+
                         Forms\Components\Placeholder::make('scope_note')
-                            ->content(__('commission-setting.scope_note'))
+                            ->label('')
+                            ->content(fn(): string => '💡 ' . __('commission-setting.scope_note'))
                             ->columnSpanFull(),
+
                     ])->columns(2),
 
                 Forms\Components\Section::make(__('commission-setting.commission_details'))
@@ -76,6 +103,15 @@ class CommissionSettingResource extends Resource
                             ->label(__('commission-setting.name_ar'))
                             ->maxLength(255),
 
+                        // Forms\Components\Select::make('commission_type')
+                        //     ->options([
+                        //         'percentage' => __('commission-setting.percentage'),
+                        //         'fixed' => __('commission-setting.fixed'),
+                        //     ])
+                        //     ->label(__('commission-setting.commission_type'))
+                        //     ->required()
+                        //     ->reactive(),
+
                         Forms\Components\Select::make('commission_type')
                             ->options([
                                 'percentage' => __('commission-setting.percentage'),
@@ -83,14 +119,34 @@ class CommissionSettingResource extends Resource
                             ])
                             ->label(__('commission-setting.commission_type'))
                             ->required()
-                            ->reactive(),
+                            ->live()  // Use 'live()' instead of deprecated 'reactive()' in Filament 3.3
+                            ->default('percentage'),
 
+                        // Forms\Components\TextInput::make('commission_value')
+                        //     ->label(__('commission-setting.commission_value'))
+                        //     ->numeric()
+                        //     ->required()
+                        //     ->step(0.01)
+                        //     ->suffix(fn($get) => $get('commission_type') === 'percentage' ? '%' : 'OMR')
+                        //     ->live() // Add this to make it reactive
+                        //     ->afterStateUpdated(
+                        //         fn($set, $get, $state) =>
+                        //         $set('commission_value', $state)
+                        //     ),
                         Forms\Components\TextInput::make('commission_value')
                             ->label(__('commission-setting.commission_value'))
                             ->numeric()
                             ->required()
                             ->step(0.01)
-                            ->suffix(fn($get) => $get('commission_type') === 'percentage' ? '%' : 'OMR'),
+                            ->minValue(0)
+                            ->maxValue(
+                                fn(Forms\Get $get): float =>
+                                $get('commission_type') === 'percentage' ? 100 : 999999
+                            )
+                            ->suffix(
+                                fn(Forms\Get $get): string =>
+                                $get('commission_type') === 'percentage' ? '%' : 'OMR'
+                            ),
 
                         Forms\Components\Textarea::make('description.en')
                             ->label(__('commission-setting.description_en'))

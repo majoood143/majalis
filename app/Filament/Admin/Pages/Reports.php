@@ -53,6 +53,21 @@ class Reports extends Page implements HasForms
      */
     protected static ?string $navigationGroup = 'Analytics';
 
+    public static function getModelLabel(): string
+    {
+        return __('admin.reports.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.reports.plural');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.reports.navigation_label');
+    }
+
     /**
      * The navigation sort order.
      *

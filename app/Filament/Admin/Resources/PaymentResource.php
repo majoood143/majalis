@@ -24,6 +24,21 @@ class PaymentResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getModelLabel(): string
+    {
+        return __('payment.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('payment.plural');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('payment.navigation_label');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -66,6 +81,10 @@ class PaymentResource extends Resource
                                 'failed' => __('payment.status.failed'),
                                 'refunded' => __('payment.status.refunded'),
                                 'partially_refunded' => __('payment.status.partially_refunded'),
+                                'refund_in_progress' => __('payment.status.refund_in_progress'),
+                                'retrying' => __('payment.status.retrying'),
+                                'reconciliation_pending' => __('payment.status.reconciliation_pending'),
+                                'processing' => __('payment.status.processing'),
                             ])
                             ->required(),
 
@@ -145,6 +164,11 @@ class PaymentResource extends Resource
                         'failed' => __('payment.status.failed'),
                         'refunded' => __('payment.status.refunded'),
                         'partially_refunded' => __('payment.status.partially_refunded'),
+                        'refund_in_progress' => __('payment.status.refund_in_progress'),
+                        'retrying' => __('payment.status.retrying'),
+                        'reconciliation_pending' => __('payment.status.reconciliation_pending'),
+                        'processing' => __('payment.status.processing'),
+                        'canceled' => __('payment.status.canceled'),
                         default => $state,
                     })
                     ->color(fn(string $state): string => match ($state) {
@@ -159,6 +183,7 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('payment_method')
                     ->label(__('payment.columns.payment_method'))
                     ->badge()
+                    ->sortable()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('paid_at')

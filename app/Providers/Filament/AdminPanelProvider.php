@@ -89,6 +89,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn(): string => view('filament.hooks.language-switcher')->render()
             )
+            ->sidebarCollapsibleOnDesktop()
             ->spa()
 
             //->locale(config('app.locale'))

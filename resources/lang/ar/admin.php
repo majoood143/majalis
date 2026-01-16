@@ -21,6 +21,13 @@ return [
         'create_title' => 'إنشاء دفعة',
         'edit_title' => 'تعديل دفعة',
         'view_title' => 'تفاصيل الدفعة',
+        'view_title' => 'تفاصيل الدفعة',
+        'singular' => 'دفعة',
+        'plural' => 'المدفوعات',
+        'heading' => 'مدفوعات المالك',
+        'subheading' => 'إدارة مدفوعات مالكي القاعات',
+        'navigation_group' => 'المالية',
+        'navigation_label' => 'المدفوعات',
 
         // الأقسام
         'sections' => [
@@ -242,6 +249,11 @@ return [
         'title' => 'التقارير والتحليلات',
         'heading' => 'تقارير المنصة',
         'subheading' => 'تحليلات ورؤى شاملة لأداء المنصة',
+        'navigation_label' => 'التقارير',
+        'navigation_group' => 'التحليلات',
+        'overview' => 'نظرة عامة على التقارير',
+        'singular' => 'تقرير',
+        'plural' => 'تقارير',
 
         // علامات التبويب
         'tabs' => [
@@ -575,6 +587,8 @@ return [
         'sync_availability_modal_description' => 'إنشاء فترات توفر لجميع القاعات للـ 3 أشهر القادمة.',
         'bulk_activation' => 'التفعيل بالجملة',
         'download' => 'تحميل الملف',
+        'create_hall' => 'إنشاء قاعة جديدة',
+        'create_hall_description' => 'إنشاء قاعة جديدة في النظام',
     ],
 
     // Fields
@@ -672,4 +686,6 @@ return [
         'average_price' => 'متوسط السعر',
         'average_price_desc' => 'لكل فترة',
     ],
+
+    'hall_navigation_group'=>'ادارة المجالس'
 ];

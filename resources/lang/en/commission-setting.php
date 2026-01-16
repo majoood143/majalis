@@ -8,6 +8,7 @@ return [
     'plural' => 'Commission Settings',
     'navigation_label' => 'Commission Settings',
     'navigation_group' => 'Financial',
+    'subheading' => 'Manage commission settings for halls and owners',
 
     // Form Sections
     'commission_scope' => 'Commission Scope',
@@ -31,6 +32,7 @@ return [
     // Field Helpers
     'hall_helper' => 'Leave empty for owner-level or global commission',
     'owner_helper' => 'Leave empty for global commission',
+    'scope_note_title' => 'Scope Priority',
     'scope_note' => 'Priority: Hall-specific > Owner-specific > Global',
     'effective_from_helper' => 'Leave empty for immediate effect',
     'effective_to_helper' => 'Leave empty for indefinite period',

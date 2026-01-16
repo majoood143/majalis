@@ -48,52 +48,52 @@ class EditProfile extends Page
     {
         return $form
             ->schema([
-                Section::make(__('Profile Information'))
-                    ->description(__('Update your profile information and language preference.'))
+                Section::make(__('profile.profile_information'))
+                    ->description(__('profile.update_your_profile_information'))
                     ->schema([
                         TextInput::make('name')
-                            ->label(__('filament.forms.name'))
+                            ->label(__('profile.forms.name'))
                             ->required()
                             ->maxLength(255),
 
                         TextInput::make('email')
-                            ->label(__('filament.forms.email'))
+                            ->label(__('profile.forms.email'))
                             ->email()
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
 
                         Select::make('language_preference')
-                            ->label(__('Language Preference'))
+                            ->label(__('profile.language_preference'))
                             ->options([
                                 'en' => 'English',
                                 'ar' => 'العربية',
                             ])
                             ->required()
                             ->native(false)
-                            ->helperText(__('Select your preferred language for the admin panel'))
+                            ->helperText(__('profile.select_preferred_language'))
                             ->reactive()
                             ->afterStateUpdated(fn($state) => $this->updateLanguagePreference($state)),
                     ]),
 
-                Section::make(__('Update Password'))
-                    ->description(__('Ensure your account is using a long, random password.'))
+                Section::make(__('profile.update_password'))
+                    ->description(__('profile.ensure_password_security'))
                     ->schema([
                         TextInput::make('current_password')
-                            ->label(__('Current Password'))
+                            ->label(__('profile.current_password'))
                             ->password()
                             ->required(fn($get) => filled($get('new_password')))
                             ->currentPassword(),
 
                         TextInput::make('new_password')
-                            ->label(__('New Password'))
+                            ->label(__('profile.new_password'))
                             ->password()
                             ->nullable()
                             ->minLength(8)
                             ->confirmed(),
 
                         TextInput::make('new_password_confirmation')
-                            ->label(__('Confirm Password'))
+                            ->label(__('profile.confirm_password'))
                             ->password()
                             ->requiredWith('new_password'),
                     ]),
@@ -121,7 +121,7 @@ class EditProfile extends Page
 
         if (!$user) {
             Notification::make()
-                ->title(__('Error: User not authenticated'))
+                ->title(__('profile.error_user_not_authenticated'))
                 ->danger()
                 ->send();
             return;
@@ -142,7 +142,7 @@ class EditProfile extends Page
         }
 
         Notification::make()
-            ->title(__('Profile updated successfully'))
+            ->title(__('profile.profile_updated_successfully'))
             ->success()
             ->send();
 
@@ -157,7 +157,7 @@ class EditProfile extends Page
      */
     public static function getNavigationLabel(): string
     {
-        return __('Profile');
+        return __('profile.profile');
     }
 
     /**
@@ -167,7 +167,7 @@ class EditProfile extends Page
     {
         return [
             Action::make('save')
-                ->label(__('filament.actions.save'))
+                ->label(__('profile.actions.save'))
                 ->action('save'),
         ];
     }

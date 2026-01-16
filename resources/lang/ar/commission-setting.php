@@ -9,6 +9,8 @@ return [
     'plural' => 'إعدادات العمولات',
     'navigation_label' => 'إعدادات العمولات',
     'navigation_group' => 'المالية',
+    'heading' => 'إعدادات العمولات',
+    'subheading' => 'إدارة إعدادات عمولات القاعات ومالكيها',
 
 
     // Form Sections
@@ -33,6 +35,7 @@ return [
     // Field Helpers
     'hall_helper' => 'اتركه فارغًا لعمولة مستوى المالك أو العمولة العامة',
     'owner_helper' => 'اتركه فارغًا للعمولة العامة',
+    'scope_note_title' => 'أولوية النطاق',
     'scope_note' => 'الأولوية: خاصة بالقاعة > خاصة بالمالك > عامة',
     'effective_from_helper' => 'اتركه فارغًا للتأثير الفوري',
     'effective_to_helper' => 'اتركه فارغًا لفترة غير محددة',

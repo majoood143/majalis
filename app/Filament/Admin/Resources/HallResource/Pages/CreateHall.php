@@ -248,11 +248,11 @@ class CreateHall extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Create Hall';
+        return __('admin.actions.create_hall');
     }
 
     public function getSubheading(): ?string
     {
-        return 'Add a new hall to the system';
+        return __('admin.actions.create_hall_description');
     }
 }

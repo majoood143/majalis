@@ -492,6 +492,13 @@ return [
         'create_modal_heading' => 'تأكيد إنشاء الحجز',
         'create_modal_description' => 'هل أنت متأكد من إنشاء هذا الحجز؟ يرجى التحقق من صحة جميع التفاصيل.',
         'create_modal_submit_label' => 'نعم، إنشاء الحجز',
+        'send_email' => 'إرسال البريد الإلكتروني',
+        'send_reminder' => 'إرسال تذكير',
+        'contact_customer' => 'الاتصال بالعميل عبر واتساب',
+        'add_note' => 'إضافة ملاحظة',
+        'duplicate' => 'تكرار الحجز',
+        'request_review' => 'طلب مراجعة',
+        'view_new_booking' => 'عرض الحجز الجديد',
     ],
 
     /*
@@ -660,6 +667,11 @@ return [
         'reminder_sent_title' => 'تم إرسال التذكير بنجاح',
         'balance_marked_paid_title' => 'تم تسوية الرصيد',
         'balance_marked_paid_body' => 'تم تسجيل دفعة الرصيد بنجاح.',
+        'balance_already_paid_title' => 'الرصيد مدفوع بالفعل',
+        'balance_already_paid_body' => 'تم دفع الرصيد لهذا الحجز بالفعل.',
+        'booking_confirmed' => 'تم تأكيد الحجز بنجاح',
+        'booking_cancelled' => 'تم إلغاء الحجز بنجاح',
+        'booking_completed' => 'تم إكمال الحجز بنجاح',
     ],
 
 
@@ -778,5 +790,88 @@ return [
 
     'exceptions' => [
         'slot_already_booked' => 'الفترة محجوزة بالفعل',
+    ],
+
+    'invoice' => [
+        // Header
+        'title' => 'فاتورة',
+        'number' => 'رقم الفاتورة',
+        'date' => 'التاريخ',
+        'print' => 'طباعة',
+        'close' => 'إغلاق',
+
+        // Company
+        'company_tagline' => 'منصة حجز القاعات المميزة',
+        'phone' => 'الهاتف',
+        'email' => 'البريد الإلكتروني',
+
+        // Bill To Section
+        'bill_to' => 'فاتورة إلى',
+        'customer_name' => 'الاسم',
+        'account' => 'الحساب',
+
+        // Booking Details
+        'booking_details' => 'تفاصيل الحجز',
+        'booking_date' => 'تاريخ المناسبة',
+        'time_slot' => 'الفترة الزمنية',
+        'guests' => 'الضيوف',
+        'persons' => 'شخص',
+        'event_type' => 'نوع المناسبة',
+        'capacity' => 'السعة',
+
+        // Table Headers
+        'description' => 'الوصف',
+        'quantity' => 'الكمية',
+        'unit_price' => 'سعر الوحدة',
+        'total' => 'المجموع',
+
+        // Line Items
+        'hall_rental' => 'إيجار القاعة',
+
+        // Totals
+        'hall_price' => 'سعر القاعة',
+        'services_total' => 'مجموع الخدمات',
+        'subtotal' => 'المجموع الفرعي',
+        'platform_fee' => 'رسوم المنصة',
+        'grand_total' => 'المجموع الكلي',
+        'currency' => 'ر.ع',
+
+        // Advance Payment
+        'advance_payment_details' => 'تفاصيل الدفع المقدم',
+        'advance_paid' => 'المبلغ المدفوع مقدماً',
+        'balance_due' => 'المبلغ المتبقي',
+        'balance_status' => 'الحالة',
+        'paid_on' => 'تم الدفع في',
+        'pending_payment' => 'في انتظار الدفع',
+
+        // Footer
+        'customer_notes' => 'ملاحظات العميل',
+        'terms_title' => 'الشروط والأحكام',
+        'terms_1' => 'يجب الدفع عند تأكيد الحجز.',
+        'terms_2' => 'تطبق سياسة الإلغاء وفقاً لشروط القاعة.',
+        'terms_3' => 'يرجى الحضور قبل 30 دقيقة من موعد المناسبة.',
+        'thank_you' => 'شكراً لاختياركم لنا!',
+    ],
+    'modals' => [
+        'send_invoice_email' => 'إرسال الفاتورة عبر البريد الإلكتروني',
+        'send_reminder' => 'إرسال تذكير بالحجز',
+        'admin_notes' => 'ملاحظات المشرف',
+        'duplicate_booking' => 'تكرار الحجز',
+        'duplicate_booking_description' => 'إنشاء حجز جديد بنفس التفاصيل لتاريخ مختلف.',
+        'request_review' => 'طلب مراجعة العميل',
+        'request_review_description' => 'إرسال طلب مراجعة عبر البريد الإلكتروني للعميل.',
+        'complete_booking_description' => 'تحديد هذا الحجز كمكتمل. لا يمكن التراجع عن هذا الإجراء.',
+        'confirm_booking_description' => 'تأكيد هذا الحجز وإعلام العميل.',
+        'cancel_booking_description' => 'إلغاء هذا الحجز. لا يمكن التراجع عن هذا الإجراء.',
+        'generate_invoice_description' => 'إنشاء فاتورة PDF لهذا الحجز.',
+        'send_reminder_description' => 'إرسال إشعار تذكير للعميل بخصوص حجزه القادم.',
+        'mark_balance_paid_description' => 'تسجيل دفعة الرصيد لهذا الحجز.',
+        'mark_balance_paid_confirm' => 'هل أنت متأكد من تسجيل دفعة الرصيد لهذا الحجز؟',
+        'duplicate_booking_confirm' => 'هل أنت متأكد من تكرار هذا الحجز؟',
+        'confirm_booking' => 'هل أنت متأكد من تأكيد هذا الحجز؟',
+        'cancel_booking_confirm' => 'هل أنت متأكد من إلغاء هذا الحجز؟',
+        'complete_booking' => 'هل أنت متأكد من إكمال هذا الحجز؟',
+        'generate_invoice_confirm' => 'هل أنت متأكد من إنشاء فاتورة لهذا الحجز؟',
+        'send_reminder_confirm' => 'هل أنت متأكد من إرسال تذكير لهذا الحجز؟',
     ],
 ];

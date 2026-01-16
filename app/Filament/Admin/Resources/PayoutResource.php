@@ -55,6 +55,21 @@ class PayoutResource extends Resource
      */
     protected static ?string $navigationGroup = 'Finance';
 
+    public static function getModelLabel(): string
+    {
+        return __('admin.payout.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.payout.plural');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.payout.navigation_label');
+    }
+
     /**
      * The navigation sort order for this resource.
      *
@@ -137,7 +152,7 @@ class PayoutResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->live()
-                                    ->getOptionLabelFromRecordUsing(fn (User $record): string => 
+                                    ->getOptionLabelFromRecordUsing(fn (User $record): string =>
                                         $record->name . ' (' . ($record->email) . ')'
                                     )
                                     ->options(function () {
@@ -157,7 +172,7 @@ class PayoutResource extends Resource
                                     ->displayFormat('d M Y')
                                     ->maxDate(now())
                                     ->live()
-                                    ->afterStateUpdated(fn (Forms\Set $set, $state) => 
+                                    ->afterStateUpdated(fn (Forms\Set $set, $state) =>
                                         $set('period_end', $state)
                                     ),
 
@@ -195,7 +210,7 @@ class PayoutResource extends Resource
                                     ->required()
                                     ->step(0.001)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => 
+                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
@@ -207,7 +222,7 @@ class PayoutResource extends Resource
                                     ->required()
                                     ->step(0.001)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => 
+                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
@@ -230,7 +245,7 @@ class PayoutResource extends Resource
                                     ->step(0.001)
                                     ->helperText(__('admin.payout.adjustments_help'))
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => 
+                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
@@ -357,14 +372,14 @@ class PayoutResource extends Resource
                     ->label(__('admin.payout.fields.owner'))
                     ->searchable()
                     ->sortable()
-                    ->description(fn (OwnerPayout $record): string => 
+                    ->description(fn (OwnerPayout $record): string =>
                         $record->owner?->email ?? ''
                     ),
 
                 // Period
                 Tables\Columns\TextColumn::make('period_start')
                     ->label(__('admin.payout.fields.period'))
-                    ->formatStateUsing(fn (OwnerPayout $record): string => 
+                    ->formatStateUsing(fn (OwnerPayout $record): string =>
                         $record->period_start->format('d M') . ' - ' . $record->period_end->format('d M Y')
                     )
                     ->sortable(),
@@ -449,10 +464,10 @@ class PayoutResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'], fn ($q, $date) => 
+                            ->when($data['from'], fn ($q, $date) =>
                                 $q->where('period_start', '>=', $date)
                             )
-                            ->when($data['to'], fn ($q, $date) => 
+                            ->when($data['to'], fn ($q, $date) =>
                                 $q->where('period_end', '<=', $date)
                             );
                     }),
@@ -473,7 +488,7 @@ class PayoutResource extends Resource
                 // Edit Action
                 Tables\Actions\EditAction::make()
                     ->iconButton()
-                    ->visible(fn (OwnerPayout $record): bool => 
+                    ->visible(fn (OwnerPayout $record): bool =>
                         !$record->status->isTerminal()
                     ),
 
@@ -523,7 +538,7 @@ class PayoutResource extends Resource
                             ->required()
                             ->maxLength(100),
                     ])
-                    ->visible(fn (OwnerPayout $record): bool => 
+                    ->visible(fn (OwnerPayout $record): bool =>
                         $record->status === PayoutStatus::PROCESSING
                     )
                     ->action(function (OwnerPayout $record, array $data): void {
@@ -554,7 +569,7 @@ class PayoutResource extends Resource
                             ->rows(3)
                             ->maxLength(500),
                     ])
-                    ->visible(fn (OwnerPayout $record): bool => 
+                    ->visible(fn (OwnerPayout $record): bool =>
                         $record->status === PayoutStatus::PROCESSING
                     )
                     ->action(function (OwnerPayout $record, array $data): void {
@@ -752,7 +767,7 @@ class PayoutResource extends Resource
                                 Infolists\Components\TextEntry::make('adjustments')
                                     ->label(__('admin.payout.fields.adjustments'))
                                     ->money('OMR')
-                                    ->color(fn ($state): string => 
+                                    ->color(fn ($state): string =>
                                         $state > 0 ? 'success' : ($state < 0 ? 'danger' : 'gray')
                                     ),
 
@@ -766,7 +781,7 @@ class PayoutResource extends Resource
 
                         Infolists\Components\TextEntry::make('commission_rate')
                             ->label(__('admin.payout.fields.commission_rate'))
-                            ->formatStateUsing(fn ($state): string => 
+                            ->formatStateUsing(fn ($state): string =>
                                 number_format((float) $state, 2) . '%'
                             ),
                     ]),
