@@ -28,6 +28,9 @@ use Illuminate\Support\Facades\Auth;
 use Rmsramos\Activitylog\ActivitylogPlugin;
 use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
+use Vormkracht10\FilamentMails\Facades\FilamentMails;
+use Vormkracht10\FilamentMails\FilamentMailsPlugin;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -59,6 +62,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
                 EditProfile::class,
+            \App\Filament\Pages\Maintenance::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
@@ -81,7 +85,8 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
                 ActivitylogPlugin::make(),
                 FilamentSpatieLaravelBackupPlugin::make(),
-            FilamentSpatieLaravelHealthPlugin::make()
+                FilamentSpatieLaravelHealthPlugin::make(),
+                FilamentMailsPlugin::make()
             ])
             ->authMiddleware([
                 //Authenticate::class,
@@ -97,6 +102,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->sidebarCollapsibleOnDesktop()
             ->spa()
+            ->routes(fn() => FilamentMails::routes())
 
             //->locale(config('app.locale'))
             //->locales(['en' => 'English', 'ar' => 'العربية'])

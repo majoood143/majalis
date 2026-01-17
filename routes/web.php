@@ -143,6 +143,9 @@ require __DIR__ . '/auth.php';
 // Customer Routes - This now includes the new HallController routes
 require __DIR__ . '/customer.php';
 
+// Guest Booking Routes
+require __DIR__ . '/guest-booking.php';
+
 // REMOVE THESE DUPLICATE ROUTES - They're now in customer.php
 // Route::prefix('halls')->name('halls.')->group(function () {
 //     Route::get('/', [HallController::class, 'index'])->name('index');

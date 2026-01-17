@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use App\Events\Booking\BookingApproved;
 use App\Events\Booking\BookingRejected;
+use App\Filament\Components\GuestBookingComponents;
+
 
 /**
  * BookingResource for Owner Panel
@@ -433,6 +435,11 @@ class BookingResource extends OwnerResource
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+            GuestBookingComponents::guestBadgeColumn(),
+
+            // Optionally add token column for admins
+            GuestBookingComponents::guestTokenColumn(),
             ])
             ->filters([
                 // Hall Filter
@@ -524,7 +531,9 @@ class BookingResource extends OwnerResource
                             });
                     }))
                     ->toggle(),
-            ])
+            // Add booking type filter
+            GuestBookingComponents::bookingTypeFilter(),
+                    ])
             ->filtersFormColumns(2)
             ->actions([
                 // View Action

@@ -8,16 +8,18 @@ use App\Events\Booking\BookingApproved;
 use App\Events\Booking\BookingRejected;
 use App\Listeners\Booking\SendBookingApprovedNotification;
 use App\Listeners\Booking\SendBookingRejectedNotification;
+use App\Listeners\LinkGuestBookingsOnRegistration;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 /**
  * EventServiceProvider
- * 
+ *
  * Registers event-listener mappings for the application.
- * 
+ *
  * NOTE: If you already have an EventServiceProvider, merge the $listen array
  * with your existing events.
- * 
+ *
  * @package App\Providers
  */
 class EventServiceProvider extends ServiceProvider
@@ -28,10 +30,14 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
+
+        Registered::class => [
+            LinkGuestBookingsOnRegistration::class,
+        ],
         // =========================================================
         // BOOKING EVENTS
         // =========================================================
-        
+
         /**
          * Booking Approved Event
          * Triggered when a hall owner approves a pending booking.
@@ -51,19 +57,19 @@ class EventServiceProvider extends ServiceProvider
         // =========================================================
         // FUTURE EVENTS (uncomment when implemented)
         // =========================================================
-        
+
         // BookingConfirmed::class => [
         //     SendBookingConfirmedNotification::class,
         // ],
-        
+
         // BookingCancelled::class => [
         //     SendBookingCancelledNotification::class,
         // ],
-        
+
         // PaymentReceived::class => [
         //     SendPaymentReceivedNotification::class,
         // ],
-        
+
         // BalanceReceived::class => [
         //     SendBalanceReceivedNotification::class,
         // ],

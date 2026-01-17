@@ -24,6 +24,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
 use App\Filament\Traits\HasTranslations;
 use Filament\Tables\Actions\Action;
+use App\Filament\Components\GuestBookingComponents;
 
 
 
@@ -916,9 +917,17 @@ class BookingResource extends Resource
                     ->boolean()
                     ->getStateUsing(fn($record) => $record->balance_paid_at !== null)
                     ->visible(fn($record) => $record && $record->isAdvancePayment()),
+
+            // Add guest badge after customer name
+            GuestBookingComponents::guestBadgeColumn(),
+
+            // Optionally add token column for admins
+            GuestBookingComponents::guestTokenColumn(),
             ])
             ->filters([
-                //
+            //
+            // Add booking type filter
+            GuestBookingComponents::bookingTypeFilter(),
             ])
             ->actions([
                 ActionGroup::make([

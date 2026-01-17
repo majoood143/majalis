@@ -14,6 +14,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+
+        // Cleanup expired guest sessions hourly
+        $schedule->command('guest:cleanup-sessions')->hourly();
+
+        // Delete old expired sessions weekly
+        $schedule->command('guest:cleanup-sessions --delete-old --days=30')->weekly();
+
+        
         // Send booking reminders daily at 9 AM
         $schedule->job(new SendBookingReminders())
             ->dailyAt('09:00')

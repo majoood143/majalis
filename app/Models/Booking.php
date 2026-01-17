@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Traits\HasGuestBooking;
+
 
 /**
  * Booking Model
@@ -71,6 +73,7 @@ class Booking extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use HasGuestBooking;
 
     /**
      * The table associated with the model.
@@ -121,6 +124,12 @@ class Booking extends Model
         'completed_at',
         'invoice_path',
         'admin_notes',
+
+        // Guest booking fields
+        'is_guest_booking',
+        'guest_token',
+        'guest_token_expires_at',
+        'account_created_at',
     ];
 
     /**
@@ -146,6 +155,11 @@ class Booking extends Model
         'cancelled_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'completed_at' => 'datetime',
+
+        // Guest booking casts
+        'is_guest_booking' => 'boolean',
+        'guest_token_expires_at' => 'datetime',
+        'account_created_at' => 'datetime',
     ];
 
     /**

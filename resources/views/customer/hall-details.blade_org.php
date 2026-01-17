@@ -20,10 +20,10 @@
             <div class="mb-6 overflow-hidden bg-white rounded-lg shadow-md">
                 <div class="relative h-96">
                     @if($hall->featured_image)
-                        <img src="{{ Storage::url($hall->featured_image) }}" alt="{{ $hall->name }}"
-                            class="object-cover w-full h-full">
+                    <img src="{{ Storage::url($hall->featured_image) }}" alt="{{ $hall->name }}"
+                        class="object-cover w-full h-full">
                     @else
-                        <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500"></div>
+                    <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500"></div>
                     @endif
                 </div>
             </div>
@@ -41,13 +41,13 @@
                         </div>
                     </div>
                     @if($hall->average_rating > 0)
-                        <div class="flex items-center px-3 py-2 space-x-1 rounded-lg bg-yellow-50">
-                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <span class="font-semibold">{{ number_format($hall->average_rating, 1) }}</span>
-                            <span class="text-gray-600">({{ $hall->total_reviews }})</span>
-                        </div>
+                    <div class="flex items-center px-3 py-2 space-x-1 rounded-lg bg-yellow-50">
+                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span class="font-semibold">{{ number_format($hall->average_rating, 1) }}</span>
+                        <span class="text-gray-600">({{ $hall->total_reviews }})</span>
+                    </div>
                     @endif
                 </div>
 
@@ -80,39 +80,39 @@
 
             <!-- Features -->
             @if($features->count() > 0)
-                <div class="p-6 mb-6 bg-white rounded-lg shadow-md">
-                    <h3 class="mb-4 text-lg font-semibold">Features & Amenities</h3>
-                    <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-                        @foreach($features as $feature)
-                            <div class="flex items-center space-x-2">
+            <div class="p-6 mb-6 bg-white rounded-lg shadow-md">
+                <h3 class="mb-4 text-lg font-semibold">Features & Amenities</h3>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+                    @foreach($features as $feature)
+                    <div class="flex items-center space-x-2">
 
-                                <x-dynamic-component :component="$feature->icon" class="w-5 h-5 text-green-500" />
-                                <span class="text-gray-700">{{ $feature->name }}</span>
-                            </div>
-                        @endforeach
+                        <x-dynamic-component :component="$feature->icon" class="w-5 h-5 text-green-500" />
+                        <span class="text-gray-700">{{ $feature->name }}</span>
                     </div>
+                    @endforeach
                 </div>
+            </div>
             @endif
 
             <!-- Extra Services -->
             @if($hall->activeExtraServices->count() > 0)
-                <div class="p-6 mb-6 bg-white rounded-lg shadow-md">
-                    <h3 class="mb-4 text-lg font-semibold">Available Extra Services</h3>
-                    <div class="space-y-3">
-                        @foreach($hall->activeExtraServices as $service)
-                            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                                <div>
-                                    <div class="font-medium">{{ $service->name }}</div>
-                                    <div class="text-sm text-gray-600">{!! $service->description !!}</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="font-semibold text-indigo-600">{{ number_format($service->price, 3) }} OMR</div>
-                                    <div class="text-xs text-gray-500">{{ $service->unit }}</div>
-                                </div>
-                            </div>
-                        @endforeach
+            <div class="p-6 mb-6 bg-white rounded-lg shadow-md">
+                <h3 class="mb-4 text-lg font-semibold">Available Extra Services</h3>
+                <div class="space-y-3">
+                    @foreach($hall->activeExtraServices as $service)
+                    <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                        <div>
+                            <div class="font-medium">{{ $service->name }}</div>
+                            <div class="text-sm text-gray-600">{!! $service->description !!}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold text-indigo-600">{{ number_format($service->price, 3) }} OMR</div>
+                            <div class="text-xs text-gray-500">{{ $service->unit }}</div>
+                        </div>
                     </div>
+                    @endforeach
                 </div>
+            </div>
             @endif
         </div>
 
@@ -127,16 +127,17 @@
                     <div class="text-sm text-gray-600">per day</div>
                 </div>
 
+
                 @auth
-                    <a href="{{ route('customer.book', $hall->slug) }}"
-                        class="block w-full px-6 py-3 mb-4 font-semibold text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                        Book Now
-                    </a>
+                <a href="{{ route('customer.book', $hall->slug) }}"
+                    class="block w-full px-6 py-3 mb-4 font-semibold text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
+                    Book Now
+                </a>
                 @else
-                    <a href="{{ route('login') }}"
-                        class="block w-full px-6 py-3 mb-4 font-semibold text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                        Login to Book
-                    </a>
+                <a href="{{ route('login') }}"
+                    class="block w-full px-6 py-3 mb-4 font-semibold text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
+                    Login to Book
+                </a>
                 @endauth
 
                 <div class="space-y-3 text-sm">
@@ -177,27 +178,27 @@
 
     <!-- Similar Halls -->
     @if($similarHalls->count() > 0)
-        <div class="mt-12">
-            <h2 class="mb-6 text-2xl font-bold">Similar Halls</h2>
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                @foreach($similarHalls as $similar)
-                    <div class="overflow-hidden transition bg-white rounded-lg shadow-md hover:shadow-xl">
-                        <div class="h-48 bg-gray-200">
-                            @if($similar->main_image)
-                                <img src="{{ Storage::url($similar->main_image) }}" class="object-cover w-full h-full">
-                            @endif
-                        </div>
-                        <div class="p-4">
-                            <h3 class="mb-2 font-semibold">{{ $similar->name }}</h3>
-                            <div class="mb-2 font-bold text-indigo-600">{{ number_format($similar->price_per_day, 3) }} OMR/day</div>
-                            <a href="{{ route('customer.halls.show', $similar->slug) }}" class="text-sm text-indigo-600 hover:text-indigo-800">
-                                View Details →
-                            </a>
-                        </div>
-                    </div>
-                @endforeach
+    <div class="mt-12">
+        <h2 class="mb-6 text-2xl font-bold">Similar Halls</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            @foreach($similarHalls as $similar)
+            <div class="overflow-hidden transition bg-white rounded-lg shadow-md hover:shadow-xl">
+                <div class="h-48 bg-gray-200">
+                    @if($similar->main_image)
+                    <img src="{{ Storage::url($similar->main_image) }}" class="object-cover w-full h-full">
+                    @endif
+                </div>
+                <div class="p-4">
+                    <h3 class="mb-2 font-semibold">{{ $similar->name }}</h3>
+                    <div class="mb-2 font-bold text-indigo-600">{{ number_format($similar->price_per_day, 3) }} OMR/day</div>
+                    <a href="{{ route('customer.halls.show', $similar->slug) }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                        View Details →
+                    </a>
+                </div>
             </div>
+            @endforeach
         </div>
+    </div>
     @endif
 </div>
 @endsection
