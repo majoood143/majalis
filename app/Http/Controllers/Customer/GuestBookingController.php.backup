@@ -9,6 +9,8 @@ use App\Models\Booking;
 use App\Models\GuestSession;
 use App\Models\Hall;
 use App\Models\User;
+use App\Services\BookingService;
+use App\Services\PaymentService;
 use App\Notifications\GuestBookingOtpNotification;
 use App\Notifications\GuestBookingConfirmationNotification;
 use Illuminate\Http\Request;
@@ -419,9 +421,12 @@ class GuestBookingController extends Controller
                 ->with('error', __('guest.session_invalid'));
         }
 
+        // Get booking service
+        $bookingService = app(BookingService::class);
+
         // Validate booking data
         $validator = Validator::make($request->all(), [
-            'booking_date' => ['required', 'date', 'after_or_equal:today'],
+            'booking_date' => ['required', 'date', 'after:today'],
             'time_slot' => ['required', 'in:morning,afternoon,evening,full_day'],
             'number_of_guests' => [
                 'required',
@@ -443,8 +448,8 @@ class GuestBookingController extends Controller
                 ->withInput();
         }
 
-        // Check availability using self-contained method
-        $isAvailable = $this->isSlotAvailable(
+        // Check availability
+        $isAvailable = $bookingService->checkAvailability(
             $hall,
             $request->input('booking_date'),
             $request->input('time_slot')
@@ -452,7 +457,7 @@ class GuestBookingController extends Controller
 
         if (!$isAvailable) {
             return back()
-                ->with('error', __('halls.slot_not_available') !== 'halls.slot_not_available' ? __('halls.slot_not_available') : 'This slot is not available.')
+                ->with('error', __('halls.slot_not_available'))
                 ->withInput();
         }
 
@@ -600,14 +605,7 @@ class GuestBookingController extends Controller
         }
 
         try {
-            // Check if PaymentService exists
-            if (!class_exists(\App\Services\PaymentService::class)) {
-                Log::error('PaymentService class not found - payment integration required');
-                
-                return back()->with('error', __('Payment service not configured. Please contact support.'));
-            }
-            
-            $paymentService = app(\App\Services\PaymentService::class);
+            $paymentService = app(PaymentService::class);
 
             // Determine payment amount based on hall settings
             $hall = $booking->hall;
@@ -674,17 +672,12 @@ class GuestBookingController extends Controller
         }
 
         try {
-            // Verify payment with gateway if PaymentService exists
+            $paymentService = app(PaymentService::class);
+
+            // Verify payment with gateway
             $sessionId = $request->query('session_id');
-            if ($sessionId && $booking->payment && class_exists(\App\Services\PaymentService::class)) {
-                $paymentService = app(\App\Services\PaymentService::class);
+            if ($sessionId && $booking->payment) {
                 $paymentService->verifyPayment($booking->payment, $sessionId);
-            } else {
-                // Mark booking as confirmed if no payment verification available
-                $booking->update([
-                    'status' => 'confirmed',
-                    'payment_status' => 'paid',
-                ]);
             }
 
             // Update guest session if exists
@@ -877,148 +870,40 @@ class GuestBookingController extends Controller
 
     /**
      * Check hall availability (AJAX endpoint).
-     * 
-     * Returns availability for the requested slot AND all other slots.
-     * This allows the frontend to show which slots are still available.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function checkAvailability(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'hall_id' => ['required', 'exists:halls,id'],
-                'date' => ['required', 'date', 'after_or_equal:today'],
-                'time_slot' => ['required', 'in:morning,afternoon,evening,full_day'],
-            ]);
+        $validator = Validator::make($request->all(), [
+            'hall_id' => ['required', 'exists:halls,id'],
+            'date' => ['required', 'date', 'after:today'],
+            'time_slot' => ['required', 'in:morning,afternoon,evening,full_day'],
+        ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'available' => false,
-                    'message' => $validator->errors()->first(),
-                    'slots' => null,
-                ], 422);
-            }
-
-            $hall = Hall::find($request->input('hall_id'));
-            $date = $request->input('date');
-            $timeSlot = $request->input('time_slot');
-
-            // Check availability for requested slot
-            $isAvailable = $this->isSlotAvailable($hall, $date, $timeSlot);
-
-            // Get availability for all slots (useful for UI)
-            $allSlotsAvailability = $this->getAvailableSlots($hall, $date);
-
-            // Get which slots are already booked
-            $bookedSlots = $this->getBookedSlots($hall, $date);
-
-            return response()->json([
-                'available' => $isAvailable,
-                'message' => $isAvailable
-                    ? (__('halls.slot_available') !== 'halls.slot_available' ? __('halls.slot_available') : 'This slot is available!')
-                    : (__('halls.slot_not_available') !== 'halls.slot_not_available' ? __('halls.slot_not_available') : 'This slot is not available.'),
-                'slots' => $allSlotsAvailability,
-                'booked_slots' => $bookedSlots,
-            ]);
-        } catch (Exception $e) {
-            Log::error('Availability check failed', [
-                'error' => $e->getMessage(),
-                'request' => $request->all(),
-            ]);
-
+        if ($validator->fails()) {
             return response()->json([
                 'available' => false,
-                'message' => 'Error checking availability. Please try again.',
-                'slots' => null,
-            ], 500);
-        }
-    }
-
-    /**
-     * Check if a time slot is available for a hall on a specific date.
-     *
-     * @param Hall $hall
-     * @param string $date
-     * @param string $timeSlot
-     * @return bool
-     */
-    protected function isSlotAvailable(Hall $hall, string $date, string $timeSlot): bool
-    {
-        /*
-         * Time Slot Availability Logic:
-         * 
-         * Available slots: morning, afternoon, evening, full_day
-         * 
-         * Rules:
-         * 1. If 'full_day' is booked → ALL slots are blocked
-         * 2. If 'morning' is booked → 'morning' and 'full_day' are blocked
-         * 3. If 'afternoon' is booked → 'afternoon' and 'full_day' are blocked
-         * 4. If 'evening' is booked → 'evening' and 'full_day' are blocked
-         * 5. If checking 'full_day' → blocked if ANY slot is already booked
-         */
-
-        // Base query for existing bookings on this date
-        $baseQuery = Booking::where('hall_id', $hall->id)
-            ->where('booking_date', $date)
-            ->whereIn('status', ['confirmed', 'pending']);
-
-        // If requesting full_day, check if ANY slot is already booked
-        if ($timeSlot === 'full_day') {
-            $hasAnyBooking = (clone $baseQuery)
-                ->whereIn('time_slot', ['morning', 'afternoon', 'evening', 'full_day'])
-                ->exists();
-            
-            return !$hasAnyBooking;
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
 
-        // For individual slots (morning, afternoon, evening):
-        // Check if this specific slot OR full_day is already booked
-        $conflictingBooking = (clone $baseQuery)
-            ->where(function ($query) use ($timeSlot) {
-                $query->where('time_slot', $timeSlot)      // Same slot booked
-                      ->orWhere('time_slot', 'full_day');  // Full day booked
-            })
-            ->exists();
+        $hall = Hall::find($request->input('hall_id'));
+        $bookingService = app(BookingService::class);
 
-        return !$conflictingBooking;
-    }
+        $isAvailable = $bookingService->checkAvailability(
+            $hall,
+            $request->input('date'),
+            $request->input('time_slot')
+        );
 
-    /**
-     * Get all available slots for a hall on a specific date.
-     * Useful for showing which slots are still available.
-     *
-     * @param Hall $hall
-     * @param string $date
-     * @return array<string, bool>
-     */
-    protected function getAvailableSlots(Hall $hall, string $date): array
-    {
-        $slots = ['morning', 'afternoon', 'evening', 'full_day'];
-        $availability = [];
-
-        foreach ($slots as $slot) {
-            $availability[$slot] = $this->isSlotAvailable($hall, $date, $slot);
-        }
-
-        return $availability;
-    }
-
-    /**
-     * Get booked slots for a hall on a specific date.
-     *
-     * @param Hall $hall
-     * @param string $date
-     * @return array<string>
-     */
-    protected function getBookedSlots(Hall $hall, string $date): array
-    {
-        return Booking::where('hall_id', $hall->id)
-            ->where('booking_date', $date)
-            ->whereIn('status', ['confirmed', 'pending'])
-            ->pluck('time_slot')
-            ->toArray();
+        return response()->json([
+            'available' => $isAvailable,
+            'message' => $isAvailable
+                ? __('halls.slot_available')
+                : __('halls.slot_not_available'),
+        ]);
     }
 
     /**

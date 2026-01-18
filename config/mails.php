@@ -92,7 +92,7 @@ return [
 
     'notifications' => [
         'mail' => [
-            'to' => ['test@example.com'],
+            'to' => ['m.m.h.89@hotmail.com'],
         ],
 
         'discord' => [
