@@ -31,6 +31,8 @@ class MaintenanceCommands extends Component
             'debug_mode' => config('app.debug'),
             'timezone' => config('app.timezone'),
             'maintenance_mode' => app()->isDownForMaintenance(),
+            'queue_driver' => config('queue.default'),
+            'queue_connection' => config('queue.connections.' . config('queue.default') . '.driver', 'unknown'),
         ];
     }
 
@@ -303,5 +305,127 @@ class MaintenanceCommands extends Component
             'logSize' => $this->getLogSize(),
             'cacheSize' => $this->getCacheSize(),
         ]);
+    }
+
+    // Add these methods to your MaintenanceCommands Livewire component
+
+    // Queue Management Methods
+    public function restartQueue()
+    {
+        try {
+            // Stop any running queue workers
+            Artisan::call('queue:restart');
+            $this->output = "🔄 Queue workers restarted successfully!\n";
+            $this->output .= "All queue workers will gracefully restart on their next job.";
+            $this->addToHistory('queue:restart', 'success', 0);
+            $this->dispatch('notify', title: 'Success', message: 'Queue restarted', status: 'success');
+        } catch (\Exception $e) {
+            $this->output = "❌ Error restarting queue: " . $e->getMessage();
+            $this->addToHistory('queue:restart', 'error', 0);
+        }
+    }
+
+    public function clearFailedJobs()
+    {
+        try {
+            $count = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+            \Illuminate\Support\Facades\DB::table('failed_jobs')->truncate();
+
+            $this->output = "🗑️ Cleared {$count} failed jobs from the queue!\n";
+            $this->output .= "Failed jobs table has been emptied.";
+            $this->addToHistory('clear_failed_jobs', 'success', 0);
+            $this->dispatch('notify', title: 'Success', message: "Cleared {$count} failed jobs", status: 'success');
+        } catch (\Exception $e) {
+            $this->output = "❌ Error clearing failed jobs: " . $e->getMessage();
+            $this->addToHistory('clear_failed_jobs', 'error', 0);
+        }
+    }
+
+    public function retryFailedJobs()
+    {
+        try {
+            Artisan::call('queue:retry all');
+            $output = Artisan::output();
+            $this->output = "🔄 Retrying all failed jobs...\n\n" . $output;
+            $this->addToHistory('queue:retry all', 'success', 0);
+            $this->dispatch('notify', title: 'Success', message: 'Failed jobs retried', status: 'success');
+        } catch (\Exception $e) {
+            $this->output = "❌ Error retrying failed jobs: " . $e->getMessage();
+            $this->addToHistory('queue:retry all', 'error', 0);
+        }
+    }
+
+    public function flushFailedJobs()
+    {
+        try {
+            Artisan::call('queue:flush');
+            $this->output = "🗑️ Flushed all failed jobs!\n";
+            $this->output .= "All failed jobs have been permanently deleted.";
+            $this->addToHistory('queue:flush', 'success', 0);
+            $this->dispatch('notify', title: 'Success', message: 'Failed jobs flushed', status: 'success');
+        } catch (\Exception $e) {
+            $this->output = "❌ Error flushing failed jobs: " . $e->getMessage();
+            $this->addToHistory('queue:flush', 'error', 0);
+        }
+    }
+
+    public function checkQueueStatus()
+    {
+        try {
+            Artisan::call('queue:work --once');
+            $output = Artisan::output();
+
+            if (str_contains($output, 'Processing job')) {
+                $this->output = "✅ Queue worker is functional!\n\n" . $output;
+            } else {
+                $this->output = "⚠️ Queue status check completed.\n\n" . $output;
+            }
+
+            $this->addToHistory('queue:status', 'success', 0);
+        } catch (\Exception $e) {
+            $this->output = "❌ Error checking queue status: " . $e->getMessage();
+            $this->addToHistory('queue:status', 'error', 0);
+        }
+    }
+
+    // For daemon queue worker (with caution)
+    public function startDaemonQueue()
+    {
+        $this->output = "⚠️ WARNING: Starting daemon queue worker...\n\n";
+        $this->output .= "This will start a long-running queue worker process.\n";
+        $this->output .= "Make sure to monitor it and stop it when needed.\n\n";
+        $this->output .= "Command to run manually:\n";
+        $this->output .= "php artisan queue:work --daemon\n\n";
+        $this->output .= "To stop: Press Ctrl+C or kill the process.\n";
+        $this->output .= "For production, consider using Supervisor instead.";
+
+        $this->dispatch(
+            'notify',
+            title: 'Manual Action Required',
+            message: 'Daemon queue worker needs to be started manually',
+            status: 'warning'
+        );
+    }
+
+    // Get queue statistics
+    public function getQueueStats()
+    {
+        try {
+            $pending = \Illuminate\Support\Facades\DB::table('jobs')->count();
+            $failed = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+
+            $this->output = "📊 Queue Statistics:\n\n";
+            $this->output .= "Pending Jobs: {$pending}\n";
+            $this->output .= "Failed Jobs: {$failed}\n\n";
+
+            if ($failed > 0) {
+                $this->output .= "⚠️ You have {$failed} failed jobs. Consider retrying or clearing them.";
+            }
+
+            $this->addToHistory('queue:stats', 'success', 0);
+        } catch (\Exception $e) {
+            $this->output = "❌ Error getting queue stats: " . $e->getMessage();
+            $this->addToHistory('queue:stats', 'error', 0);
+        }
     }
 }
