@@ -1,10 +1,10 @@
-{{-- 
+{{--
     Booking Reminder Email - HTML Template (English)
     Location: resources/views/emails/booking/reminder.blade.php
-    
+
     This template is used to render the HTML version of the booking reminder email.
     Supports Filament and Laravel mail component styling.
-    
+
     Variables available:
     - $booking: Booking model instance
     - $hallName: Hall name (localized)
@@ -40,7 +40,7 @@
 
     {{-- Main Message --}}
     <p style="color: #374151; margin: 20px 0; line-height: 1.6; font-size: 16px;">
-        {{ __('This is a friendly reminder about your upcoming booking at') }} <strong>{{ $hallName }}</strong>. 
+        {{ __('This is a friendly reminder about your upcoming booking at') }} <strong>{{ $hallName }}</strong>.
         {{ __('Please find the booking details below.') }}
     </p>
 
@@ -126,9 +126,9 @@
 
     {{-- Call to Action Button --}}
     <div style="text-align: center; margin: 30px 0;">
-        <x-mail::button :url="route('customer.bookings.show', $booking->id)" color="primary">
+        {{-- <x-mail::button :url="route('customer.bookings.show', $booking->id)" color="primary">
             {{ __('View Full Booking Details') }}
-        </x-mail::button>
+        </x-mail::button> --}}
     </div>
 
     {{-- Custom Message Section --}}
