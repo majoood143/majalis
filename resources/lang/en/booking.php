@@ -591,6 +591,12 @@ return [
         'booking_completed' => 'Booking has been marked as completed.',
         'booking_cancelled' => 'Booking has been cancelled successfully.',
         'booking_confirmed' => 'Booking has been confirmed successfully.',
+        'validation_error_title' => 'Validation Error',
+        'validation_error_body' => 'An error occurred during validation: :error',
+        'creation_error_title' => 'Booking Creation Failed',
+        'creation_error_body' => 'Could not create booking: :error',
+        'unexpected_error_title' => 'Unexpected Error',
+        'unexpected_error_body' => 'An unexpected error occurred: :error',
     ],
 
     /*

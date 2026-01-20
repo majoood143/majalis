@@ -50,10 +50,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font('Cairo') // Arabic-friendly font
             ->brandName('Majalis Admin')
-            ->brandLogo(asset('images/logo.png'))
-            ->darkModeBrandLogo(asset('images/logo.png'))
+            ->brandLogo(asset('images/logo.webp'))
+            ->darkModeBrandLogo(asset('images/logo.webp'))
             ->brandLogoHeight('2.5rem')
-            ->favicon(asset('images/favicon.png'))
+            ->favicon(asset('images/favicon.ico'))
 
             // ADD LOCALE CONFIGURATION
 

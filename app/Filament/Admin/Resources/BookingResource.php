@@ -1480,6 +1480,7 @@ class BookingResource extends Resource
 
                 ])
             ])
+            ->defaultSort('created_at', 'desc')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

@@ -42,9 +42,9 @@ class OwnerPanelProvider extends PanelProvider
             ])
             ->font('Cairo') // Arabic-friendly font
             ->brandName(__('owner.brand.name', ['app' => config('app.name')]))
-            ->brandLogo(asset('images/logo.png'))
-            ->darkModeBrandLogo(asset('images/logo.png'))
-            ->favicon(asset('images/favicon.png'))
+            ->brandLogo(asset('images/logo.webp'))
+            ->darkModeBrandLogo(asset('images/logo.webp'))
+            ->favicon(asset('images/favicon.ico'))
             ->discoverResources(in: app_path('Filament/Owner/Resources'), for: 'App\\Filament\\Owner\\Resources')
             ->discoverPages(in: app_path('Filament/Owner/Pages'), for: 'App\\Filament\\Owner\\Pages')
             ->discoverWidgets(in: app_path('Filament/Owner/Widgets'), for: 'App\\Filament\\Owner\\Widgets')
