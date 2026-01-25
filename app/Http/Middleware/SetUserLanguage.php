@@ -64,7 +64,7 @@ class SetUserLanguage
             $user = $this->getAuthenticatedUser();
 
             // Safely get language preference with fallback
-            $locale = $user?->language_preference ?? Session::get('locale') ?? config('app.locale', 'en');
+            $locale = $user?->language_preference ?? Session::get('locale') ?? config('app.locale', 'ar');
 
             // Only store in session if we got a valid locale
             if ($locale) {

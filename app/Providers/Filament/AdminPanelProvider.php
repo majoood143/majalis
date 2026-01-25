@@ -30,6 +30,9 @@ use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
 use Vormkracht10\FilamentMails\Facades\FilamentMails;
 use Vormkracht10\FilamentMails\FilamentMailsPlugin;
+use Guava\FilamentKnowledgeBase\Plugins\KnowledgeBasePlugin;
+use Guava\FilamentKnowledgeBase\Plugins\KnowledgeBaseCompanionPlugin;
+
 
 
 class AdminPanelProvider extends PanelProvider
@@ -54,7 +57,8 @@ class AdminPanelProvider extends PanelProvider
             ->darkModeBrandLogo(asset('images/logo.webp'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/favicon.ico'))
-
+            ->passwordReset()
+            ->profile()
             // ADD LOCALE CONFIGURATION
 
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
@@ -62,7 +66,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
                 EditProfile::class,
-            \App\Filament\Pages\Maintenance::class,
+                \App\Filament\Pages\Maintenance::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
@@ -86,7 +90,8 @@ class AdminPanelProvider extends PanelProvider
                 ActivitylogPlugin::make(),
                 FilamentSpatieLaravelBackupPlugin::make(),
                 FilamentSpatieLaravelHealthPlugin::make(),
-                FilamentMailsPlugin::make()
+                FilamentMailsPlugin::make(),
+                //KnowledgeBaseCompanionPlugin::make(),
             ])
             ->authMiddleware([
                 //Authenticate::class,

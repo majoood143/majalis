@@ -60,7 +60,7 @@ class BookingReminderMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.booking.reminder',
+            view: 'emails.booking.reminder',
             with: [
                 'booking' => $this->booking,
                 'hallName' => $this->getHallName(),

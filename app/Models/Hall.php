@@ -53,6 +53,7 @@ class Hall extends Model
      * @var array<string>
      */
     protected $fillable = [
+        'region_id',
         'city_id',
         'owner_id',
         'name',
@@ -158,6 +159,14 @@ class Hall extends Model
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the region that owns the hall.
+     */
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
     }
 
     /**

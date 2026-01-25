@@ -431,6 +431,7 @@ return [
 
     // Basic Info Tab
     'city' => 'المدينة',
+    'region' => 'المنطقة',
     'owner' => 'المالك',
     'name_english' => 'الاسم (الإنجليزية)',
     'name_arabic' => 'الاسم (العربية)',
@@ -594,6 +595,8 @@ return [
     // Fields
     'fields' => [
         'city' => 'المدينة',
+        'region' => 'المنطقة',
+        'hall_name' => 'اسم القاعة',
         'city_filter' => 'تصفية حسب المدينة (اختياري)',
         'update_type' => 'نوع التحديث',
         'percentage' => 'النسبة المئوية (%)',

@@ -129,15 +129,22 @@ class ViewHall extends ViewRecord
                             ->visible(fn($record) => $record->featured_image),
 
                         // Basic info grid
-                        Infolists\Components\Grid::make(3)
+                        Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('name')
-                                    ->label(__('Hall Name'))
+                                    ->label(__('admin.fields.hall_name'))
                                     ->formatStateUsing(fn($record) => $record->name)
                                     ->badge()
                                     ->color('primary')
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
                                     ->icon('heroicon-o-building-office-2'),
+
+                    Infolists\Components\TextEntry::make('region.name')
+                        ->label(__('admin.fields.region'))
+                        ->formatStateUsing(fn($record) => $record->region->name ?? 'N/A')
+                        ->badge()
+                        ->color('success')
+                        ->icon('heroicon-o-map-pin'),
 
                                 Infolists\Components\TextEntry::make('city.name')
                                     ->label(__('admin.fields.city'))

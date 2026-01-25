@@ -593,6 +593,8 @@ return [
     // Fields
     'fields' => [
         'city' => 'City',
+        'region' => 'Region',
+        'hall_name' => 'Hall Name',
         'city_filter' => 'Filter by City (Optional)',
         'update_type' => 'Update Type',
         'percentage' => 'Percentage (%)',

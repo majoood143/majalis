@@ -1,34 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Services;
 
-use App\Mail\BookingReminderMail;
 use App\Models\Booking;
 use App\Models\User;
-use Exception;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use Exception;
 
-/**
- * NotificationService
- *
- * Handles sending notifications to customers, owners, and admins.
- * Supports email, SMS, and WhatsApp channels.
- *
- * @package App\Services
- */
 class NotificationService
 {
     /**
      * Send booking created notification
-     *
-     * Notifies both customer and hall owner when a new booking is created.
-     *
-     * @param Booking $booking The newly created booking
-     * @return void
      */
     public function sendBookingCreatedNotification(Booking $booking): void
     {
@@ -66,11 +50,6 @@ class NotificationService
 
     /**
      * Send booking confirmed notification
-     *
-     * Notifies customer when their booking is confirmed.
-     *
-     * @param Booking $booking The confirmed booking
-     * @return void
      */
     public function sendBookingConfirmedNotification(Booking $booking): void
     {
@@ -100,11 +79,6 @@ class NotificationService
 
     /**
      * Send booking cancelled notification
-     *
-     * Notifies customer and hall owner when a booking is cancelled.
-     *
-     * @param Booking $booking The cancelled booking
-     * @return void
      */
     public function sendBookingCancelledNotification(Booking $booking): void
     {
@@ -143,11 +117,6 @@ class NotificationService
 
     /**
      * Send booking completed notification
-     *
-     * Notifies customer when their booking is completed with a review request.
-     *
-     * @param Booking $booking The completed booking
-     * @return void
      */
     public function sendBookingCompletedNotification(Booking $booking): void
     {
@@ -176,148 +145,40 @@ class NotificationService
     }
 
     /**
-     * Send booking reminder notification
-     *
-     * Sends a reminder to the customer about their upcoming booking.
-     * Can be triggered automatically (24 hours before) or manually by admin.
-     *
-     * @param Booking $booking The booking to remind about
-     * @param bool $manual Whether this is a manual reminder (bypasses day check)
-     * @param string|null $customMessage Optional custom message from admin
-     * @return bool True if notification was sent, false otherwise
-     * @throws Exception If the booking is not eligible for reminder
+     * Send booking reminder (24 hours before)
      */
-    public function sendBookingReminderNotification(
-        Booking $booking,
-        bool $manual = false,
-        ?string $customMessage = null
-    ): bool {
+    public function sendBookingReminderNotification(Booking $booking): void
+    {
         try {
             $daysUntil = $booking->getDaysUntilBooking();
 
-            // Validate booking is eligible for reminder
-            if (!$booking->isConfirmed()) {
-                throw new Exception(__('booking.errors.reminder_not_confirmed'));
+            if ($daysUntil === 1) {
+                // Send email
+                $this->sendEmail(
+                    $booking->customer_email,
+                    'Reminder: Your booking is tomorrow!',
+                    'emails.booking.reminder',
+                    ['booking' => $booking]
+                );
+
+                // Send SMS
+                $this->sendSMS(
+                    $booking->customer_phone,
+                    "Reminder: Your booking {$booking->booking_number} at {$booking->hall->name} is tomorrow at {$booking->time_slot}. We look forward to seeing you!"
+                );
+
+                Log::info('Booking reminder sent', ['booking_id' => $booking->id]);
             }
-
-            if ($daysUntil < 0) {
-                throw new Exception(__('booking.errors.reminder_past_booking'));
-            }
-
-            // For automatic reminders, only send if booking is tomorrow
-            // For manual reminders, allow sending regardless of days
-            if (!$manual && $daysUntil !== 1) {
-                Log::info('Skipping automatic reminder - booking not tomorrow', [
-                    'booking_id' => $booking->id,
-                    'days_until' => $daysUntil
-                ]);
-                return false;
-            }
-
-            // Validate customer email exists
-            if (empty($booking->customer_email)) {
-                throw new Exception(__('booking.errors.reminder_no_email'));
-            }
-
-            // Load required relationships
-            $booking->loadMissing(['hall', 'hall.city']);
-
-            // Send email using BookingReminderMail Mailable
-            Mail::to($booking->customer_email)
-                ->send(new BookingReminderMail($booking, $customMessage));
-
-            // Send SMS reminder
-            $hallName = $this->getHallName($booking);
-            $smsMessage = $this->buildReminderSmsMessage($booking, $hallName, $daysUntil);
-            $this->sendSMS($booking->customer_phone, $smsMessage);
-
-            Log::info('Booking reminder sent', [
-                'booking_id' => $booking->id,
-                'manual' => $manual,
-                'days_until' => $daysUntil,
-                'email' => $booking->customer_email
-            ]);
-
-            return true;
         } catch (Exception $e) {
             Log::error('Failed to send booking reminder', [
                 'booking_id' => $booking->id,
-                'manual' => $manual,
                 'error' => $e->getMessage()
             ]);
-
-            // Re-throw exception for manual reminders so UI can show error
-            if ($manual) {
-                throw $e;
-            }
-
-            return false;
         }
-    }
-
-    /**
-     * Build SMS message for booking reminder
-     *
-     * @param Booking $booking The booking
-     * @param string $hallName The hall name
-     * @param int $daysUntil Days until booking
-     * @return string The SMS message
-     */
-    protected function buildReminderSmsMessage(Booking $booking, string $hallName, int $daysUntil): string
-    {
-        $timeLabel = match ($booking->time_slot) {
-            'morning' => __('booking.time_slots.morning'),
-            'afternoon' => __('booking.time_slots.afternoon'),
-            'evening' => __('booking.time_slots.evening'),
-            'full_day' => __('booking.time_slots.full_day'),
-            default => $booking->time_slot
-        };
-
-        if ($daysUntil === 0) {
-            return __('booking.sms.reminder_today', [
-                'booking_number' => $booking->booking_number,
-                'hall' => $hallName,
-                'time' => $timeLabel
-            ]);
-        } elseif ($daysUntil === 1) {
-            return __('booking.sms.reminder_tomorrow', [
-                'booking_number' => $booking->booking_number,
-                'hall' => $hallName,
-                'time' => $timeLabel
-            ]);
-        } else {
-            return __('booking.sms.reminder_days', [
-                'booking_number' => $booking->booking_number,
-                'hall' => $hallName,
-                'date' => $booking->booking_date->format('d M Y'),
-                'time' => $timeLabel,
-                'days' => $daysUntil
-            ]);
-        }
-    }
-
-    /**
-     * Get the hall name in the current locale
-     *
-     * @param Booking $booking The booking
-     * @return string The hall name
-     */
-    protected function getHallName(Booking $booking): string
-    {
-        $name = $booking->hall->name ?? 'Hall';
-
-        if (is_array($name)) {
-            return $name[app()->getLocale()] ?? $name['en'] ?? 'Hall';
-        }
-
-        return (string) $name;
     }
 
     /**
      * Send payment successful notification
-     *
-     * @param Booking $booking The booking with successful payment
-     * @return void
      */
     public function sendPaymentSuccessNotification(Booking $booking): void
     {
@@ -345,9 +206,6 @@ class NotificationService
 
     /**
      * Send payment failed notification
-     *
-     * @param Booking $booking The booking with failed payment
-     * @return void
      */
     public function sendPaymentFailedNotification(Booking $booking): void
     {
@@ -369,14 +227,7 @@ class NotificationService
     }
 
     /**
-     * Send email using a blade view
-     *
-     * @param string $to Recipient email address
-     * @param string $subject Email subject
-     * @param string $view Blade view path
-     * @param array<string, mixed> $data Data to pass to view
-     * @return void
-     * @throws Exception If email sending fails
+     * Send email
      */
     protected function sendEmail(string $to, string $subject, string $view, array $data = []): void
     {
@@ -384,10 +235,7 @@ class NotificationService
             Mail::send($view, $data, function ($message) use ($to, $subject) {
                 $message->to($to)
                     ->subject($subject)
-                    ->from(
-                        config('mail.from.address', 'noreply@majalis.om'),
-                        config('mail.from.name', 'Majalis')
-                    );
+                    ->from(config('mail.from.address'), config('mail.from.name'));
             });
 
             Log::info('Email sent', ['to' => $to, 'subject' => $subject]);
@@ -402,38 +250,29 @@ class NotificationService
     }
 
     /**
-     * Send SMS message
-     *
-     * @param string|null $phone Recipient phone number
-     * @param string $message SMS message content
-     * @return void
+     * Send SMS (using Oman SMS provider)
      */
-    protected function sendSMS(?string $phone, string $message): void
+    protected function sendSMS(string $phone, string $message): void
     {
-        if (empty($phone)) {
-            Log::warning('SMS skipped - no phone number provided');
-            return;
-        }
-
         try {
-            // Format phone number (ensure it has country code)
-            $formattedPhone = $this->formatPhoneNumber($phone);
+            $smsProvider = config('services.sms.provider');
+            $apiKey = config('services.sms.api_key');
+            $apiUrl = config('services.sms.api_url');
+            $sender = config('services.sms.sender_name', 'Majalis');
 
-            // Get SMS API configuration
-            $smsApiUrl = config('services.sms.api_url');
-            $smsApiKey = config('services.sms.api_key');
-
-            if (empty($smsApiUrl) || empty($smsApiKey)) {
-                Log::warning('SMS not configured - skipping', ['phone' => $formattedPhone]);
+            if (!$apiKey || !$apiUrl) {
+                Log::warning('SMS configuration missing, skipping SMS', ['phone' => $phone]);
                 return;
             }
 
-            // Send SMS via API
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $smsApiKey,
-                'Content-Type' => 'application/json',
-            ])->post($smsApiUrl, [
-                'phone' => $formattedPhone,
+            // Format phone number (Oman format)
+            $formattedPhone = $this->formatOmanPhone($phone);
+
+            // Send via configured SMS provider
+            $response = Http::post($apiUrl, [
+                'api_key' => $apiKey,
+                'sender' => $sender,
+                'recipient' => $formattedPhone,
                 'message' => $message,
             ]);
 
@@ -446,7 +285,7 @@ class NotificationService
                 ]);
             }
         } catch (Exception $e) {
-            Log::error('SMS sending failed', [
+            Log::error('SMS sending exception', [
                 'phone' => $phone,
                 'error' => $e->getMessage()
             ]);
@@ -454,32 +293,38 @@ class NotificationService
     }
 
     /**
-     * Send WhatsApp message
-     *
-     * @param string|null $phone Recipient phone number
-     * @param string $message Message content
-     * @return void
+     * Format phone number for Oman
      */
-    protected function sendWhatsApp(?string $phone, string $message): void
+    protected function formatOmanPhone(string $phone): string
     {
-        if (empty($phone)) {
-            return;
+        // Remove all non-numeric characters
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // If starts with +968, remove it
+        if (str_starts_with($phone, '968')) {
+            $phone = substr($phone, 3);
         }
 
+        // Ensure it starts with country code
+        return '968' . $phone;
+    }
+
+    /**
+     * Send WhatsApp message (if configured)
+     */
+    public function sendWhatsAppMessage(string $phone, string $message): void
+    {
         try {
-            // Format phone number
-            $formattedPhone = $this->formatPhoneNumber($phone);
-
-            // Get WhatsApp API configuration
-            $whatsappApiUrl = config('services.whatsapp.api_url');
             $whatsappApiKey = config('services.whatsapp.api_key');
+            $whatsappApiUrl = config('services.whatsapp.api_url');
 
-            if (empty($whatsappApiUrl) || empty($whatsappApiKey)) {
-                Log::warning('WhatsApp not configured - skipping', ['phone' => $formattedPhone]);
+            if (!$whatsappApiKey || !$whatsappApiUrl) {
+                Log::info('WhatsApp not configured, skipping');
                 return;
             }
 
-            // Send via WhatsApp Business API
+            $formattedPhone = $this->formatOmanPhone($phone);
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $whatsappApiKey,
             ])->post($whatsappApiUrl, [
@@ -499,33 +344,7 @@ class NotificationService
     }
 
     /**
-     * Format phone number with country code
-     *
-     * @param string $phone Phone number
-     * @return string Formatted phone number
-     */
-    protected function formatPhoneNumber(string $phone): string
-    {
-        // Remove any non-numeric characters except +
-        $phone = preg_replace('/[^0-9+]/', '', $phone);
-
-        // If phone doesn't start with + or country code, add Oman code
-        if (!str_starts_with($phone, '+') && !str_starts_with($phone, '968')) {
-            $phone = '+968' . $phone;
-        } elseif (str_starts_with($phone, '968')) {
-            $phone = '+' . $phone;
-        }
-
-        return $phone;
-    }
-
-    /**
      * Send notification to admin
-     *
-     * @param string $subject Email subject
-     * @param string $message Message content
-     * @param array<string, mixed> $data Additional data
-     * @return void
      */
     public function sendAdminNotification(string $subject, string $message, array $data = []): void
     {
@@ -545,9 +364,6 @@ class NotificationService
 
     /**
      * Send new owner verification request notification
-     *
-     * @param User $owner The new owner
-     * @return void
      */
     public function sendOwnerVerificationRequestNotification(User $owner): void
     {
@@ -572,9 +388,6 @@ class NotificationService
 
     /**
      * Send owner verified notification
-     *
-     * @param User $owner The verified owner
-     * @return void
      */
     public function sendOwnerVerifiedNotification(User $owner): void
     {
@@ -592,6 +405,25 @@ class NotificationService
             );
         } catch (Exception $e) {
             Log::error('Owner verified notification failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Send review received notification to owner
+     */
+    public function sendReviewReceivedNotification($review): void
+    {
+        try {
+            $owner = $review->hall->owner;
+
+            $this->sendEmail(
+                $owner->email,
+                'New Review Received',
+                'emails.review.received',
+                ['review' => $review]
+            );
+        } catch (Exception $e) {
+            Log::error('Review notification failed', ['error' => $e->getMessage()]);
         }
     }
 }

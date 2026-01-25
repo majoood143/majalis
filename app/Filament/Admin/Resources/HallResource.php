@@ -34,6 +34,8 @@ use Filament\Tables\Table;
 use App\Filament\Traits\HasTranslations;
 use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Support\Facades\Log;
+use App\Models\Region;
+use Illuminate\Support\Collection;
 
 class HallResource extends Resource
 {
@@ -99,20 +101,83 @@ class HallResource extends Resource
                         Forms\Components\Tabs\Tab::make(__('admin.basic_info'))
                             ->icon('heroicon-o-information-circle')
                             ->schema([
+
+                    Forms\Components\Select::make('region_id')
+                        ->label(__('booking.fields.region_id.label'))
+                        ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        // ✅ FIX: Hydrate region_id from hall relationship when editing
+                        ->afterStateHydrated(function (Forms\Components\Select $component, ?string $state, ?Hall $record) {
+                            // Only hydrate if no state is set and we have a record with a hall
+                            if ($state === null && $record?->hall?->city?->region_id) {
+                                $component->state($record->hall->city->region_id);
+                            }
+                        })
+                        ->afterStateUpdated(function (Set $set) {
+                            // Reset dependent fields when region changes
+                            $set('city_id', null);
+                            $set('hall_id', null);
+                            $set('booking_date', null);
+                            $set('time_slot', null);
+                            $set('hall_price', 0);
+                        })
+                        ->helperText(__('booking.fields.region_id.helper')),
+
+
+                    Forms\Components\Select::make('city_id')
+                        ->label(__('booking.fields.city_id.label'))
+                        ->options(function (Get $get, ?Hall $record): Collection {
+                            $regionId = $get('region_id');
+
+                            // ✅ FIX: Fall back to record's hall region when editing
+                            if (!$regionId && $record?->hall?->city?->region_id) {
+                                $regionId = $record->hall->city->region_id;
+                            }
+
+                            return City::query()
+                                ->when(
+                                    $regionId,
+                                    fn($query) => $query->where('region_id', $regionId)
+                                )
+                                ->where('is_active', true)
+                                ->ordered()
+                                ->pluck('name', 'id');
+                        })
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        // ✅ FIX: Hydrate city_id from hall relationship when editing
+                        ->afterStateHydrated(function (Forms\Components\Select $component, ?string $state, ?Hall $record) {
+                            // Only hydrate if no state is set and we have a record with a hall
+                            if ($state === null && $record?->hall?->city_id) {
+                                $component->state($record->hall->city_id);
+                            }
+                        })
+                        ->afterStateUpdated(function (Set $set) {
+                            // Reset dependent fields when city changes
+                            $set('hall_id', null);
+                            $set('booking_date', null);
+                            $set('time_slot', null);
+                            $set('hall_price', 0);
+                        })
+                        ->disabled(fn(Get $get, ?Hall $record): bool => !$get('region_id') && !$record?->hall_id)
+                        ->helperText(__('booking.fields.city_id.helper')),
                                 // City selection with localized names
-                                Forms\Components\Select::make('city_id')
-                                    ->label(__('admin.city'))
-                                    ->relationship('city', 'name')
-                                    ->getOptionLabelFromRecordUsing(function ($record) {
-                                        $locale = app()->getLocale();
-                                        return is_array($record->name)
-                                            ? ($record->name[$locale] ?? $record->name['en'] ?? 'Unnamed')
-                                            : $record->name;
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->native(false),
+                                // Forms\Components\Select::make('city_id')
+                                //     ->label(__('admin.city'))
+                                //     ->relationship('city', 'name')
+                                //     ->getOptionLabelFromRecordUsing(function ($record) {
+                                //         $locale = app()->getLocale();
+                                //         return is_array($record->name)
+                                //             ? ($record->name[$locale] ?? $record->name['en'] ?? 'Unnamed')
+                                //             : $record->name;
+                                //     })
+                                //     ->searchable()
+                                //     ->preload()
+                                //     ->required()
+                                //     ->native(false),
 
                                 // Owner selection (only hall owners)
                                 Forms\Components\Select::make('owner_id')

@@ -25,6 +25,7 @@ use Illuminate\Support\Collection;
 use App\Filament\Traits\HasTranslations;
 use Filament\Tables\Actions\Action;
 use App\Filament\Components\GuestBookingComponents;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 
@@ -74,12 +75,35 @@ class BookingResource extends Resource
                 Forms\Components\Section::make(__('booking.sections.hall_selection.title'))
                     ->description(__('booking.sections.hall_selection.description'))
                     ->schema([
+                        // Forms\Components\Select::make('region_id')
+                        //     ->label(__('booking.fields.region_id.label'))
+                        //     ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
+                        //     ->searchable()
+                        //     ->preload()
+                        //     ->live()
+                        //     ->afterStateUpdated(function (Set $set) {
+                        //         // Reset dependent fields when region changes
+                        //         $set('city_id', null);
+                        //         $set('hall_id', null);
+                        //         $set('booking_date', null);
+                        //         $set('time_slot', null);
+                        //         $set('hall_price', 0);
+                        //     })
+                        //     ->helperText(__('booking.fields.region_id.helper')),
+
                         Forms\Components\Select::make('region_id')
                             ->label(__('booking.fields.region_id.label'))
                             ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->live()
+                            // ✅ FIX: Hydrate region_id from hall relationship when editing
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?string $state, ?Booking $record) {
+                                // Only hydrate if no state is set and we have a record with a hall
+                                if ($state === null && $record?->hall?->city?->region_id) {
+                                    $component->state($record->hall->city->region_id);
+                                }
+                            })
                             ->afterStateUpdated(function (Set $set) {
                                 // Reset dependent fields when region changes
                                 $set('city_id', null);
@@ -90,22 +114,61 @@ class BookingResource extends Resource
                             })
                             ->helperText(__('booking.fields.region_id.helper')),
 
+                        // Forms\Components\Select::make('city_id')
+                        //     ->label(__('booking.fields.city_id.label'))
+                        //     ->options(
+                        //         fn(Get $get): Collection => City::query()
+                        //             ->when(
+                        //                 $get('region_id'),
+                        //                 fn($query, $regionId) =>
+                        //                 $query->where('region_id', $regionId)
+                        //             )
+                        //             ->where('is_active', true)
+                        //             ->ordered()
+                        //             ->pluck('name', 'id')
+                        //     )
+                        //     ->searchable()
+                        //     ->preload()
+                        //     ->live()
+                        //     ->afterStateUpdated(function (Set $set) {
+                        //         // Reset dependent fields when city changes
+                        //         $set('hall_id', null);
+                        //         $set('booking_date', null);
+                        //         $set('time_slot', null);
+                        //         $set('hall_price', 0);
+                        //     })
+                        //     ->disabled(fn(Get $get): bool => !$get('region_id'))
+                        //     ->helperText(__('booking.fields.region_id.helper')),
+
                         Forms\Components\Select::make('city_id')
                             ->label(__('booking.fields.city_id.label'))
-                            ->options(
-                                fn(Get $get): Collection => City::query()
+                            ->options(function (Get $get, ?Booking $record): Collection {
+                                $regionId = $get('region_id');
+
+                                // ✅ FIX: Fall back to record's hall region when editing
+                                if (!$regionId && $record?->hall?->city?->region_id) {
+                                    $regionId = $record->hall->city->region_id;
+                                }
+
+                                return City::query()
                                     ->when(
-                                        $get('region_id'),
-                                        fn($query, $regionId) =>
-                                        $query->where('region_id', $regionId)
+                                        $regionId,
+                                        fn($query) => $query->where('region_id', $regionId)
                                     )
                                     ->where('is_active', true)
                                     ->ordered()
-                                    ->pluck('name', 'id')
-                            )
+                                    ->pluck('name', 'id');
+                            })
                             ->searchable()
                             ->preload()
                             ->live()
+                            // ✅ FIX: Hydrate city_id from hall relationship when editing
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?string $state, ?Booking $record) {
+                                // Only hydrate if no state is set and we have a record with a hall
+                                if ($state === null && $record?->hall?->city_id) {
+                                    $component->state($record->hall->city_id);
+                                }
+                            })
                             ->afterStateUpdated(function (Set $set) {
                                 // Reset dependent fields when city changes
                                 $set('hall_id', null);
@@ -113,8 +176,8 @@ class BookingResource extends Resource
                                 $set('time_slot', null);
                                 $set('hall_price', 0);
                             })
-                            ->disabled(fn(Get $get): bool => !$get('region_id'))
-                            ->helperText(__('booking.fields.region_id.helper')),
+                            ->disabled(fn(Get $get, ?Booking $record): bool => !$get('region_id') && !$record?->hall_id)
+                            ->helperText(__('booking.fields.city_id.helper')),
 
                         Forms\Components\Select::make('hall_id')
                             ->label(__('booking.fields.hall_id.label'))
@@ -215,11 +278,30 @@ class BookingResource extends Resource
                             ->helperText(fn(Get $get) => static::getDateHelperText($get('hall_id'), $get('booking_date')))
                             ->columnSpan(1),
 
+                        // Forms\Components\Select::make('time_slot')
+                        //     ->label(__('booking.fields.time_slot.label'))
+                        //     ->options(fn(Get $get): array => static::getAvailableTimeSlots(
+                        //         $get('hall_id'),
+                        //         $get('booking_date')
+                        //     ))
+                        //     ->required()
+                        //     ->live()
+                        //     ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                        //         if ($state && $get('hall_id') && $get('booking_date')) {
+                        //             static::updateHallPrice($set, $get('hall_id'), $get('booking_date'), $state);
+                        //         }
+                        //     })
+                        //     ->disabled(fn(Get $get): bool => !$get('booking_date'))
+                        //     ->helperText(fn(Get $get) => static::getTimeSlotHelperText($get('hall_id'), $get('booking_date')))
+                        //     ->columnSpan(1),
+
                         Forms\Components\Select::make('time_slot')
                             ->label(__('booking.fields.time_slot.label'))
-                            ->options(fn(Get $get): array => static::getAvailableTimeSlots(
+                            // ✅ FIX: Pass current booking ID to exclude from "booked" filter when editing
+                            ->options(fn(Get $get, ?Booking $record): array => static::getAvailableTimeSlots(
                                 $get('hall_id'),
-                                $get('booking_date')
+                                $get('booking_date'),
+                                $record?->id // Pass current booking ID to exclude from booked slots
                             ))
                             ->required()
                             ->live()
@@ -286,7 +368,7 @@ class BookingResource extends Resource
                 // Extra Services Section
                 // Extra Services Section
                 Forms\Components\Section::make(__('booking.sections.extra_services'))
-                    ->description(__('booking.sections.description'))
+                    ->description(__('booking.sections.extra_services_description'))
                     ->schema([
                         Forms\Components\Repeater::make('extra_services')
                             ->label('')
@@ -434,7 +516,7 @@ class BookingResource extends Resource
 
                 // ✅ NEW: Advance Payment Details Section
                 Forms\Components\Section::make(__('booking.sections.advance_payment_details'))
-                    ->description(__('booking.sections.description'))
+                    ->description(__('booking.sections.advance_payment_details_description'))
                     ->schema([
                         Forms\Components\Select::make('payment_type')
                             ->label(__('advance_payment.payment_type'))
@@ -514,10 +596,10 @@ class BookingResource extends Resource
                         Forms\Components\Select::make('status')
                             ->label(__('booking.fields.status.label'))
                             ->options([
-                                'pending' => __('booking.statuses.booking.pending'),
-                                'confirmed' => __('booking.statuses.booking.confirmed'),
-                                'completed' => __('booking.statuses.booking.completed'),
-                                'cancelled' => __('booking.statuses.booking.cancelled'),
+                                'pending' => __('booking.statuses.pending'),
+                                'confirmed' => __('booking.statuses.confirmed'),
+                                'completed' => __('booking.statuses.completed'),
+                                'cancelled' => __('booking.statuses.cancelled'),
                             ])
                             ->default('pending')
                             ->required(),
@@ -542,8 +624,57 @@ class BookingResource extends Resource
     /**
      * Get available time slots from HallAvailabilities and exclude booked slots
      */
-    protected static function getAvailableTimeSlots($hallId, $bookingDate): array
+    // protected static function getAvailableTimeSlots($hallId, $bookingDate): array
+    // {
+    //     if (!$hallId || !$bookingDate) {
+    //         return [];
+    //     }
+
+    //     // Get slots marked as available in HallAvailabilities
+    //     $availableSlots = HallAvailability::where('hall_id', $hallId)
+    //         ->where('date', $bookingDate)
+    //         ->where('is_available', true)
+    //         ->get()
+    //         ->pluck('time_slot')
+    //         ->toArray();
+
+    //     // Get already booked slots (confirmed or pending bookings)
+    //     $bookedSlots = Booking::where('hall_id', $hallId)
+    //         ->where('booking_date', $bookingDate)
+    //         ->whereIn('status', ['pending', 'confirmed'])
+    //         ->pluck('time_slot')
+    //         ->toArray();
+
+    //     // Remove booked slots from available slots
+    //     $actuallyAvailableSlots = array_diff($availableSlots, $bookedSlots);
+
+    //     // Map to user-friendly labels
+    //     $slotLabels = [
+    //         'morning' => 'Morning (8 AM - 12 PM)',
+    //         'afternoon' => 'Afternoon (12 PM - 5 PM)',
+    //         'evening' => 'Evening (5 PM - 11 PM)',
+    //         'full_day' => 'Full Day (8 AM - 11 PM)',
+    //     ];
+
+    //     $options = [];
+    //     foreach ($actuallyAvailableSlots as $slot) {
+    //         $options[$slot] = $slotLabels[$slot] ?? ucfirst(str_replace('_', ' ', $slot));
+    //     }
+
+    //     return $options;
+    // }
+
+    /**
+     * Get available time slots from HallAvailabilities and exclude booked slots
+     *
+     * @param int|string|null $hallId       The hall ID to check availability for
+     * @param string|null     $bookingDate  The date to check availability for
+     * @param int|null        $excludeBookingId Optional booking ID to exclude from "booked" filter (for editing)
+     * @return array<string, string> Array of available slot values => labels
+     */
+    protected static function getAvailableTimeSlots($hallId, $bookingDate, ?int $excludeBookingId = null): array
     {
+        // ✅ Early return if required parameters are missing
         if (!$hallId || !$bookingDate) {
             return [];
         }
@@ -557,9 +688,14 @@ class BookingResource extends Resource
             ->toArray();
 
         // Get already booked slots (confirmed or pending bookings)
+        // ✅ FIX: Exclude current booking when editing so its slot remains selectable
         $bookedSlots = Booking::where('hall_id', $hallId)
             ->where('booking_date', $bookingDate)
             ->whereIn('status', ['pending', 'confirmed'])
+            ->when($excludeBookingId, function ($query, $excludeBookingId) {
+                // Exclude current booking from the "booked" list when editing
+                return $query->where('id', '!=', $excludeBookingId);
+            })
             ->pluck('time_slot')
             ->toArray();
 
@@ -568,10 +704,10 @@ class BookingResource extends Resource
 
         // Map to user-friendly labels
         $slotLabels = [
-            'morning' => 'Morning (8 AM - 12 PM)',
-            'afternoon' => 'Afternoon (12 PM - 5 PM)',
-            'evening' => 'Evening (5 PM - 11 PM)',
-            'full_day' => 'Full Day (8 AM - 11 PM)',
+            'morning' => __('booking.time_slots.morning', [], 'en') ?: 'Morning (8 AM - 12 PM)',
+            'afternoon' => __('booking.time_slots.afternoon', [], 'en') ?: 'Afternoon (12 PM - 5 PM)',
+            'evening' => __('booking.time_slots.evening', [], 'en') ?: 'Evening (5 PM - 11 PM)',
+            'full_day' => __('booking.time_slots.full_day', [], 'en') ?: 'Full Day (8 AM - 11 PM)',
         ];
 
         $options = [];
@@ -918,16 +1054,16 @@ class BookingResource extends Resource
                     ->getStateUsing(fn($record) => $record->balance_paid_at !== null)
                     ->visible(fn($record) => $record && $record->isAdvancePayment()),
 
-            // Add guest badge after customer name
-            GuestBookingComponents::guestBadgeColumn(),
+                // Add guest badge after customer name
+                GuestBookingComponents::guestBadgeColumn(),
 
-            // Optionally add token column for admins
-            GuestBookingComponents::guestTokenColumn(),
+                // Optionally add token column for admins
+                GuestBookingComponents::guestTokenColumn(),
             ])
             ->filters([
-            //
-            // Add booking type filter
-            GuestBookingComponents::bookingTypeFilter(),
+                //
+                // Add booking type filter
+                GuestBookingComponents::bookingTypeFilter(),
             ])
             ->actions([
                 ActionGroup::make([
@@ -1477,8 +1613,9 @@ class BookingResource extends Resource
                                 ->title(__('booking.notifications.review_request_sent'))
                                 ->send();
                         }),
+                ActivityLogTimelineTableAction::make('Activities'),
 
-                ])
+                        ])
             ])
             ->defaultSort('created_at', 'desc')
             ->bulkActions([

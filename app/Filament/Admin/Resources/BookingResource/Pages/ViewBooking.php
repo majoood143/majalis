@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Filament\Admin\Resources\BookingResource;
+use App\Services\NotificationService;
+use Exception;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
+use Filament\Forms;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Facades\Log;
 
 /**
  * ViewBooking Page
@@ -68,7 +71,7 @@ class ViewBooking extends ViewRecord
                     $this->record->refresh();
 
                     // Send success notification
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title(__('booking.notifications.booking_confirmed_title'))
                         ->success()
                         ->send();
@@ -89,7 +92,7 @@ class ViewBooking extends ViewRecord
                 ->modalHeading(__('booking.actions.cancel_modal_heading'))
                 ->modalDescription(__('booking.actions.cancel_modal_description'))
                 ->form([
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Forms\Components\Textarea::make('reason')
                         ->label(__('booking.form.cancellation_reason'))
                         ->required()
                         ->rows(3)
@@ -101,7 +104,7 @@ class ViewBooking extends ViewRecord
                     $this->record->refresh();
 
                     // Send success notification
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title(__('booking.notifications.booking_cancelled_title'))
                         ->success()
                         ->send();
@@ -127,7 +130,7 @@ class ViewBooking extends ViewRecord
                     $this->record->refresh();
 
                     // Send success notification
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title(__('booking.notifications.booking_completed_title'))
                         ->success()
                         ->send();
@@ -154,7 +157,7 @@ class ViewBooking extends ViewRecord
                         );
                     } else {
                         // Show warning if invoice not available
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title(__('booking.notifications.invoice_not_available_title'))
                             ->warning()
                             ->send();
@@ -186,24 +189,24 @@ class ViewBooking extends ViewRecord
 
                         // Verify the invoice was saved properly
                         if (empty($this->record->invoice_path)) {
-                            throw new \Exception('Invoice was not saved properly');
+                            throw new Exception('Invoice was not saved properly');
                         }
 
                         // Send success notification with filename
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title(__('booking.notifications.invoice_generated_title'))
                             ->body(__('booking.notifications.invoice_generated_body', ['filename' => $filename]))
                             ->success()
                             ->send();
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         // Log the error for debugging
-                        \Illuminate\Support\Facades\Log::error('Invoice generation failed in action', [
+                        Log::error('Invoice generation failed in action', [
                             'booking_id' => $this->record->id,
                             'error' => $e->getMessage()
                         ]);
 
                         // Send error notification to user
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title(__('booking.notifications.invoice_generation_failed_title'))
                             ->body($e->getMessage())
                             ->danger()
@@ -217,7 +220,11 @@ class ViewBooking extends ViewRecord
              * Send Reminder Action
              *
              * Sends a booking reminder notification to the customer.
+             * Allows adding an optional custom message.
              * Only visible for confirmed future bookings.
+             *
+             * FIXED: Now properly handles errors and uses the BookingReminderMail mailable
+             * with manual flag to allow sending reminders regardless of days until booking.
              */
             Actions\Action::make('sendReminder')
                 ->label(__('booking.actions.send_reminder'))
@@ -226,18 +233,67 @@ class ViewBooking extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading(__('booking.actions.send_reminder_modal_heading'))
                 ->modalDescription(__('booking.actions.send_reminder_modal_description'))
-                ->action(function () {
-                    // Get the notification service from container
-                    $notificationService = app(\App\Services\NotificationService::class);
+                ->form([
+                    // Optional custom message field
+                    Forms\Components\Textarea::make('custom_message')
+                        ->label(__('booking.form.reminder_custom_message'))
+                        ->placeholder(__('booking.form.reminder_custom_message_placeholder'))
+                        ->helperText(__('booking.form.reminder_custom_message_help'))
+                        ->rows(3)
+                        ->maxLength(500),
 
-                    // Send the reminder notification
-                    $notificationService->sendBookingReminderNotification($this->record);
+                    // Info about booking date
+                    Forms\Components\Placeholder::make('booking_info')
+                        ->label(__('booking.labels.booking_date'))
+                        ->content(fn() => $this->record->booking_date->format('l, d M Y') .
+                            ' (' . $this->record->getDaysUntilBooking() . ' ' .
+                            __('booking.labels.days_away') . ')'),
+                ])
+                ->action(function (array $data) {
+                    try {
+                        // Get the notification service from container
+                        $notificationService = app(NotificationService::class);
 
-                    // Send success notification
-                    \Filament\Notifications\Notification::make()
-                        ->title(__('booking.notifications.reminder_sent_title'))
-                        ->success()
-                        ->send();
+                        // Send the reminder notification with manual flag = true
+                        // This bypasses the "1 day before" check for manual reminders
+                        $sent = $notificationService->sendBookingReminderNotification(
+                            booking: $this->record,
+                            manual: true,
+                            customMessage: $data['custom_message'] ?? null
+                        );
+
+                        if ($sent) {
+                            // Send success notification
+                            Notification::make()
+                                ->title(__('booking.notifications.reminder_sent_title'))
+                                ->body(__('booking.notifications.reminder_sent_body', [
+                                    'email' => $this->record->customer_email
+                                ]))
+                                ->success()
+                                ->send();
+                        } else {
+                            // This shouldn't happen with manual=true, but handle it
+                            Notification::make()
+                                ->title(__('booking.notifications.reminder_not_sent_title'))
+                                ->body(__('booking.notifications.reminder_not_sent_body'))
+                                ->warning()
+                                ->send();
+                        }
+                    } catch (Exception $e) {
+                        // Log the error for debugging
+                        Log::error('Failed to send booking reminder from action', [
+                            'booking_id' => $this->record->id,
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
+
+                        // Send error notification to user with specific error message
+                        Notification::make()
+                            ->title(__('booking.notifications.reminder_failed_title'))
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 })
                 ->visible(fn() => $this->record->status === 'confirmed' &&
                     $this->record->booking_date->isFuture()),
@@ -255,7 +311,7 @@ class ViewBooking extends ViewRecord
                 ->color('success')
                 ->visible(fn() => $this->record->isAdvancePayment() && $this->record->isBalancePending())
                 ->form([
-                    \Filament\Forms\Components\Select::make('payment_method')
+                    Forms\Components\Select::make('payment_method')
                         ->label(__('booking.form.balance_payment_method'))
                         ->options([
                             'bank_transfer' => __('booking.payment_methods.bank_transfer'),
@@ -264,12 +320,12 @@ class ViewBooking extends ViewRecord
                         ])
                         ->required(),
 
-                    \Filament\Forms\Components\TextInput::make('reference')
+                    Forms\Components\TextInput::make('reference')
                         ->label(__('booking.form.balance_payment_reference'))
                         ->placeholder(__('booking.form.balance_payment_reference_placeholder'))
                         ->maxLength(255),
 
-                    \Filament\Forms\Components\DateTimePicker::make('paid_at')
+                    Forms\Components\DateTimePicker::make('paid_at')
                         ->label(__('booking.form.payment_date'))
                         ->default(now())
                         ->required(),
@@ -279,14 +335,12 @@ class ViewBooking extends ViewRecord
                         'balance_paid_at' => $data['paid_at'],
                         'balance_payment_method' => $data['payment_method'],
                         'balance_payment_reference' => $data['reference'] ?? null,
-                        'payment_status' => 'paid',
                     ]);
 
                     $this->record->refresh();
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title(__('booking.notifications.balance_marked_paid_title'))
-                        ->body(__('booking.notifications.balance_marked_paid_body'))
                         ->success()
                         ->send();
                 }),
@@ -294,17 +348,17 @@ class ViewBooking extends ViewRecord
     }
 
     /**
-     * Build the infolist for displaying booking details
+     * Get the infolist schema for displaying booking details
      *
      * Organizes booking information into logical sections:
-     * - Booking status and identification
-     * - Hall and event details
-     * - Customer information
-     * - Pricing breakdown with commission
-     * - Extra services list
-     * - Timestamps and audit trail
-     * - Cancellation details (if applicable)
-     * - Admin notes
+     * - Basic Details (status, booking number, dates)
+     * - Hall Information
+     * - Customer Information
+     * - Payment Details
+     * - Extra Services
+     * - Timestamps
+     * - Cancellation Details (if applicable)
+     * - Admin Notes
      *
      * @param Infolist $infolist
      * @return Infolist
@@ -314,84 +368,103 @@ class ViewBooking extends ViewRecord
         return $infolist
             ->schema([
                 /**
-                 * Booking Information Section
+                 * Basic Booking Details Section
                  *
-                 * Displays the booking number, status badges, and payment status.
+                 * Displays core booking information including:
+                 * - Status badge with color coding
+                 * - Unique booking number
+                 * - Booking date and time slot
                  */
-                Infolists\Components\Section::make(__('booking.sections.booking_information'))
+                Infolists\Components\Section::make(__('booking.sections.booking_details'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('booking_number')
                                     ->label(__('booking.labels.booking_number'))
                                     ->copyable()
-                                    ->badge()
-                                    ->color('primary'),
+                                    ->weight('bold')
+                                    ->size('lg')
+                                    ->icon('heroicon-o-hashtag'),
 
                                 Infolists\Components\TextEntry::make('status')
                                     ->label(__('booking.labels.status'))
                                     ->badge()
-                                    ->formatStateUsing(fn($state) => __('booking.statuses.' . $state)),
-
-                                Infolists\Components\TextEntry::make('payment_status')
-                                    ->label(__('booking.labels.payment_status'))
-                                    ->badge()
-                                    ->formatStateUsing(fn($state) => __('booking.payment_statuses.' . $state)),
-                            ]),
-                    ]),
-
-                /**
-                 * Hall & Date Information Section
-                 *
-                 * Shows the booked hall, location, date, time slot, and event details.
-                 */
-                Infolists\Components\Section::make(__('booking.sections.hall_date_information'))
-                    ->schema([
-                        Infolists\Components\Grid::make(2)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('hall.name')
-                                    ->label(__('booking.labels.hall'))
-                                    ->formatStateUsing(fn($record) => $record->hall->name),
-
-                                Infolists\Components\TextEntry::make('hall.city.name')
-                                    ->label(__('booking.labels.location'))
+                                    ->size('lg')
+                                    ->color(fn(string $state): string => match ($state) {
+                                        'pending' => 'warning',
+                                        'confirmed' => 'success',
+                                        'completed' => 'info',
+                                        'cancelled' => 'danger',
+                                        default => 'gray',
+                                    })
                                     ->formatStateUsing(
-                                        fn($record) =>
-                                        $record->hall->city->name . ', ' .
-                                            $record->hall->city->region->name
+                                        fn(string $state): string =>
+                                        __('booking.statuses.' . $state)
                                     ),
 
                                 Infolists\Components\TextEntry::make('booking_date')
                                     ->label(__('booking.labels.booking_date'))
-                                    ->date('d M Y')
+                                    ->date('l, d M Y')
                                     ->icon('heroicon-o-calendar'),
 
                                 Infolists\Components\TextEntry::make('time_slot')
                                     ->label(__('booking.labels.time_slot'))
                                     ->badge()
+                                    ->color('primary')
                                     ->formatStateUsing(
                                         fn(string $state): string =>
                                         __('booking.time_slots.' . $state)
                                     ),
 
-                                Infolists\Components\TextEntry::make('number_of_guests')
-                                    ->label(__('booking.labels.number_of_guests'))
-                                    ->suffix(__('booking.labels.guests_suffix'))
-                                    ->icon('heroicon-o-users'),
-
                                 Infolists\Components\TextEntry::make('event_type')
                                     ->label(__('booking.labels.event_type'))
-                                    ->formatStateUsing(
-                                        fn(?string $state): string =>
-                                        $state ? __('booking.event_types.' . $state) : '-'
-                                    ),
+                                    ->placeholder('-')
+                                    ->icon('heroicon-o-sparkles'),
+
+                                Infolists\Components\TextEntry::make('number_of_guests')
+                                    ->label(__('booking.labels.number_of_guests'))
+                                    ->numeric()
+                                    ->placeholder('-')
+                                    ->icon('heroicon-o-user-group'),
                             ]),
-                    ])->columns(2),
+                    ]),
 
                 /**
-                 * Customer Details Section
+                 * Hall Information Section
                  *
-                 * Displays customer contact information and notes.
+                 * Shows the booked hall details with link to hall resource.
+                 */
+                Infolists\Components\Section::make(__('booking.sections.hall_date_information'))
+                    ->schema([
+                        Infolists\Components\Grid::make(3)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('hall.name')
+                                    ->label(__('booking.labels.hall'))
+                                    ->url(
+                                        fn() => $this->record->hall
+                                            ? route('filament.admin.resources.halls.view', $this->record->hall)
+                                            : null
+                                    )
+                                    ->color('primary')
+                                    ->icon('heroicon-o-building-office-2'),
+
+                                Infolists\Components\TextEntry::make('hall.city.name')
+                                    ->label(__('booking.labels.location'))
+                                    ->placeholder('-'),
+
+                                Infolists\Components\TextEntry::make('hall.capacity_max')
+                                    ->label(__('booking.table.columns.number_of_guests'))
+                                    ->numeric()
+                                    ->suffix(' ' . __('booking.table.columns.number_of_guests')),
+                            ]),
+                    ])
+                    ->collapsible(),
+
+                /**
+                 * Customer Information Section
+                 *
+                 * Displays customer contact details.
+                 * Links to user profile if booking is by registered user.
                  */
                 Infolists\Components\Section::make(__('booking.sections.customer_details'))
                     ->schema([
@@ -410,97 +483,107 @@ class ViewBooking extends ViewRecord
                                     ->label(__('booking.labels.customer_phone'))
                                     ->copyable()
                                     ->icon('heroicon-o-phone'),
-                            ]),
 
-                        Infolists\Components\TextEntry::make('customer_notes')
-                            ->label(__('booking.labels.customer_notes'))
-                            ->columnSpanFull()
-                            ->placeholder(__('booking.placeholders.no_notes')),
-                    ]),
+                                Infolists\Components\TextEntry::make('user.name')
+                                    ->label(__('booking.labels.registered_user'))
+                                    ->placeholder(__('booking.placeholders.guest_booking'))
+                                    // ->url(fn() => $this->record->user
+                                    //     ? route('filament.admin.resources.users.view', $this->record->user)
+                                    //     : null
+                                    // )
+                                    ->color('primary'),
+
+                                Infolists\Components\TextEntry::make('special_requests')
+                                    ->label(__('booking.labels.customer_notes'))
+                                    ->placeholder(__('booking.labels.customer_notes_placeholder'))
+                                    ->columnSpan(2),
+                            ]),
+                    ])
+                    ->collapsible(),
 
                 /**
-                 * Pricing Breakdown Section
+                 * Payment Details Section
                  *
-                 * Shows detailed pricing including:
-                 * - Base hall price
-                 * - Services price
-                 * - Subtotal
-                 * - Platform commission
-                 * - Total amount
-                 * - Owner payout (after commission)
+                 * Shows comprehensive payment information including:
+                 * - Payment type (full/advance)
+                 * - Amounts and status
+                 * - Balance due for advance payments
+                 * - Payment references
                  */
                 Infolists\Components\Section::make(__('booking.sections.pricing_breakdown'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('hall_price')
-                                    ->label(__('booking.labels.hall_price'))
-                                    ->money('OMR'),
+                                // Payment Type
+                                Infolists\Components\TextEntry::make('payment_type')
+                                    ->label(__('booking.labels.payment_type'))
+                                    ->badge()
+                                    ->color(fn(?string $state): string => match ($state) {
+                                        'full' => 'success',
+                                        'advance' => 'warning',
+                                        default => 'gray',
+                                    })
+                                    ->formatStateUsing(
+                                        fn(?string $state): string =>
+                                        $state ? __('booking.payment_types.' . $state) : '-'
+                                    ),
 
-                                Infolists\Components\TextEntry::make('services_price')
-                                    ->label(__('booking.labels.services_price'))
-                                    ->money('OMR'),
+                                // Payment Status
+                                Infolists\Components\TextEntry::make('payment_status')
+                                    ->label(__('booking.labels.payment_status'))
+                                    ->badge()
+                                    ->color(fn(?string $state): string => match ($state) {
+                                        'paid' => 'success',
+                                        'pending' => 'warning',
+                                        'partial' => 'info',
+                                        'failed' => 'danger',
+                                        'refunded' => 'gray',
+                                        default => 'gray',
+                                    })
+                                    ->formatStateUsing(
+                                        fn(?string $state): string =>
+                                        $state ? __('booking.payment_statuses.' . $state) : '-'
+                                    ),
 
-                                Infolists\Components\TextEntry::make('subtotal')
-                                    ->label(__('booking.labels.subtotal'))
-                                    ->money('OMR')
-                                    ->weight('bold'),
-
-                                Infolists\Components\TextEntry::make('commission_amount')
-                                    ->label(__('booking.labels.commission_amount'))
-                                    ->money('OMR')
-                                    ->color('warning'),
-
+                                // Total Amount
                                 Infolists\Components\TextEntry::make('total_amount')
                                     ->label(__('booking.labels.total_amount'))
                                     ->money('OMR')
                                     ->weight('bold')
                                     ->size('lg')
-                                    ->color('success'),
+                                    ->color('success')
+                                    ->icon('heroicon-o-currency-dollar'),
+                                Infolists\Components\TextEntry::make('commission_amount')
+                                    ->label(__('booking.labels.commission_amount'))
+                                    ->money('OMR')
+                                    ->color('warning'),
 
                                 Infolists\Components\TextEntry::make('owner_payout')
                                     ->label(__('booking.labels.owner_payout'))
                                     ->money('OMR')
                                     ->color('info'),
+                                Infolists\Components\TextEntry::make('services_price')
+                                    ->label(__('booking.labels.services_price'))
+                                    ->money('OMR'),
                             ]),
-                    ])->columns(3),
 
-                /**
-                 * Advance Payment Details Section
-                 */
-                Infolists\Components\Section::make(__('booking.sections.advance_payment_details'))
-                    ->description(function () {
-                        if ($this->record->isAdvancePayment()) {
-                            return $this->record->isBalancePending()
-                                ? __('booking.descriptions.advance_payment_pending')
-                                : __('booking.descriptions.advance_payment_paid');
-                        }
-                        return __('booking.descriptions.full_payment');
-                    })
-                    ->schema([
+                        // Advance Payment Details (only visible for advance payment bookings)
                         Infolists\Components\Grid::make(3)
                             ->schema([
-                                // Payment Type Badge
-                                Infolists\Components\TextEntry::make('payment_type')
-                                    ->label(__('booking.labels.payment_type'))
-                                    ->badge()
-                                    ->size('lg')
-                                    ->color(fn(string $state): string => match ($state) {
-                                        'full' => 'success',
-                                        'advance' => 'warning',
-                                        default => 'gray',
-                                    })
-                                    ->formatStateUsing(fn(string $state): string =>
-                                        __('booking.payment_types.' . $state)
-                                    ),
+                                // Amount Paid
+                                Infolists\Components\TextEntry::make('amount_paid')
+                                    ->label(__('booking.labels.amount_paid'))
+                                    ->money('OMR')
+                                    ->weight('bold')
+                                    ->color('success')
+                                    ->visible(fn() => $this->record->isAdvancePayment())
+                                    ->icon('heroicon-o-banknotes')
+                                    ->iconColor('success'),
 
-                                // Advance Amount Paid
+                                // Advance Amount
                                 Infolists\Components\TextEntry::make('advance_amount')
                                     ->label(__('booking.labels.advance_amount'))
                                     ->money('OMR')
-                                    ->weight('bold')
-                                    ->size('lg')
-                                    ->color('warning')
                                     ->visible(fn() => $this->record->isAdvancePayment())
                                     ->icon('heroicon-o-banknotes')
                                     ->iconColor('warning'),
@@ -548,7 +631,8 @@ class ViewBooking extends ViewRecord
                                     ->badge()
                                     ->color('info')
                                     ->visible(fn() => $this->record->balance_paid_at !== null)
-                                    ->formatStateUsing(fn(string $state): string =>
+                                    ->formatStateUsing(
+                                        fn(string $state): string =>
                                         __('booking.payment_methods.' . $state)
                                     ),
 
@@ -567,6 +651,255 @@ class ViewBooking extends ViewRecord
                     ->collapsible()
                     ->collapsed(fn() => !$this->record->isAdvancePayment()),
 
+
+
+                /**
+                 * ============================================================================
+                 * VIEWBOOKING.PHP FIX - ADD PAYMENT TRANSACTIONS SECTION
+                 * ============================================================================
+                 *
+                 * This file contains the code to add a Payment Transactions section to the
+                 * ViewBooking infolist. This section displays all payment records related
+                 * to the booking.
+                 *
+                 * @package    App\Filament\Admin\Resources\BookingResource\Pages
+                 * @author     Fix for Majalis Hall Booking Platform
+                 * @version    1.0.0
+                 * @requires   Filament 3.3, Laravel 12, PHP 8.4.12
+                 */
+
+                // ============================================================================
+                // INSTRUCTIONS
+                // ============================================================================
+                //
+                // Add this section AFTER the "Advance Payment Details" section (around line 651)
+                // and BEFORE the "Extra Services" section (around line 660).
+                //
+                // Look for this line in your ViewBooking.php:
+                //   ->collapsed(fn() => !$this->record->isAdvancePayment()),
+                //
+                // And add the Payment Transactions section right after it.
+                // ============================================================================
+
+                /**
+                 * Payment Transactions Section
+                 *
+                 * Displays all payment records associated with this booking.
+                 * Shows payment reference, amount, status, method, and timestamps.
+                 * Supports multiple payment records for bookings with advance + balance payments.
+                 *
+                 * Features:
+                 * - Color-coded status badges (paid=green, pending=yellow, failed=red, refunded=gray)
+                 * - Copyable payment references and transaction IDs
+                 * - Formatted currency display (OMR with 3 decimals)
+                 * - Conditional display of refund information
+                 * - Collapsed by default to reduce visual clutter
+                 */
+                Infolists\Components\Section::make(__('booking.sections.payment_transactions'))
+                    ->description(__('booking.sections.payment_transactions_description'))
+                    ->icon('heroicon-o-credit-card')
+                    ->schema([
+                        // Payment Transactions Summary Stats
+                        Infolists\Components\Grid::make(4)
+                            ->schema([
+                                // Total Payments Count
+                                Infolists\Components\TextEntry::make('payments_count')
+                                    ->label(__('booking.labels.total_transactions'))
+                                    ->getStateUsing(fn() => $this->record->payments->count())
+                                    ->badge()
+                                    ->color('primary')
+                                    ->icon('heroicon-o-queue-list'),
+
+                                // Total Paid Amount
+                                Infolists\Components\TextEntry::make('total_paid')
+                                    ->label(__('booking.labels.total_paid'))
+                                    ->getStateUsing(fn() => $this->record->payments
+                                        ->where('status', 'paid')
+                                        ->sum('amount'))
+                                    ->money('OMR')
+                                    ->color('success')
+                                    ->weight('bold')
+                                    ->icon('heroicon-o-banknotes'),
+
+                                // Total Refunded Amount
+                                Infolists\Components\TextEntry::make('total_refunded')
+                                    ->label(__('booking.labels.total_refunded'))
+                                    ->getStateUsing(fn() => $this->record->payments
+                                        ->whereIn('status', ['refunded', 'partially_refunded'])
+                                        ->sum('refund_amount'))
+                                    ->money('OMR')
+                                    ->color('danger')
+                                    ->visible(fn() => $this->record->payments
+                                        ->whereIn('status', ['refunded', 'partially_refunded'])
+                                        ->count() > 0)
+                                    ->icon('heroicon-o-arrow-uturn-left'),
+
+                                // Pending Payments
+                                Infolists\Components\TextEntry::make('pending_payments')
+                                    ->label(__('booking.labels.pending_payments'))
+                                    ->getStateUsing(fn() => $this->record->payments
+                                        ->where('status', 'pending')
+                                        ->count())
+                                    ->badge()
+                                    ->color(fn() => $this->record->payments
+                                        ->where('status', 'pending')
+                                        ->count() > 0 ? 'warning' : 'gray')
+                                    ->visible(fn() => $this->record->payments
+                                        ->where('status', 'pending')
+                                        ->count() > 0)
+                                    ->icon('heroicon-o-clock'),
+                            ]),
+
+                        // Divider
+                        Infolists\Components\TextEntry::make('divider')
+                            ->label('')
+                            ->getStateUsing(fn() => '')
+                            ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-4']),
+
+                        // Payment Transactions List (RepeatableEntry)
+                        Infolists\Components\RepeatableEntry::make('payments')
+                            ->label(__('booking.labels.transaction_history'))
+                            ->schema([
+                                // Payment Reference & Transaction ID
+                                Infolists\Components\Grid::make(4)
+                                    ->schema([
+                                        // Payment Reference
+                                        Infolists\Components\TextEntry::make('payment_reference')
+                                            ->label(__('booking.labels.balance_payment_reference'))
+                                            ->copyable()
+                                            ->copyMessage(__('booking.messages.reference_copied'))
+                                            ->weight('bold')
+                                            ->icon('heroicon-o-document-text')
+                                            ->iconColor('primary'),
+
+                                        // Transaction ID (from gateway)
+                                        Infolists\Components\TextEntry::make('transaction_id')
+                                            ->label(__('booking.labels.transaction_id'))
+                                            ->copyable()
+                                            ->copyMessage(__('booking.messages.transaction_id_copied'))
+                                            ->placeholder('-')
+                                            ->icon('heroicon-o-hashtag'),
+
+                                        // Amount
+                                        Infolists\Components\TextEntry::make('amount')
+                                            ->label(__('booking.labels.total_amount'))
+                                            ->money('OMR')
+                                            ->weight('bold')
+                                            ->size('lg')
+                                            ->color('success'),
+
+                                        // Status Badge
+                                        Infolists\Components\TextEntry::make('status')
+                                            ->label(__('booking.labels.status'))
+                                            ->badge()
+                                            ->size('lg')
+                                            ->formatStateUsing(fn(string $state): string => match ($state) {
+                                                'pending' => __('booking.payment_statuses.pending'),
+                                                'paid' => __('booking.payment_statuses.paid'),
+                                                'failed' => __('booking.payment_statuses.failed'),
+                                                'refunded' => __('booking.payment_statuses.refunded'),
+                                                'partially_refunded' => __('booking.payment_statuses.partially_refunded'),
+                                                'cancelled' => __('booking.payment_statuses.cancelled'),
+                                                default => ucfirst($state),
+                                            })
+                                            ->color(fn(string $state): string => match ($state) {
+                                                'pending' => 'warning',
+                                                'paid' => 'success',
+                                                'failed' => 'danger',
+                                                'refunded' => 'gray',
+                                                'partially_refunded' => 'info',
+                                                'cancelled' => 'danger',
+                                                default => 'gray',
+                                            })
+                                            ->icon(fn(string $state): string => match ($state) {
+                                                'pending' => 'heroicon-o-clock',
+                                                'paid' => 'heroicon-o-check-circle',
+                                                'failed' => 'heroicon-o-x-circle',
+                                                'refunded' => 'heroicon-o-arrow-uturn-left',
+                                                'partially_refunded' => 'heroicon-o-arrow-path',
+                                                'cancelled' => 'heroicon-o-x-mark',
+                                                default => 'heroicon-o-question-mark-circle',
+                                            }),
+                                    ]),
+
+                                // Payment Method & Timestamps Row
+                                Infolists\Components\Grid::make(4)
+                                    ->schema([
+                                        // Payment Method
+                                        Infolists\Components\TextEntry::make('payment_method')
+                                            ->label(__('booking.labels.balance_payment_method'))
+                                            ->badge()
+                                            ->color('info')
+                                            ->formatStateUsing(fn(?string $state): string => match ($state) {
+                                                'online' => __('booking.payment_methods.online'),
+                                                'cash' => __('booking.payment_methods.cash'),
+                                                'bank_transfer' => __('booking.payment_methods.bank_transfer'),
+                                                'card' => __('booking.payment_methods.card'),
+                                                'thawani' => __('booking.payment_methods.thawani'),
+                                                default => ucfirst($state ?? '-'),
+                                            })
+                                            ->placeholder('-'),
+
+                                        // Paid At
+                                        Infolists\Components\TextEntry::make('paid_at')
+                                            ->label(__('booking.labels.balance_paid_at'))
+                                            ->dateTime('M j, Y \a\t g:i A')
+                                            ->placeholder('-')
+                                            ->color(fn($state) => $state ? 'success' : 'gray')
+                                            ->icon(fn($state) => $state ? 'heroicon-o-check' : null),
+
+                                        // Failed At (only if failed)
+                                        Infolists\Components\TextEntry::make('failed_at')
+                                            ->label(__('booking.labels.failed_at'))
+                                            ->dateTime('M j, Y \a\t g:i A')
+                                            ->placeholder('-')
+                                            ->color('danger')
+                                            ->visible(fn($record) => $record->failed_at !== null)
+                                            ->icon('heroicon-o-exclamation-triangle'),
+
+                                        // Created At
+                                        Infolists\Components\TextEntry::make('created_at')
+                                            ->label(__('booking.labels.created_at'))
+                                            ->dateTime('M j, Y \a\t g:i A')
+                                            ->color('gray')
+                                            ->icon('heroicon-o-calendar'),
+                                    ]),
+
+                                // Refund Information (only visible if refunded)
+                                Infolists\Components\Fieldset::make(__('booking.labels.refund_details'))
+                                    ->schema([
+                                        Infolists\Components\TextEntry::make('refund_amount')
+                                            ->label(__('booking.labels.refund_amount'))
+                                            ->money('OMR')
+                                            ->color('danger')
+                                            ->weight('bold'),
+
+                                        Infolists\Components\TextEntry::make('refund_reason')
+                                            ->label(__('booking.labels.refund_reason'))
+                                            ->placeholder('-')
+                                            ->columnSpan(2),
+
+                                        Infolists\Components\TextEntry::make('refunded_at')
+                                            ->label(__('booking.labels.refunded_at'))
+                                            ->dateTime('M j, Y \a\t g:i A'),
+                                    ])
+                                    ->columns(4)
+                                    ->visible(fn($record) => in_array($record->status, ['refunded', 'partially_refunded'])),
+
+                                // Failure Reason (only visible if failed)
+                                Infolists\Components\TextEntry::make('failure_reason')
+                                    ->label(__('booking.labels.failure_reason'))
+                                    ->color('danger')
+                                    ->columnSpanFull()
+                                    ->visible(fn($record) => $record->status === 'failed' && !empty($record->failure_reason))
+                                    ->icon('heroicon-o-exclamation-circle'),
+                            ])
+                            ->columns(1)
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn() => $this->record->payments->count() > 0)
+                    ->collapsible()
+                    ->collapsed(false), // Start expanded to show payment details
                 /**
                  * Extra Services Section
                  *

@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class UserResource extends Resource
 {
@@ -169,6 +171,8 @@ class UserResource extends Resource
                         ->label(__('user.actions.edit')),
                     Tables\Actions\DeleteAction::make()
                         ->label(__('user.actions.delete')),
+                ActivityLogTimelineTableAction::make('Activities'),
+
                 ])
             ])
             ->bulkActions([

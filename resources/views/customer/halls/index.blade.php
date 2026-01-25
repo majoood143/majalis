@@ -229,7 +229,7 @@
             @endforelse
         </div>
 
-        <!-- Map View -->
+        <!-- Map View majid -->
         <div x-show="view === 'map'" x-cloak>
             <div id="map" class="rounded-lg shadow-lg"></div>
 

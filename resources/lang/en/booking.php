@@ -91,11 +91,15 @@ return [
         'customer_details' => 'Customer Details',
         'pricing_breakdown' => 'Pricing Breakdown',
         'advance_payment_details' => 'Advance Payment Details',
+        'advance_payment_details_description' => 'Details for bookings requiring advance payment',
         'payment_type_helper' => 'Set by hall configuration ',
         'extra_services' => 'Extra Services',
+        'extra_services_description' => 'Add extra services requested by the customer',
         'timestamps' => 'Timestamps',
         'cancellation_details' => 'Cancellation Details',
         'admin_notes' => 'Admin Notes',
+        'payment_transactions' => 'Payment Transactions',
+        'payment_transactions_description' => 'List of payment transactions for this booking',
     ],
 
     /*
@@ -597,6 +601,11 @@ return [
         'creation_error_body' => 'Could not create booking: :error',
         'unexpected_error_title' => 'Unexpected Error',
         'unexpected_error_body' => 'An unexpected error occurred: :error',
+        'reminder_sent_title' => 'Reminder Sent Successfully',
+        'reminder_sent_body' => 'Booking reminder has been sent to :email',
+        'reminder_not_sent_title' => 'Reminder Not Sent',
+        'reminder_not_sent_body' => 'The reminder could not be sent. Please check the logs for details.',
+        'reminder_failed_title' => 'Failed to Send Reminder',
     ],
 
     /*
@@ -680,6 +689,9 @@ return [
         'new_booking_date' => 'New Booking Date',
         'admin_notes' => 'Admin Notes',
         'admin_notes_placeholder' => 'Internal notes about this booking...',
+        'reminder_custom_message' => 'Custom Message (Optional)',
+        'reminder_custom_message_placeholder' => 'Add a personal message to include in the reminder email...',
+        'reminder_custom_message_help' => 'This message will be included in the reminder email sent to the customer.',
     ],
 
 
@@ -699,6 +711,7 @@ return [
         'customer_email' => 'Customer Email',
         'customer_phone' => 'Customer Phone',
         'customer_notes' => 'Customer Notes',
+        'customer_notes_placeholder' => 'No notes provided',
         'hall_price' => 'Hall Price',
         'services_price' => 'Services Price',
         'subtotal' => 'Subtotal',
@@ -723,6 +736,12 @@ return [
         'cancellation_reason' => 'Cancellation Reason',
         'refund_amount' => 'Refund Amount',
         'admin_notes' => 'Admin Notes',
+        'days_away' => 'days away',
+        'registered_user' => 'Registered User',
+        'transaction_id' => 'Transaction ID',
+        'total_transactions' => 'Total Transactions',
+        'total_paid' => 'Total Paid',
+        'transaction_history' => 'Transaction History',
     ],
 
     // Placeholders
@@ -793,6 +812,9 @@ return [
         'bank_transfer' => 'Bank Transfer',
         'cash' => 'Cash',
         'card' => 'Card',
+        'online' => 'Online Payment',
+        'bank_transfer' => 'Bank Transfer',
+        'thawani' => 'Thawani',
     ],
 
     // Messages
@@ -901,6 +923,8 @@ return [
         'contact_support' => 'Contact Support',
         'footer_address' => 'Muscat, Oman',
         'unsubscribe_note' => 'You are receiving this email because you have a booking with us.',
+
+        'reminder_subject' => 'Reminder: Your booking at :hall in :days days',
     ],
 
     // =========================================================
@@ -910,6 +934,9 @@ return [
         'reminder_default' => 'Hi :name! Reminder: Your booking at :hall is on :date (:time). Booking #:booking_number. See you soon! - Majalis',
         'confirmation' => 'Booking confirmed! :hall on :date. Booking #:booking_number. Thank you! - Majalis',
         'cancellation' => 'Your booking #:booking_number has been cancelled. Contact us for questions. - Majalis',
+        'reminder_today' => 'Reminder: Your booking :booking_number at :hall is TODAY at :time. We look forward to seeing you!',
+        'reminder_tomorrow' => 'Reminder: Your booking :booking_number at :hall is tomorrow at :time. We look forward to seeing you!',
+        'reminder_days' => 'Reminder: Your booking :booking_number at :hall is on :date at :time (:days days away).',
     ],
 
     'whatsapp' => [
@@ -976,5 +1003,12 @@ return [
         'terms_2' => 'Cancellation policy applies as per hall terms.',
         'terms_3' => 'Please arrive 30 minutes before your event.',
         'thank_you' => 'Thank you for choosing us!',
+    ],
+
+    'errors' => [
+        'invoice_generation_failed' => 'Invoice generation failed: :error',
+        'reminder_not_confirmed' => 'Reminder can only be sent for confirmed bookings.',
+        'reminder_past_booking' => 'Cannot send reminder for past bookings.',
+        'reminder_no_email' => 'Customer email address is not available.',
     ],
 ];

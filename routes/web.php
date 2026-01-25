@@ -12,7 +12,8 @@ use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\PageController;
 
 Route::get('/', function () {
-    return view('welcome');
+    //return view('welcome');
+    return redirect()->route('customer.halls.index');
 });
 
 Route::get('/dashboard', function () {

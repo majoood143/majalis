@@ -180,7 +180,7 @@ class CreateHallOwner extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCreateAnotherFormAction()
