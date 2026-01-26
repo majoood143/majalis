@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'down_for_maintenance' => 'نحن نقوم حالياً بأعمال صيانة.',
+    'scheduled_maintenance' => 'نعتذر عن الإزعاج، ولكن نحن نقوم حالياً بأعمال صيانة مجدولة. سنعود قريباً!',
+    'contact_us' => 'إذا كنت بحاجة إلى مساعدة، يرجى الاتصال بنا على :email',
+    'Command executed successfully' => 'تم تنفيذ الأمر بنجاح',
+    'Error executing command' => 'حدث خطأ أثناء تنفيذ الأمر',
+    'Starting batch cache clearing process...' => 'جارٍ بدء عملية مسح المخابئ دفعةً واحدة...',
+    'All commands completed!' => 'تم تنفيذ جميع الأوامر!',
+    'Laravel log file cleared successfully!' => 'تم مسح ملف سجل لارافيل بنجاح!',
+    'Log file not found at:' => 'لم يتم العثور على ملف السجل في:',
+    'Secret URL:' => 'رابط سري:',
+    'Cannot read .env file' => 'لا يمكن قراءة ملف .env',
+    '.env file (sensitive values hidden):' => 'ملف .env (القيم الحساسة مخفية):',
+    'Unauthorized' => 'غير مصرّح',
+    'This command is not allowed.' => 'هذا الأمر غير مسموح به.',
+    'Access Denied' => 'الوصول مرفوض',
+    'You do not have permission to run this command.' => 'ليس لديك الصلاحية لتشغيل هذا الأمر.',
+    'Blocked in Production' => 'محظور في بيئة الإنتاج',
+    'This command is too risky to run in production.' => 'هذا الأمر ينطوي على مخاطرة عالية ولا يُنفَّذ في بيئة الإنتاج.',
+    'Busy' => 'مشغول',
+    'Please wait or try again later.' => 'يرجى الانتظار أو المحاولة لاحقًا.',
+    "':command' completed" => "تم تنفيذ الأمر ':command'",
+    "Failed to execute ':command'" => "فشل تنفيذ الأمر ':command'",
+    'All caches cleared successfully' => 'تم مسح جميع المخابئ بنجاح',
+];

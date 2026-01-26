@@ -71,7 +71,7 @@ class SendBookingInvoiceEmail implements ShouldQueue
         // Generate PDF if needed
         $pdfContent = null;
         if ($this->attachPdf) {
-            $pdf = $invoiceService->generateInvoice($this->booking);
+            $pdf = $invoiceService->generateFullReceipt($this->booking);
             $pdfContent = $pdf->output();
         }
 

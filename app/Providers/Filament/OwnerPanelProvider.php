@@ -20,6 +20,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use App\Http\Middleware\SetUserLanguage;
 use App\Filament\Pages\EditProfile;
+use App\Filament\Owner\Resources\ExpenseResource;
 use Filament\View\PanelsRenderHook;
 use Filament\SpatieLaravelTranslatablePlugin;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
@@ -96,6 +97,10 @@ class OwnerPanelProvider extends PanelProvider
                 SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['en', 'ar'])
             )
+
+            ->resources([
+                ExpenseResource::class,
+            ])
             /*
             |--------------------------------------------------------------------------
             | FullCalendar Plugin Configuration
@@ -155,5 +160,6 @@ class OwnerPanelProvider extends PanelProvider
                         ],
                     ]),
             ]);
+
     }
 }

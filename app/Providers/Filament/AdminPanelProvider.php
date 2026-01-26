@@ -32,6 +32,8 @@ use Vormkracht10\FilamentMails\Facades\FilamentMails;
 use Vormkracht10\FilamentMails\FilamentMailsPlugin;
 use Guava\FilamentKnowledgeBase\Plugins\KnowledgeBasePlugin;
 use Guava\FilamentKnowledgeBase\Plugins\KnowledgeBaseCompanionPlugin;
+use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
+
 
 
 
@@ -91,6 +93,9 @@ class AdminPanelProvider extends PanelProvider
                 FilamentSpatieLaravelBackupPlugin::make(),
                 FilamentSpatieLaravelHealthPlugin::make(),
                 FilamentMailsPlugin::make(),
+            FilamentJobsMonitorPlugin::make()
+                ->enableNavigation(),
+
                 //KnowledgeBaseCompanionPlugin::make(),
             ])
             ->authMiddleware([

@@ -12,6 +12,7 @@
         "bezhansalleh/filament-shield": "^3.9",
         "blade-ui-kit/blade-heroicons": "^2.6",
         "blade-ui-kit/blade-ui-kit": "^0.7.0",
+        "croustibat/filament-jobs-monitor": "^2.6",
         "dotswan/filament-map-picker": "^1.0",
         "filament/filament": "^3.3",
         "filament/spatie-laravel-translatable-plugin": "^3.2",

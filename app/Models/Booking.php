@@ -626,4 +626,19 @@ class Booking extends Model
             'completed_at' => now(),
         ]);
     }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function getTotalExpensesAttribute(): float
+    {
+        return (float) $this->expenses()->approved()->sum('total_amount');
+    }
+
+    public function getProfitAttribute(): float
+    {
+        return (float) $this->owner_payout - $this->total_expenses;
+    }
 }

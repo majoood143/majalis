@@ -766,4 +766,9 @@ class Hall extends Model
         $avg = $this->reviews()->avg('rating');
         return $avg ? round($avg, 1) : null;
     }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
 }
