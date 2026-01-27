@@ -672,6 +672,10 @@ return [
         'booking_confirmed' => 'تم تأكيد الحجز بنجاح',
         'booking_cancelled' => 'تم إلغاء الحجز بنجاح',
         'booking_completed' => 'تم إكمال الحجز بنجاح',
+        'email_sent_title' => 'تم إرسال البريد الإلكتروني',
+        'email_sent_body' => 'تم إرسال تأكيد الحجز إلى :email',
+        'email_failed_title' => 'فشل إرسال البريد الإلكتروني',
+        'email_failed_body' => 'تعذر إرسال البريد الإلكتروني: :error',
     ],
 
 
@@ -873,5 +877,43 @@ return [
         'complete_booking' => 'هل أنت متأكد من إكمال هذا الحجز؟',
         'generate_invoice_confirm' => 'هل أنت متأكد من إنشاء فاتورة لهذا الحجز؟',
         'send_reminder_confirm' => 'هل أنت متأكد من إرسال تذكير لهذا الحجز؟',
+    ],
+
+    'email' => [
+        // ... existing keys ...
+
+        // Invoice Email Template Keys
+        'invoice_greeting' => 'عزيزي :name،',
+        'invoice_intro' => 'يرجى الاطلاع على الفاتورة المرفقة لحجزك الأخير لدينا.',
+        'invoice_pdf_attached' => 'تم إرفاق نسخة PDF من فاتورتك بهذه الرسالة لسجلاتك.',
+        'invoice_questions' => 'إذا كان لديك أي استفسارات حول هذه الفاتورة، يرجى التواصل معنا.',
+        'invoice_footer' => 'هذه رسالة آلية. يرجى عدم الرد على هذه الرسالة مباشرة.',
+
+        // Financial Summary Labels
+        'booking_summary' => 'ملخص الحجز',
+        'financial_summary' => 'الملخص المالي',
+        'hall_price' => 'سعر القاعة',
+        'services_price' => 'الخدمات الإضافية',
+        'subtotal' => 'المجموع الفرعي',
+        'platform_fee' => 'رسوم المنصة',
+        'total_amount' => 'المبلغ الإجمالي',
+
+        // Payment Information Labels
+        'payment_info' => 'معلومات الدفع',
+        'payment_type' => 'نوع الدفع',
+        'advance_paid' => 'الدفعة المقدمة',
+        'balance_due' => 'الرصيد المتبقي',
+        'balance_paid' => 'تم دفع الرصيد',
+
+        // Status Labels
+        'booking_status' => 'حالة الحجز',
+        'payment_status' => 'حالة الدفع',
+
+        // Extra Services
+        'extra_services' => 'الخدمات الإضافية',
+
+        // Guests suffix
+        'persons' => 'شخص',
+        'event_type' => 'نوع المناسبة',
     ],
 ];

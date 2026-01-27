@@ -1613,7 +1613,15 @@ class BookingResource extends Resource
                                 ->title(__('booking.notifications.review_request_sent'))
                                 ->send();
                         }),
-                ActivityLogTimelineTableAction::make('Activities'),
+                ActivityLogTimelineTableAction::make('Activities')
+                    ->timelineIcons([
+                        'created' => 'heroicon-m-check-badge',
+                        'updated' => 'heroicon-m-pencil-square',
+                    ])
+                    ->timelineIconColors([
+                        'created' => 'info',
+                        'updated' => 'warning',
+                    ]),
 
                         ])
             ])

@@ -19,6 +19,7 @@ return [
         'refund_details' => 'تفاصيل الاسترداد',
         'export_options' => 'خيارات التصدير',
         'report_period' => 'فترة التقرير',
+        'email_details' => 'تفاصيل البريد الإلكتروني',
     ],
 
     // Fields
@@ -53,6 +54,10 @@ return [
         'age' => 'فشل خلال',
         'retry_reason' => 'سبب إعادة المحاولة (اختياري)',
         'pending_for' => 'معلق لأكثر من',
+        'customer_email' => 'البريد الإلكتروني للعميل',
+        'send_admin_copy' => 'إرسال نسخة للمسؤول',
+        'custom_message' => 'رسالة مخصصة (اختياري)',
+        'payment_date' => 'تاريخ الدفع',
     ],
 
     // Status
@@ -83,6 +88,11 @@ return [
         'download' => 'تحميل الملف',
         'view' => 'عرض',
         'edit' => 'تعديل',
+        'receipt' => 'الإيصال',
+        'download_receipt' => 'تحميل الإيصال',
+        'print_receipt' => 'طباعة الإيصال',
+        'email_receipt' => 'إرسال الإيصال بالبريد',
+        'send_email' => 'إرسال البريد',
     ],
 
     // Options
@@ -200,6 +210,14 @@ return [
         'refund_failed' => 'فشل الاسترداد',
         'refund_failed_body' => 'فشل معالجة الاسترداد: :error',
         'error_prefix' => 'خطأ: ',
+        'email_sent' => 'تم إرسال الإيصال بنجاح',
+        'email_sent_body' => 'تم إرسال إيصال الدفع إلى :email',
+        'email_failed' => 'فشل إرسال الإيصال',
+        'email_failed_body' => 'خطأ: :error',
+        'download_failed' => 'فشل التحميل',
+        'download_failed_body' => 'خطأ في إنشاء الإيصال: :error',
+        'print_failed' => 'فشلت الطباعة',
+        'print_failed_body' => 'خطأ في إعداد الإيصال للطباعة: :error',
     ],
 
     // Modals
@@ -220,6 +238,10 @@ return [
             'heading' => 'إرسال تذكيرات الدفع',
             'description' => 'إرسال تذكيرات بالبريد الإلكتروني للعملاء الذين لديهم مدفوعات معلقة.',
         ],
+        'email_receipt' => [
+            'heading' => 'إرسال الإيصال للعميل',
+            'description' => 'إرسال إيصال الدفع مع مرفق PDF إلى البريد الإلكتروني للعميل.',
+        ],
     ],
 
     // Placeholders
@@ -228,11 +250,13 @@ return [
         'already_refunded' => 'تم استرداده بالفعل',
         'refundable_amount' => 'متاح للاسترداد',
         'additional_notes' => 'أدخل أي تفاصيل إضافية حول هذا الاسترداد...',
+        'custom_message' => 'شكراً لحجزكم معنا...',
     ],
 
     // Descriptions
     'descriptions' => [
         'refund_process' => 'معالجة استرداد كامل أو جزئي لهذه الدفعة.',
+        'email_receipt' => 'سيتم إرسال الإيصال كمرفق PDF إلى عنوان البريد الإلكتروني المحدد.',
     ],
 
     // Helpers
@@ -241,6 +265,34 @@ return [
         'notify_customer' => 'سيستلم العميل بريداً إلكترونياً حول هذا الاسترداد',
         'include_booking_details' => 'تضمين معلومات الحجز ذات الصلة في التصدير',
         'auto_update' => 'تحديث حالات الدفع تلقائياً بناءً على بيانات البوابة',
+        'email_receipt' => 'أدخل عنوان البريد الإلكتروني الذي سيتم إرسال الإيصال إليه.',
+        'send_admin_copy' => 'إرسال نسخة أيضاً إلى بريد المسؤول.',
+        'custom_message' => 'أضف رسالة شخصية اختيارية إلى البريد الإلكتروني.',
+    ],
+
+    'errors' => [
+        // ... existing errors ...
+        'invalid_email' => 'الرجاء إدخال عنوان بريد إلكتروني صالح.',
+    ],
+    'receipt' => [
+        'title' => 'إيصال الدفع',
+        'tagline' => 'نظام إدارة حجز القاعات',
+        'amount_paid' => 'المبلغ المدفوع',
+        'refund_amount' => 'المبلغ المسترد',
+        'payment_details' => 'تفاصيل الدفع',
+        'booking_details' => 'تفاصيل الحجز',
+        'customer_info' => 'معلومات العميل',
+        'hall' => 'القاعة',
+        'event_date' => 'تاريخ الحدث',
+        'time_slot' => 'الفترة الزمنية',
+        'customer_name' => 'اسم العميل',
+        'email' => 'البريد الإلكتروني',
+        'phone' => 'الهاتف',
+        'thank_you' => 'شكراً لدفعكم!',
+        'thank_you_sub' => 'نقدر تعاملكم معنا ونتطلع لخدمتكم.',
+        'computer_generated' => 'هذا إيصال إلكتروني ولا يحتاج إلى توقيع.',
+        'generated_on' => 'تم الإنشاء في',
+        'sultanate_oman' => 'سلطنة عمان',
     ],
 
     // Report Messages

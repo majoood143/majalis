@@ -18,6 +18,7 @@ return [
         'refund_details' => 'Refund Details',
         'export_options' => 'Export Options',
         'report_period' => 'Report Period',
+        'email_details' => 'Email Details',
     ],
 
     // Fields
@@ -52,6 +53,10 @@ return [
         'age' => 'Failed Within',
         'retry_reason' => 'Retry Reason (Optional)',
         'pending_for' => 'Pending For',
+        'customer_email' => 'Customer Email',
+        'send_admin_copy' => 'Send copy to admin',
+        'custom_message' => 'Custom Message (Optional)',
+        'payment_date' => 'Payment Date',
     ],
 
     // Status
@@ -81,6 +86,11 @@ return [
         'download' => 'Download File',
         'view' => 'View',
         'edit' => 'Edit',
+        'receipt' => 'Receipt',
+        'download_receipt' => 'Download Receipt',
+        'print_receipt' => 'Print Receipt',
+        'email_receipt' => 'Email Receipt',
+        'send_email' => 'Send Email',
     ],
 
     // Options
@@ -198,6 +208,14 @@ return [
         'refund_failed' => 'Refund Failed',
         'refund_failed_body' => 'Failed to process refund: :error',
         'error_prefix' => 'Error: ',
+        'email_sent' => 'Receipt Sent Successfully',
+        'email_sent_body' => 'Payment receipt has been sent to :email',
+        'email_failed' => 'Failed to Send Receipt',
+        'email_failed_body' => 'Error: :error',
+        'download_failed' => 'Download Failed',
+        'download_failed_body' => 'Error generating receipt: :error',
+        'print_failed' => 'Print Failed',
+        'print_failed_body' => 'Error preparing receipt for print: :error',
     ],
 
     // Modals
@@ -218,6 +236,10 @@ return [
             'heading' => 'Send Payment Reminders',
             'description' => 'Send email reminders to customers with pending payments.',
         ],
+        'email_receipt' => [
+            'heading' => 'Send Receipt to Customer',
+            'description' => 'Send payment receipt with PDF attachment to the customer email address.',
+        ],
     ],
 
     // Placeholders
@@ -226,11 +248,13 @@ return [
         'already_refunded' => 'Already Refunded',
         'refundable_amount' => 'Available to Refund',
         'additional_notes' => 'Enter any additional details about this refund...',
+        'custom_message' => 'Thank you for your booking with us...',
     ],
 
     // Descriptions
     'descriptions' => [
         'refund_process' => 'Process a full or partial refund for this payment.',
+        'email_receipt' => 'The receipt will be sent as a PDF attachment to the specified email address.',
     ],
 
     // Helpers
@@ -239,6 +263,41 @@ return [
         'notify_customer' => 'Customer will receive an email about this refund',
         'include_booking_details' => 'Include related booking information in export',
         'auto_update' => 'Automatically update payment statuses based on gateway data',
+        'email_receipt' => 'Enter the email address where the receipt should be sent.',
+        'send_admin_copy' => 'Also send a copy to the system admin email.',
+        'custom_message' => 'Add an optional personal message to the email.',
+    ],
+
+    // =========================================================================
+    // RECEIPT ERROR TRANSLATIONS
+    // =========================================================================
+    'errors' => [
+        // ... existing errors ...
+        'invalid_email' => 'Please enter a valid email address.',
+    ],
+
+    // =========================================================================
+    // PDF RECEIPT TEMPLATE TRANSLATIONS
+    // =========================================================================
+    'receipt' => [
+        'title' => 'PAYMENT RECEIPT',
+        'tagline' => 'Hall Booking Management System',
+        'amount_paid' => 'Amount Paid',
+        'refund_amount' => 'Refunded Amount',
+        'payment_details' => 'Payment Details',
+        'booking_details' => 'Booking Details',
+        'customer_info' => 'Customer Information',
+        'hall' => 'Hall',
+        'event_date' => 'Event Date',
+        'time_slot' => 'Time Slot',
+        'customer_name' => 'Customer Name',
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'thank_you' => 'Thank you for your payment!',
+        'thank_you_sub' => 'We appreciate your business and look forward to serving you.',
+        'computer_generated' => 'This is a computer-generated receipt and does not require a signature.',
+        'generated_on' => 'Generated on',
+        'sultanate_oman' => 'Sultanate of Oman',
     ],
 
     // Report Messages

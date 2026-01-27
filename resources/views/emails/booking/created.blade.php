@@ -16,18 +16,18 @@
 @php
     $locale = app()->getLocale();
     $isRtl = $locale === 'ar';
-    
+
     // Get hall name based on locale
-    $hallName = is_array($booking->hall->name) 
+    $hallName = is_array($booking->hall->name)
         ? ($booking->hall->name[$locale] ?? $booking->hall->name['en'] ?? 'N/A')
         : $booking->hall->name;
-    
+
     // Time slot labels
     $slotLabels = [
-        'morning' => __('slots.morning'),
-        'afternoon' => __('slots.afternoon'),
-        'evening' => __('slots.evening'),
-        'full_day' => __('slots.full_day'),
+        'morning' => __('booking.time_slots.morning'),
+        'afternoon' => __('booking.time_slots.afternoon'),
+        'evening' => __('booking.time_slots.evening'),
+        'full_day' => __('booking.time_slots.full_day'),
     ];
     $timeSlot = $slotLabels[$booking->time_slot] ?? ucfirst(str_replace('_', ' ', $booking->time_slot));
 @endphp
@@ -39,7 +39,7 @@
 @section('content')
     {{-- Greeting --}}
     <h2>{{ __('emails.booking.greeting', ['name' => $booking->customer_name]) }}</h2>
-    
+
     <p>{{ __('emails.booking.created.intro') }}</p>
 
     {{-- Status Badge --}}
@@ -54,34 +54,34 @@
         <div class="info-box-header">
             {{ __('emails.booking.details_title') }}
         </div>
-        
+
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.booking_number') }}</span>
             <span class="info-value" style="color: #4f46e5; font-size: 16px;">{{ $booking->booking_number }}</span>
         </div>
-        
+
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.hall') }}</span>
             <span class="info-value">{{ $hallName }}</span>
         </div>
-        
+
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.date') }}</span>
             <span class="info-value">{{ $booking->booking_date->format('l, d F Y') }}</span>
         </div>
-        
+
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.time_slot') }}</span>
             <span class="info-value">{{ $timeSlot }}</span>
         </div>
-        
+
         @if($booking->number_of_guests)
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.guests') }}</span>
             <span class="info-value">{{ $booking->number_of_guests }} {{ __('emails.booking.persons') }}</span>
         </div>
         @endif
-        
+
         @if($booking->event_type)
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.event_type') }}</span>
@@ -96,7 +96,7 @@
         <div class="info-box-header">
             {{ __('emails.booking.services_title') }}
         </div>
-        
+
         @foreach($booking->extraServices as $service)
         <div class="info-row">
             <span class="info-label">
@@ -113,26 +113,26 @@
         <div class="info-box-header" style="border-bottom-color: #86efac;">
             {{ __('emails.booking.payment_summary') }}
         </div>
-        
+
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.hall_price') }}</span>
             <span class="info-value amount">{{ number_format($booking->hall_price, 3) }} {{ __('currency.omr') }}</span>
         </div>
-        
+
         @if($booking->services_price > 0)
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.services_price') }}</span>
             <span class="info-value amount">{{ number_format($booking->services_price, 3) }} {{ __('currency.omr') }}</span>
         </div>
         @endif
-        
+
         @if($booking->discount_amount > 0)
         <div class="info-row">
             <span class="info-label">{{ __('emails.booking.discount') }}</span>
             <span class="info-value amount" style="color: #059669;">-{{ number_format($booking->discount_amount, 3) }} {{ __('currency.omr') }}</span>
         </div>
         @endif
-        
+
         <div class="info-row" style="border-top: 2px solid #86efac; padding-top: 16px; margin-top: 8px;">
             <span class="info-label" style="font-weight: 700; font-size: 16px; color: #1f2937;">{{ __('emails.booking.total_amount') }}</span>
             <span class="info-value amount-large">{{ number_format($booking->total_amount, 3) }} {{ __('currency.omr') }}</span>
@@ -154,9 +154,9 @@
         @if($booking->hall->requires_approval)
             <p style="color: #6b7280; font-size: 14px;">{{ __('emails.booking.created.awaiting_approval') }}</p>
         @else
-            <a href="{{ route('booking.show', $booking->id) }}" class="btn btn-primary">
+            {{-- <a href="{{ route('booking.show', $booking->id) }}" class="btn btn-primary">
                 {{ __('emails.booking.created.view_booking') }}
-            </a>
+            </a> --}}
         @endif
     </div>
 

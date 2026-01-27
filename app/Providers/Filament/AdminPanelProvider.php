@@ -93,8 +93,8 @@ class AdminPanelProvider extends PanelProvider
                 FilamentSpatieLaravelBackupPlugin::make(),
                 FilamentSpatieLaravelHealthPlugin::make(),
                 FilamentMailsPlugin::make(),
-            FilamentJobsMonitorPlugin::make()
-                ->enableNavigation(),
+                FilamentJobsMonitorPlugin::make()
+                    ->enableNavigation(),
 
                 //KnowledgeBaseCompanionPlugin::make(),
             ])

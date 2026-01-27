@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
-use App\Filament\Admin\Resources\BookingResource;
-use App\Models\Booking;
-use Filament\Resources\Pages\CreateRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Exception;
 use Throwable;
+use App\Models\Booking;
+use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Admin\Resources\BookingResource;
+use Illuminate\Support\Facades\Log;
 
 /**
  * CreateBooking Page
@@ -373,6 +375,12 @@ class CreateBooking extends CreateRecord
         try {
             $record = $this->record;
 
+
+            // =====================================================
+            // ✅ SEND EMAIL NOTIFICATION TO CUSTOMER
+            // =====================================================
+            $this->sendBookingCreatedEmail($record);
+
             // If this is an advance payment booking, provide detailed info
             if ($record->isAdvancePayment()) {
                 Notification::make()
@@ -390,6 +398,58 @@ class CreateBooking extends CreateRecord
         } catch (Exception $e) {
             // Silently fail for afterCreate errors to not disrupt the flow
             // \Log::error('Error in afterCreate: ' . $e->getMessage());
+        }
+    }
+
+    protected function sendBookingCreatedEmail(Booking $booking): void
+    {
+        // Skip if no customer email
+        if (empty($booking->customer_email)) {
+            Log::warning('Cannot send booking created email: No customer email', [
+                'booking_id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+            ]);
+            return;
+        }
+
+        try {
+            // Load relationships for email
+            $booking->load(['hall.owner', 'hall.city.region', 'extraServices', 'user']);
+
+            // Use NotificationService (already exists in your project)
+            $notificationService = app(NotificationService::class);
+            $notificationService->sendBookingCreatedNotification($booking);
+
+            // Show success notification in admin panel
+            Notification::make()
+                ->success()
+                ->title(__('booking.notifications.email_sent_title'))
+                ->body(__('booking.notifications.email_sent_body', [
+                    'email' => $booking->customer_email
+                ]))
+                ->send();
+
+            Log::info('Booking created email sent', [
+                'booking_id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+                'customer_email' => $booking->customer_email,
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't fail the booking creation
+            Log::error('Failed to send booking created email', [
+                'booking_id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Notify admin about the email failure
+            Notification::make()
+                ->warning()
+                ->title(__('booking.notifications.email_failed_title'))
+                ->body(__('booking.notifications.email_failed_body', [
+                    'error' => $e->getMessage()
+                ]))
+                ->send();
         }
     }
 

@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Traits\HasGuestBooking;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 
 /**
@@ -74,6 +76,7 @@ class Booking extends Model
     use HasFactory;
     use SoftDeletes;
     use HasGuestBooking;
+    use LogsActivity;
 
     /**
      * The table associated with the model.
@@ -161,6 +164,11 @@ class Booking extends Model
         'guest_token_expires_at' => 'datetime',
         'account_created_at' => 'datetime',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Boot the model.

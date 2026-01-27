@@ -22,24 +22,37 @@ class BookingInvoiceMail extends Mailable
     use Queueable, SerializesModels;
 
     /**
+     * Custom message for the email body.
+     */
+    public ?string $customMessage;
+
+    /**
+     * PDF content for attachment.
+     */
+    public ?string $pdfContent;
+
+    /**
      * Create a new message instance.
      *
      * @param Booking $booking
-     * @param string $subject
+     * @param string $emailSubject  // ← Renamed to avoid conflict
      * @param string|null $customMessage
      * @param string|null $pdfContent
      */
     public function __construct(
         public Booking $booking,
-        public string $subject,
-        public ?string $customMessage = null,
-        public ?string $pdfContent = null,
-    ) {}
+        string $emailSubject,
+        ?string $customMessage = null,
+        ?string $pdfContent = null,
+    ) {
+        // Assign to parent's subject property
+        $this->subject = $emailSubject;
+        $this->customMessage = $customMessage;
+        $this->pdfContent = $pdfContent;
+    }
 
     /**
      * Get the message envelope.
-     *
-     * @return Envelope
      */
     public function envelope(): Envelope
     {
@@ -50,8 +63,6 @@ class BookingInvoiceMail extends Mailable
 
     /**
      * Get the message content definition.
-     *
-     * @return Content
      */
     public function content(): Content
     {

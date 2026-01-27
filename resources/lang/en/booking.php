@@ -606,6 +606,10 @@ return [
         'reminder_not_sent_title' => 'Reminder Not Sent',
         'reminder_not_sent_body' => 'The reminder could not be sent. Please check the logs for details.',
         'reminder_failed_title' => 'Failed to Send Reminder',
+        'email_sent_title' => 'Email Sent',
+        'email_sent_body' => 'Booking confirmation sent to :email',
+        'email_failed_title' => 'Email Failed',
+        'email_failed_body' => 'Could not send email: :error',
     ],
 
     /*
@@ -925,6 +929,40 @@ return [
         'unsubscribe_note' => 'You are receiving this email because you have a booking with us.',
 
         'reminder_subject' => 'Reminder: Your booking at :hall in :days days',
+
+        // Invoice Email Template Keys
+        'invoice_greeting' => 'Dear :name,',
+        'invoice_intro' => 'Please find attached your invoice for your recent booking with us.',
+        'invoice_pdf_attached' => 'A PDF copy of your invoice is attached to this email for your records.',
+        'invoice_questions' => 'If you have any questions about this invoice, please don\'t hesitate to contact us.',
+        'invoice_footer' => 'This is an automated email. Please do not reply directly to this message.',
+
+        // Financial Summary Labels
+        'booking_summary' => 'Booking Summary',
+        'financial_summary' => 'Financial Summary',
+        'hall_price' => 'Hall Price',
+        'services_price' => 'Extra Services',
+        'subtotal' => 'Subtotal',
+        'platform_fee' => 'Platform Fee',
+        'total_amount' => 'Total Amount',
+
+        // Payment Information Labels
+        'payment_info' => 'Payment Information',
+        'payment_type' => 'Payment Type',
+        'advance_paid' => 'Advance Paid',
+        'balance_due' => 'Balance Due',
+        'balance_paid' => 'Balance Paid',
+
+        // Status Labels
+        'booking_status' => 'Booking Status',
+        'payment_status' => 'Payment Status',
+
+        // Extra Services
+        'extra_services' => 'Extra Services',
+
+        // Guests suffix
+        'persons' => 'persons',
+        'event_type' => 'Event Type',
     ],
 
     // =========================================================

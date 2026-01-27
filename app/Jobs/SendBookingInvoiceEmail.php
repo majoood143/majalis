@@ -7,47 +7,27 @@ namespace App\Jobs;
 use App\Models\Booking;
 use App\Services\InvoiceService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Mail\BookingInvoiceMail;
 
 /**
  * Job to send booking invoice via email
  *
- * Handles PDF generation and email dispatch asynchronously
- * to prevent blocking the admin interface.
+ * NOTE: Removed ShouldQueue to send immediately.
+ * Add it back once queue worker is running in production.
  *
  * @package App\Jobs
  */
-class SendBookingInvoiceEmail implements ShouldQueue
+class SendBookingInvoiceEmail
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Number of retry attempts
-     *
-     * @var int
-     */
-    public int $tries = 3;
-
-    /**
-     * Backoff intervals in seconds
-     *
-     * @var array<int>
-     */
-    public array $backoff = [30, 60, 120];
-
-    /**
      * Create a new job instance.
-     *
-     * @param Booking $booking The booking record
-     * @param string $email Recipient email address
-     * @param string $subject Email subject line
-     * @param string|null $message Custom message body
-     * @param bool $attachPdf Whether to attach PDF invoice
      */
     public function __construct(
         public Booking $booking,
@@ -59,9 +39,6 @@ class SendBookingInvoiceEmail implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @param InvoiceService $invoiceService
-     * @return void
      */
     public function handle(InvoiceService $invoiceService): void
     {
@@ -71,16 +48,29 @@ class SendBookingInvoiceEmail implements ShouldQueue
         // Generate PDF if needed
         $pdfContent = null;
         if ($this->attachPdf) {
-            $pdf = $invoiceService->generateFullReceipt($this->booking);
-            $pdfContent = $pdf->output();
+            try {
+                $pdf = $invoiceService->generateFullReceipt($this->booking);
+                $pdfContent = $pdf->output();
+            } catch (\Exception $e) {
+                Log::error('PDF generation failed for invoice email', [
+                    'booking_id' => $this->booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+                // Continue without PDF attachment
+            }
         }
 
-        // Send email
+        // Send email - use positional arguments (not named)
         Mail::to($this->email)->send(new BookingInvoiceMail(
-            booking: $this->booking,
-            subject: $this->subject,
-            customMessage: $this->message,
-            pdfContent: $pdfContent,
+            $this->booking,      // booking
+            $this->subject,      // emailSubject
+            $this->message,      // customMessage
+            $pdfContent          // pdfContent
         ));
+
+        Log::info('Invoice email sent', [
+            'booking_id' => $this->booking->id,
+            'email' => $this->email,
+        ]);
     }
 }
