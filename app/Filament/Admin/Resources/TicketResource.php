@@ -202,7 +202,7 @@ class TicketResource extends Resource
                             ->preload()
                             ->helperText('Link to a specific booking if applicable')
                             ->getOptionLabelFromRecordUsing(fn ($record) =>
-                                "#{$record->id} - {$record->hall->name} ({$record->booking_date->format('M d, Y')})"
+                                "#{$record->id} - {$record->hall?->name} ({$record->booking_date->format('M d, Y')})"
                             ),
 
                         // Due date for resolution

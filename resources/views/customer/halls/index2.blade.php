@@ -224,10 +224,11 @@
                 <a href="/"
                     class="flex items-center space-x-2 {{ app()->getLocale() === 'ar' ? 'space-x-reverse' : '' }}">
                     <div
-                        class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
-                        <span class="text-xl font-bold text-white">م</span>
+                        class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br rounded-xl">
+                        {{-- <span class="text-xl font-bold text-white">م</span> --}}
+                         <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8">
                     </div>
-                    <span class="hidden text-xl font-bold text-gray-800 sm:block">Majalis</span>
+                    <span class="hidden text-xl font-bold text-gray-800 sm:block">{{ __('guest.majalis') }}</span>
                 </a>
 
                 <!-- Language Switcher -->
@@ -826,15 +827,16 @@
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <!-- Company Info -->
                 <div class="col-span-1">
-                    <div class="flex items-center mb-4 space-x-2">
-                        <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor"
+                    <div class="flex items-center mb-4 space-x-2 ">
+                        {{-- <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <span class="text-xl font-bold text-white">Majalis</span>
+                        </svg> --}}
+                         <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8 rounded-xl">
+                        <span class="text-xl font-bold text-white">{{ __('guest.majalis') }}</span>
                     </div>
-                    <p class="text-sm text-gray-400">Find and book the perfect hall for your special events.</p>
+                    <p class="text-sm text-gray-400">{{ __('halls.find_perfect_venue') }}</p>
                 </div>
 
                 <!-- Quick Links -->

@@ -141,4 +141,27 @@ Route::prefix('guest')->name('guest.')->group(function () {
     Route::post('/check-availability', [GuestBookingController::class, 'checkAvailability'])
         ->name('check-availability');
 
+
+    // Guest Booking Payment Routes - Add these to your routes file:
+
+    // Payment page (displays payment form) - should already exist
+    // Route::get('/guest/booking/{guest_token}/payment', [GuestBookingController::class, 'showPayment'])
+    //     ->name('guest.booking.payment');
+
+    // // Process payment (form submission) - ADD THIS
+    // Route::post('/guest/booking/{guest_token}/process-payment', [GuestBookingController::class, 'processPayment'])
+    //     ->name('guest.booking.process-payment');
+
+    // // Payment success callback - ADD THIS
+    // Route::get('/guest/booking/{guest_token}/payment-success/{payment_reference}', [GuestBookingController::class, 'paymentSuccess'])
+    //     ->name('guest.booking.payment-success');
+
+    // // Payment cancel callback - ADD THIS
+    // Route::get('/guest/booking/{guest_token}/payment-cancel/{payment_reference}', [GuestBookingController::class, 'paymentCancel'])
+    //     ->name('guest.booking.payment-cancel');
+
+    // // Confirmation page - should already exist
+    // Route::get('/guest/booking/{guest_token}/confirmation', [GuestBookingController::class, 'confirmation'])
+    //     ->name('guest.booking.confirmation');
+
 });

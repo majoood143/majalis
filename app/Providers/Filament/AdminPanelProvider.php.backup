@@ -34,7 +34,6 @@ use Guava\FilamentKnowledgeBase\Plugins\KnowledgeBaseCompanionPlugin;
 use Guava\FilamentKnowledgeBase\Facades\KnowledgeBase;
 use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Guava\FilamentKnowledgeBase\KnowledgeBasePlugin;
-use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -86,18 +85,18 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
 
             ])
-            ->plugins([
-                FilamentShieldPlugin::make(),
-                ActivitylogPlugin::make(),
-                FilamentSpatieLaravelBackupPlugin::make(),
-                FilamentSpatieLaravelHealthPlugin::make(),
-                FilamentMailsPlugin::make(),
-                FilamentJobsMonitorPlugin::make()
-                    ->enableNavigation(),
-
-            ])
+        ->plugins([
+            FilamentShieldPlugin::make(),
+            ActivitylogPlugin::make(),
+            FilamentSpatieLaravelBackupPlugin::make(),
+            FilamentSpatieLaravelHealthPlugin::make(),
+            FilamentMailsPlugin::make(),
+            FilamentJobsMonitorPlugin::make()
+                ->enableNavigation(),
+            KnowledgeBasePlugin::make(),
+        ])
             ->authMiddleware([
-                Authenticate::class,
+                //Authenticate::class,
                 AuthenticateSession::class,
                 StartSession::class,
                 SetUserLanguage::class,
@@ -114,12 +113,7 @@ class AdminPanelProvider extends PanelProvider
 
             //->locale(config('app.locale'))
             //->locales(['en' => 'English', 'ar' => 'العربية'])
-            ->renderHook(
-                PanelsRenderHook::BODY_END,
-                fn(): string => Blade::render(
-                    '<script src="{{ asset("js/filament-session-handler.js") }}" defer></script>'
-                )
-            )
+
             // ADD PLUGIN CONFIGURATION
             ->plugin(
                 SpatieLaravelTranslatablePlugin::make()

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\Customer\GuestBookingController;
+
 
 Route::get('/', function () {
     //return view('welcome');
@@ -571,6 +573,17 @@ Route::get('/bookings/{booking}/invoice/print', function (Booking $booking) {
 
     return view('invoices.print', ['booking' => $booking->load(['hall', 'extraServices', 'user'])]);
 })->name('bookings.invoice.print')->middleware(['auth:web,filament']);
+
+
+// Guest routes:
+// Route::post('/guest/booking/{guest_token}/process-payment', [GuestBookingController::class, 'processPayment'])
+//     ->name('guest.booking.process-payment');
+
+// Route::get('/guest/booking/{guest_token}/payment-success/{payment_reference}', [GuestBookingController::class, 'paymentSuccess'])
+//     ->name('guest.booking.payment-success');
+
+// Route::get('/guest/booking/{guest_token}/payment-cancel/{payment_reference}', [GuestBookingController::class, 'paymentCancel'])
+//     ->name('guest.booking.payment-cancel');
 
 
 

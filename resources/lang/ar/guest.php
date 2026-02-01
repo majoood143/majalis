@@ -199,4 +199,115 @@ return [
     'filter_guest_only' => 'حجوزات الزوار فقط',
     'filter_registered_only' => 'المستخدمين المسجلين فقط',
 
+
+
+    'page_title_details' => 'تفاصيل الحجز',
+    'badge_guest' => 'حجز ضيف',
+    'btn_download_pdf' => 'تحميل PDF',
+    'btn_create_account' => 'إنشاء حساب',
+
+    'details_heading' => 'تفاصيل الحجز #:booking_number',
+    'details_subheading' => 'عرض وإدارة معلومات حجزك أدناه.',
+    'details_section_booking_info' => 'معلومات الحجز',
+    'details_section_hall_info' => 'معلومات القاعة',
+    'details_section_price_summary' => 'ملخص السعر',
+    'details_section_your_info' => 'معلوماتك',
+    'details_section_services' => 'خدمات إضافية',
+    'details_section_payment_info' => 'معلومات الدفع',
+
+    'details_label_booking_number' => 'رقم الحجز',
+    'details_label_booking_status' => 'حالة الحجز',
+    'details_label_payment' => 'الدفع',
+    'details_label_hall' => 'القاعة',
+    'details_label_date' => 'التاريخ',
+    'details_label_time' => 'الوقت',
+    'details_label_guests' => 'عدد الضيوف',
+    'details_label_event_type' => 'نوع الفعالية',
+    'details_label_services' => 'الخدمات',
+    'details_label_total_amount' => 'المبلغ الإجمالي',
+    'details_label_payment_status' => 'حالة الدفع',
+    'details_label_guest_name' => 'اسم الضيف',
+    'details_label_guest_email' => 'البريد الإلكتروني',
+    'details_label_guest_phone' => 'رقم الهاتف',
+    'details_label_phone' => 'الهاتف',
+    'details_label_special_requests' => 'طلبات خاصة',
+
+    'details_payment_pending_message' => 'حجزك ينتظر الدفع. يرجى إكمال الدفع للتأكيد.',
+    'details_no_services' => 'لم يتم اختيار خدمات إضافية.',
+    'details_need_help' => 'تحتاج مساعدة؟',
+    'details_help_message' => 'إذا كان لديك أي أسئلة حول حجزك، يرجى الاتصال بنا.',
+    'details_thank_you' => 'شكراً لحجزك! نحن نتطلع لاستضافتك.',
+    'details_contact_info' => 'إذا كان لديك أي أسئلة، يرجى الاتصال بنا على :support_email.',
+
+    'price_hall_rental' => 'إيجار القاعة',
+    'price_services' => 'الخدمات',
+    'price_platform_fee' => 'رسوم المنصة',
+    'price_total' => 'الإجمالي',
+    'price_advance_paid' => 'دفعة مقدمة',
+    'price_balance_due' => 'الرصيد المستحق',
+
+    'currency_omr' => 'ريال عماني',
+
+    'btn_complete_payment' => 'إكمال الدفع',
+    'btn_browse_more_halls' => 'تصفح المزيد من القاعات',
+
+    'status_pending' => 'قيد الانتظار',
+    'status_confirmed' => 'تم التأكيد',
+    'status_cancelled' => 'ملغى',
+    'status_completed' => 'مكتمل',
+
+    'payment_status_pending' => 'قيد الانتظار',
+    'payment_status_paid' => 'مدفوع',
+    'payment_status_partial' => 'جزئي',
+    'payment_status_refunded' => 'تم الاسترداد',
+
+    'time_slot_morning' => 'صباحاً (8:00 صباحاً - 12:00 ظهراً)',
+    'time_slot_afternoon' => 'بعد الظهر (1:00 ظهراً - 5:00 مساءً)',
+    'time_slot_evening' => 'مساءً (6:00 مساءً - 10:00 مساءً)',
+    'time_slot_full_day' => 'طوال اليوم (8:00 صباحاً - 10:00 مساءً)',
+
+    'event_type_wedding' => 'زفاف',
+    'event_type_birthday' => 'عيد ميلاد',
+    'event_type_corporate' => 'فعالية شركات',
+    'event_type_graduation' => 'تخرج',
+    'event_type_other' => 'أخرى',
+
+    'date_format' => 'l، j F، Y',
+
+    // Success page translations
+    'success_title' => 'تم الدفع بنجاح!',
+    'success_subtitle' => 'تم تأكيد حجزك بنجاح!',
+    'success_booking_details' => 'تفاصيل الحجز',
+    'success_label_location' => 'الموقع',
+    'success_label_additional_services' => 'خدمات إضافية',
+    'success_save_link_title' => 'احفظ رابط حجزك',
+
+    // Account creation translations
+    'create_account_title' => 'إنشاء حساب',
+    'create_account_description' => 'أنشئ حساب مجاني لإدارة حجوزاتك بسهولة',
+    'create_account_benefits' => [
+        'الوصول إلى جميع حجوزاتك في مكان واحد',
+        'استلام تحديثات وتذكيرات الحجز',
+        'دفع أسرع للحجوزات المستقبلية',
+        'حفظ تفضيلاتك وتفاصيلك',
+    ],
+
+    'label_password' => 'كلمة المرور',
+    'label_password_confirm' => 'تأكيد كلمة المرور',
+
+    'btn_view_booking' => 'عرض الحجز',
+    'btn_processing' => 'جاري المعالجة...',
+    'btn_cancel' => 'إلغاء',
+    'btn_skip_account' => 'تخطي والاستمرار في تصفح القاعات',
+    'btn_login_instead' => 'تسجيل الدخول بدلاً من ذلك',
+    'btn_back_to_halls' => 'العودة إلى القاعات',
+    'btn_back_to_previous' => 'العودة إلى الصفحة السابقة',
+    'receive_the_code' => 'لم تستلم الرمز؟',
+    'back' => 'عودة',
+    'majalis' => 'مجالس',
+    'rights_reserved' => 'جميع الحقوق محفوظة.',
+
+    'account_already_exists' => 'يوجد حساب مسجل بالبريد الإلكتروني الخاص بك. يرجى تسجيل الدخول للوصول إلى حجوزاتك.',
+
+
 ];

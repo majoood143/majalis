@@ -11,6 +11,8 @@ use App\Listeners\Booking\SendBookingRejectedNotification;
 use App\Listeners\LinkGuestBookingsOnRegistration;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Mail\Events\MessageSent;
+use Backstage\FilamentMails\Listeners\UpdateMailStatus;
 
 /**
  * EventServiceProvider
@@ -33,6 +35,9 @@ class EventServiceProvider extends ServiceProvider
 
         Registered::class => [
             LinkGuestBookingsOnRegistration::class,
+        ],
+        \Illuminate\Mail\Events\MessageSent::class => [
+            UpdateMailStatus::class,
         ],
         // =========================================================
         // BOOKING EVENTS

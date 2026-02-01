@@ -79,7 +79,7 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen bg-gray-50">
 
     <!-- Top Navigation -->
     <nav class="sticky top-0 z-50 border-b border-gray-200 glass-morphism safe-area-top">
@@ -93,15 +93,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
                         </path>
                     </svg>
-                    <span class="hidden font-medium sm:inline">{{ __('Back') }}</span>
+                    <span class="hidden font-medium sm:inline">{{ __('guest.back') }}</span>
                 </a>
 
                 <!-- Logo -->
                 <a href="{{ route('customer.halls.index') }}" class="flex items-center gap-2">
-                    <div class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
-                        <span class="text-xl font-bold text-white">م</span>
+                    <div class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br rounded-xl">
+                        {{-- <span class="text-xl font-bold text-white">م</span> --}}
+                        <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8">
                     </div>
-                    <span class="text-xl font-bold text-gray-800 hidden sm:inline">Majalis</span>
+                    <span class="hidden text-xl font-bold text-gray-800 sm:inline">{{ __('guest.majalis') }}</span>
                 </a>
 
                 <!-- Language Switcher -->
@@ -126,17 +127,18 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-8 mt-12 safe-area-bottom">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+    <footer class="py-8 mt-12 bg-white border-t border-gray-200 safe-area-bottom">
+        <div class="container px-4 mx-auto">
+            <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <div class="flex items-center gap-2">
-                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg">
-                        <span class="text-sm font-bold text-white">م</span>
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br ">
+                         <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8">
+                        {{-- <span class="text-sm font-bold text-white">م</span> --}}
                     </div>
-                    <span class="font-bold text-gray-800">Majalis</span>
+                    <span class="font-bold text-gray-800">{{ __('guest.majalis') }}</span>
                 </div>
                 <p class="text-sm text-gray-500">
-                    © {{ date('Y') }} Majalis. {{ __('All rights reserved.') }}
+                    © {{ date('Y') }} {{ __('guest.majalis') }}. {{ __('guest.rights_reserved') }}
                 </p>
             </div>
         </div>

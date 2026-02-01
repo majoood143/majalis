@@ -55,6 +55,11 @@ class BookingResource extends OwnerResource
     // }
     //protected static ?string $navigationGroup = ('owner_booking.navigation.group');
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner_booking.navigation.group');
+    }
+
     /**
      * Sort order within the navigation group.
      */
@@ -83,10 +88,28 @@ class BookingResource extends OwnerResource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('hall', function (Builder $query): void {
-                $query->where('owner_id', Auth::id());
-            })
+            // ->whereHas('hall', function (Builder $query): void {
+            //     $query->where('owner_id', Auth::id());
+            // })
             ->with(['hall', 'user', 'extraServices', 'payments']);
+    }
+
+    /**
+     * Override parent's applyOwnerScope to use hall relationship.
+     *
+     * This prevents the parent OwnerResource from incorrectly filtering
+     * by the user_id column (which is the customer, not the owner).
+     * Bookings should be scoped through the hall's owner_id instead.
+     *
+     * @param Builder $query The Eloquent query builder
+     * @param mixed $user The authenticated owner user
+     * @return Builder The scoped query
+     */
+    protected static function applyOwnerScope(Builder $query, $user): Builder
+    {
+        return $query->whereHas('hall', function (Builder $q) use ($user): void {
+            $q->where('owner_id', $user->id);
+        });
     }
 
     /**
@@ -108,7 +131,7 @@ class BookingResource extends OwnerResource
                             ->dehydrated(false),
 
                         Forms\Components\TextInput::make('hall.name')
-                            ->label(__('owner_booking::form.fields.hall'))
+                            ->label(__('owner_booking.form.fields.hall'))
                             ->formatStateUsing(function ($record) {
                                 if (!$record?->hall) {
                                     return __('owner_booking.general.na');
@@ -120,7 +143,7 @@ class BookingResource extends OwnerResource
                             ->dehydrated(false),
 
                         Forms\Components\DatePicker::make('booking_date')
-                            ->label(__('owner_booking::form.fields.event_date'))
+                            ->label(__('owner_booking.form.fields.event_date'))
                             ->disabled()
                             ->dehydrated(false),
 

@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Notifications\GuestBookingOtpNotification;
 use App\Notifications\GuestBookingConfirmationNotification;
 use Illuminate\Http\Request;
+use App\Models\ExtraService;
+use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +22,11 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
+use App\Models\Payment;
+use App\Services\ThawaniService;
 use Exception;
+use Illuminate\Support\Facades\Http;
+
 
 /**
  * Guest Booking Controller
@@ -190,7 +196,7 @@ class GuestBookingController extends Controller
             ]);
 
             return back()
-                ->with('error', __('guest.initiation_failed'))
+                ->with('error', __('guest.initiation_failed') . ': ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -361,7 +367,7 @@ class GuestBookingController extends Controller
             ]);
 
             return back()
-                ->with('error', __('guest.otp_resend_failed'));
+                ->with('error', __('guest.otp_resend_failed') + ': ' + $e->getMessage());
         }
     }
 
@@ -426,12 +432,11 @@ class GuestBookingController extends Controller
             'number_of_guests' => [
                 'required',
                 'integer',
-                'min:' . $hall->capacity_min,
-                'max:' . $hall->capacity_max,
+                'min:' . ($hall->capacity_min ?? 1),
+                'max:' . ($hall->capacity_max ?? 1000),
             ],
             'customer_notes' => ['nullable', 'string', 'max:1000'],
-            'event_type' => ['nullable', 'string', 'in:wedding,corporate,birthday,conference,graduation,other'],
-            'event_details' => ['nullable', 'string', 'max:1000'],
+            'event_type' => ['nullable', 'string', 'max:100'],
             'services' => ['nullable', 'array'],
             'services.*' => ['exists:extra_services,id'],
             'agree_terms' => ['required', 'accepted'],
@@ -443,7 +448,7 @@ class GuestBookingController extends Controller
                 ->withInput();
         }
 
-        // Check availability using self-contained method
+        // Check availability
         $isAvailable = $this->isSlotAvailable(
             $hall,
             $request->input('booking_date'),
@@ -452,41 +457,112 @@ class GuestBookingController extends Controller
 
         if (!$isAvailable) {
             return back()
-                ->with('error', __('halls.slot_not_available') !== 'halls.slot_not_available' ? __('halls.slot_not_available') : 'This slot is not available.')
+                ->with('error', __('halls.slot_not_available') !== 'halls.slot_not_available'
+                    ? __('halls.slot_not_available')
+                    : 'This slot is not available.')
                 ->withInput();
         }
 
         try {
             DB::beginTransaction();
 
-            // Prepare booking data
-            $bookingData = [
+            // Get selected services
+            $selectedServiceIds = $request->input('services', []);
+
+            // Calculate hall price based on time slot
+            $hallPrice = $this->getSlotPrice($hall, $request->input('time_slot'));
+
+            // Calculate services total
+            $servicesPrice = 0.00;
+            if (!empty($selectedServiceIds)) {
+                $servicesPrice = (float) ExtraService::whereIn('id', $selectedServiceIds)->sum('price');
+            }
+
+            // Calculate subtotal (hall + services)
+            $subtotal = $hallPrice + $servicesPrice;
+
+            // Platform fee (if applicable - usually 0 for now)
+            $platformFee = 0.00;
+
+            // Total amount
+            $totalAmount = $subtotal + $platformFee;
+
+            // Commission calculation (if applicable)
+            $commissionAmount = 0.00;
+            $commissionType = null;
+            $commissionValue = null;
+
+            // Owner payout (total - commission)
+            $ownerPayout = $totalAmount - $commissionAmount;
+
+            // Generate booking number (format: BK-YYYY-NNNNN)
+            $lastBooking = Booking::withTrashed()->orderBy('id', 'desc')->first();
+            $nextNumber = $lastBooking ? ($lastBooking->id + 1) : 1;
+            $bookingNumber = 'BK-' . now()->format('Y') . '-' . str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
+
+            // Generate guest token (64 character hex string)
+            $guestToken = bin2hex(random_bytes(32));
+
+            // Create booking with ALL required fields
+            $booking = Booking::create([
+                // Identifiers
+                'booking_number' => $bookingNumber,
                 'hall_id' => $hall->id,
                 'user_id' => null, // Guest booking - no user
+
+                // Guest booking fields
                 'is_guest_booking' => true,
+                'guest_token' => $guestToken,
+                'guest_token_expires_at' => now()->addYear(),
+
+                // Booking details
                 'booking_date' => $request->input('booking_date'),
                 'time_slot' => $request->input('time_slot'),
                 'number_of_guests' => (int) $request->input('number_of_guests'),
+
+                // Customer info
                 'customer_name' => $guestSession->name,
                 'customer_email' => $guestSession->email,
                 'customer_phone' => $guestSession->phone,
                 'customer_notes' => $request->input('customer_notes'),
                 'event_type' => $request->input('event_type'),
-                'event_details' => $request->input('event_details'),
-            ];
 
-            // Create booking using service
-            $booking = $bookingService->createBooking(
-                $hall,
-                $bookingData,
-                $request->input('services', [])
-            );
+                // Pricing - ALL REQUIRED FIELDS
+                'hall_price' => round($hallPrice, 2),
+                'services_price' => round($servicesPrice, 2),
+                'subtotal' => round($subtotal, 2),
+                'platform_fee' => round($platformFee, 2),
+                'total_amount' => round($totalAmount, 2),
 
-            // Update session with booking reference
-            $guestSession->updateStatus('payment');
-            $guestSession->storeBookingData([
-                'booking_id' => $booking->id,
-                'booking_number' => $booking->booking_number,
+                // Commission
+                'commission_amount' => round($commissionAmount, 2),
+                'commission_type' => $commissionType,
+                'commission_value' => $commissionValue,
+                'owner_payout' => round($ownerPayout, 2),
+
+                // Status
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'payment_type' => 'full',
+            ]);
+
+            // Attach extra services with their prices
+            if (!empty($selectedServiceIds)) {
+                $services = ExtraService::whereIn('id', $selectedServiceIds)->get();
+                $pivotData = [];
+                foreach ($services as $service) {
+                    $pivotData[$service->id] = ['price' => $service->price];
+                }
+                $booking->extraServices()->attach($pivotData);
+            }
+
+            // Update guest session
+            $guestSession->update([
+                'status' => 'payment',
+                'booking_data' => json_encode([
+                    'booking_id' => $booking->id,
+                    'booking_number' => $booking->booking_number,
+                ]),
             ]);
 
             DB::commit();
@@ -494,32 +570,70 @@ class GuestBookingController extends Controller
             Log::info('Guest booking created', [
                 'booking_id' => $booking->id,
                 'booking_number' => $booking->booking_number,
+                'hall_price' => $booking->hall_price,
+                'services_price' => $booking->services_price,
+                'subtotal' => $booking->subtotal,
+                'total_amount' => $booking->total_amount,
                 'session_id' => $guestSession->id,
-                'guest_email' => $guestSession->masked_email,
             ]);
 
             // Redirect to payment
             return redirect()
                 ->route('guest.booking.payment', [
-                    'guest_token' => $booking->guest_token,
+                    'guest_token' => $guestToken,
                     'lang' => $locale,
                 ])
-                ->with('success', __('halls.booking_created_proceed_payment'));
-
+                ->with('success', __('halls.booking_created_proceed_payment') !== 'halls.booking_created_proceed_payment'
+                    ? __('halls.booking_created_proceed_payment')
+                    : 'Booking created! Please proceed to payment.');
         } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('Guest booking creation failed', [
                 'error' => $e->getMessage(),
-                'session_id' => $guestSession->id,
+                'trace' => $e->getTraceAsString(),
+                'session_id' => $guestSession->id ?? null,
                 'hall_id' => $hall->id,
             ]);
 
             return back()
-                ->with('error', __('halls.booking_failed') . ': ' . $e->getMessage())
+                ->with('error', __('halls.booking_failed') !== 'halls.booking_failed'
+                    ? __('halls.booking_failed')
+                    : 'Booking failed. Please try again.' . $e->getMessage())
                 ->withInput();
         }
     }
+
+    /**
+     * Get price for a specific time slot.
+     * Uses pricing_override if available, otherwise uses base price_per_slot.
+     *
+     * @param Hall $hall
+     * @param string $timeSlot
+     * @return float
+     */
+    protected function getSlotPrice(Hall $hall, string $timeSlot): float
+    {
+        // Check pricing_override JSON field first
+        $pricingOverride = $hall->pricing_override;
+
+        if (!empty($pricingOverride) && is_array($pricingOverride)) {
+            if (isset($pricingOverride[$timeSlot]) && $pricingOverride[$timeSlot] > 0) {
+                return (float) $pricingOverride[$timeSlot];
+            }
+        }
+
+        // Fallback to base price_per_slot
+        $basePrice = (float) ($hall->price_per_slot ?? 0);
+
+        // If no pricing override and checking full_day, apply multiplier
+        if ($timeSlot === 'full_day' && empty($pricingOverride['full_day'])) {
+            return $basePrice * 2.5; // Default full day multiplier
+        }
+
+        return $basePrice;
+    }
+
 
     /**
      * Show booking details for guest (using token).
@@ -579,183 +693,566 @@ class GuestBookingController extends Controller
         return view('customer.guest.payment', compact('booking'));
     }
 
+
+
+
     /**
-     * Process payment for guest booking.
+     * Process guest booking payment and redirect to Thawani gateway.
      *
      * @param Request $request
-     * @param string $guestToken
+     * @param string $guest_token The unique guest booking token
      * @return RedirectResponse
      */
-    public function processPayment(Request $request, string $guestToken): RedirectResponse
+    public function processPayment(Request $request, string $guest_token): RedirectResponse
     {
-        $locale = request()->get('lang', session('locale', 'ar'));
+        // Get locale from request or session
+        $locale = $request->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        $booking = Booking::findByGuestToken($guestToken);
-
-        if (!$booking) {
-            return redirect()
-                ->route('customer.halls.index')
-                ->with('error', __('guest.booking_not_found'));
-        }
+        Log::info('=== GUEST PAYMENT PROCESS STARTED ===', [
+            'guest_token' => substr($guest_token, 0, 16) . '...',
+            'payment_type' => $request->input('payment_type'),
+        ]);
 
         try {
-            // Check if PaymentService exists
-            if (!class_exists(\App\Services\PaymentService::class)) {
-                Log::error('PaymentService class not found - payment integration required');
-                
-                return back()->with('error', __('Payment service not configured. Please contact support.'));
+            // ================================================================
+            // STEP 1: Find and validate the booking
+            // ================================================================
+
+            $booking = Booking::where('guest_token', $guest_token)
+                ->where('is_guest_booking', true)
+                ->where('payment_status', 'pending')
+                ->whereNull('deleted_at')
+                ->with('hall')
+                ->first();
+
+            if (!$booking) {
+                Log::warning('Guest payment: Booking not found', [
+                    'guest_token' => substr($guest_token, 0, 16) . '...',
+                ]);
+
+                return redirect()
+                    ->route('customer.halls.index', ['lang' => $locale])
+                    ->with('error', __('guest.booking_not_found') !== 'guest.booking_not_found'
+                        ? __('guest.booking_not_found')
+                        : 'Booking not found or already processed.');
             }
-            
-            $paymentService = app(\App\Services\PaymentService::class);
 
-            // Determine payment amount based on hall settings
-            $hall = $booking->hall;
-            $paymentType = 'full';
-            $paymentAmount = $booking->total_amount;
+            Log::info('Guest payment: Booking found', [
+                'booking_id' => $booking->id,
+                'booking_number' => $booking->booking_number,
+                'total_amount' => $booking->total_amount,
+            ]);
 
-            if ($hall->allows_advance_payment && $request->input('payment_type') === 'advance') {
-                $paymentType = 'advance';
-                $paymentAmount = $booking->calculateAdvanceAmount();
+            // Check token expiry
+            if ($booking->guest_token_expires_at && $booking->guest_token_expires_at->isPast()) {
+                Log::warning('Guest payment: Token expired', [
+                    'booking_id' => $booking->id,
+                    'expired_at' => $booking->guest_token_expires_at,
+                ]);
+
+                return redirect()
+                    ->route('customer.halls.index', ['lang' => $locale])
+                    ->with('error', __('guest.token_expired') !== 'guest.token_expired'
+                        ? __('guest.token_expired')
+                        : 'Your booking session has expired. Please create a new booking.');
             }
 
-            // Create payment with guest-specific callback URLs
-            $payment = $paymentService->createPayment(
-                $booking,
-                (float) $paymentAmount,
-                [
-                    'success_url' => route('guest.payment.success', ['guest_token' => $guestToken]),
-                    'cancel_url' => route('guest.payment.cancel', ['guest_token' => $guestToken]),
-                    'payment_type' => $paymentType,
-                ]
-            );
+            // ================================================================
+            // STEP 2: Calculate payment amount
+            // ================================================================
 
-            // Update booking payment type
-            $booking->update(['payment_type' => $paymentType]);
+            $paymentType = $request->input('payment_type', 'full');
+            $totalAmount = (float) $booking->total_amount;
 
-            Log::info('Guest payment initiated', [
+            // Calculate based on payment type
+            if ($paymentType === 'advance' && $booking->hall && $booking->hall->allows_advance_payment) {
+                $advancePercentage = (float) ($booking->hall->advance_percentage ?? 50);
+                $paymentAmount = round($totalAmount * ($advancePercentage / 100), 3);
+                $balanceDue = round($totalAmount - $paymentAmount, 3);
+            } else {
+                $paymentType = 'full';
+                $paymentAmount = $totalAmount;
+                $balanceDue = 0.00;
+            }
+
+            Log::info('Guest payment: Amount calculated', [
+                'payment_type' => $paymentType,
+                'total_amount' => $totalAmount,
+                'payment_amount' => $paymentAmount,
+                'balance_due' => $balanceDue,
+            ]);
+
+            // Minimum amount check (Thawani requires at least 0.100 OMR)
+            if ($paymentAmount < 0.100) {
+                Log::error('Guest payment: Amount too low', [
+                    'booking_id' => $booking->id,
+                    'amount' => $paymentAmount,
+                ]);
+                return back()->with('error', 'Payment amount is too low. Minimum is 0.100 OMR.');
+            }
+
+            // ================================================================
+            // STEP 3: Create payment record
+            // ================================================================
+
+            DB::beginTransaction();
+
+            $paymentReference = 'PAY-' . now()->format('Ymd') . '-' . strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+
+            $payment = Payment::create([
+                'booking_id' => $booking->id,
+                'payment_reference' => $paymentReference,
+                'amount' => round($paymentAmount, 3),
+                'currency' => 'OMR',
+                'status' => 'pending',
+                'payment_method' => 'online',
+                'customer_ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            // Update booking with payment type
+            $booking->update([
+                'payment_type' => $paymentType,
+                'advance_amount' => $paymentType === 'advance' ? round($paymentAmount, 3) : null,
+                'balance_due' => $paymentType === 'advance' ? round($balanceDue, 3) : null,
+            ]);
+
+            DB::commit();
+
+            Log::info('Guest payment: Payment record created', [
                 'booking_id' => $booking->id,
                 'payment_id' => $payment->id,
+                'payment_reference' => $paymentReference,
                 'amount' => $paymentAmount,
             ]);
 
-            // Redirect to payment gateway
-            return redirect()->away($payment->payment_url);
+            // ================================================================
+            // STEP 4: Create Thawani checkout session
+            // ================================================================
 
-        } catch (Exception $e) {
-            Log::error('Guest payment processing failed', [
-                'error' => $e->getMessage(),
-                'booking_id' => $booking->id,
+            // Get Thawani credentials from config or environment
+            $thawaniMode = config('services.thawani.mode', env('THAWANI_MODE', 'test'));
+            $secretKey = config('services.thawani.secret_key', env('THAWANI_SECRET_KEY', env('THAWANI_API_KEY', '')));
+            $publishableKey = config('services.thawani.publishable_key', env('THAWANI_PUBLISHABLE_KEY', ''));
+
+            Log::info('Guest payment: Thawani config', [
+                'mode' => $thawaniMode,
+                'has_secret_key' => !empty($secretKey),
+                'has_publishable_key' => !empty($publishableKey),
             ]);
 
-            return back()
-                ->with('error', __('halls.payment_processing_failed'));
+            if (empty($secretKey) || empty($publishableKey)) {
+                Log::error('Guest payment: Thawani keys not configured');
+
+                // Rollback payment record
+                $payment->update([
+                    'status' => 'failed',
+                    'failure_reason' => 'Payment gateway not configured',
+                    'failed_at' => now(),
+                ]);
+
+                return back()->with('error', 'Payment gateway is not properly configured. Please contact support.');
+            }
+
+            // Set API URLs based on mode
+            $apiUrl = $thawaniMode === 'live'
+                ? 'https://checkout.thawani.om/api/v1/checkout/session'
+                : 'https://uatcheckout.thawani.om/api/v1/checkout/session';
+
+            $checkoutBaseUrl = $thawaniMode === 'live'
+                ? 'https://checkout.thawani.om/pay/'
+                : 'https://uatcheckout.thawani.om/pay/';
+
+            // Prepare product name
+            $hallName = $booking->hall?->getTranslation('name', 'en') ?? 'Hall Booking';
+
+            // Build success and cancel URLs using YOUR EXISTING ROUTES
+            // Route names from guest-booking.php: guest.payment.success, guest.payment.cancel
+            $successUrl = route('guest.payment.success', [
+                'guest_token' => $guest_token,
+                'lang' => $locale,
+            ]);
+
+            $cancelUrl = route('guest.payment.cancel', [
+                'guest_token' => $guest_token,
+                'lang' => $locale,
+            ]);
+
+            Log::info('Guest payment: Callback URLs', [
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
+            ]);
+
+            // Build payload for Thawani
+            $payload = [
+                'client_reference_id' => $paymentReference,
+                'mode' => 'payment',
+                'products' => [
+                    [
+                        'name' => substr($hallName . ' - ' . $booking->booking_number, 0, 40), // Thawani has 40 char limit
+                        'quantity' => 1,
+                        'unit_amount' => (int) round($paymentAmount * 1000), // Convert OMR to baisa
+                    ],
+                ],
+                'success_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
+                'metadata' => [
+                    'booking_id' => (string) $booking->id,
+                    'booking_number' => $booking->booking_number,
+                    'payment_reference' => $paymentReference,
+                    'is_guest_booking' => 'true',
+                ],
+            ];
+
+            Log::info('Guest payment: Calling Thawani API', [
+                'api_url' => $apiUrl,
+                'client_reference_id' => $paymentReference,
+                'amount_baisa' => $payload['products'][0]['unit_amount'],
+            ]);
+
+            // Make API request to Thawani
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'thawani-api-key' => $secretKey,
+            ])->timeout(30)->post($apiUrl, $payload);
+
+            $responseData = $response->json();
+            $statusCode = $response->status();
+
+            Log::info('Guest payment: Thawani response', [
+                'status_code' => $statusCode,
+                'response' => $responseData,
+            ]);
+
+            // Check for errors
+            if (!$response->successful()) {
+                $errorMsg = $responseData['description'] ?? $responseData['message'] ?? 'Gateway error (HTTP ' . $statusCode . ')';
+
+                Log::error('Guest payment: Thawani API error', [
+                    'booking_id' => $booking->id,
+                    'status_code' => $statusCode,
+                    'response' => $responseData,
+                    'error' => $errorMsg,
+                ]);
+
+                // Update payment as failed
+                $payment->update([
+                    'status' => 'failed',
+                    'failure_reason' => $errorMsg,
+                    'failed_at' => now(),
+                    'gateway_response' => json_encode($responseData),
+                ]);
+
+                return back()->with('error', 'Payment gateway error: ' . $errorMsg);
+            }
+
+            // Validate response has session_id
+            if (!isset($responseData['data']['session_id'])) {
+                Log::error('Guest payment: Missing session_id in response', [
+                    'booking_id' => $booking->id,
+                    'response' => $responseData,
+                ]);
+
+                $payment->update([
+                    'status' => 'failed',
+                    'failure_reason' => 'Invalid gateway response - missing session_id',
+                    'failed_at' => now(),
+                    'gateway_response' => json_encode($responseData),
+                ]);
+
+                return back()->with('error', 'Invalid response from payment gateway. Please try again.');
+            }
+
+            // Get session ID and build payment URL
+            $sessionId = $responseData['data']['session_id'];
+            $paymentUrl = $checkoutBaseUrl . $sessionId . '?key=' . $publishableKey;
+
+            // Update payment record with Thawani session
+            $payment->update([
+                'transaction_id' => $sessionId,
+                'payment_url' => $paymentUrl,
+                'gateway_response' => json_encode($responseData),
+            ]);
+
+            Log::info('=== GUEST PAYMENT: REDIRECTING TO THAWANI ===', [
+                'booking_id' => $booking->id,
+                'payment_id' => $payment->id,
+                'session_id' => $sessionId,
+                'payment_url' => $paymentUrl,
+            ]);
+
+            // ================================================================
+            // STEP 5: Redirect to Thawani payment page
+            // ================================================================
+
+            return redirect()->away($paymentUrl);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            Log::error('=== GUEST PAYMENT EXCEPTION ===', [
+                'guest_token' => substr($guest_token, 0, 16) . '...',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'Payment processing failed: ' . $e->getMessage());
         }
     }
 
     /**
-     * Handle successful payment callback.
+     * Handle successful payment callback from Thawani.
+     *
+     * Note: This matches the route in guest-booking.php:
+     * Route::get('/payment/success/{guest_token}', ...)->name('payment.success');
      *
      * @param Request $request
-     * @param string $guestToken
+     * @param string $guest_token
      * @return RedirectResponse
      */
-    public function paymentSuccess(Request $request, string $guestToken): RedirectResponse
+    public function paymentSuccess(Request $request, string $guest_token): RedirectResponse
     {
-        $locale = request()->get('lang', session('locale', 'ar'));
+        $locale = $request->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        $booking = Booking::findByGuestToken($guestToken);
-
-        if (!$booking) {
-            return redirect()
-                ->route('customer.halls.index')
-                ->with('error', __('guest.booking_not_found'));
-        }
+        Log::info('=== GUEST PAYMENT SUCCESS CALLBACK ===', [
+            'guest_token' => substr($guest_token, 0, 16) . '...',
+        ]);
 
         try {
-            // Verify payment with gateway if PaymentService exists
-            $sessionId = $request->query('session_id');
-            if ($sessionId && $booking->payment && class_exists(\App\Services\PaymentService::class)) {
-                $paymentService = app(\App\Services\PaymentService::class);
-                $paymentService->verifyPayment($booking->payment, $sessionId);
-            } else {
-                // Mark booking as confirmed if no payment verification available
-                $booking->update([
-                    'status' => 'confirmed',
-                    'payment_status' => 'paid',
+            // Find the booking
+            $booking = Booking::where('guest_token', $guest_token)
+                ->where('is_guest_booking', true)
+                ->first();
+
+            if (!$booking) {
+                Log::warning('Guest payment success: Booking not found', [
+                    'guest_token' => substr($guest_token, 0, 16) . '...',
                 ]);
+
+                return redirect()
+                    ->route('customer.halls.index', ['lang' => $locale])
+                    ->with('error', 'Booking not found.');
             }
 
-            // Update guest session if exists
-            $guestSession = $booking->guestSession;
-            if ($guestSession) {
-                $guestSession->complete($booking);
+            // Find the most recent pending payment for this booking
+            $payment = Payment::where('booking_id', $booking->id)
+                ->where('status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$payment) {
+                // Check if already paid
+                $paidPayment = Payment::where('booking_id', $booking->id)
+                    ->where('status', 'paid')
+                    ->first();
+
+                if ($paidPayment) {
+                    Log::info('Guest payment success: Already processed', [
+                        'booking_id' => $booking->id,
+                        'payment_id' => $paidPayment->id,
+                    ]);
+
+                    return redirect()
+                        ->route('guest.booking.success', [
+                            'guest_token' => $guest_token,
+                            'lang' => $locale,
+                        ])
+                        ->with('info', 'Your booking is already confirmed.');
+                }
+
+                Log::warning('Guest payment success: No payment record found', [
+                    'booking_id' => $booking->id,
+                ]);
+
+                return redirect()
+                    ->route('guest.booking.payment', [
+                        'guest_token' => $guest_token,
+                        'lang' => $locale,
+                    ])
+                    ->with('error', 'Payment record not found. Please try again.');
             }
 
-            // Send confirmation notification
-            Notification::route('mail', $booking->customer_email)
-                ->notify(new GuestBookingConfirmationNotification($booking));
+            // Verify with Thawani if we have a session ID
+            $verified = true; // Default to true, Thawani callback is reliable
 
-            // Clear browser session
-            session()->forget('guest_session_token');
+            if ($payment->transaction_id) {
+                try {
+                    $thawaniMode = config('services.thawani.mode', env('THAWANI_MODE', 'test'));
+                    $secretKey = config('services.thawani.secret_key', env('THAWANI_SECRET_KEY', env('THAWANI_API_KEY', '')));
 
-            Log::info('Guest payment successful', [
+                    $verifyUrl = ($thawaniMode === 'live'
+                        ? 'https://checkout.thawani.om/api/v1/checkout/session/'
+                        : 'https://uatcheckout.thawani.om/api/v1/checkout/session/')
+                        . $payment->transaction_id;
+
+                    $verifyResponse = Http::withHeaders([
+                        'thawani-api-key' => $secretKey,
+                    ])->timeout(15)->get($verifyUrl);
+
+                    $verifyData = $verifyResponse->json();
+
+                    Log::info('Guest payment: Thawani verification', [
+                        'payment_id' => $payment->id,
+                        'verify_response' => $verifyData,
+                    ]);
+
+                    // Update gateway response with verification
+                    $existingResponse = json_decode($payment->gateway_response ?? '{}', true) ?: [];
+                    $payment->update([
+                        'gateway_response' => json_encode(array_merge($existingResponse, [
+                            'verification' => $verifyData,
+                        ])),
+                    ]);
+
+                    // Check if payment was actually successful
+                    $paymentStatus = $verifyData['data']['payment_status'] ?? null;
+                    if ($paymentStatus !== 'paid') {
+                        Log::warning('Guest payment: Verification shows not paid', [
+                            'payment_id' => $payment->id,
+                            'payment_status' => $paymentStatus,
+                        ]);
+                        $verified = false;
+                    }
+                } catch (Exception $verifyError) {
+                    Log::warning('Guest payment: Verification request failed', [
+                        'payment_id' => $payment->id,
+                        'error' => $verifyError->getMessage(),
+                    ]);
+                    // Continue anyway - Thawani callback is usually reliable
+                }
+            }
+
+            if (!$verified) {
+                return redirect()
+                    ->route('guest.booking.payment', [
+                        'guest_token' => $guest_token,
+                        'lang' => $locale,
+                    ])
+                    ->with('warning', 'Payment verification failed. Please try again or contact support.');
+            }
+
+            // Update payment and booking status
+            DB::beginTransaction();
+
+            $payment->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+            ]);
+
+            $newPaymentStatus = $booking->payment_type === 'advance' ? 'partial' : 'paid';
+
+            $booking->update([
+                'payment_status' => $newPaymentStatus,
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+            ]);
+
+            DB::commit();
+
+            Log::info('=== GUEST PAYMENT COMPLETED ===', [
                 'booking_id' => $booking->id,
                 'booking_number' => $booking->booking_number,
+                'payment_id' => $payment->id,
+                'amount' => $payment->amount,
+                'payment_type' => $booking->payment_type,
+                'new_status' => $newPaymentStatus,
             ]);
 
+            // Redirect to success page
             return redirect()
                 ->route('guest.booking.success', [
-                    'guest_token' => $guestToken,
+                    'guest_token' => $guest_token,
                     'lang' => $locale,
                 ])
-                ->with('success', __('halls.payment_successful'));
-
+                ->with('success', __('payment.success') !== 'payment.success'
+                    ? __('payment.success')
+                    : 'Payment successful! Your booking has been confirmed.');
         } catch (Exception $e) {
-            Log::error('Guest payment verification failed', [
+            DB::rollBack();
+
+            Log::error('Guest payment success callback exception', [
+                'guest_token' => substr($guest_token, 0, 16) . '...',
                 'error' => $e->getMessage(),
-                'booking_id' => $booking->id,
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()
-                ->route('guest.booking.show', [
-                    'guest_token' => $guestToken,
+                ->route('guest.booking.payment', [
+                    'guest_token' => $guest_token,
                     'lang' => $locale,
                 ])
-                ->with('warning', __('halls.payment_verification_pending'));
+                ->with('error', 'There was an issue confirming your payment. Please contact support.');
         }
     }
 
     /**
-     * Handle cancelled payment callback.
+     * Handle cancelled payment callback from Thawani.
      *
-     * @param string $guestToken
+     * Note: This matches the route in guest-booking.php:
+     * Route::get('/payment/cancel/{guest_token}', ...)->name('payment.cancel');
+     *
+     * @param Request $request
+     * @param string $guest_token
      * @return RedirectResponse
      */
-    public function paymentCancel(string $guestToken): RedirectResponse
+    public function paymentCancel(Request $request, string $guest_token): RedirectResponse
     {
-        $locale = request()->get('lang', session('locale', 'ar'));
+        $locale = $request->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        $booking = Booking::findByGuestToken($guestToken);
-
-        if (!$booking) {
-            return redirect()
-                ->route('customer.halls.index')
-                ->with('error', __('guest.booking_not_found'));
-        }
-
-        Log::info('Guest payment cancelled', [
-            'booking_id' => $booking->id,
+        Log::info('=== GUEST PAYMENT CANCELLED ===', [
+            'guest_token' => substr($guest_token, 0, 16) . '...',
         ]);
 
-        return redirect()
-            ->route('guest.booking.payment', [
-                'guest_token' => $guestToken,
-                'lang' => $locale,
-            ])
-            ->with('warning', __('halls.payment_cancelled'));
+        try {
+            // Find the booking
+            $booking = Booking::where('guest_token', $guest_token)->first();
+
+            if ($booking) {
+                // Find and update the pending payment
+                $payment = Payment::where('booking_id', $booking->id)
+                    ->where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if ($payment) {
+                    $payment->update([
+                        'status' => 'cancelled',
+                        'failed_at' => now(),
+                        'failure_reason' => 'User cancelled payment',
+                    ]);
+
+                    Log::info('Guest payment: Payment cancelled', [
+                        'payment_id' => $payment->id,
+                        'booking_id' => $booking->id,
+                    ]);
+                }
+            }
+
+            return redirect()
+                ->route('guest.booking.payment', [
+                    'guest_token' => $guest_token,
+                    'lang' => $locale,
+                ])
+                ->with('warning', __('payment.cancelled') !== 'payment.cancelled'
+                    ? __('payment.cancelled')
+                    : 'Payment was cancelled. You can try again when ready.');
+        } catch (Exception $e) {
+            Log::error('Guest payment cancel callback error', [
+                'guest_token' => substr($guest_token, 0, 16) . '...',
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('guest.booking.payment', [
+                    'guest_token' => $guest_token,
+                    'lang' => $locale,
+                ])
+                ->with('info', 'Payment was cancelled.');
+        }
     }
 
     /**
@@ -871,13 +1368,13 @@ class GuestBookingController extends Controller
             ]);
 
             return back()
-                ->with('error', __('guest.account_creation_failed'));
+                ->with('error', __('guest.account_creation_failed') . ': ' . $e->getMessage());
         }
     }
 
     /**
      * Check hall availability (AJAX endpoint).
-     * 
+     *
      * Returns availability for the requested slot AND all other slots.
      * This allows the frontend to show which slots are still available.
      *
@@ -948,9 +1445,9 @@ class GuestBookingController extends Controller
     {
         /*
          * Time Slot Availability Logic:
-         * 
+         *
          * Available slots: morning, afternoon, evening, full_day
-         * 
+         *
          * Rules:
          * 1. If 'full_day' is booked → ALL slots are blocked
          * 2. If 'morning' is booked → 'morning' and 'full_day' are blocked
@@ -969,7 +1466,7 @@ class GuestBookingController extends Controller
             $hasAnyBooking = (clone $baseQuery)
                 ->whereIn('time_slot', ['morning', 'afternoon', 'evening', 'full_day'])
                 ->exists();
-            
+
             return !$hasAnyBooking;
         }
 

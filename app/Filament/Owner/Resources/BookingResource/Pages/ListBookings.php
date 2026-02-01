@@ -59,7 +59,8 @@ class ListBookings extends ListRecords
      */
     public function getTabs(): array
     {
-        $baseQuery = fn() => $this->getFilteredTableQuery();
+        //$baseQuery = fn() => $this->getFilteredTableQuery();
+        $baseQuery = fn() => static::getResource()::getEloquentQuery();
 
         return [
             'all' => Tab::make(__('owner_booking.pages.list.tabs.all'))

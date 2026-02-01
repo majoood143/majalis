@@ -199,4 +199,124 @@ return [
     'filter_guest_only' => 'Guest Bookings Only',
     'filter_registered_only' => 'Registered Users Only',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Booking Details Page
+    |--------------------------------------------------------------------------
+    */
+
+    'page_title_details' => 'Booking Details',
+    'badge_guest' => 'Guest Booking',
+    'btn_download_pdf' => 'Download PDF',
+    'btn_create_account' => 'Create Account',
+
+    // New translations for booking details page
+    'details_heading' => 'Booking #:booking_number Details',
+    'details_subheading' => 'View and manage your booking information below.',
+    'details_section_booking_info' => 'Booking Information',
+    'details_section_hall_info' => 'Hall Information',
+    'details_section_price_summary' => 'Price Summary',
+    'details_section_your_info' => 'Your Information',
+    'details_section_services' => 'Additional Services',
+    'details_section_payment_info' => 'Payment Information',
+
+    'details_label_booking_number' => 'Booking Number',
+    'details_label_booking_status' => 'Booking Status',
+    'details_label_payment' => 'Payment',
+    'details_label_hall' => 'Hall',
+    'details_label_date' => 'Date',
+    'details_label_time' => 'Time',
+    'details_label_guests' => 'Number of Guests',
+    'details_label_event_type' => 'Event Type',
+    'details_label_services' => 'Services',
+    'details_label_total_amount' => 'Total Amount',
+    'details_label_payment_status' => 'Payment Status',
+    'details_label_guest_name' => 'Guest Name',
+    'details_label_guest_email' => 'Guest Email',
+    'details_label_guest_phone' => 'Guest Phone',
+    'details_label_phone' => 'Phone',
+    'details_label_special_requests' => 'Special Requests',
+
+    'details_payment_pending_message' => 'Your booking is awaiting payment. Please complete payment to confirm.',
+    'details_no_services' => 'No additional services selected.',
+    'details_need_help' => 'Need Help?',
+    'details_help_message' => 'If you have any questions about your booking, please contact us.',
+    'details_thank_you' => 'Thank you for your booking! We look forward to hosting you.',
+    'details_contact_info' => 'If you have any questions, please contact us at :support_email.',
+
+    'price_hall_rental' => 'Hall Rental',
+    'price_services' => 'Services',
+    'price_platform_fee' => 'Platform Fee',
+    'price_total' => 'Total',
+    'price_advance_paid' => 'Advance Paid',
+    'price_balance_due' => 'Balance Due',
+
+    'currency_omr' => 'OMR',
+
+    'btn_complete_payment' => 'Complete Payment',
+    'btn_browse_more_halls' => 'Browse More Halls',
+
+    // Status translations
+    'status_pending' => 'Pending',
+    'status_confirmed' => 'Confirmed',
+    'status_cancelled' => 'Cancelled',
+    'status_completed' => 'Completed',
+
+    // Payment status translations
+    'payment_status_pending' => 'Pending',
+    'payment_status_paid' => 'Paid',
+    'payment_status_partial' => 'Partial',
+    'payment_status_refunded' => 'Refunded',
+
+    // Time slot translations
+    'time_slot_morning' => 'Morning (8:00 AM - 12:00 PM)',
+    'time_slot_afternoon' => 'Afternoon (1:00 PM - 5:00 PM)',
+    'time_slot_evening' => 'Evening (6:00 PM - 10:00 PM)',
+    'time_slot_full_day' => 'Full Day (8:00 AM - 10:00 PM)',
+
+    // Event type translations
+    'event_type_wedding' => 'Wedding',
+    'event_type_birthday' => 'Birthday',
+    'event_type_corporate' => 'Corporate',
+    'event_type_graduation' => 'Graduation',
+    'event_type_other' => 'Other',
+
+    // Date format
+    'date_format' => 'l, F j, Y',
+
+    // Success page translations
+    'success_title' => 'Payment Successful!',
+    'success_subtitle' => 'Your booking has been confirmed successfully!',
+    'success_booking_details' => 'Booking Details',
+    'success_label_location' => 'Location',
+    'success_label_additional_services' => 'Additional Services',
+    'success_save_link_title' => 'Save Your Booking Link',
+
+    // Account creation translations
+    'create_account_title' => 'Create an Account',
+    'create_account_description' => 'Create a free account to manage your bookings easily',
+    'create_account_benefits' => [
+        'Access all your bookings in one place',
+        'Receive booking updates and reminders',
+        'Faster checkout for future bookings',
+        'Save your preferences and details',
+    ],
+
+    'label_password' => 'Password',
+    'label_password_confirm' => 'Confirm Password',
+
+    'btn_view_booking' => 'View Booking',
+    'btn_processing' => 'Processing...',
+    'btn_cancel' => 'Cancel',
+    'btn_skip_account' => 'Skip and continue browsing halls',
+    'btn_login_instead' => 'Login Instead',
+    'btn_back_to_halls' => 'Back to Halls',
+    'btn_back_to_previous' => 'Back to Previous Page',
+    'receive_the_code' => 'Didn\'t receive the code?',
+    'back'=> 'Back',
+    'majalis' => 'Majalis',
+    'rights_reserved' => 'All rights reserved.',
+
+    'account_already_exists' => 'An account with your email already exists. Please login to access your bookings.',
+
 ];
