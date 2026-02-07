@@ -49,7 +49,12 @@ class PricingResource extends Resource
     /**
      * The navigation group.
      */
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.nav_groups.hall_management');
+    }
 
     /**
      * The navigation sort order.
@@ -244,7 +249,7 @@ class PricingResource extends Resource
                                 6 => __('owner.pricing.days.saturday'),
                             ])
                             ->columns(4)
-                            ->visible(fn (Forms\Get $get): bool => 
+                            ->visible(fn (Forms\Get $get): bool =>
                                 $get('is_recurring') && $get('recurrence_type') === 'weekly'
                             )
                             ->columnSpanFull(),
@@ -385,9 +390,9 @@ class PricingResource extends Resource
                 // Date Range
                 Tables\Columns\TextColumn::make('start_date')
                     ->label(__('owner.pricing.columns.date_range'))
-                    ->formatStateUsing(fn ($record): string => 
+                    ->formatStateUsing(fn ($record): string =>
                         $record->is_recurring
-                            ? ($record->recurrence_type === 'weekly' 
+                            ? ($record->recurrence_type === 'weekly'
                                 ? __('owner.pricing.columns.every_week')
                                 : __('owner.pricing.columns.every_year'))
                             : $record->start_date->format('d M') . ' - ' . $record->end_date->format('d M Y')
@@ -399,7 +404,7 @@ class PricingResource extends Resource
                     ->label(__('owner.pricing.columns.adjustment'))
                     ->formatStateUsing(fn ($record): string => $record->adjustment_description)
                     ->badge()
-                    ->color(fn ($record): string => 
+                    ->color(fn ($record): string =>
                         $record->adjustment_type === 'percentage' && $record->adjustment_value < 0
                             ? 'success' // Discount
                             : 'warning'  // Increase
@@ -424,8 +429,8 @@ class PricingResource extends Resource
                 // Slots
                 Tables\Columns\TextColumn::make('apply_to_slots')
                     ->label(__('owner.pricing.columns.slots'))
-                    ->formatStateUsing(fn ($state): string => 
-                        empty($state) 
+                    ->formatStateUsing(fn ($state): string =>
+                        empty($state)
                             ? __('owner.pricing.columns.all_slots')
                             : implode(', ', array_map(fn ($s) => __("owner.slots.{$s}"), $state))
                     )

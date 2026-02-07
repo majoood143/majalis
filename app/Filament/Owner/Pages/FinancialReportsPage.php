@@ -59,7 +59,12 @@ class FinancialReportsPage extends Page implements HasForms
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Financial';
+    //protected static ?string $navigationGroup = 'Financial';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.reports.navigation_group');
+    }
 
     /**
      * The navigation sort order.

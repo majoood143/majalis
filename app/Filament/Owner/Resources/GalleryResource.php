@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
  *
  * Comprehensive gallery management for hall owners.
  * Upload, organize, and manage images for halls.
- * 
+ *
  * IMPORTANT: Extends OwnerResource for automatic owner scoping.
  *
  * @package App\Filament\Owner\Resources
@@ -44,7 +44,12 @@ class GalleryResource extends OwnerResource
     /**
      * The navigation group.
      */
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.nav_groups.hall_management');
+    }
 
     /**
      * The navigation sort order.
@@ -108,7 +113,7 @@ class GalleryResource extends OwnerResource
     /**
      * Apply owner scope to images query.
      * Only shows images belonging to halls owned by the current user.
-     * 
+     *
      * This overrides the parent OwnerResource method for HallImage specific scoping.
      */
     protected static function applyOwnerScope(Builder $query, $user): Builder

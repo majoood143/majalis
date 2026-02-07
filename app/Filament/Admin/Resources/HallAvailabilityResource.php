@@ -18,7 +18,7 @@ class HallAvailabilityResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
 
     protected static ?int $navigationSort = 5;
 

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name }} - Majalis
     </title>
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -152,11 +153,11 @@
 
                 <!-- Logo (Desktop) -->
                 <a href="/" class="items-center hidden gap-2 md:flex">
-                    <div
-                        class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
-                        <span class="text-xl font-bold text-white">م</span>
+                    <div class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br rounded-xl">
+                        <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8 rounded-xl">
                     </div>
-                    <span class="text-xl font-bold text-gray-800">Majalis</span>
+                    <span class="text-xl font-bold text-gray-800">
+                        {{ app()->getLocale() === 'ar' ? 'مجالس' : 'Majalis' }}</span>
                 </a>
 
                 <!-- Language Switcher -->
@@ -626,7 +627,7 @@
                         </button>
                     @endauth
 
-                     <!-- Benefits -->
+                    <!-- Benefits -->
                     <div class="mb-6 space-y-3">
                         <div class="flex items-center gap-3">
                             <svg class="flex-shrink-0 w-5 h-5 text-green-600" fill="none" stroke="currentColor"
@@ -646,7 +647,7 @@
                         </div>
                     </div>
 
-                     <!-- Contact Owner -->
+                    <!-- Contact Owner -->
                     <div class="pt-6 border-t border-gray-200">
                         <h4 class="mb-4 text-lg font-bold">{{ __('halls.contact_owner') }}</h4>
                         <div class="space-y-3">
@@ -877,9 +878,10 @@
     </script>
 
     @guest
-    @include('components.booking-choice-modal', ['hall' => $hall])
-@endguest
+        @include('components.booking-choice-modal', ['hall' => $hall])
+    @endguest
 
+    @include('layouts.footer')
 </body>
 
 </html>

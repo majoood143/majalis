@@ -25,7 +25,12 @@ class AvailabilityCalendarPage extends Page
     /**
      * The navigation group.
      */
-    protected static ?string $navigationGroup = 'Hall Management';
+    //protected static ?string $navigationGroup = 'Hall Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.nav_groups.hall_management');
+    }
 
     /**
      * The navigation sort order.

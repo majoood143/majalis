@@ -131,7 +131,7 @@ class HallController extends Controller
             'avg_price' => Hall::where('is_active', true)->avg('price_per_slot'),
         ];
 
-        return view('customer.halls.index2', compact(
+        return view('customer.halls.index', compact(
             'halls',
             'regions',
             'cities',

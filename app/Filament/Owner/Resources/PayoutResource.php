@@ -53,7 +53,12 @@ class PayoutResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Financial';
+    //protected static ?string $navigationGroup = 'Financial';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.payouts.navigation_group');
+    }
 
     /**
      * The navigation sort order.

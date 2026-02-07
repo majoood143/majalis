@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 /**
  * ListExpenses Page
- * 
+ *
  * Lists all expenses for the hall owner with filtering and statistics.
- * 
+ *
  * @package App\Filament\Owner\Resources\ExpenseResource\Pages
  * @author  Majalis Development Team
  * @version 1.0.0

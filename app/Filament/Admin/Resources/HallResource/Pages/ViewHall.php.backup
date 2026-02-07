@@ -10,21 +10,15 @@ declare(strict_types=1);
  * - Interactive map showing hall location (OpenStreetMap)
  * - Capacity, pricing, and contact details
  * - Statistics and settings
- * - Performance widgets (stats, charts, recent bookings)
  *
  * @package App\Filament\Admin\Resources\HallResource\Pages
- * @version 2.1.0
+ * @version 2.0.0
  * @author Majalis Development Team
  */
 
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
 use App\Filament\Admin\Resources\HallResource;
-use App\Filament\Admin\Resources\HallResource\Widgets\HallStatsOverviewWidget;
-use App\Filament\Admin\Resources\HallResource\Widgets\HallBookingTrendWidget;
-use App\Filament\Admin\Resources\HallResource\Widgets\HallRevenueChartWidget;
-use App\Filament\Admin\Resources\HallResource\Widgets\HallBookingStatusWidget;
-use App\Filament\Admin\Resources\HallResource\Widgets\HallRecentBookingsWidget;
 use App\Models\HallFeature;
 use Filament\Actions;
 use Filament\Infolists;
@@ -48,73 +42,6 @@ class ViewHall extends ViewRecord
     private const DEFAULT_LATITUDE = 23.5880;
     private const DEFAULT_LONGITUDE = 58.3829;
     private const DEFAULT_ZOOM = 15;
-
-    /**
-     * Get the header widgets for the view page.
-     *
-     * Displays performance widgets above the infolist content.
-     * Widgets automatically receive the $record property.
-     *
-     * @return array<class-string>
-     */
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            // Stats Overview - Key metrics at a glance
-            HallStatsOverviewWidget::class,
-        ];
-    }
-
-    /**
-     * Get the footer widgets for the view page.
-     *
-     * Displays detailed analysis widgets below the infolist content.
-     * Includes charts and recent bookings table.
-     *
-     * @return array<class-string>
-     */
-    protected function getFooterWidgets(): array
-    {
-        return [
-            // Charts row - Booking trends and Revenue analysis
-            HallBookingTrendWidget::class,
-            HallRevenueChartWidget::class,
-
-            // Booking status distribution
-            HallBookingStatusWidget::class,
-
-            // Recent bookings table
-            HallRecentBookingsWidget::class,
-        ];
-    }
-
-    /**
-     * Get the number of widget columns.
-     *
-     * Controls the grid layout for widgets.
-     * Using 2 columns allows charts to display side by side.
-     *
-     * @return int|string|array
-     */
-    public function getHeaderWidgetsColumns(): int|string|array
-    {
-        return 1; // Stats overview takes full width
-    }
-
-    /**
-     * Get the number of footer widget columns.
-     *
-     * @return int|string|array
-     */
-    public function getFooterWidgetsColumns(): int|string|array
-    {
-        return [
-            'sm' => 1,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 2,
-        ];
-    }
 
     /**
      * Define header actions for the view page.
@@ -295,10 +222,251 @@ class ViewHall extends ViewRecord
                     ->icon('heroicon-o-currency-dollar')
                     ->collapsible(),
 
+            // =============================================
+            // SECTION: Time Slots & Pricing
+            // Displays pricing for each time slot with visual indicators
+            // =============================================
+            Infolists\Components\Section::make(__('Time Slots & Pricing'))
+                ->schema([
+                    // Pricing explanation
+                    Infolists\Components\TextEntry::make('pricing_note')
+                        ->hiddenLabel()
+                        ->state(__('Prices shown per slot. Custom slot prices override the base price.'))
+                        ->color('gray')
+                        ->size(Infolists\Components\TextEntry\TextEntrySize::Small)
+                        ->columnSpanFull(),
+
+                    // Base Price Display
+                    Infolists\Components\TextEntry::make('base_price_display')
+                        ->label(__('Base Price (Default)'))
+                        ->state(fn($record) => number_format((float) $record->price_per_slot, 3) . ' OMR')
+                        ->badge()
+                        ->color('gray')
+                        ->icon('heroicon-o-banknotes')
+                        ->columnSpanFull(),
+
+                    // Time Slots Grid
+                    Infolists\Components\Grid::make(4)
+                        ->schema([
+                            // Morning Slot
+                            Infolists\Components\TextEntry::make('price_morning')
+                                ->label(__('Morning'))
+                                ->helperText('8:00 AM - 12:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('morning');
+                                    $isOverride = isset($record->pricing_override['morning']);
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['morning']) ? 'success' : 'info')
+                                ->icon('heroicon-o-sun'),
+
+                            // Afternoon Slot
+                            Infolists\Components\TextEntry::make('price_afternoon')
+                                ->label(__('Afternoon'))
+                                ->helperText('12:00 PM - 5:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('afternoon');
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['afternoon']) ? 'success' : 'info')
+                                ->icon('heroicon-o-cloud'),
+
+                            // Evening Slot
+                            Infolists\Components\TextEntry::make('price_evening')
+                                ->label(__('Evening'))
+                                ->helperText('5:00 PM - 11:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('evening');
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['evening']) ? 'success' : 'info')
+                                ->icon('heroicon-o-moon'),
+
+                            // Full Day Slot
+                            Infolists\Components\TextEntry::make('price_full_day')
+                                ->label(__('Full Day'))
+                                ->helperText('8:00 AM - 11:00 PM')
+                                ->state(function ($record): string {
+                                    $price = $record->getPriceForSlot('full_day');
+                                    return number_format($price, 3) . ' OMR';
+                                })
+                                ->badge()
+                                ->color(fn($record) => isset($record->pricing_override['full_day']) ? 'success' : 'info')
+                                ->icon('heroicon-o-calendar-days'),
+                        ]),
+
+                    // Legend for color coding
+                    Infolists\Components\Grid::make(2)
+                        ->schema([
+                            Infolists\Components\TextEntry::make('legend_base')
+                                ->hiddenLabel()
+                                ->state(__('🔵 Blue = Base Price'))
+                                ->color('info')
+                                ->size(Infolists\Components\TextEntry\TextEntrySize::Small),
+
+                            Infolists\Components\TextEntry::make('legend_custom')
+                                ->hiddenLabel()
+                                ->state(__('🟢 Green = Custom Slot Price'))
+                                ->color('success')
+                                ->size(Infolists\Components\TextEntry\TextEntrySize::Small),
+                        ]),
+
+                    // Advance Payment Info (if enabled)
+                    Infolists\Components\Fieldset::make(__('Advance Payment Settings'))
+                        ->schema([
+                            Infolists\Components\IconEntry::make('allows_advance_payment')
+                                ->label(__('Advance Payment'))
+                                ->boolean()
+                                ->trueIcon('heroicon-o-check-circle')
+                                ->falseIcon('heroicon-o-x-circle')
+                                ->trueColor('success')
+                                ->falseColor('gray'),
+
+                            Infolists\Components\TextEntry::make('advance_payment_percentage')
+                                ->label(__('Advance Percentage'))
+                                ->suffix('%')
+                                ->badge()
+                                ->color('warning')
+                                ->visible(fn($record) => $record->allows_advance_payment && $record->advance_payment_percentage),
+
+                            Infolists\Components\TextEntry::make('advance_payment_amount')
+                                ->label(__('Fixed Advance'))
+                                ->money('OMR')
+                                ->badge()
+                                ->color('warning')
+                                ->visible(fn($record) => $record->allows_advance_payment && $record->advance_payment_amount),
+
+                            Infolists\Components\TextEntry::make('minimum_advance_payment')
+                                ->label(__('Minimum Advance'))
+                                ->money('OMR')
+                                ->badge()
+                                ->color('info')
+                                ->visible(fn($record) => $record->allows_advance_payment && $record->minimum_advance_payment),
+                        ])
+                        ->columns(4)
+                        ->visible(fn($record) => $record->allows_advance_payment),
+                ])
+                ->icon('heroicon-o-clock')
+                ->description(__('Pricing breakdown for each booking time slot'))
+                ->collapsible(),
+
                 // =============================================
-                // SECTION: Statistics (Quick Summary)
+                // SECTION: Contact Information
                 // =============================================
-                Infolists\Components\Section::make(__('Quick Statistics'))
+                Infolists\Components\Section::make(__('Contact Information'))
+                    ->schema([
+                        Infolists\Components\Grid::make(3)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('phone')
+                                    ->label(__('Phone'))
+                                    ->icon('heroicon-o-phone')
+                                    ->copyable()
+                                    ->copyMessage(__('Phone copied!')),
+
+                                Infolists\Components\TextEntry::make('whatsapp')
+                                    ->label(__('WhatsApp'))
+                                    ->icon('heroicon-o-device-phone-mobile')
+                                    ->copyable()
+                                    ->copyMessage(__('WhatsApp copied!'))
+                                    ->placeholder(__('Not provided')),
+
+                                Infolists\Components\TextEntry::make('email')
+                                    ->label(__('Email'))
+                                    ->icon('heroicon-o-envelope')
+                                    ->copyable()
+                                    ->copyMessage(__('Email copied!'))
+                                    ->placeholder(__('Not provided')),
+                            ]),
+                    ])
+                    ->icon('heroicon-o-phone')
+                    ->collapsible(),
+
+                // =============================================
+                // SECTION: Location with Interactive Map
+                // =============================================
+                Infolists\Components\Section::make(__('Location'))
+                    ->schema([
+                        // Address information
+                        Infolists\Components\TextEntry::make('address')
+                            ->label(__('Full Address'))
+                            ->icon('heroicon-o-map-pin')
+                            ->columnSpanFull()
+                            ->copyable()
+                            ->copyMessage(__('Address copied!')),
+
+                        // Coordinates display
+                        Infolists\Components\Grid::make(2)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('latitude')
+                                    ->label(__('Latitude'))
+                                    ->badge()
+                                    ->color('gray')
+                                    ->copyable(),
+
+                                Infolists\Components\TextEntry::make('longitude')
+                                    ->label(__('Longitude'))
+                                    ->badge()
+                                    ->color('gray')
+                                    ->copyable(),
+                            ]),
+
+
+                        // =============================================
+                        // INTERACTIVE MAP DISPLAY
+                        // Shows the hall location on OpenStreetMap
+                        // =============================================
+                        Infolists\Components\ViewEntry::make('location_map')
+                            ->label(__('Hall Location on Map'))
+                            ->view('filament.infolists.components.hall-map')
+                            ->columnSpanFull()
+                            ->visible(fn($record) => $record->latitude && $record->longitude),
+
+                        // Google Maps link (if no coordinates)
+                        Infolists\Components\TextEntry::make('google_maps_url')
+                            ->label(__('Google Maps Link'))
+                            ->url(fn($record) => $record->google_maps_url)
+                            ->openUrlInNewTab()
+                            ->visible(fn($record) => $record->google_maps_url)
+                            ->icon('heroicon-o-arrow-top-right-on-square'),
+                    ])
+                    ->icon('heroicon-o-map-pin')
+                    ->collapsible(),
+
+                // =============================================
+                // SECTION: Features
+                // =============================================
+                Infolists\Components\Section::make(__('Features'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('features_display')
+                            ->label(__('Available Features'))
+                            ->getStateUsing(function ($record) {
+                                if (empty($record->features)) {
+                                    return __('No features assigned');
+                                }
+
+                                // Get feature names from IDs
+                                $featureIds = is_array($record->features) ? $record->features : [];
+                                $features = HallFeature::whereIn('id', $featureIds)
+                                    ->where('is_active', true)
+                                    ->pluck('name')
+                                    ->toArray();
+
+                                return implode(', ', $features) ?: __('No features assigned');
+                            })
+                            ->badge()
+                            ->separator(',')
+                            ->columnSpanFull(),
+                    ])
+                    ->icon('heroicon-o-star')
+                    ->collapsible(),
+
+                // =============================================
+                // SECTION: Statistics
+                // =============================================
+                Infolists\Components\Section::make(__('Statistics'))
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
@@ -306,8 +474,15 @@ class ViewHall extends ViewRecord
                                     ->label(__('Total Bookings'))
                                     ->state(fn($record) => $record->bookings()->count())
                                     ->badge()
-                                    ->color('primary')
-                                    ->icon('heroicon-o-calendar-days'),
+                                    ->color('info')
+                                    ->icon('heroicon-o-calendar'),
+
+                                Infolists\Components\TextEntry::make('confirmed_bookings')
+                                    ->label(__('Confirmed'))
+                                    ->state(fn($record) => $record->bookings()->where('status', 'confirmed')->count())
+                                    ->badge()
+                                    ->color('success')
+                                    ->icon('heroicon-o-check-circle'),
 
                                 Infolists\Components\TextEntry::make('total_revenue')
                                     ->label(__('Total Revenue'))
@@ -322,13 +497,6 @@ class ViewHall extends ViewRecord
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-star'),
-
-                                Infolists\Components\TextEntry::make('pending_bookings')
-                                    ->label(__('Pending'))
-                                    ->state(fn($record) => $record->bookings()->where('status', 'pending')->count())
-                                    ->badge()
-                                    ->color('warning')
-                                    ->icon('heroicon-o-clock'),
                             ]),
                     ])
                     ->icon('heroicon-o-chart-bar')
@@ -389,6 +557,29 @@ class ViewHall extends ViewRecord
                     ])
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsible(),
+
+                // =============================================
+                // SECTION: Media Gallery
+                // =============================================
+                Infolists\Components\Section::make(__('Media'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('gallery_count')
+                            ->label(__('Gallery Images'))
+                            ->state(fn($record) => is_array($record->gallery) ? count($record->gallery) : 0)
+                            ->badge()
+                            ->color('info')
+                            ->icon('heroicon-o-photo'),
+
+                        Infolists\Components\TextEntry::make('video_url')
+                            ->label(__('Video'))
+                            ->url(fn($record) => $record->video_url)
+                            ->openUrlInNewTab()
+                            ->placeholder(__('No video'))
+                            ->icon('heroicon-o-video-camera'),
+                    ])
+                    ->icon('heroicon-o-photo')
+                    ->collapsible()
+                    ->collapsed(),
 
                 // =============================================
                 // SECTION: System Information

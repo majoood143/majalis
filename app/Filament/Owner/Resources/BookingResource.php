@@ -88,9 +88,9 @@ class BookingResource extends OwnerResource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            // ->whereHas('hall', function (Builder $query): void {
-            //     $query->where('owner_id', Auth::id());
-            // })
+            ->whereHas('hall', function (Builder $query): void {
+                $query->where('owner_id', Auth::id());
+            })
             ->with(['hall', 'user', 'extraServices', 'payments']);
     }
 
@@ -615,7 +615,7 @@ class BookingResource extends OwnerResource
                     // Dispatch event - triggers email notification
                     event(new BookingApproved(
                         booking: $record,
-                        approvedBy: auth()->id()
+                        approvedBy: Auth::id()
                     ));
 
                     Notification::make()
@@ -693,7 +693,7 @@ class BookingResource extends OwnerResource
                     event(new BookingRejected(
                         booking: $record,
                         reason: $data['rejection_reason'],
-                        rejectedBy: auth()->id()
+                        rejectedBy: Auth::id()
                     ));
 
                     Notification::make()

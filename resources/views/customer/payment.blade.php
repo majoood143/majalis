@@ -118,7 +118,7 @@
 
                     <!-- ✅ NEW: Advance Payment Notice (if applicable) -->
                     @if($booking->isAdvancePayment())
-                    <div class="p-6 border-2 shadow-sm bg-blue-50 border-blue-200 rounded-2xl">
+                    <div class="p-6 border-2 border-blue-200 shadow-sm bg-blue-50 rounded-2xl">
                         <div class="flex items-start gap-4">
                             <div class="flex-shrink-0">
                                 <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@
                                 <p class="mb-4 text-sm text-blue-800">
                                     {{ __('halls.advance_payment_description') }}
                                 </p>
-                                
+
                                 <div class="p-4 bg-white border border-blue-200 rounded-lg">
                                     <div class="space-y-3">
                                         <!-- Amount to Pay NOW -->
@@ -144,7 +144,7 @@
                                                 {{ number_format($booking->advance_amount, 3) }} {{ __('halls.currency') }}
                                             </span>
                                         </div>
-                                        
+
                                         <!-- Balance Due Later -->
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm text-gray-600">
@@ -154,7 +154,7 @@
                                                 {{ number_format($booking->balance_due, 3) }} {{ __('halls.currency') }}
                                             </span>
                                         </div>
-                                        
+
                                         <!-- Total for Reference -->
                                         <div class="flex items-center justify-between pt-3 border-t border-blue-200">
                                             <span class="text-sm font-semibold text-gray-700">
@@ -166,7 +166,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Important Notice -->
                                 <div class="flex items-start gap-2 p-3 mt-4 border rounded-lg bg-amber-50 border-amber-200">
                                     <svg class="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
@@ -216,13 +216,13 @@
                                                     <span class="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg">📱 {{ __('halls.digital_wallet') }}</span>
                                                 </div>
                                             </div>
-                                            <div class="flex-shrink-0">
+                                            {{-- <div class="flex-shrink-0">
                                                 <div class="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded-full peer-checked:border-primary-600 peer-checked:bg-primary-600">
                                                     <svg class="hidden w-4 h-4 text-white peer-checked:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
                                 </label>
@@ -364,6 +364,6 @@
             </div>
         </div>
     </div>
-
+@include('layouts.footer')
 </body>
 </html>

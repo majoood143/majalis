@@ -316,6 +316,42 @@ return [
     'back'=> 'Back',
     'majalis' => 'Majalis',
     'rights_reserved' => 'All rights reserved.',
+    'terms_agree'=> 'By continuing, you agree to our Terms of Service and Privacy Policy',
+    'or'=> 'Or',
+    // Additional keys needed for book.blade.php
+    'booking_per_slot' => 'per slot',
+    'phone_country_code' => '+968',
+    'phone_placeholder_info' => 'e.g., 9xxxxxxx',
+
+    // Placeholder for missing translations that might be needed
+    // (These might already exist in your validation messages or main lang files)
+    'validation_name_required' => 'Name is required',
+    'validation_email_required' => 'Email is required',
+    'validation_email_invalid' => 'Please enter a valid email address',
+    'validation_phone_required' => 'Phone number is required',
+    'validation_phone_digits' => 'Phone number must be 8 digits',
+    // Booking form specific translations
+    'form_your_information' => 'Your Information',
+    'form_capacity' => 'Capacity',
+    'form_guests_label' => 'guests',
+    'form_select_event_type' => 'Select event type',
+    'form_special_requests_placeholder' => 'Any special requirements or notes for your booking...',
+    'form_agree_to' => 'I agree to the',
+    'form_and' => 'and',
+    'form_terms_conditions' => 'Terms & Conditions',
+    'form_cancellation_policy' => 'Cancellation Policy',
+    'form_booking_summary' => 'Booking Summary',
+    'form_note_label' => 'Note',
+    'form_advance_payment_note' => 'This hall allows advance payment of',
+    'form_availability_error' => 'Error checking availability',
+
+    // Event type additions (for conference which wasn't in your original list)
+    'event_type_conference' => 'Conference',
+
+    // JavaScript messages (for availability checking)
+    'form_available_message' => 'This time slot is available',
+    'form_not_available_message' => 'This time slot is not available',
+    'form_select_date_time' => 'Please select a date and time slot',
 
     'account_already_exists' => 'An account with your email already exists. Please login to access your bookings.',
 

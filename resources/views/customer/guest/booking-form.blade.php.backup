@@ -1,4 +1,3 @@
-
 {{--
     Guest Booking - Step 3: Complete Booking Form
 
@@ -80,11 +79,11 @@
 
                         {{-- Guest Info Summary --}}
                         <div class="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
-                            <h3 class="mb-2 font-medium text-blue-900">{{ __('guest.form_your_information') }}</h3>
+                            <h3 class="mb-2 font-medium text-blue-900">{{ __('Your Information') }}</h3>
                             <div class="space-y-1 text-sm text-blue-800">
-                                <p><span class="font-medium">{{ __('guest.details_label_guest_name') }}:</span> {{ $guestSession->name }}</p>
-                                <p><span class="font-medium">{{ __('guest.details_label_guest_email') }}:</span> {{ $guestSession->email }}</p>
-                                <p><span class="font-medium">{{ __('guest.details_label_guest_phone') }}:</span> {{ $guestSession->phone }}</p>
+                                <p><span class="font-medium">{{ __('Name') }}:</span> {{ $guestSession->name }}</p>
+                                <p><span class="font-medium">{{ __('Email') }}:</span> {{ $guestSession->email }}</p>
+                                <p><span class="font-medium">{{ __('Phone') }}:</span> {{ $guestSession->phone }}</p>
                             </div>
                         </div>
 
@@ -100,7 +99,7 @@
                             {{-- Date Selection --}}
                             <div class="mb-5">
                                 <label for="booking_date" class="block mb-1 text-sm font-medium text-gray-700">
-                                    {{ __('guest.details_label_date') }} <span class="text-red-500">*</span>
+                                    {{ __('Booking Date') }} <span class="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="date"
@@ -121,15 +120,15 @@
                             {{-- Time Slot Selection --}}
                             <div class="mb-5">
                                 <label class="block mb-2 text-sm font-medium text-gray-700">
-                                    {{ __('guest.details_label_time') }} <span class="text-red-500">*</span>
+                                    {{ __('Time Slot') }} <span class="text-red-500">*</span>
                                 </label>
                                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                                     @php
                                         $timeSlots = [
-                                            'morning' => ['label' => __('guest.time_slot_morning'), 'icon' => '🌅'],
-                                            'afternoon' => ['label' => __('guest.time_slot_afternoon'), 'icon' => '☀️'],
-                                            'evening' => ['label' => __('guest.time_slot_evening'), 'icon' => '🌙'],
-                                            'full_day' => ['label' => __('guest.time_slot_full_day'), 'icon' => '📅'],
+                                            'morning' => ['label' => __('halls.morning'), 'icon' => '🌅'],
+                                            'afternoon' => ['label' => __('halls.afternoon'), 'icon' => '☀️'],
+                                            'evening' => ['label' => __('halls.evening'), 'icon' => '🌙'],
+                                            'full_day' => ['label' => __('halls.full_day'), 'icon' => '📅'],
                                         ];
                                     @endphp
 
@@ -171,7 +170,7 @@
                             {{-- Number of Guests --}}
                             <div class="mb-5">
                                 <label for="number_of_guests" class="block mb-1 text-sm font-medium text-gray-700">
-                                    {{ __('guest.details_label_guests') }} <span class="text-red-500">*</span>
+                                    {{ __('Number of Guests') }} <span class="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="number"
@@ -184,7 +183,7 @@
                                     required
                                 >
                                 <p class="mt-1 text-xs text-gray-500">
-                                    {{ __('guest.form_capacity') }}: {{ $hall->capacity_min }} - {{ $hall->capacity_max }} {{ __('guest.form_guests_label') }}
+                                    {{ __('Capacity') }}: {{ $hall->capacity_min }} - {{ $hall->capacity_max }} {{ __('guests') }}
                                 </p>
                                 @error('number_of_guests')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -194,20 +193,20 @@
                             {{-- Event Type --}}
                             <div class="mb-5">
                                 <label for="event_type" class="block mb-1 text-sm font-medium text-gray-700">
-                                    {{ __('guest.details_label_event_type') }}
+                                    {{ __('Event Type') }}
                                 </label>
                                 <select
                                     id="event_type"
                                     name="event_type"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                 >
-                                    <option value="">{{ __('guest.form_select_event_type') }}</option>
-                                    <option value="wedding" {{ old('event_type') === 'wedding' ? 'selected' : '' }}>{{ __('guest.event_type_wedding') }}</option>
-                                    <option value="corporate" {{ old('event_type') === 'corporate' ? 'selected' : '' }}>{{ __('guest.event_type_corporate') }}</option>
-                                    <option value="birthday" {{ old('event_type') === 'birthday' ? 'selected' : '' }}>{{ __('guest.event_type_birthday') }}</option>
-                                    <option value="conference" {{ old('event_type') === 'conference' ? 'selected' : '' }}>{{ __('guest.event_type_conference') }}</option>
-                                    <option value="graduation" {{ old('event_type') === 'graduation' ? 'selected' : '' }}>{{ __('guest.event_type_graduation') }}</option>
-                                    <option value="other" {{ old('event_type') === 'other' ? 'selected' : '' }}>{{ __('guest.event_type_other') }}</option>
+                                    <option value="">{{ __('Select event type') }}</option>
+                                    <option value="wedding" {{ old('event_type') === 'wedding' ? 'selected' : '' }}>{{ __('Wedding') }}</option>
+                                    <option value="corporate" {{ old('event_type') === 'corporate' ? 'selected' : '' }}>{{ __('Corporate Event') }}</option>
+                                    <option value="birthday" {{ old('event_type') === 'birthday' ? 'selected' : '' }}>{{ __('Birthday') }}</option>
+                                    <option value="conference" {{ old('event_type') === 'conference' ? 'selected' : '' }}>{{ __('Conference') }}</option>
+                                    <option value="graduation" {{ old('event_type') === 'graduation' ? 'selected' : '' }}>{{ __('Graduation') }}</option>
+                                    <option value="other" {{ old('event_type') === 'other' ? 'selected' : '' }}>{{ __('Other') }}</option>
                                 </select>
                             </div>
 
@@ -215,7 +214,7 @@
                             @if($hall->activeExtraServices->count() > 0)
                                 <div class="mb-5">
                                     <label class="block mb-2 text-sm font-medium text-gray-700">
-                                        {{ __('guest.details_label_services') }}
+                                        {{ __('Additional Services') }}
                                     </label>
                                     <div class="space-y-3">
                                         @foreach($hall->activeExtraServices as $service)
@@ -234,7 +233,7 @@
                                                             {{ $service->getTranslation('name', app()->getLocale()) }}
                                                         </span>
                                                         <span class="font-medium text-primary-600">
-                                                            {{ number_format($service->price, 3) }} {{ __('guest.currency_omr') }}
+                                                            {{ number_format($service->price, 3) }} {{ __('OMR') }}
                                                         </span>
                                                     </div>
                                                     @if($service->description)
@@ -252,14 +251,14 @@
                             {{-- Customer Notes --}}
                             <div class="mb-5">
                                 <label for="customer_notes" class="block mb-1 text-sm font-medium text-gray-700">
-                                    {{ __('guest.details_label_special_requests') }}
+                                    {{ __('Special Requests / Notes') }}
                                 </label>
                                 <textarea
                                     id="customer_notes"
                                     name="customer_notes"
                                     rows="3"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                                    placeholder="{{ __('guest.form_special_requests_placeholder') }}"
+                                    placeholder="{{ __('Any special requirements or notes for your booking...') }}"
                                 >{{ old('customer_notes') }}</textarea>
                             </div>
 
@@ -274,10 +273,10 @@
                                         required
                                     >
                                     <span class="text-sm text-gray-600 ms-2">
-                                        {{ __('guest.form_agree_to') }}
-                                        <a href="#" class="text-primary-600 hover:underline" target="_blank">{{ __('guest.form_terms_conditions') }}</a>
-                                        {{ __('guest.form_and') }}
-                                        <a href="#" class="text-primary-600 hover:underline" target="_blank">{{ __('guest.form_cancellation_policy') }}</a>
+                                        {{ __('I agree to the') }}
+                                        <a href="#" class="text-primary-600 hover:underline">{{ __('Terms & Conditions') }}</a>
+                                        {{ __('and') }}
+                                        <a href="#" class="text-primary-600 hover:underline">{{ __('Cancellation Policy') }}</a>
                                     </span>
                                 </label>
                                 @error('agree_terms')
@@ -292,7 +291,7 @@
                                 class="w-full px-4 py-3 font-semibold text-white transition rounded-lg bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                             >
                                 <span x-show="!isSubmitting">{{ __('guest.btn_submit_booking') }}</span>
-                                <span x-show="isSubmitting">{{ __('guest.btn_processing') }}</span>
+                                <span x-show="isSubmitting">{{ __('Processing...') }}</span>
                             </button>
                         </form>
                     </div>
@@ -303,7 +302,7 @@
             <div class="lg:col-span-1">
                 <div class="sticky overflow-hidden bg-white shadow-sm rounded-xl top-4">
                     <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                        <h3 class="font-semibold text-gray-900">{{ __('guest.form_booking_summary') }}</h3>
+                        <h3 class="font-semibold text-gray-900">{{ __('Booking Summary') }}</h3>
                     </div>
 
                     <div class="p-4">
@@ -327,23 +326,23 @@
                         {{-- Price Breakdown --}}
                         <div class="space-y-2 text-sm" x-data="{ hallPrice: {{ $hall->price_per_slot }} }">
                             <div class="flex justify-between">
-                                <span class="text-gray-600">{{ __('guest.price_hall_rental') }}</span>
-                                <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }} {{ __('guest.currency_omr') }}</span>
+                                <span class="text-gray-600">{{ __('Hall Rental') }}</span>
+                                <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }} {{ __('OMR') }}</span>
                             </div>
 
                             <template x-for="serviceId in selectedServices" :key="serviceId">
                                 <div class="flex justify-between text-gray-600">
                                     <span x-text="getServiceName(serviceId)"></span>
-                                    <span x-text="getServicePrice(serviceId) + ' {{ __('guest.currency_omr') }}'"></span>
+                                    <span x-text="getServicePrice(serviceId) + ' {{ __('OMR') }}'"></span>
                                 </div>
                             </template>
 
                             <hr class="my-2">
 
-                            <div class="flex justify-between text-base font-semibold text-gray-600">
-                                <span>{{ __('guest.price_total') }}</span>
-                                <span class="text-primary-600" x-text="calculateTotal() + ' {{ __('guest.currency_omr') }}'">
-                                    {{ number_format($hall->price_per_slot, 3) }} {{ __('guest.currency_omr') }}
+                            <div class="flex justify-between text-base font-semibold">
+                                <span>{{ __('Total') }}</span>
+                                <span class="text-primary-600" x-text="calculateTotal() + ' {{ __('OMR') }}'">
+                                    {{ number_format($hall->price_per_slot, 3) }} {{ __('OMR') }}
                                 </span>
                             </div>
                         </div>
@@ -352,7 +351,7 @@
                         @if($hall->allows_advance_payment)
                             <div class="p-3 mt-4 rounded-lg bg-blue-50">
                                 <p class="text-sm text-blue-800">
-                                    <strong>{{ __('guest.form_note_label') }}:</strong> {{ __('guest.form_advance_payment_note') }}
+                                    <strong>{{ __('Note') }}:</strong> {{ __('This hall allows advance payment of') }}
                                     {{ $hall->advance_percentage }}%.
                                 </p>
                             </div>
@@ -360,16 +359,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        {{-- Back Link --}}
-        <div class="mt-8 text-center">
-            <a
-                href="{{ route('guest.book', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
-                class="text-gray-500 hover:text-gray-700"
-            >
-                ← {{ __('guest.back') }}
-            </a>
         </div>
 
     </div>
@@ -425,7 +414,7 @@ function bookingForm() {
                 this.availabilityMessage = data.message;
             } catch (error) {
                 this.isAvailable = false;
-                this.availabilityMessage = '{{ __("guest.form_availability_error") }}' + ': ' + error.message;
+                this.availabilityMessage = '{{ __("Error checking availability") }}' + ': ' + error.message;
             }
         },
 

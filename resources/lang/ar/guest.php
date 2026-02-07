@@ -306,8 +306,117 @@ return [
     'back' => 'عودة',
     'majalis' => 'مجالس',
     'rights_reserved' => 'جميع الحقوق محفوظة.',
+    'terms_agree' => 'بمتابعتك، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا.',
+    'or' => 'أو',
+    // Page Titles
+    'page_title_book' => 'الحجز كضيف',
+
+    // Step Labels
+    'step_1_guest_info' => 'معلوماتك',
+    'step_2_verify' => 'تأكيد البريد الإلكتروني',
+    'step_3_booking' => 'تفاصيل الحجز',
+
+    // Form Labels
+    'label_name' => 'الاسم الكامل',
+    'label_email' => 'البريد الإلكتروني',
+    'label_phone' => 'رقم الهاتف',
+
+    // Placeholders
+    'placeholder_name' => 'أدخل اسمك الكامل',
+    'placeholder_email' => 'أدخل بريدك الإلكتروني',
+    'placeholder_phone' => 'مثال: 9xxxxxxx',
+
+    // Buttons
+    'btn_continue' => 'متابعة',
+    'btn_continue_as_guest' => 'المتابعة كضيف',
+
+    // Info Messages
+    'otp_info' => 'لقد أرسلنا رمز التحقق المكون من 6 أرقام إلى بريدك الإلكتروني. الرجاء إدخاله أدناه.',
+    'guest_booking_note' => 'أنت تحجز كضيف. يمكنك إنشاء حساب بعد إكمال الحجز.',
+
+    // Modal Options
+    'modal_login_option' => 'تسجيل الدخول',
+    'modal_register_option' => 'إنشاء حساب',
+
+    // Terms and Conditions
+    'terms_agree' => 'بالمتابعة، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا',
+
+    // Miscellaneous
+    'or' => 'أو',
+    'back' => 'رجوع',
+    'rights_reserved' => 'جميع الحقوق محفوظة.',
+    'majalis' => 'مجالس',
+
+    // Additional keys
+    'booking_per_slot' => 'لكل فترة',
+    'phone_country_code' => '+968',
+    'phone_placeholder_info' => 'مثال: 9xxxxxxx',
+
+    // Validation messages (for reference)
+    'validation_name_required' => 'الاسم مطلوب',
+    'validation_email_required' => 'البريد الإلكتروني مطلوب',
+    'validation_email_invalid' => 'الرجاء إدخال بريد إلكتروني صالح',
+    'validation_phone_required' => 'رقم الهاتف مطلوب',
+    'validation_phone_digits' => 'رقم الهاتف يجب أن يكون 8 أرقام',
+
+    'back_to_hall' => 'العودة إلى تفاصيل القاعة',
+
+    // Email registered prompt (from previous)
+    'email_registered_prompt' => 'هذا البريد الإلكتروني مسجل بالفعل. هل ترغب في تسجيل الدخول أو المتابعة كضيف؟',
 
     'account_already_exists' => 'يوجد حساب مسجل بالبريد الإلكتروني الخاص بك. يرجى تسجيل الدخول للوصول إلى حجوزاتك.',
+
+    // Booking form specific translations
+    'form_your_information' => 'معلوماتك',
+    'form_capacity' => 'السعة',
+    'form_guests_label' => 'ضيوف',
+    'form_select_event_type' => 'اختر نوع الفعالية',
+    'form_special_requests_placeholder' => 'أي متطلبات خاصة أو ملاحظات لحجزك...',
+    'form_agree_to' => 'أوافق على',
+    'form_and' => 'و',
+    'form_terms_conditions' => 'الشروط والأحكام',
+    'form_cancellation_policy' => 'سياسة الإلغاء',
+    'form_booking_summary' => 'ملخص الحجز',
+    'form_note_label' => 'ملاحظة',
+    'form_advance_payment_note' => 'هذه القاعة تسمح بالدفع المقدم بنسبة',
+    'form_availability_error' => 'خطأ في التحقق من التوفر',
+
+    // Event type additions
+    'event_type_conference' => 'مؤتمر',
+
+    // JavaScript messages
+    'form_available_message' => 'هذه الفترة الزمنية متاحة',
+    'form_not_available_message' => 'هذه الفترة الزمنية غير متاحة',
+    'form_select_date_time' => 'الرجاء اختيار التاريخ والفترة الزمنية',
+
+    // Existing translations that are used in this file
+    'step_3_booking' => 'تفاصيل الحجز',
+    'step_4_payment' => 'الدفع',
+    'details_label_guest_name' => 'اسم الضيف',
+    'details_label_guest_email' => 'البريد الإلكتروني',
+    'details_label_guest_phone' => 'رقم الهاتف',
+    'details_label_date' => 'التاريخ',
+    'details_label_time' => 'الوقت',
+    'details_label_guests' => 'عدد الضيوف',
+    'details_label_event_type' => 'نوع الفعالية',
+    'details_label_services' => 'الخدمات',
+    'details_label_special_requests' => 'طلبات خاصة',
+    'time_slot_morning' => 'صباحاً (8:00 صباحاً - 12:00 ظهراً)',
+    'time_slot_afternoon' => 'بعد الظهر (1:00 ظهراً - 5:00 مساءً)',
+    'time_slot_evening' => 'مساءً (6:00 مساءً - 10:00 مساءً)',
+    'time_slot_full_day' => 'طوال اليوم (8:00 صباحاً - 10:00 مساءً)',
+    'event_type_wedding' => 'زفاف',
+    'event_type_corporate' => 'فعالية شركات',
+    'event_type_birthday' => 'عيد ميلاد',
+    'event_type_graduation' => 'تخرج',
+    'event_type_other' => 'أخرى',
+    'btn_submit_booking' => 'المتابعة للدفع',
+    'btn_processing' => 'جاري المعالجة...',
+    'price_hall_rental' => 'إيجار القاعة',
+    'currency_omr' => 'ريال عماني',
+    'price_total' => 'الإجمالي',
+    'back' => 'رجوع',
+
 
 
 ];

@@ -54,7 +54,12 @@ class EarningsResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Financial';
+    //protected static ?string $navigationGroup = 'Financial';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.earnings.navigation_group');
+    }
 
     /**
      * The navigation sort order.

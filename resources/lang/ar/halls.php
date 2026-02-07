@@ -66,6 +66,7 @@ return [
     'phone' => 'الهاتف',
     'email' => 'البريد الإلكتروني',
     'not_available' => 'غير متوفر',
+    'login' => 'دخول',
 
 
     // Booking Page
@@ -153,7 +154,7 @@ return [
     'online_payment' => 'الدفع الإلكتروني',
     'pay_with_card_wallet' => 'ادفع باستخدام البطاقة أو المحفظة الرقمية',
     'credit_card' => 'بطاقة ائتمان',
-    'debit_card' => 'بطاقة مدى',
+    'debit_card' => 'بطاقة الحسم المباشر',
     'digital_wallet' => 'محفظة رقمية',
     'bank_transfer' => 'تحويل بنكي',
     'bank_transfer_desc' => 'حول المبلغ مباشرة إلى حسابنا البنكي',
@@ -244,4 +245,4 @@ return [
     'important' => 'مهم',
     'balance_payment_reminder' => 'يجب دفع المبلغ المتبقي قبل 48 ساعة على الأقل من تاريخ المناسبة.',
     'currency' => 'ر.ع.',
-];
+    ];

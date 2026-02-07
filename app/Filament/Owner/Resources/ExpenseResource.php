@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * ExpenseResource
- * 
+ *
  * Filament resource for managing expenses in the Owner Panel.
  * Provides full CRUD operations with filtering, exporting, and reporting.
- * 
+ *
  * @package App\Filament\Owner\Resources
  * @author  Majalis Development Team
  * @version 1.0.0
@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * ExpenseResource Class
- * 
+ *
  * Manages expense records for hall owners.
  * Features:
  * - Create/Edit expenses with bilingual support
@@ -67,7 +67,12 @@ class ExpenseResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Financial Management';
+    //protected static ?string $navigationGroup = 'Financial Management';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.earnings.navigation_group');
+    }
 
     /**
      * The navigation sort order.
@@ -103,8 +108,8 @@ class ExpenseResource extends Resource
      */
     public static function getNavigationBadge(): ?string
     {
-        $ownerId = Auth::user()?->hallOwner?->id ?? Auth::id();
-        
+        $ownerId = Auth::id();
+
         return (string) static::getEloquentQuery()
             ->where('payment_status', ExpensePaymentStatus::Pending)
             ->count();
@@ -132,8 +137,8 @@ class ExpenseResource extends Resource
             ->schema([
                 // Main Information Section
                 Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'معلومات المصروف' : 'Expense Information')
-                    ->description(fn() => app()->getLocale() === 'ar' 
-                        ? 'أدخل التفاصيل الأساسية للمصروف' 
+                    ->description(fn() => app()->getLocale() === 'ar'
+                        ? 'أدخل التفاصيل الأساسية للمصروف'
                         : 'Enter the basic expense details')
                     ->schema([
                         // Expense Number (auto-generated, read-only on edit)
@@ -169,15 +174,15 @@ class ExpenseResource extends Resource
                             ->relationship(
                                 name: 'hall',
                                 titleAttribute: 'name',
-                                modifyQueryUsing: fn(Builder $query) => $query->where('owner_id', Auth::user()?->hallOwner?->id ?? Auth::id())
+                                modifyQueryUsing: fn(Builder $query) => $query->where('owner_id', Auth::id())
                             )
                             ->getOptionLabelFromRecordUsing(fn(Hall $record) => $record->getTranslation('name', app()->getLocale()))
                             ->searchable()
                             ->preload()
                             ->nullable()
                             ->live()
-                            ->helperText(fn() => app()->getLocale() === 'ar' 
-                                ? 'اختر القاعة المرتبطة بهذا المصروف (اختياري)' 
+                            ->helperText(fn() => app()->getLocale() === 'ar'
+                                ? 'اختر القاعة المرتبطة بهذا المصروف (اختياري)'
                                 : 'Select the hall related to this expense (optional)'),
 
                         // Booking Selection (only for booking expenses)
@@ -185,15 +190,15 @@ class ExpenseResource extends Resource
                             ->label(fn() => app()->getLocale() === 'ar' ? 'الحجز' : 'Booking')
                             ->options(function (Forms\Get $get) {
                                 $hallId = $get('hall_id');
-                                $ownerId = Auth::user()?->hallOwner?->id ?? Auth::id();
-                                
+                                $ownerId = Auth::id();
+
                                 $query = Booking::query()
                                     ->whereHas('hall', fn($q) => $q->where('owner_id', $ownerId));
-                                
+
                                 if ($hallId) {
                                     $query->where('hall_id', $hallId);
                                 }
-                                
+
                                 return $query
                                     ->orderBy('booking_date', 'desc')
                                     ->limit(100)
@@ -205,8 +210,8 @@ class ExpenseResource extends Resource
                             ->searchable()
                             ->nullable()
                             ->visible(fn(Forms\Get $get) => $get('expense_type') === ExpenseType::Booking->value)
-                            ->helperText(fn() => app()->getLocale() === 'ar' 
-                                ? 'ربط هذا المصروف بحجز معين' 
+                            ->helperText(fn() => app()->getLocale() === 'ar'
+                                ? 'ربط هذا المصروف بحجز معين'
                                 : 'Link this expense to a specific booking'),
 
                         // Category Selection
@@ -217,7 +222,7 @@ class ExpenseResource extends Resource
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn(Builder $query) => $query
                                     ->where(function ($q) {
-                                        $q->where('owner_id', Auth::user()?->hallOwner?->id ?? Auth::id())
+                                        $q->where('owner_id', Auth::id())
                                           ->orWhere('is_system', true);
                                     })
                                     ->where('is_active', true)
@@ -237,7 +242,7 @@ class ExpenseResource extends Resource
                                     ->default('#6366f1'),
                             ])
                             ->createOptionUsing(function (array $data) {
-                                $data['owner_id'] = Auth::user()?->hallOwner?->id ?? Auth::id();
+                                $data['owner_id'] = Auth::id();
                                 return ExpenseCategory::create($data)->id;
                             }),
                     ])
@@ -347,14 +352,14 @@ class ExpenseResource extends Resource
                         Forms\Components\TextInput::make('payment_reference')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'رقم المرجع' : 'Payment Reference')
                             ->maxLength(100)
-                            ->visible(fn(Forms\Get $get) => 
+                            ->visible(fn(Forms\Get $get) =>
                                 ExpensePaymentMethod::tryFrom($get('payment_method') ?? '')?->requiresReference() ?? false
                             ),
 
                         // Due Date (for pending payments)
                         Forms\Components\DatePicker::make('due_date')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ الاستحقاق' : 'Due Date')
-                            ->visible(fn(Forms\Get $get) => 
+                            ->visible(fn(Forms\Get $get) =>
                                 in_array($get('payment_status'), [ExpensePaymentStatus::Pending->value, ExpensePaymentStatus::Partial->value])
                             ),
                     ])
@@ -403,8 +408,8 @@ class ExpenseResource extends Resource
                         Forms\Components\DatePicker::make('recurring_end_date')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ النهاية' : 'End Date')
                             ->visible(fn(Forms\Get $get) => $get('is_recurring'))
-                            ->helperText(fn() => app()->getLocale() === 'ar' 
-                                ? 'اتركه فارغاً للتكرار بلا نهاية' 
+                            ->helperText(fn() => app()->getLocale() === 'ar'
+                                ? 'اتركه فارغاً للتكرار بلا نهاية'
                                 : 'Leave empty for indefinite recurring'),
                     ])
                     ->columns(2)
@@ -422,8 +427,8 @@ class ExpenseResource extends Resource
                             ->maxSize(5120) // 5MB
                             ->downloadable()
                             ->reorderable()
-                            ->helperText(fn() => app()->getLocale() === 'ar' 
-                                ? 'يمكنك رفع صور أو ملفات PDF (حد أقصى 5 ميجابايت لكل ملف)' 
+                            ->helperText(fn() => app()->getLocale() === 'ar'
+                                ? 'يمكنك رفع صور أو ملفات PDF (حد أقصى 5 ميجابايت لكل ملف)'
                                 : 'Upload images or PDF files (max 5MB each)'),
                     ])
                     ->collapsed()
@@ -493,8 +498,8 @@ class ExpenseResource extends Resource
                     ->label(fn() => app()->getLocale() === 'ar' ? 'الحجز' : 'Booking')
                     ->sortable()
                     ->toggleable()
-                    ->url(fn($record) => $record->booking_id 
-                        ? route('filament.owner.resources.bookings.view', $record->booking_id) 
+                    ->url(fn($record) => $record->booking_id
+                        ? route('filament.owner.resources.bookings.view', $record->booking_id)
                         : null),
 
                 // Amount
@@ -612,7 +617,7 @@ class ExpenseResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-                
+
                 // Mark as Paid Action
                 Tables\Actions\Action::make('mark_paid')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'تم الدفع' : 'Mark Paid')
@@ -627,7 +632,7 @@ class ExpenseResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
-                    
+
                     // Bulk Mark as Paid
                     Tables\Actions\BulkAction::make('bulk_mark_paid')
                         ->label(fn() => app()->getLocale() === 'ar' ? 'تم الدفع' : 'Mark as Paid')
