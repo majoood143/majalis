@@ -678,14 +678,6 @@ class BookingController extends BaseController
     /**
      * Handle successful payment callback from Thawani
      *
-     * ✅ FIX: 3 bugs resolved:
-     * 1. $booking->latestPayment — relationship didn't exist, replaced with
-     *    direct query: Payment::where('booking_id', ...)->latest()->first()
-     * 2. $paymentService->verifyPaymentBySessionId() — method didn't exist,
-     *    replaced with handlePaymentSuccess() which verifies AND updates status
-     * 3. $paymentService->processSuccessfulPayment() — method didn't exist,
-     *    handlePaymentSuccess() already handles the full flow
-     *
      * @param Booking $booking
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -694,7 +686,7 @@ class BookingController extends BaseController
         $locale = request()->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        // Get session_id from query parameter (Thawani sends this on redirect)
+        // Get session_id from query parameter (Thawani should send this, but sometimes doesn't)
         $sessionIdFromCallback = request()->query('session_id');
 
         Log::info('Payment success callback received', [
@@ -712,14 +704,8 @@ class BookingController extends BaseController
         try {
             $paymentService = app(PaymentService::class);
 
-            /**
-             * ✅ FIX #1: Get the latest payment using direct query
-             * Old code: $booking->latestPayment (relationship not defined in Booking model)
-             * New code: Query Payment model directly, ordered by latest first
-             */
-            $payment = Payment::where('booking_id', $booking->id)
-                ->latest()
-                ->first();
+            // Get the latest payment for this booking
+            $payment = $booking->latestPayment;
 
             if (!$payment) {
                 Log::error('No payment found for booking', [
@@ -749,7 +735,7 @@ class BookingController extends BaseController
                     ->with('success', __('halls.payment_successful'));
             }
 
-            // Get session_id: prefer callback param, fallback to stored transaction_id
+            // Get session_id: either from callback OR from stored transaction_id
             $sessionId = $sessionIdFromCallback ?? $payment->transaction_id;
 
             Log::info('Using session ID for verification', [
@@ -765,47 +751,39 @@ class BookingController extends BaseController
                 ]);
 
                 try {
-                    /**
-                     * ✅ FIX #2 & #3: Use handlePaymentSuccess() instead of
-                     * non-existent verifyPaymentBySessionId() + processSuccessfulPayment()
-                     *
-                     * handlePaymentSuccess() already does the complete flow:
-                     * - Finds Payment by booking_id + transaction_id
-                     * - Calls Thawani API (getSessionStatus) to verify
-                     * - If paid → updates payment.status = 'paid', sets paid_at
-                     * - If full payment → booking.payment_status = 'paid'
-                     * - If advance payment → booking.payment_status = 'partial'
-                     * - Sets booking.status = 'confirmed', confirmed_at = now()
-                     */
-                    $result = $paymentService->handlePaymentSuccess($sessionId, $booking);
+                    // Verify payment with Thawani
+                    $verification = $paymentService->verifyPaymentBySessionId($sessionId);
 
                     Log::info('Thawani verification result', [
                         'payment_id' => $payment->id,
-                        'result' => $result,
+                        'verification' => $verification,
                     ]);
 
-                    if (isset($result['success']) && $result['success'] === true) {
+                    if ($verification['success'] && $verification['is_paid']) {
+                        // ✅ CRITICAL: Process successful payment
+                        $paymentService->processSuccessfulPayment($payment, $verification['data']);
+
                         Log::info('Payment successfully processed and marked as paid', [
                             'payment_id' => $payment->id,
                             'payment_reference' => $payment->payment_reference,
-                            'booking_payment_status' => $result['booking_status'] ?? null,
-                            'is_advance' => $result['is_advance'] ?? false,
+                            'invoice' => $verification['data']['invoice'] ?? null,
                         ]);
 
                         // Generate PDF if service available
-                        try {
-                            $pdfService = app(\App\Services\BookingPdfService::class);
-                            $pdfService->generateConfirmation($booking->fresh());
+                        if (app()->bound(\App\Services\BookingPdfService::class)) {
+                            try {
+                                $pdfService = app(\App\Services\BookingPdfService::class);
+                                $pdfService->generateConfirmation($booking);
 
-                            Log::info('Booking confirmation PDF generated', [
-                                'booking_id' => $booking->id,
-                            ]);
-                        } catch (Exception $e) {
-                            // PDF generation is non-critical, don't block the flow
-                            Log::warning('PDF generation failed (non-critical)', [
-                                'booking_id' => $booking->id,
-                                'error' => $e->getMessage(),
-                            ]);
+                                Log::info('Booking confirmation PDF generated', [
+                                    'booking_id' => $booking->id,
+                                ]);
+                            } catch (Exception $e) {
+                                Log::warning('PDF generation failed', [
+                                    'booking_id' => $booking->id,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
                         }
 
                         return redirect()
@@ -816,9 +794,10 @@ class BookingController extends BaseController
                         Log::warning('Payment verification incomplete', [
                             'payment_id' => $payment->id,
                             'session_id' => $sessionId,
-                            'result_message' => $result['message'] ?? 'unknown',
+                            'verification_status' => $verification['status'] ?? 'unknown',
                         ]);
 
+                        // Payment might still be processing
                         return redirect()
                             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
                             ->with('warning', __('halls.payment_verification_pending'));
@@ -844,7 +823,7 @@ class BookingController extends BaseController
                     ->with('success', __('halls.payment_successful'));
             }
 
-            // Payment verification pending — no session ID available
+            // Payment verification pending
             Log::warning('Payment verification pending - no session ID available', [
                 'payment_id' => $payment->id,
                 'payment_status' => $payment->status,
@@ -888,8 +867,8 @@ class BookingController extends BaseController
             abort(403);
         }
 
-        // ✅ FIX: Get the latest payment using direct query (latestPayment relationship not defined)
-        $payment = Payment::where('booking_id', $booking->id)->latest()->first();
+        // Get the latest payment and update status
+        $payment = $booking->latestPayment;
 
         if ($payment && ($payment->isPending() || $payment->isProcessing())) {
             $payment->update([
@@ -1079,8 +1058,8 @@ class BookingController extends BaseController
                 ->with('info', __('halls.booking_already_paid'));
         }
 
-        // ✅ FIX: Get the latest payment using direct query (latestPayment relationship not defined)
-        $payment = Payment::where('booking_id', $booking->id)->latest()->first();
+        // Get the latest payment
+        $payment = $booking->latestPayment;
 
         if (!$payment) {
             return redirect()

@@ -75,10 +75,12 @@
                 </a>
 
                 <div class="flex items-center gap-2">
-                    <div class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl">
-                        <span class="text-xl font-bold text-white">م</span>
+                    <div class="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br rounded-xl">
+                        {{-- <span class="text-xl font-bold text-white">م</span> --}}
+                        <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8">
                     </div>
-                    <span class="hidden text-xl font-bold text-gray-800 sm:inline">Majalis</span>
+                    <span class="font-bold text-gray-800">{{ __('guest.majalis') }}</span>
+                    {{-- <span class="hidden text-xl font-bold text-gray-800 sm:inline">Majalis</span> --}}
                 </div>
             </div>
         </div>

@@ -170,7 +170,7 @@ class PaymentService
             // Otherwise, charge full amount
             // NULL safety: if advance_amount is NULL, fall back to total_amount
             $paymentAmount = $booking->isAdvancePayment() && $booking->advance_amount
-                ? (float) $booking->advance_amount 
+                ? (float) $booking->advance_amount
                 : (float) $booking->total_amount;
 
             // Convert OMR to Baisa (1 OMR = 1000 Baisa)
@@ -183,11 +183,11 @@ class PaymentService
             // ✅ FIXED: Product name must be max 40 characters for Thawani
             // Format: "BK-XXXX (Advance)" or "Booking BK-XXXX"
             if ($booking->isAdvancePayment()) {
-                $productName = $booking->booking_number . ' (Advance)';
+                $productName = $booking->booking_number . ' Advance';
             } else {
                 $productName = 'Booking ' . $booking->booking_number;
             }
-            
+
             // Safety check: truncate if still too long
             if (strlen($productName) > 40) {
                 $productName = substr($productName, 0, 40);
@@ -288,7 +288,7 @@ class PaymentService
                     'json_error' => json_last_error_msg(),
                     'raw_response' => $responseBody,
                 ]);
-                
+
                 return [
                     'success' => false,
                     'message' => 'Invalid response format from payment gateway'
@@ -329,7 +329,7 @@ class PaymentService
 
             // ✅ DIAGNOSTIC: Detailed error logging
             $errorMessage = $result['description'] ?? $result['message'] ?? 'Failed to create payment session';
-            
+
             Log::error('🔴 DIAGNOSTIC: Thawani Rejected Request', [
                 'booking_id' => $booking->id,
                 'status_code' => $statusCode,
@@ -370,7 +370,7 @@ class PaymentService
         // ✅ FIXED: Determine payment amount with NULL safety
         // Cast to float to handle strict types and NULL values
         $paymentAmount = $booking->isAdvancePayment() && $booking->advance_amount
-            ? (float) $booking->advance_amount 
+            ? (float) $booking->advance_amount
             : (float) $booking->total_amount;
 
         $payment = Payment::create([

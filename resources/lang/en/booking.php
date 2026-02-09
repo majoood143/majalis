@@ -746,6 +746,7 @@ return [
         'total_transactions' => 'Total Transactions',
         'total_paid' => 'Total Paid',
         'transaction_history' => 'Transaction History',
+        'amount_paid' => 'Amount Paid',
     ],
 
     // Placeholders
@@ -783,7 +784,7 @@ return [
         'paid' => 'Paid',
         'failed' => 'Failed',
         'refunded' => 'Refunded',
-        'partially_paid' => 'Partially Paid',
+        'partial' => 'Partially Paid',
     ],
 
     // Payment Types
