@@ -3,17 +3,17 @@
 @section('title', 'Booking #' . $booking->booking_number . ' - majalis')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-5xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-        <div class="flex items-center text-sm text-gray-600 mb-4">
+        <div class="flex items-center mb-4 text-sm text-gray-600">
             <a href="{{ route('customer.bookings') }}" class="hover:text-indigo-600">My Bookings</a>
             <span class="mx-2">/</span>
             <span>Booking #{{ $booking->booking_number }}</span>
         </div>
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Booking Details</h1>
+                <h1 class="mb-2 text-3xl font-bold text-gray-900">Booking Details</h1>
                 <p class="text-gray-600">{{ $booking->booking_date->format('F d, Y') }} • {{ ucfirst($booking->time_slot) }}</p>
             </div>
             <span class="inline-flex px-4 py-2 text-sm font-semibold rounded-full
@@ -27,29 +27,29 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="space-y-6 lg:col-span-2">
             <!-- Hall Information -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-hidden bg-white rounded-lg shadow-md">
                 <div class="flex items-start p-6">
                     <div class="flex-shrink-0 mr-6">
-                        @if($booking->hall->main_image)
-                            <img src="{{ Storage::url($booking->hall->main_image) }}" 
-                                alt="{{ $booking->hall->name }}" 
-                                class="w-32 h-32 object-cover rounded-lg">
+                        @if($booking->hall->featured_image ?? false)
+                            <img src="{{ Storage::url($booking->hall->featured_image) }}"
+                                alt="{{ $booking->hall->name ?? 'Hall Image' }}"
+                                class="object-cover w-32 h-32 rounded-lg">
                         @else
-                            <div class="w-32 h-32 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-lg"></div>
+                            <div class="w-32 h-32 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500"></div>
                         @endif
                     </div>
                     <div class="flex-1">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $booking->hall->name }}</h2>
+                        <h2 class="mb-2 text-2xl font-bold text-gray-900">{{ $booking->hall->name ?? 'Hall Name Not Available' }}</h2>
                         <div class="space-y-2 text-sm text-gray-600">
                             <div class="flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 </svg>
-                                {{ $booking->hall->city->name }}, {{ $booking->hall->address }}
+                                {{ $booking->hall->city->name ?? 'City Not Available' }}, {{ $booking->hall->address ?? 'Address Not Available' }}
                             </div>
                             <div class="flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,8 +58,8 @@
                                 {{ $booking->hall->owner->phone ?? 'N/A' }}
                             </div>
                         </div>
-                        <a href="{{ route('customer.halls.show', $booking->hall->slug) }}" 
-                            class="inline-block mt-3 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                        <a href="{{ route('customer.halls.show', $booking->hall->slug ?? 'default-slug') }}"
+                            class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-800">
                             View Hall Details →
                         </a>
                     </div>
@@ -67,8 +67,8 @@
             </div>
 
             <!-- Booking Information -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold mb-4">Booking Information</h3>
+            <div class="p-6 bg-white rounded-lg shadow-md">
+                <h3 class="mb-4 text-lg font-semibold">Booking Information</h3>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <span class="text-sm text-gray-600">Booking Number</span>
@@ -99,7 +99,7 @@
                 </div>
 
                 @if($booking->customer_notes)
-                    <div class="mt-4 pt-4 border-t">
+                    <div class="pt-4 mt-4 border-t">
                         <span class="text-sm text-gray-600">Special Notes</span>
                         <div class="mt-1 text-gray-900">{{ $booking->customer_notes }}</div>
                     </div>
@@ -107,9 +107,9 @@
             </div>
 
             <!-- Customer Information -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold mb-4">Customer Information</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-6 bg-white rounded-lg shadow-md">
+                <h3 class="mb-4 text-lg font-semibold">Customer Information</h3>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <span class="text-sm text-gray-600">Name</span>
                         <div class="font-medium">{{ $booking->customer_name }}</div>
@@ -127,11 +127,11 @@
 
             <!-- Extra Services -->
             @if($booking->extraServices && $booking->extraServices->count() > 0)
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold mb-4">Extra Services</h3>
+                <div class="p-6 bg-white rounded-lg shadow-md">
+                    <h3 class="mb-4 text-lg font-semibold">Extra Services</h3>
                     <div class="space-y-3">
                         @foreach($booking->extraServices as $service)
-                            <div class="flex justify-between items-center py-2 border-b last:border-0">
+                            <div class="flex items-center justify-between py-2 border-b last:border-0">
                                 <div>
                                     <div class="font-medium">{{ $service->pivot->service_name }}</div>
                                     <div class="text-sm text-gray-600">
@@ -151,15 +151,15 @@
         <!-- Sidebar -->
         <div class="lg:col-span-1">
             <!-- Payment Summary -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-lg font-semibold mb-4">Payment Summary</h3>
-                
+            <div class="p-6 mb-6 bg-white rounded-lg shadow-md">
+                <h3 class="mb-4 text-lg font-semibold">Payment Summary</h3>
+
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Hall Price</span>
                         <span class="font-medium">{{ number_format($booking->hall_price, 3) }} OMR</span>
                     </div>
-                    
+
                     @if($booking->services_price > 0)
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Extra Services</span>
@@ -180,7 +180,7 @@
                     @endif
 
                     <div class="pt-3 border-t">
-                        <div class="flex justify-between items-center">
+                        <div class="flex items-center justify-between">
                             <span class="font-semibold">Total Amount</span>
                             <span class="text-2xl font-bold text-indigo-600">{{ number_format($booking->total_amount, 3) }} OMR</span>
                         </div>
@@ -188,7 +188,7 @@
                 </div>
 
                 <!-- Payment Status -->
-                <div class="mt-6 pt-6 border-t">
+                <div class="pt-6 mt-6 border-t">
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">Payment Status</span>
                         <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full
@@ -202,31 +202,31 @@
                 </div>
 
                 @if($booking->payment_status === 'pending')
-                    <a href="{{ route('customer.booking.payment', $booking) }}" 
-                        class="block w-full mt-4 bg-indigo-600 text-white text-center px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-semibold">
+                    <a href="{{ route('customer.booking.payment', $booking) }}"
+                        class="block w-full px-6 py-3 mt-4 font-semibold text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
                         Complete Payment
                     </a>
                 @endif
             </div>
 
             <!-- Actions -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold mb-4">Actions</h3>
+            <div class="p-6 bg-white rounded-lg shadow-md">
+                <h3 class="mb-4 text-lg font-semibold">Actions</h3>
                 <div class="space-y-3">
                     @if(in_array($booking->status, ['pending', 'confirmed']))
                         <button onclick="confirmCancel()"
-                            class="w-full border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition text-sm font-medium">
+                            class="w-full px-4 py-2 text-sm font-medium text-red-500 transition border border-red-500 rounded-lg hover:bg-red-50">
                             Cancel Booking
                         </button>
                     @endif
-                    
-                    <a href="{{ route('customer.halls.show', $booking->hall->slug) }}" 
-                        class="block text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+
+                    <a href="{{ route('customer.halls.show', $booking->hall->slug ?? '404') }}"
+                        class="block px-4 py-2 text-sm font-medium text-center text-gray-700 transition border border-gray-300 rounded-lg hover:bg-gray-50">
                         View Hall Details
                     </a>
-                    
-                    <a href="{{ route('customer.bookings') }}" 
-                        class="block text-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+
+                    <a href="{{ route('customer.bookings') }}"
+                        class="block px-4 py-2 text-sm font-medium text-center text-gray-700 transition border border-gray-300 rounded-lg hover:bg-gray-50">
                         Back to All Bookings
                     </a>
                 </div>
@@ -240,17 +240,17 @@
     <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div x-show="showModal" @click="showModal = false" class="fixed inset-0 bg-gray-500 bg-opacity-75"></div>
-            <div x-show="showModal" class="relative bg-white rounded-lg max-w-md w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Cancel Booking</h3>
-                <p class="text-gray-600 mb-6">Are you sure you want to cancel this booking? This action cannot be undone.</p>
+            <div x-show="showModal" class="relative w-full max-w-md p-6 bg-white rounded-lg">
+                <h3 class="mb-4 text-lg font-semibold">Cancel Booking</h3>
+                <p class="mb-6 text-gray-600">Are you sure you want to cancel this booking? This action cannot be undone.</p>
                 <div class="flex space-x-3">
                     <form action="{{ route('customer.booking.cancel', $booking) }}" method="POST" class="flex-1">
                         @csrf
-                        <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                        <button type="submit" class="w-full px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700">
                             Yes, Cancel
                         </button>
                     </form>
-                    <button @click="showModal = false" class="flex-1 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+                    <button @click="showModal = false" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                         No, Keep It
                     </button>
                 </div>

@@ -17,8 +17,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
-use App\Notifications\CustomerBookingConfirmationNotification;
 
 /**
  * Controller for handling customer booking operations
@@ -805,40 +803,6 @@ class BookingController extends BaseController
                         } catch (Exception $e) {
                             // PDF generation is non-critical, don't block the flow
                             Log::warning('PDF generation failed (non-critical)', [
-                                'booking_id' => $booking->id,
-                                'error' => $e->getMessage(),
-                            ]);
-                        }
-
-                        /**
-                         * ✅ Send confirmation email with PDF attachment
-                         *
-                         * Uses Notification::route() (on-demand) to send to customer_email
-                         * instead of $user->notify(), because:
-                         * - customer_email is always available on the booking
-                         * - Works even if user relationship has issues
-                         * - Mirrors the guest flow pattern for consistency
-                         *
-                         * The notification class handles:
-                         * - PDF attachment (reuses BookingPdfService output)
-                         * - Bilingual support (EN/AR)
-                         * - Advance vs full payment info display
-                         */
-                        try {
-                            // Refresh booking to get updated payment_status and invoice_path
-                            $freshBooking = $booking->fresh(['hall.city.region', 'extraServices', 'user']);
-
-                            Notification::route('mail', $freshBooking->customer_email)
-                                ->notify(new CustomerBookingConfirmationNotification($freshBooking));
-
-                            Log::info('Booking confirmation email queued', [
-                                'booking_id' => $freshBooking->id,
-                                'customer_email' => $freshBooking->customer_email,
-                                'payment_type' => $freshBooking->payment_type,
-                            ]);
-                        } catch (Exception $e) {
-                            // Email is non-critical — don't block the payment success flow
-                            Log::warning('Failed to send confirmation email (non-critical)', [
                                 'booking_id' => $booking->id,
                                 'error' => $e->getMessage(),
                             ]);

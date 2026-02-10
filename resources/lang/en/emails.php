@@ -50,7 +50,7 @@ return [
         'greeting' => 'Dear :name,',
         'regards' => 'Best regards,',
         'team' => 'The :app Team',
-        
+
         // Field labels
         'details_title' => 'Booking Details',
         'your_booking' => 'Your Booking',
@@ -62,10 +62,10 @@ return [
         'persons' => 'persons',
         'event_type' => 'Event Type',
         'location' => 'Location',
-        
+
         // Services
         'services_title' => 'Extra Services',
-        
+
         // Payment
         'payment_summary' => 'Payment Summary',
         'hall_price' => 'Hall Price',
@@ -77,17 +77,35 @@ return [
         'amount_paid' => 'Amount Paid: :amount OMR',
         'payment_pending' => 'Payment Pending',
         'payment_pending_desc' => 'Please complete your payment of :amount OMR to confirm your booking.',
-        
+        'advance_payment' => 'Advance Payment',
+        'advance_payment_desc' => 'An advance payment of :amount OMR is required to secure your booking. The remaining balance will be due on the day of your event.',
+        'balance_due' => 'Balance Due',
+        'balance_due_desc' => 'Your balance of :amount OMR is due on the day of your event. Please ensure payment is completed to avoid any issues.',
+        'balance_note' => 'Note: Your booking is not fully confirmed until the balance is paid.',
+
         // Notes
         'important_notes' => 'Important Notes',
         'note_arrive_early' => 'Please arrive 15-30 minutes before your scheduled time.',
         'note_bring_id' => 'Bring a valid ID and your booking confirmation.',
         'note_contact_changes' => 'Contact us immediately if you need to make any changes.',
-        
+
         // Actions
         'view_details' => 'View Booking Details',
         'view_map' => 'View on Map',
         'download_confirmation' => 'Download Confirmation',
+        'view_booking' => 'View My Booking',
+        'contact_support' => 'Contact Support',
+        'support_desc' => 'If you have any questions or need assistance, our support team is here to help you.',
+        'support_email' => 'Email us at :email',
+        'support_phone' => 'Call us at :phone',
+        'need_help' => 'Need Help?',
+        'help_desc' => 'Our support team is available to assist you with any questions or concerns.',
+        'contact_us' => 'Contact Us',
+        'thank_you' => 'Thank you for choosing :app! We look forward to hosting your event.',
+        'see_you_soon' => 'See you soon!',
+        'warm_wishes' => 'Warm wishes,',
+        'the_team' => ':app Team',
+        'pdf_attached' => 'A PDF version of your booking details is attached to this email for your reference.',
 
         /*
         |----------------------------------------------------------------------
@@ -114,8 +132,9 @@ return [
             'title' => 'Booking Confirmed!',
             'intro' => 'Your booking has been confirmed. We look forward to hosting your event!',
             'questions' => 'Have questions? Our team is here to help you.',
+            'subject' => 'Your booking for :hall on :date is confirmed!',
         ],
-        
+
         'days_until' => '{1} day until your event|[2,*] days until your event',
 
         /*
