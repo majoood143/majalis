@@ -105,7 +105,7 @@ return [
         'see_you_soon' => 'See you soon!',
         'warm_wishes' => 'Warm wishes,',
         'the_team' => ':app Team',
-        'pdf_attached' => 'A PDF version of your booking details is attached to this email for your reference.',
+
 
         /*
         |----------------------------------------------------------------------
@@ -347,4 +347,5 @@ return [
             'welcome_message' => 'Welcome to the Majalis family! We\'re excited to have you on board.',
         ],
     ],
+    'pdf_attached' => 'A PDF version of your booking details is attached to this email for your reference.',
 ];

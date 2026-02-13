@@ -719,7 +719,8 @@ return [
         'hall_price' => 'Hall Price',
         'services_price' => 'Services Price',
         'subtotal' => 'Subtotal',
-        'commission_amount' => 'Platform Fee',
+        'commission_amount' => 'commission amount',
+        'platform_fee' => 'Platform Fee',
         'total_amount' => 'Total Amount',
         'owner_payout' => 'Owner Payout',
         'payment_type' => 'Payment Type',
@@ -747,6 +748,7 @@ return [
         'total_paid' => 'Total Paid',
         'transaction_history' => 'Transaction History',
         'amount_paid' => 'Amount Paid',
+        'failed_at' => 'Failed At',
     ],
 
     // Placeholders
@@ -786,6 +788,7 @@ return [
         'failed' => 'Failed',
         'refunded' => 'Refunded',
         'partial' => 'Partially Paid',
+        'cancelled' => 'Cancelled',
     ],
 
     // Payment Types

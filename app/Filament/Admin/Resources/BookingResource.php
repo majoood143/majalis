@@ -1613,17 +1613,17 @@ class BookingResource extends Resource
                                 ->title(__('booking.notifications.review_request_sent'))
                                 ->send();
                         }),
-                ActivityLogTimelineTableAction::make('Activities')
-                    ->timelineIcons([
-                        'created' => 'heroicon-m-check-badge',
-                        'updated' => 'heroicon-m-pencil-square',
-                    ])
-                    ->timelineIconColors([
-                        'created' => 'info',
-                        'updated' => 'warning',
-                    ]),
-
+                    ActivityLogTimelineTableAction::make('Activities')
+                        ->timelineIcons([
+                            'created' => 'heroicon-m-check-badge',
+                            'updated' => 'heroicon-m-pencil-square',
                         ])
+                        ->timelineIconColors([
+                            'created' => 'info',
+                            'updated' => 'warning',
+                        ]),
+
+                ])
             ])
             ->defaultSort('created_at', 'desc')
             ->bulkActions([
@@ -1692,6 +1692,10 @@ class BookingResource extends Resource
                             ->money('OMR', 3),
 
                         Infolists\Components\TextEntry::make('commission_amount')
+                            ->label('Commission Amount')
+                            ->money('OMR', 3),
+
+                        Infolists\Components\TextEntry::make('platform_fee')
                             ->label('Platform Fee')
                             ->money('OMR', 3),
 
@@ -1757,22 +1761,67 @@ class BookingResource extends Resource
                     ->visible(fn($record) => $record->payment_type !== null),
 
                 // Extra Services
+                // Infolists\Components\Section::make('Extra Services')
+                //     ->schema([
+                //         Infolists\Components\RepeatableEntry::make('extraServices')
+                //             ->label('')
+                //             ->schema([
+                //                 Infolists\Components\TextEntry::make('name')
+                //                     ->label(__('booking.fields.service_id.label')),
+
+                //                 Infolists\Components\TextEntry::make('pivot.quantity')
+                //                     ->label(__('booking.fields.quantity.label')),
+
+                //                 Infolists\Components\TextEntry::make('pivot.unit_price')
+                //                     ->label(__('booking.fields.unit_price.label'))
+                //                     ->money('OMR', 3),
+
+                //                 Infolists\Components\TextEntry::make('pivot.total_price')
+                //                     ->label(__('booking.fields.total_price.label'))
+                //                     ->money('OMR', 3)
+                //                     ->weight('bold'),
+                //             ])
+                //             ->columns(4),
+                //     ])
+                //     ->visible(fn($record) => $record->extraServices->count() > 0)
+                //     ->collapsible(),
+
+                // Extra Services Section
+                // FIX: Since extraServices() is a HasMany to BookingExtraService model,
+                // fields are directly on the model (not pivot). Use service_name, quantity, etc.
                 Infolists\Components\Section::make('Extra Services')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('extraServices')
                             ->label('')
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
-                                    ->label(__('booking.fields.service_id.label')),
+                                // FIX: service_name is a JSON/array field, needs formatting
+                                Infolists\Components\TextEntry::make('service_name')
+                                    ->label(__('booking.fields.service_id.label'))
+                                    ->formatStateUsing(function ($state): string {
+                                        // Handle JSON string
+                                        if (is_string($state)) {
+                                            $decoded = json_decode($state, true);
+                                            if (is_array($decoded)) {
+                                                return $decoded[app()->getLocale()] ?? $decoded['en'] ?? $state;
+                                            }
+                                            return $state;
+                                        }
+                                        // Handle array (cast by model)
+                                        if (is_array($state)) {
+                                            return $state[app()->getLocale()] ?? $state['en'] ?? '-';
+                                        }
+                                        return (string) ($state ?? '-');
+                                    }),
 
-                                Infolists\Components\TextEntry::make('pivot.quantity')
+                                // FIX: Direct field access — no "pivot." prefix needed
+                                Infolists\Components\TextEntry::make('quantity')
                                     ->label(__('booking.fields.quantity.label')),
 
-                                Infolists\Components\TextEntry::make('pivot.unit_price')
+                                Infolists\Components\TextEntry::make('unit_price')
                                     ->label(__('booking.fields.unit_price.label'))
                                     ->money('OMR', 3),
 
-                                Infolists\Components\TextEntry::make('pivot.total_price')
+                                Infolists\Components\TextEntry::make('total_price')
                                     ->label(__('booking.fields.total_price.label'))
                                     ->money('OMR', 3)
                                     ->weight('bold'),

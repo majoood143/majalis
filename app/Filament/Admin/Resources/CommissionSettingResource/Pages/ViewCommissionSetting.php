@@ -37,7 +37,7 @@ class ViewCommissionSetting extends ViewRecord
                         ->success()
                         ->send();
 
-                    Cache::tags(['commissions'])->flush();
+                    //Cache::tags(['commissions'])->flush();
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 

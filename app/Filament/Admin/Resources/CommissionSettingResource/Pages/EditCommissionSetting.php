@@ -38,7 +38,7 @@ class EditCommissionSetting extends EditRecord
                         ->send();
 
                     // Clear cache
-                    Cache::tags(['commissions'])->flush();
+                    //Cache::tags(['commissions'])->flush();
 
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
@@ -160,7 +160,7 @@ class EditCommissionSetting extends EditRecord
                     //         ->body('This commission setting has been applied to existing bookings.')
                     //         ->persistent()
                     //         ->send();
-                    //     
+                    //
                     //     $action->cancel();
                     // }
                 })
@@ -172,7 +172,7 @@ class EditCommissionSetting extends EditRecord
                 )
                 ->after(function () {
                     // Clear cache
-                    Cache::tags(['commissions'])->flush();
+                    //Cache::tags(['commissions'])->flush();
                 }),
 
             Actions\Action::make('viewHistory')
@@ -286,7 +286,7 @@ class EditCommissionSetting extends EditRecord
     protected function afterSave(): void
     {
         // Clear cache
-        Cache::tags(['commissions'])->flush();
+        //Cache::tags(['commissions'])->flush();
 
         // Log the update
         Log::info('Commission setting updated', [

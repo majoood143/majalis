@@ -292,14 +292,42 @@ class EditBooking extends EditRecord
      * @param array $data The data to populate the form with
      * @return array The mutated data
      */
+    // protected function mutateFormDataBeforeFill(array $data): array
+    // {
+    //     // Load extra services relationship properly
+    //     // This prevents the "active()" scope error by loading the relationship
+    //     // directly without applying scopes during form population
+    //     if ($this->record->relationLoaded('extraServices')) {
+    //         $data['extra_services'] = $this->record->extraServices->pluck('id')->toArray();
+    //     }
+
+    //     return $data;
+    // }
+
+    /**
+     * Mutate form data before fill
+     *
+     * Populates the extra_services repeater with full data from
+     * BookingExtraService records (HasMany), not just IDs.
+     *
+     * @param array $data The data to populate the form with
+     * @return array The mutated data
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Load extra services relationship properly
-        // This prevents the "active()" scope error by loading the relationship
-        // directly without applying scopes during form population
-        if ($this->record->relationLoaded('extraServices')) {
-            $data['extra_services'] = $this->record->extraServices->pluck('id')->toArray();
-        }
+        // FIX: Load extra services with full repeater data
+        // The form's Repeater expects an array of items with:
+        // service_id, service_name, unit_price, quantity, total_price, unit
+        $data['extra_services'] = $this->record->extraServices->map(function ($service) {
+            return [
+                'service_id'   => $service->extra_service_id,
+                'service_name' => $service->service_name,       // JSON/array field
+                'unit_price'   => (float) $service->unit_price,
+                'quantity'     => (int) $service->quantity,
+                'total_price'  => (float) $service->total_price,
+                'unit'         => $service->extraService?->unit ?? 'per_unit', // From parent ExtraService
+            ];
+        })->toArray();
 
         return $data;
     }

@@ -140,7 +140,7 @@ class CustomerBookingConfirmationNotification extends Notification implements Sh
         );
 
         // PDF Attachment note
-        $mail->line('📄 ' . __('emails.booking.pdf_attached', [], 'A PDF copy of your booking confirmation is attached to this email.'));
+        $mail->line('📄 ' . __('emails.pdf_attached', [], 'A PDF copy of your booking confirmation is attached to this email.'));
 
         // Closing
         $mail->salutation(
@@ -273,10 +273,10 @@ class CustomerBookingConfirmationNotification extends Notification implements Sh
     protected function getTimeSlotLabel(?string $timeSlot): string
     {
         $labels = [
-            'morning' => __('halls.time_slot_morning', [], 'Morning'),
-            'afternoon' => __('halls.time_slot_afternoon', [], 'Afternoon'),
-            'evening' => __('halls.time_slot_evening', [], 'Evening'),
-            'full_day' => __('halls.time_slot_full_day', [], 'Full Day'),
+            'morning' => __('halls.morning', [], 'Morning'),
+            'afternoon' => __('halls.afternoon', [], 'Afternoon'),
+            'evening' => __('halls.evening', [], 'Evening'),
+            'full_day' => __('halls.full_day', [], 'Full Day'),
         ];
 
         return $labels[$timeSlot] ?? ucfirst(str_replace('_', ' ', $timeSlot ?? 'N/A'));

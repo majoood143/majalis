@@ -706,6 +706,7 @@
                                     x-text="total.toFixed(3) + ' OMR'"></span>
                             </div>
                         </div>
+                            
 
                         <!-- ✅ NEW: Advance Payment Preview -->
                         @if ($hall->requiresAdvancePayment())

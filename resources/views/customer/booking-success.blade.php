@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <title>{{ __('halls.booking_success') }} - Majalis</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -137,6 +138,18 @@
                         <span class="text-gray-600">{{ __('halls.hall_price') }}</span>
                         <span class="font-medium">{{ number_format($booking->hall_price, 3) }} OMR</span>
                     </div>
+                    {{-- @if($booking->commission_amount > 0)
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">{{ __('booking.labels.commission_amount') }}</span>
+                            <span class="font-medium text-red-600">-{{ number_format($booking->commission_amount, 3) }} OMR</span>
+                        </div>
+                    @endif --}}
+                    @if($booking->platform_fee > 0)
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">{{ __('booking.labels.platform_fee') }}</span>
+                            <span class="font-medium">{{ number_format($booking->platform_fee, 3) }} OMR</span>
+                        </div>
+                    @endif
                     @if ($booking->services_price > 0)
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">{{ __('halls.extra_services_total') }}</span>

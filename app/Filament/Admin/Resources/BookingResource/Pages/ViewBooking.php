@@ -558,6 +558,11 @@ class ViewBooking extends ViewRecord
                                     ->money('OMR')
                                     ->color('warning'),
 
+                    Infolists\Components\TextEntry::make('platform_fee')
+                        ->label(__('booking.labels.platform_fee'))
+                        ->money('OMR')
+                        ->color('warning'),
+
                                 Infolists\Components\TextEntry::make('owner_payout')
                                     ->label(__('booking.labels.owner_payout'))
                                     ->money('OMR')
@@ -900,31 +905,76 @@ class ViewBooking extends ViewRecord
                     ->visible(fn() => $this->record->payments->count() > 0)
                     ->collapsible()
                     ->collapsed(false), // Start expanded to show payment details
-                /**
-                 * Extra Services Section
-                 *
-                 * Lists all additional services booked with quantities and prices.
-                 * Only visible if the booking has extra services.
-                 */
-                Infolists\Components\Section::make(__('booking.sections.extra_services'))
-                    ->schema([
-                        Infolists\Components\RepeatableEntry::make('extraServices')
-                            ->label('')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('pivot.service_name')
-                                    ->label(__('booking.labels.service_name')),
-                                Infolists\Components\TextEntry::make('pivot.unit_price')
-                                    ->label(__('booking.labels.unit_price'))
-                                    ->money('OMR'),
-                                Infolists\Components\TextEntry::make('pivot.quantity')
-                                    ->label(__('booking.labels.quantity')),
-                                Infolists\Components\TextEntry::make('pivot.total_price')
-                                    ->label(__('booking.labels.total_price'))
-                                    ->money('OMR'),
-                            ])
-                            ->columns(4),
-                    ])
-                    ->visible(fn() => $this->record->extraServices->count() > 0),
+            /**
+             * Extra Services Section
+             *
+             * Lists all additional services booked with quantities and prices.
+             * Only visible if the booking has extra services.
+             */
+            // Infolists\Components\Section::make(__('booking.sections.extra_services'))
+            //     ->schema([
+            //         Infolists\Components\RepeatableEntry::make('extraServices')
+            //             ->label('')
+            //             ->schema([
+            //                 Infolists\Components\TextEntry::make('pivot.service_name')
+            //                     ->label(__('booking.labels.service_name')),
+            //                 Infolists\Components\TextEntry::make('pivot.unit_price')
+            //                     ->label(__('booking.labels.unit_price'))
+            //                     ->money('OMR'),
+            //                 Infolists\Components\TextEntry::make('pivot.quantity')
+            //                     ->label(__('booking.labels.quantity')),
+            //                 Infolists\Components\TextEntry::make('pivot.total_price')
+            //                     ->label(__('booking.labels.total_price'))
+            //                     ->money('OMR'),
+            //             ])
+            //             ->columns(4),
+            //     ])
+            //     ->visible(fn() => $this->record->extraServices->count() > 0),
+
+            // Extra Services Section
+            // FIX: Since extraServices() is a HasMany to BookingExtraService model,
+            // fields are directly on the model (not pivot). Use service_name, quantity, etc.
+            Infolists\Components\Section::make('Extra Services')
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('extraServices')
+                        ->label('')
+                        ->schema([
+                            // FIX: service_name is a JSON/array field, needs formatting
+                            Infolists\Components\TextEntry::make('service_name')
+                                ->label(__('booking.fields.service_id.label'))
+                                ->formatStateUsing(function ($state): string {
+                                    // Handle JSON string
+                                    if (is_string($state)) {
+                                        $decoded = json_decode($state, true);
+                                        if (is_array($decoded)) {
+                                            return $decoded[app()->getLocale()] ?? $decoded['en'] ?? $state;
+                                        }
+                                        return $state;
+                                    }
+                                    // Handle array (cast by model)
+                                    if (is_array($state)) {
+                                        return $state[app()->getLocale()] ?? $state['en'] ?? '-';
+                                    }
+                                    return (string) ($state ?? '-');
+                                }),
+
+                            // FIX: Direct field access — no "pivot." prefix needed
+                            Infolists\Components\TextEntry::make('quantity')
+                                ->label(__('booking.fields.quantity.label')),
+
+                            Infolists\Components\TextEntry::make('unit_price')
+                                ->label(__('booking.fields.unit_price.label'))
+                                ->money('OMR', 3),
+
+                            Infolists\Components\TextEntry::make('total_price')
+                                ->label(__('booking.fields.total_price.label'))
+                                ->money('OMR', 3)
+                                ->weight('bold'),
+                        ])
+                        ->columns(4),
+                ])
+                ->visible(fn($record) => $record->extraServices->count() > 0)
+                ->collapsible(),
 
                 /**
                  * Timestamps Section
