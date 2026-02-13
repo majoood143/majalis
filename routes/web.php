@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\Customer\GuestBookingController;
+use App\Http\Controllers\Customer\HallController;
 
 
 Route::get('/', function () {
@@ -575,17 +576,18 @@ Route::get('/bookings/{booking}/invoice/print', function (Booking $booking) {
 })->name('bookings.invoice.print')->middleware(['auth:web,filament']);
 
 
-// Guest routes:
-// Route::post('/guest/booking/{guest_token}/process-payment', [GuestBookingController::class, 'processPayment'])
-//     ->name('guest.booking.process-payment');
 
-// Route::get('/guest/booking/{guest_token}/payment-success/{payment_reference}', [GuestBookingController::class, 'paymentSuccess'])
-//     ->name('guest.booking.payment-success');
+// ── Smart Search API (public — no auth required) ──
+// Route::prefix('api/halls')->name('api.halls.')->group(function () {
+//     Route::get('/check-availability', [\App\Http\Controllers\CustomerController::class, 'checkDateAvailability'])
+//         ->name('check-availability');
 
-// Route::get('/guest/booking/{guest_token}/payment-cancel/{payment_reference}', [GuestBookingController::class, 'paymentCancel'])
-//     ->name('guest.booking.payment-cancel');
+//     Route::get('/suggest-dates', [\App\Http\Controllers\CustomerController::class, 'suggestDates'])
+//         ->name('suggest-dates');
+// });
 
+Route::get('/api/halls/check-availability', [HallController::class, 'checkDateAvailability'])
+    ->name('api.halls.check-availability');
 
-
-
-
+Route::get('/api/halls/suggest-dates', [HallController::class, 'suggestDates'])
+    ->name('api.halls.suggest-dates');

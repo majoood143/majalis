@@ -21,6 +21,7 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ __('payment.receipt.title') }} - {{ $payment->payment_reference }}</title>
     <style>
@@ -446,9 +447,9 @@
                     <div class="info-row">
                         <div class="info-label">{{ __('payment.fields.payment_date') }}:</div>
                         <div class="info-value">
-                            {{ $payment->paid_at 
-                                ? $payment->paid_at->format('d M Y, H:i') 
-                                : ($payment->created_at ? $payment->created_at->format('d M Y, H:i') : 'N/A') 
+                            {{ $payment->paid_at
+                                ? $payment->paid_at->format('d M Y, H:i')
+                                : ($payment->created_at ? $payment->created_at->format('d M Y, H:i') : 'N/A')
                             }}
                         </div>
                     </div>

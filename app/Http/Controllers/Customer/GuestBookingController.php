@@ -24,6 +24,8 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use App\Models\Payment;
 use App\Services\ThawaniService;
+use App\Models\CommissionSetting;
+use App\Models\ServiceFeeSetting;
 use Exception;
 use Illuminate\Support\Facades\Http;
 
@@ -481,19 +483,107 @@ class GuestBookingController extends Controller
             // Calculate subtotal (hall + services)
             $subtotal = $hallPrice + $servicesPrice;
 
-            // Platform fee (if applicable - usually 0 for now)
+            // ==========================================================
+            // 1. SERVICE FEE — Customer-facing fee (added to total)
+            // ==========================================================
+            // Resolve the applicable service fee using priority:
+            //   Hall-specific → Owner-specific → Global
+            // Service fees are OPTIONAL. If no active setting exists,
+            // platform_fee remains 0 (no charge to customer).
+            // ==========================================================
             $platformFee = 0.00;
+            $serviceFeeType = null;
+            $serviceFeeValue = null;
 
-            // Total amount
+            /** @var ServiceFeeSetting|null $serviceFee */
+            $serviceFee = ServiceFeeSetting::resolveForHall($hall);
+
+            if ($serviceFee) {
+                $serviceFeeType  = $serviceFee->fee_type->value;   // 'percentage' or 'fixed'
+                $serviceFeeValue = (float) $serviceFee->fee_value;
+                $platformFee     = $serviceFee->calculateFee($subtotal);
+
+                Log::info('Service fee applied to guest booking', [
+                    'fee_id'     => $serviceFee->id,
+                    'fee_type'   => $serviceFeeType,
+                    'fee_value'  => $serviceFeeValue,
+                    'subtotal'   => $subtotal,
+                    'fee_amount' => $platformFee,
+                    'scope'      => $serviceFee->hall_id ? 'hall' : ($serviceFee->owner_id ? 'owner' : 'global'),
+                ]);
+            }
+
+            // Total amount the CUSTOMER pays (subtotal + service fee)
             $totalAmount = $subtotal + $platformFee;
 
-            // Commission calculation (if applicable)
+            // ==========================================================
+            // 2. COMMISSION — Owner-side charge (deducted from payout)
+            // ==========================================================
+            // Resolve the applicable commission using same priority.
+            // Commission is invisible to the customer.
+            // ==========================================================
             $commissionAmount = 0.00;
             $commissionType = null;
             $commissionValue = null;
 
-            // Owner payout (total - commission)
-            $ownerPayout = $totalAmount - $commissionAmount;
+            /** @var CommissionSetting|null $commission */
+            $commission = CommissionSetting::query()
+                ->where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereNull('effective_from')
+                        ->orWhere('effective_from', '<=', now()->toDateString());
+                })
+                ->where(function ($q) {
+                    $q->whereNull('effective_to')
+                        ->orWhere('effective_to', '>=', now()->toDateString());
+                })
+                ->where(function ($q) use ($hall) {
+                    $q->where('hall_id', $hall->id)
+                        ->orWhere(function ($q2) use ($hall) {
+                            $q2->whereNull('hall_id')
+                                ->where('owner_id', $hall->owner_id);
+                        })
+                        ->orWhere(function ($q2) {
+                            $q2->whereNull('hall_id')
+                                ->whereNull('owner_id');
+                        });
+                })
+                ->orderByRaw('CASE
+                    WHEN hall_id IS NOT NULL THEN 1
+                    WHEN owner_id IS NOT NULL THEN 2
+                    ELSE 3
+                END')
+                ->first();
+
+            if ($commission) {
+                $commissionType  = $commission->commission_type->value;
+                $commissionValue = (float) $commission->commission_value;
+
+                if ($commissionType === 'percentage') {
+                    $commissionAmount = round(($subtotal * $commissionValue) / 100, 2);
+                } else {
+                    $commissionAmount = round($commissionValue, 2);
+                }
+
+                Log::info('Commission applied to guest booking', [
+                    'commission_id'     => $commission->id,
+                    'commission_type'   => $commissionType,
+                    'commission_value'  => $commissionValue,
+                    'subtotal'          => $subtotal,
+                    'commission_amount' => $commissionAmount,
+                ]);
+            }
+
+            // ==========================================================
+            // 3. OWNER PAYOUT
+            // ==========================================================
+            // Owner receives: subtotal minus commission
+            // (Service fee goes to platform, commission also goes to platform)
+            // owner_payout = subtotal - commission_amount
+            // ==========================================================
+            $ownerPayout = $subtotal - $commissionAmount;
+
+
 
             // Generate booking number (format: BK-YYYY-NNNNN)
             $lastBooking = Booking::withTrashed()->orderBy('id', 'desc')->first();
@@ -534,10 +624,16 @@ class GuestBookingController extends Controller
                 'platform_fee' => round($platformFee, 2),
                 'total_amount' => round($totalAmount, 2),
 
-                // Commission
+                // Commission (owner-side — invisible to customer)
                 'commission_amount' => round($commissionAmount, 2),
-                'commission_type' => $commissionType,
-                'commission_value' => $commissionValue,
+                'commission_type'   => $commissionType,
+                'commission_value'  => $commissionValue,
+
+                // Service fee audit trail (recorded at booking time)
+                'service_fee_type'  => $serviceFeeType,
+                'service_fee_value' => $serviceFeeValue,
+
+                // Owner payout (subtotal minus commission)
                 'owner_payout' => round($ownerPayout, 2),
 
                 // Status
@@ -547,13 +643,29 @@ class GuestBookingController extends Controller
             ]);
 
             // Attach extra services with their prices
+            // if (!empty($selectedServiceIds)) {
+            //     $services = ExtraService::whereIn('id', $selectedServiceIds)->get();
+            //     $pivotData = [];
+            //     foreach ($services as $service) {
+            //         $pivotData[$service->id] = ['price' => $service->price];
+            //     }
+            //     $booking->extraServices()->attach($pivotData);
+            // }
             if (!empty($selectedServiceIds)) {
                 $services = ExtraService::whereIn('id', $selectedServiceIds)->get();
-                $pivotData = [];
+
                 foreach ($services as $service) {
-                    $pivotData[$service->id] = ['price' => $service->price];
+                    // Get the translatable name as a JSON snapshot for the booking record
+                    $serviceName = $service->getTranslations('name');
+
+                    $booking->extraServices()->create([
+                        'extra_service_id' => $service->id,
+                        'service_name'     => json_encode($serviceName), // Store bilingual name snapshot
+                        'unit_price'       => (float) $service->price,
+                        'quantity'          => 1,
+                        'total_price'      => (float) $service->price,  // quantity * unit_price
+                    ]);
                 }
-                $booking->extraServices()->attach($pivotData);
             }
 
             // Update guest session

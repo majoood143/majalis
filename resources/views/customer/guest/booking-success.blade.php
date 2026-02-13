@@ -99,8 +99,8 @@
                         <ul class="space-y-1">
                             @foreach($booking->extraServices as $service)
                                 <li class="flex justify-between text-sm">
-                                    <span>{{ $service->getTranslation('name', app()->getLocale()) }}</span>
-                                    <span class="text-gray-600">{{ number_format($service->pivot->total_price, 3) }} {{ __('guest.currency_omr') }}</span>
+                                    <span>{{ $service->name }}</span>
+                                    {{-- <span class="text-gray-600">{{ number_format($service->pivot->price, 3) }} {{ __('guest.currency_omr') }}</span> --}}
                                 </li>
                             @endforeach
                         </ul>

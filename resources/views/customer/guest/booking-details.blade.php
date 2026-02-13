@@ -195,15 +195,20 @@
                                 @foreach($booking->extraServices as $service)
                                     <li class="flex justify-between py-3">
                                         <div>
+                                            {{-- FIX: BookingExtraService uses service_name (JSON snapshot), --}}
+                                            {{-- not HasTranslations. Use the localized_name accessor. --}}
                                             <span class="font-medium text-gray-900">
-                                                {{ $service->getTranslation('name', app()->getLocale()) }}
+                                                {{ $service->localized_name }}
                                             </span>
-                                            @if($service->pivot->quantity > 1)
-                                                <span class="text-sm text-gray-500">× {{ $service->pivot->quantity }}</span>
+                                            {{-- FIX: extraServices() is HasMany, not BelongsToMany. --}}
+                                            {{-- Access quantity directly, NOT via pivot. --}}
+                                            @if($service->quantity > 1)
+                                                <span class="text-sm text-gray-500">× {{ $service->quantity }}</span>
                                             @endif
                                         </div>
+                                        {{-- FIX: Access total_price directly (HasMany, not pivot) --}}
                                         <span class="text-gray-600">
-                                            {{ number_format($service->pivot->total_price, 3) }} {{ __('guest.currency_omr') }}
+                                            {{ number_format((float) $service->total_price, 3) }} {{ __('guest.currency_omr') }}
                                         </span>
                                     </li>
                                 @endforeach

@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <title>Invoice - {{ $booking->booking_number }}</title>
     <style>
         body { font-family: Arial, sans-serif; }
@@ -17,14 +18,14 @@
         <h1>MAJALIS</h1>
         <h2>Booking Invoice</h2>
     </div>
-    
+
     <div class="details">
         <p><strong>Booking Number:</strong> {{ $booking->booking_number }}</p>
         <p><strong>Date:</strong> {{ $booking->booking_date->format('d M Y') }}</p>
         <p><strong>Customer:</strong> {{ $booking->customer_name }}</p>
         <p><strong>Hall:</strong> {{ $hall->name }}</p>
     </div>
-    
+
     <table>
         <thead>
             <tr>
@@ -63,7 +64,7 @@
             </tr>
         </tbody>
     </table>
-    
+
     <div style="margin-top: 40px;">
         <p>Thank you for booking with Majalis!</p>
         <p>For inquiries: info@majalis.om | +968 24 123456</p>

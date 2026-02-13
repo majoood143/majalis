@@ -310,4 +310,26 @@ return [
     // Common
     'n_a' => 'N/A',
     'processed_by' => 'Processed by',
+    // Payment page
+    'method' => 'Payment Method',
+    'select_option' => 'Select Payment Option',
+    'full' => 'Full Payment',
+    'full_description' => 'Pay the full amount now',
+    'advance' => 'Advance Payment',
+    'advance_description' => 'Pay :percentage% now, rest before event',
+    'balance' => 'Balance',
+    'total_amount' => 'Total Amount',
+    'secure' => 'Secure Payment',
+    'redirect_message' => 'You will be redirected to Thawani secure payment gateway to complete your payment.',
+    'terms_agreement' => 'I understand that my booking will be confirmed upon successful payment.',
+    'view_terms' => 'View Terms & Conditions',
+    'pay_now' => 'Pay Now',
+    'redirecting' => 'Redirecting to payment...',
+    'terms_required' => 'Please agree to the terms and conditions',
+
+    // Price breakdown
+    'hall_rental' => 'Hall Rental',
+    'services' => 'Services',
+    'platform_fee' => 'Platform Fee',
+    'total' => 'Total',
 ];

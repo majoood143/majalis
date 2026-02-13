@@ -133,6 +133,8 @@ class Booking extends Model
         'guest_token',
         'guest_token_expires_at',
         'account_created_at',
+        'service_fee_type',
+        'service_fee_value',
     ];
 
     /**
@@ -163,6 +165,8 @@ class Booking extends Model
         'is_guest_booking' => 'boolean',
         'guest_token_expires_at' => 'datetime',
         'account_created_at' => 'datetime',
+        'service_fee_type' => 'string',
+        'service_fee_value' => 'decimal:2',
     ];
 
     public function getActivitylogOptions(): LogOptions

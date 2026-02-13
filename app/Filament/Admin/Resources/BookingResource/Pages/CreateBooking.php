@@ -197,13 +197,25 @@ class CreateBooking extends CreateRecord
                 $record = static::getModel()::create($data);
 
                 // Attach extra services if any
+                // if (!empty($extraServices)) {
+                //     foreach ($extraServices as $service) {
+                //         $record->extraServices()->attach($service['service_id'], [
+                //             'service_name' => json_encode($service['service_name']), // Already an array
+                //             'unit_price' => $service['unit_price'] ?? 0,
+                //             'quantity' => $service['quantity'] ?? 1,
+                //             'total_price' => $service['total_price'] ?? 0,
+                //         ]);
+                //     }
+                // }
+
                 if (!empty($extraServices)) {
                     foreach ($extraServices as $service) {
-                        $record->extraServices()->attach($service['service_id'], [
-                            'service_name' => json_encode($service['service_name']), // Already an array
-                            'unit_price' => $service['unit_price'] ?? 0,
-                            'quantity' => $service['quantity'] ?? 1,
-                            'total_price' => $service['total_price'] ?? 0,
+                        $record->extraServices()->create([
+                            'extra_service_id' => $service['service_id'],
+                            'service_name'     => json_encode($service['service_name']), // Already an array
+                            'unit_price'       => $service['unit_price'] ?? 0,
+                            'quantity'          => $service['quantity'] ?? 1,
+                            'total_price'      => $service['total_price'] ?? 0,
                         ]);
                     }
                 }

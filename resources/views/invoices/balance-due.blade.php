@@ -2,6 +2,7 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('Balance Due Invoice') }} - {{ $booking->booking_number }}</title>
     <style>
@@ -260,7 +261,7 @@
         <div class="urgent-alert">
             <h2> {{ __('URGENT: BALANCE PAYMENT REQUIRED') }}</h2>
             <p style="font-size: 12pt;">{{ __('Your event is approaching. Please settle the balance immediately.') }}</p>
-            
+
             <div class="amount">
                 {{ $formattedBalance }} OMR
             </div>
@@ -374,7 +375,7 @@
             <p style="margin-bottom: 10px;">
                 <strong>{{ __('Payment Deadline') }}:</strong> {{ $paymentDeadline->format('l, d F Y') }}
             </p>
-            
+
             <h4 style="margin-top: 15px; margin-bottom: 8px;">{{ __('Accepted Payment Methods') }}:</h4>
             <ul style="margin-{{ app()->isLocale('ar') ? 'right' : 'left' }}: 20px;">
                 <li><strong>{{ __('Bank Transfer') }}:</strong> {{ __('Contact hall owner for bank details') }}</li>

@@ -1,4 +1,3 @@
-
 {{--
     Guest Booking - Step 3: Complete Booking Form
 
@@ -62,7 +61,8 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {{-- x-data wraps both form AND sidebar so Alpine scope is shared --}}
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3" x-data="bookingForm()">
             {{-- Main Form --}}
             <div class="lg:col-span-2">
                 <div class="overflow-hidden bg-white shadow-sm rounded-xl">
@@ -92,7 +92,6 @@
                         <form
                             method="POST"
                             action="{{ route('guest.booking.store', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
-                            x-data="bookingForm()"
                             @submit="handleSubmit"
                         >
                             @csrf
@@ -324,8 +323,8 @@
 
                         <hr class="my-4">
 
-                        {{-- Price Breakdown --}}
-                        <div class="space-y-2 text-sm" x-data="{ hallPrice: {{ $hall->price_per_slot }} }">
+                        {{-- Price Breakdown (inherits bookingForm() scope from parent grid wrapper) --}}
+                        <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">{{ __('guest.price_hall_rental') }}</span>
                                 <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }} {{ __('guest.currency_omr') }}</span>
@@ -463,4 +462,3 @@ function bookingForm() {
 @endpush
 
 @endsection
-

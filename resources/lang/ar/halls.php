@@ -245,4 +245,96 @@ return [
     'important' => 'مهم',
     'balance_payment_reminder' => 'يجب دفع المبلغ المتبقي قبل 48 ساعة على الأقل من تاريخ المناسبة.',
     'currency' => 'ر.ع.',
+
+    // ── Page ──
+    'browse_halls'        => 'تصفح القاعات',
+    'find_perfect_venue'  => 'ابحث بالتاريخ والوقت لمعرفة القاعات المتاحة فوراً',
+
+    // ── Search Form ──
+    'event_date'          => 'تاريخ الحدث',
+    'time_slot'           => 'الفترة الزمنية',
+    'select_time'         => 'اختر الوقت…',
+    'region'              => 'المحافظة',
+    'city'                => 'المدينة',
+    'all_regions'         => 'جميع المحافظات',
+    'all_cities'          => 'جميع المدن',
+    'search'              => 'بحث',
+    'search_placeholder'  => 'ابحث باسم القاعة…',
+
+    // ── Filters ──
+    'filters'             => 'الفلاتر',
+    'more_filters'        => 'فلاتر إضافية',
+    'hide_filters'        => 'إخفاء الفلاتر',
+    'features'            => 'المزايا',
+    'guests'              => 'ضيف',
+    'enter_guests'        => 'أدخل عدد الضيوف',
+    'any'                 => 'الكل',
+    'price_range'         => 'نطاق السعر',
+    'min_price'           => 'الحد الأدنى',
+    'max_price'           => 'الحد الأعلى',
+    'no_limit'            => 'بدون حد',
+    'apply'               => 'تطبيق',
+    'clear_filters'       => 'مسح الفلاتر',
+    'active_filters'      => 'فلتر نشط',
+    'no_active_filters'   => 'لا توجد فلاتر نشطة',
+    'starting_from'       => 'يبدأ من',
+
+    // ── Results ──
+    'halls_found'         => 'قاعة',
+    'halls_available'     => 'قاعة متاحة',
+    'no_halls_available'  => 'لا توجد قاعات متاحة',
+    'plus_booked'         => '+ :count قاعة محجوزة بالأسفل',
+    'search_hint'         => 'ابحث بالتاريخ والوقت أعلاه لمعرفة التوفر الفعلي',
+    'halls_in_region'     => 'قاعة',
+
+    // ── View Modes ──
+    'view_all'            => 'عرض الكل',
+    'view_by_region'      => 'حسب المنطقة',
+    'view_mode'           => 'طريقة العرض',
+    'grid'                => 'القائمة',
+    'map'                 => 'الخريطة',
+
+    // ── Sort ──
+    'sort_by'             => 'ترتيب حسب',
+    'best_match'          => 'الأنسب',
+    'highest_rated'       => 'الأعلى تقييماً',
+    'price_low_high'      => 'السعر: من الأقل',
+    'price_high_low'      => 'السعر: من الأعلى',
+    'largest_capacity'    => 'الأكبر سعة',
+    'latest'              => 'الأحدث',
+    'most_popular'        => 'الأكثر شعبية',
+    'name_az'             => 'الاسم: أ-ي',
+
+    // ── Time Slots ──
+    'slot_morning'        => 'صباحي',
+    'slot_afternoon'      => 'ظهري',
+    'slot_evening'        => 'مسائي',
+    'slot_full_day'       => 'يوم كامل',
+
+    // ── Hall Card ──
+    'featured'            => 'مميزة',
+    'fully_booked'        => 'محجوزة بالكامل',
+    'available'           => 'متاحة',
+    'all_slots_booked'    => 'جميع الفترات محجوزة لهذا التاريخ',
+    'view_details'        => 'عرض التفاصيل',
+    'book'                => 'احجز',
+
+    // ── Date Suggestions ──
+    'no_availability_on'  => 'لا توجد قاعات متاحة في :date',
+    'try_nearby_dates'    => 'جرب أحد هذه التواريخ القريبة:',
+    'no_halls_around_date' => 'لا توجد قاعات متاحة حول هذا التاريخ',
+    'try_different_date'  => 'جرب تاريخاً مختلفاً أو فترة أخرى أو وسّع الفلاتر',
+
+    // ── Map ──
+    'halls_on_map'        => 'قاعة على الخريطة',
+    'green_available'     => 'أخضر = متاحة',
+    'red_booked'          => 'أحمر = محجوزة',
+
+    // ── Empty State ──
+    'no_halls_found'      => 'لم يتم العثور على قاعات',
+    'adjust_filters'      => 'جرب تعديل الفلاتر أو البحث في مدينة مختلفة',
+
+    // ── Auth ──
+    'login'               => 'تسجيل الدخول',
+    'dashboard'           => 'لوحة التحكم',
     ];

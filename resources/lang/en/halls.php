@@ -247,4 +247,95 @@ return [
     'important' => 'Important',
     'balance_payment_reminder' => 'The remaining balance must be paid at least 48 hours before your event date.',
     'currency' => 'OMR',
+    // ── Page ──
+    'browse_halls'        => 'Browse Halls',
+    'find_perfect_venue'  => 'Search by date and time to see only available venues',
+
+    // ── Search Form ──
+    'event_date'          => 'Event Date',
+    'time_slot'           => 'Time Slot',
+    'select_time'         => 'Select time…',
+    'region'              => 'Region',
+    'city'                => 'City',
+    'all_regions'         => 'All Regions',
+    'all_cities'          => 'All Cities',
+    'search'              => 'Search',
+    'search_placeholder'  => 'Search by hall name…',
+
+    // ── Filters ──
+    'filters'             => 'Filters',
+    'more_filters'        => 'More filters',
+    'hide_filters'        => 'Hide filters',
+    'features'            => 'Features',
+    'guests'              => 'guests',
+    'enter_guests'        => 'Enter number of guests',
+    'any'                 => 'Any',
+    'price_range'         => 'Price Range',
+    'min_price'           => 'Min Price',
+    'max_price'           => 'Max Price',
+    'no_limit'            => 'No limit',
+    'apply'               => 'Apply',
+    'clear_filters'       => 'Clear Filters',
+    'active_filters'      => 'active filters',
+    'no_active_filters'   => 'No active filters',
+    'starting_from'       => 'from',
+
+    // ── Results ──
+    'halls_found'         => 'halls found',
+    'halls_available'     => 'halls available',
+    'no_halls_available'  => 'No halls available',
+    'plus_booked'         => '+ :count fully booked shown below',
+    'search_hint'         => 'Search by date and time above to see real-time availability',
+    'halls_in_region'     => 'halls',
+
+    // ── View Modes ──
+    'view_all'            => 'View All',
+    'view_by_region'      => 'By Region',
+    'view_mode'           => 'View Mode',
+    'grid'                => 'Grid',
+    'map'                 => 'Map',
+
+    // ── Sort ──
+    'sort_by'             => 'Sort by',
+    'best_match'          => 'Best Match',
+    'highest_rated'       => 'Highest Rated',
+    'price_low_high'      => 'Price: Low → High',
+    'price_high_low'      => 'Price: High → Low',
+    'largest_capacity'    => 'Largest Capacity',
+    'latest'              => 'Latest',
+    'most_popular'        => 'Most Popular',
+    'name_az'             => 'Name: A-Z',
+
+    // ── Time Slots ──
+    'slot_morning'        => 'Morning',
+    'slot_afternoon'      => 'Afternoon',
+    'slot_evening'        => 'Evening',
+    'slot_full_day'       => 'Full Day',
+
+    // ── Hall Card ──
+    'featured'            => 'Featured',
+    'fully_booked'        => 'Fully Booked',
+    'available'           => 'Available',
+    'all_slots_booked'    => 'All slots booked for this date',
+    'view_details'        => 'View Details',
+    'book'                => 'Book',
+
+    // ── Date Suggestions ──
+    'no_availability_on'  => 'No availability on :date',
+    'try_nearby_dates'    => 'Try one of these nearby dates:',
+    'no_halls_around_date' => 'No halls available around this date',
+    'try_different_date'  => 'Try a different date, time slot, or broaden your filters',
+
+    // ── Map ──
+    'halls_on_map'        => 'halls on map',
+    'green_available'     => 'Green = Available',
+    'red_booked'          => 'Red = Booked',
+
+    // ── Empty State ──
+    'no_halls_found'      => 'No halls found',
+    'adjust_filters'      => 'Try adjusting your filters or search in a different city',
+
+    // ── Auth ──
+    'login'               => 'Login',
+    'dashboard'           => 'Dashboard',
 ];

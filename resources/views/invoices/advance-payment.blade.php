@@ -2,6 +2,7 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('Advance Payment Invoice') }} - {{ $booking->booking_number }}</title>
     <style>
@@ -357,13 +358,13 @@
         <div class="highlight-box alert">
             <strong>{{ __('Important Notice') }}:</strong>
             <p style="margin-top: 8px;">
-                {{ __('This invoice confirms your advance payment. The remaining balance of') }} 
-                <strong>{{ $formattedBalance }} OMR</strong> 
-                {{ __('must be paid before') }} 
+                {{ __('This invoice confirms your advance payment. The remaining balance of') }}
+                <strong>{{ $formattedBalance }} OMR</strong>
+                {{ __('must be paid before') }}
                 <strong>{{ $paymentDeadline->format('d/m/Y') }}</strong>.
             </p>
             <p style="margin-top: 8px;">
-                {{ __('Payment Status') }}: 
+                {{ __('Payment Status') }}:
                 <span class="status-badge partial">{{ __('Partially Paid') }}</span>
             </p>
         </div>

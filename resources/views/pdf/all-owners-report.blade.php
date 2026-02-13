@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <title>All Hall Owners Report</title>
     <style>
         * {
@@ -412,22 +413,22 @@
         <div class="section">
             <div class="section-title">💡 Key Insights</div>
             <div style="padding: 10px; background: #f9fafb; border-radius: 4px;">
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Verification Rate:</strong> 
-                    {{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['verified_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}% 
+                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Verification Rate:</strong>
+                    {{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['verified_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}%
                     of owners are verified
                 </p>
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Active Rate:</strong> 
-                    {{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['active_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}% 
+                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Active Rate:</strong>
+                    {{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['active_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}%
                     of owners are active
                 </p>
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Average Halls per Owner:</strong> 
+                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Average Halls per Owner:</strong>
                     {{ $overallStats['total_owners'] > 0 ? number_format($overallStats['total_halls'] / $overallStats['total_owners'], 1) : 0 }} halls
                 </p>
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Average Bookings per Hall:</strong> 
+                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Average Bookings per Hall:</strong>
                     {{ $overallStats['total_halls'] > 0 ? number_format($overallStats['total_bookings'] / $overallStats['total_halls'], 1) : 0 }} bookings
                 </p>
-                <p style="font-size: 10px;"><strong>Commission Rate:</strong> 
-                    {{ $overallStats['total_revenue'] > 0 ? number_format(($overallStats['total_commission'] / $overallStats['total_revenue']) * 100, 1) : 0 }}% 
+                <p style="font-size: 10px;"><strong>Commission Rate:</strong>
+                    {{ $overallStats['total_revenue'] > 0 ? number_format(($overallStats['total_commission'] / $overallStats['total_revenue']) * 100, 1) : 0 }}%
                     of total revenue
                 </p>
             </div>

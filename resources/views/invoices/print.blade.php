@@ -1,10 +1,10 @@
 {{--
     Print Invoice View
-    
+
     A print-optimized invoice template for Majalis hall bookings.
     Supports bilingual display (English/Arabic) with RTL layout.
     Auto-triggers print dialog on page load.
-    
+
     @package Resources\Views\Invoices
     @var \App\Models\Booking $booking
 --}}
@@ -12,9 +12,10 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('booking.invoice.title') }} - {{ $booking->booking_number }}</title>
-    
+
     <style>
         /* ============================================
            CSS Variables & Reset
@@ -566,7 +567,7 @@
                 <div class="invoice-number">
                     {{ __('booking.invoice.date') }}: {{ $booking->created_at->format('d M Y') }}
                 </div>
-                
+
                 {{-- Payment Status Badge --}}
                 @php
                     $statusClass = match($booking->payment_status) {
@@ -636,10 +637,10 @@
         {{-- Hall Information --}}
         <div class="hall-section">
             @php
-                $hallName = is_array($booking->hall->name) 
+                $hallName = is_array($booking->hall->name)
                     ? ($booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] ?? 'N/A')
                     : $booking->hall->name;
-                    
+
                 $cityName = is_array($booking->hall->city->name ?? null)
                     ? ($booking->hall->city->name[app()->getLocale()] ?? $booking->hall->city->name['en'] ?? '')
                     : ($booking->hall->city->name ?? '');

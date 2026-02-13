@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <title>{{ __('pdf.financial_report.title') }}</title>
     <style>
         /* ==============================================================
@@ -13,7 +14,7 @@
          * Supports Arabic (RTL) and English (LTR) layouts.
          * Uses DomPDF for rendering.
          * ============================================================== */
-        
+
         /* Base Fonts */
         @font-face {
             font-family: 'DejaVu Sans';
@@ -21,14 +22,14 @@
             font-weight: normal;
             font-style: normal;
         }
-        
+
         /* Reset & Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 10px;
@@ -37,12 +38,12 @@
             background: #fff;
             direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
         }
-        
+
         /* Page Layout */
         .page {
             padding: 20px 25px;
         }
-        
+
         /* Header Section */
         .header {
             display: table;
@@ -51,38 +52,38 @@
             margin-bottom: 15px;
             border-bottom: 3px solid #0d9488;
         }
-        
+
         .header-left {
             display: table-cell;
             width: 35%;
             vertical-align: middle;
         }
-        
+
         .header-center {
             display: table-cell;
             width: 30%;
             vertical-align: middle;
             text-align: center;
         }
-        
+
         .header-right {
             display: table-cell;
             width: 35%;
             vertical-align: middle;
             text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};
         }
-        
+
         .logo {
             max-width: 90px;
             height: auto;
         }
-        
+
         .company-name {
             font-size: 20px;
             font-weight: bold;
             color: #0d9488;
         }
-        
+
         .report-badge {
             display: inline-block;
             background: #0d9488;
@@ -93,12 +94,12 @@
             text-transform: uppercase;
             font-weight: bold;
         }
-        
+
         .header-meta {
             font-size: 9px;
             color: #6b7280;
         }
-        
+
         /* Report Title Box */
         .report-title-box {
             background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
@@ -107,25 +108,25 @@
             border-radius: 8px;
             text-align: center;
         }
-        
+
         .report-title {
             font-size: 18px;
             font-weight: bold;
             color: #0f766e;
             margin-bottom: 5px;
         }
-        
+
         .report-subtitle {
             font-size: 11px;
             color: #115e59;
         }
-        
+
         .report-period {
             font-size: 10px;
             color: #134e4a;
             margin-top: 5px;
         }
-        
+
         /* Owner Info Bar */
         .owner-bar {
             background: #f9fafb;
@@ -136,38 +137,38 @@
             display: table;
             width: 100%;
         }
-        
+
         .owner-bar-item {
             display: table-cell;
             width: 25%;
             padding: 0 10px;
         }
-        
+
         .owner-bar-label {
             font-size: 8px;
             color: #6b7280;
             text-transform: uppercase;
         }
-        
+
         .owner-bar-value {
             font-size: 11px;
             color: #111827;
             font-weight: 600;
         }
-        
+
         /* Summary Cards Grid */
         .summary-grid {
             display: table;
             width: 100%;
             margin-bottom: 20px;
         }
-        
+
         .summary-card {
             display: table-cell;
             width: 16.66%;
             padding: 4px;
         }
-        
+
         .summary-card-inner {
             background: #fff;
             border: 1px solid #e5e7eb;
@@ -176,61 +177,61 @@
             text-align: center;
             min-height: 65px;
         }
-        
+
         .summary-card-inner.primary {
             background: #0d9488;
             border-color: #0d9488;
         }
-        
+
         .summary-card-inner.primary .summary-label,
         .summary-card-inner.primary .summary-value {
             color: #fff;
         }
-        
+
         .summary-card-inner.success {
             border-color: #10b981;
             border-width: 2px;
         }
-        
+
         .summary-card-inner.success .summary-value {
             color: #059669;
         }
-        
+
         .summary-card-inner.danger {
             border-color: #ef4444;
             border-width: 2px;
         }
-        
+
         .summary-card-inner.danger .summary-value {
             color: #dc2626;
         }
-        
+
         .summary-label {
             font-size: 8px;
             color: #6b7280;
             text-transform: uppercase;
             margin-bottom: 4px;
         }
-        
+
         .summary-value {
             font-size: 14px;
             font-weight: bold;
             color: #111827;
         }
-        
+
         .summary-change {
             font-size: 8px;
             margin-top: 3px;
         }
-        
+
         .summary-change.positive { color: #059669; }
         .summary-change.negative { color: #dc2626; }
-        
+
         /* Section Styling */
         .section {
             margin-bottom: 20px;
         }
-        
+
         .section-header {
             font-size: 13px;
             font-weight: bold;
@@ -239,18 +240,18 @@
             padding-bottom: 5px;
             border-bottom: 2px solid #99f6e4;
         }
-        
+
         /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
         }
-        
+
         table.compact {
             font-size: 9px;
         }
-        
+
         thead th {
             background: #0d9488;
             color: #fff;
@@ -260,47 +261,47 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-        
+
         tbody td {
             padding: 6px;
             border-bottom: 1px solid #e5e7eb;
             font-size: 9px;
         }
-        
+
         tbody tr:nth-child(even) {
             background: #f9fafb;
         }
-        
+
         .text-right {
             text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};
         }
-        
+
         .text-center {
             text-align: center;
         }
-        
+
         /* Total Rows */
         .total-row {
             background: #f0fdfa !important;
             font-weight: bold;
         }
-        
+
         .total-row td {
             border-top: 2px solid #0d9488;
             padding-top: 10px;
         }
-        
+
         .grand-total-row {
             background: #0d9488 !important;
             color: #fff;
         }
-        
+
         .grand-total-row td {
             color: #fff;
             font-weight: bold;
             font-size: 10px;
         }
-        
+
         /* Breakdown Box */
         .breakdown-box {
             background: #fff;
@@ -309,25 +310,25 @@
             padding: 12px;
             margin-bottom: 15px;
         }
-        
+
         .breakdown-row {
             display: table;
             width: 100%;
             padding: 6px 0;
             border-bottom: 1px dotted #d1d5db;
         }
-        
+
         .breakdown-row:last-child {
             border-bottom: none;
         }
-        
+
         .breakdown-label {
             display: table-cell;
             width: 65%;
             font-size: 10px;
             color: #374151;
         }
-        
+
         .breakdown-value {
             display: table-cell;
             width: 35%;
@@ -336,48 +337,48 @@
             font-weight: 600;
             color: #111827;
         }
-        
+
         .breakdown-row.highlight {
             background: #f0fdfa;
             margin: 0 -12px;
             padding: 8px 12px;
         }
-        
+
         .breakdown-row.highlight .breakdown-label,
         .breakdown-row.highlight .breakdown-value {
             font-weight: bold;
             color: #0f766e;
         }
-        
+
         /* Two Column Layout */
         .two-col {
             display: table;
             width: 100%;
         }
-        
+
         .two-col > div {
             display: table-cell;
             width: 50%;
             padding: 0 8px;
             vertical-align: top;
         }
-        
+
         .two-col > div:first-child {
             padding-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 0;
         }
-        
+
         .two-col > div:last-child {
             padding-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}: 0;
         }
-        
+
         /* Comparison Table Styling */
         .comparison-positive { color: #059669; }
         .comparison-negative { color: #dc2626; }
-        
+
         .change-arrow {
             font-size: 10px;
         }
-        
+
         /* Hall Performance Cards */
         .hall-card {
             background: #fff;
@@ -386,13 +387,13 @@
             padding: 12px;
             margin-bottom: 10px;
         }
-        
+
         .hall-card-header {
             display: table;
             width: 100%;
             margin-bottom: 8px;
         }
-        
+
         .hall-card-name {
             display: table-cell;
             width: 60%;
@@ -400,7 +401,7 @@
             color: #111827;
             font-size: 11px;
         }
-        
+
         .hall-card-earnings {
             display: table-cell;
             width: 40%;
@@ -409,20 +410,20 @@
             color: #0f766e;
             font-size: 12px;
         }
-        
+
         .hall-card-stats {
             display: table;
             width: 100%;
             font-size: 9px;
             color: #6b7280;
         }
-        
+
         .hall-card-stat {
             display: table-cell;
             width: 33.33%;
             text-align: center;
         }
-        
+
         /* Progress Bar (simple version for PDF) */
         .progress-bar {
             background: #e5e7eb;
@@ -431,13 +432,13 @@
             overflow: hidden;
             margin-top: 5px;
         }
-        
+
         .progress-bar-fill {
             background: #0d9488;
             height: 100%;
             border-radius: 4px;
         }
-        
+
         /* Notes Section */
         .notes-box {
             background: #fffbeb;
@@ -446,19 +447,19 @@
             padding: 12px;
             margin-bottom: 15px;
         }
-        
+
         .notes-title {
             font-weight: bold;
             color: #92400e;
             margin-bottom: 5px;
             font-size: 10px;
         }
-        
+
         .notes-content {
             font-size: 9px;
             color: #78350f;
         }
-        
+
         /* Footer */
         .footer {
             position: fixed;
@@ -471,35 +472,35 @@
             font-size: 8px;
             color: #6b7280;
         }
-        
+
         .footer-content {
             display: table;
             width: 100%;
         }
-        
+
         .footer-left {
             display: table-cell;
             width: 50%;
             text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
-        
+
         .footer-right {
             display: table-cell;
             width: 50%;
             text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};
         }
-        
+
         /* Page Break */
         .page-break {
             page-break-after: always;
         }
-        
+
         /* Currency Format */
         .currency {
             font-family: 'DejaVu Sans', monospace;
             white-space: nowrap;
         }
-        
+
         /* Print Optimization */
         @media print {
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -530,7 +531,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Report Title -->
         <div class="report-title-box">
             <div class="report-title">{{ __('pdf.financial_report.title') }}</div>
@@ -547,7 +548,7 @@
                 @endif
             </div>
         </div>
-        
+
         <!-- Owner Info Bar -->
         <div class="owner-bar">
             <div class="owner-bar-item">
@@ -567,7 +568,7 @@
                 <div class="owner-bar-value">{{ $owner->created_at->format('M Y') }}</div>
             </div>
         </div>
-        
+
         <!-- Summary Cards -->
         <div class="summary-grid">
             <div class="summary-card">
@@ -607,12 +608,12 @@
                 </div>
             </div>
         </div>
-        
+
         {{-- ============================================================== --}}
         {{-- MONTHLY REPORT CONTENT --}}
         {{-- ============================================================== --}}
         @if($reportType === 'monthly')
-        
+
         <div class="two-col">
             <div>
                 <!-- Daily Breakdown -->
@@ -646,7 +647,7 @@
                     </table>
                 </div>
             </div>
-            
+
             <div>
                 <!-- Financial Breakdown -->
                 <div class="section">
@@ -674,7 +675,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Time Slot Breakdown -->
                 @if(isset($slotBreakdown) && count($slotBreakdown) > 0)
                 <div class="section">
@@ -701,12 +702,12 @@
                 @endif
             </div>
         </div>
-        
+
         {{-- ============================================================== --}}
         {{-- YEARLY REPORT CONTENT --}}
         {{-- ============================================================== --}}
         @elseif($reportType === 'yearly')
-        
+
         <!-- Monthly Breakdown Table -->
         <div class="section">
             <div class="section-header">{{ __('pdf.financial_report.monthly_breakdown') }}</div>
@@ -746,7 +747,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Yearly Statistics -->
         <div class="two-col">
             <div>
@@ -794,16 +795,16 @@
                 @endif
             </div>
         </div>
-        
+
         {{-- ============================================================== --}}
         {{-- HALL REPORT CONTENT --}}
         {{-- ============================================================== --}}
         @elseif($reportType === 'hall')
-        
+
         <!-- Hall Performance Cards -->
         <div class="section">
             <div class="section-header">{{ __('pdf.financial_report.hall_performance') }}</div>
-            
+
             @foreach($hallData as $hall)
             <div class="hall-card">
                 <div class="hall-card-header">
@@ -830,7 +831,7 @@
             </div>
             @endforeach
         </div>
-        
+
         <!-- Hall Comparison Table -->
         <div class="section">
             <div class="section-header">{{ __('pdf.financial_report.hall_comparison') }}</div>
@@ -867,12 +868,12 @@
                 </tbody>
             </table>
         </div>
-        
+
         {{-- ============================================================== --}}
         {{-- COMPARISON REPORT CONTENT --}}
         {{-- ============================================================== --}}
         @elseif($reportType === 'comparison')
-        
+
         <div class="section">
             <div class="section-header">{{ __('pdf.financial_report.month_comparison') }}</div>
             <table>
@@ -944,7 +945,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Analysis Notes -->
         <div class="notes-box">
             <div class="notes-title">{{ __('pdf.financial_report.analysis') }}</div>
@@ -958,9 +959,9 @@
                 @endif
             </div>
         </div>
-        
+
         @endif
-        
+
         {{-- ============================================================== --}}
         {{-- HALL BREAKDOWN (for all report types except hall) --}}
         {{-- ============================================================== --}}
@@ -989,7 +990,7 @@
             </table>
         </div>
         @endif
-        
+
         <!-- Footer -->
         <div class="footer">
             <div class="footer-content">

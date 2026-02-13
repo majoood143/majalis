@@ -2,6 +2,7 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('Payment Receipt') }} - {{ $booking->booking_number }}</title>
     <style>
@@ -345,12 +346,12 @@
 
         {{-- Payment Details --}}
         <h3 style="color: #10b981; margin: 25px 0 15px;">{{ __('Payment Details') }}</h3>
-        
+
         @if($booking->payment_type === 'advance')
             {{-- Advance Payment Breakdown --}}
             <div class="payment-details">
                 <h4 style="color: #065f46; margin-bottom: 10px;">{{ __('Payment History') }}</h4>
-                
+
                 <div style="background-color: white; padding: 12px; border-radius: 5px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                         <span><strong>{{ __('Initial Advance Payment') }}</strong></span>

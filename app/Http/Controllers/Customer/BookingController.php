@@ -139,24 +139,36 @@ class BookingController extends BaseController
                 ? $booking->advance_amount
                 : $booking->total_amount;
 
-            // Redirect based on payment amount
+            // // Redirect based on payment amount
+            // if ($paymentAmount > 0) {
+            //     return redirect()
+            //         ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
+            //         ->with('success', __('halls.booking_success'));
+            // }
+
+            // // No payment needed, go directly to success page
+            // return redirect()
+            //     ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+            //     ->with('success', __('halls.booking_success'));
+
+            // // // Redirect based on payment amount
+            // // if ($booking->total_amount > 0) {
+            // //     return redirect()
+            // //         ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
+            // //         ->with('success', __('halls.booking_success'));
+            // // }
+
+            // // No payment needed, go directly to success page
+            // return redirect()
+            //     ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
+            //     ->with('success', __('halls.booking_success'));
+
+            // Redirect based on payment amount (advance or full)
             if ($paymentAmount > 0) {
                 return redirect()
                     ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
                     ->with('success', __('halls.booking_success'));
             }
-
-            // No payment needed, go directly to success page
-            return redirect()
-                ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
-                ->with('success', __('halls.booking_success'));
-
-            // // Redirect based on payment amount
-            // if ($booking->total_amount > 0) {
-            //     return redirect()
-            //         ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
-            //         ->with('success', __('halls.booking_success'));
-            // }
 
             // No payment needed, go directly to success page
             return redirect()

@@ -49,7 +49,7 @@
             @if (session('error'))
                 <div class="px-4 py-3 mb-6 text-red-700 border border-red-200 rounded-lg bg-red-50">
                     <div class="flex">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                                 clip-rule="evenodd" />
@@ -82,7 +82,7 @@
                 <div class="lg:col-span-2">
                     <div class="overflow-hidden bg-white shadow-sm rounded-xl">
                         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                            <h2 class="text-lg font-semibold text-gray-900">{{ __('Payment Method') }}</h2>
+                            <h2 class="text-lg font-semibold text-gray-900">{{ __('payment.method') }}</h2>
                         </div>
 
                         <div class="p-6">
@@ -108,7 +108,7 @@
                                 @if ($allowsAdvance)
                                     <div class="mb-6">
                                         <label class="block mb-3 text-sm font-medium text-gray-700">
-                                            {{ __('Select Payment Option') }}
+                                            {{ __('payment.select_option') }}
                                         </label>
 
                                         <div class="space-y-3">
@@ -121,14 +121,14 @@
                                                     <div class="flex items-center justify-between">
                                                         <div>
                                                             <span
-                                                                class="font-medium text-gray-900">{{ __('Full Payment') }}</span>
+                                                                class="font-medium text-gray-900">{{ __('payment.full') }}</span>
                                                             <p class="mt-1 text-sm text-gray-500">
-                                                                {{ __('Pay the full amount now') }}
+                                                                {{ __('payment.full_description') }}
                                                             </p>
                                                         </div>
                                                         <span class="text-lg font-bold text-primary-600">
                                                             {{ number_format($booking->total_amount, 3) }}
-                                                            {{ __('OMR') }}
+                                                            {{ __('currency.omr') }}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -143,18 +143,18 @@
                                                     <div class="flex items-center justify-between">
                                                         <div>
                                                             <span
-                                                                class="font-medium text-gray-900">{{ __('Advance Payment') }}</span>
+                                                                class="font-medium text-gray-900">{{ __('payment.advance') }}</span>
                                                             <p class="mt-1 text-sm text-gray-500">
-                                                                {{ __('Pay :percentage% now, rest before event', ['percentage' => $advancePercentage]) }}
+                                                                {{ __('payment.advance_description', ['percentage' => $advancePercentage]) }}
                                                             </p>
                                                         </div>
                                                         <div class="text-right">
                                                             <span class="text-lg font-bold text-primary-600">
-                                                                {{ number_format($advanceAmount, 3) }} {{ __('OMR') }}
+                                                                {{ number_format($advanceAmount, 3) }} {{ __('currency.omr') }}
                                                             </span>
                                                             <p class="text-xs text-gray-500">
-                                                                {{ __('Balance') }}: {{ number_format($balanceDue, 3) }}
-                                                                {{ __('OMR') }}
+                                                                {{ __('payment.balance') }}: {{ number_format($balanceDue, 3) }}
+                                                                {{ __('currency.omr') }}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -168,9 +168,9 @@
 
                                     <div class="p-4 mb-6 rounded-lg bg-gray-50">
                                         <div class="flex items-center justify-between">
-                                            <span class="font-medium text-gray-900">{{ __('Total Amount') }}</span>
+                                            <span class="font-medium text-gray-900">{{ __('payment.total_amount') }}</span>
                                             <span class="text-xl font-bold text-primary-600">
-                                                {{ number_format($booking->total_amount, 3) }} {{ __('OMR') }}
+                                                {{ number_format($booking->total_amount, 3) }} {{ __('currency.omr') }}
                                             </span>
                                         </div>
                                     </div>
@@ -179,15 +179,15 @@
                                 {{-- Payment Gateway Info --}}
                                 <div class="p-4 mb-6 border border-blue-100 rounded-lg bg-blue-50">
                                     <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-blue-500 mt-0.5 me-3 flex-shrink-0" fill="none"
+                                        <svg class="w-5 h-5 text-blue-500 mt-0.5 me-3 rtl:ms-3 rtl:me-0 flex-shrink-0" fill="none"
                                             stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                         <div class="text-sm text-blue-700">
-                                            <p class="font-medium">{{ __('Secure Payment') }}</p>
+                                            <p class="font-medium">{{ __('payment.secure') }}</p>
                                             <p class="mt-1">
-                                                {{ __('You will be redirected to Thawani secure payment gateway to complete your payment.') }}
+                                                {{ __('payment.redirect_message') }}
                                             </p>
                                             <div class="flex items-center gap-3 mt-3">
                                                 <img src="{{ asset('images/payment/visa.svg') }}" alt="Visa"
@@ -206,10 +206,10 @@
                                     <label class="flex items-start cursor-pointer">
                                         <input type="checkbox" name="agree_terms" id="agree_terms" required
                                             class="mt-1 border-gray-300 rounded text-primary-600 focus:ring-primary-500">
-                                        <span class="text-sm text-gray-600 ms-2">
-                                            {{ __('I understand that my booking will be confirmed upon successful payment.') }}
+                                        <span class="text-sm text-gray-600 ms-2 rtl:me-2 rtl:ms-0">
+                                            {{ __('payment.terms_agreement') }}
                                             <a href="{{ route('pages.terms') }}" target="_blank"
-                                                class="text-primary-600 hover:underline">{{ __('View Terms & Conditions') }}</a>
+                                                class="text-primary-600 hover:underline">{{ __('payment.view_terms') }}</a>
                                         </span>
                                     </label>
                                     @error('agree_terms')
@@ -220,13 +220,13 @@
                                 {{-- Submit Button --}}
                                 <button type="submit" id="pay-button"
                                     class="flex items-center justify-center w-full px-4 py-4 font-semibold text-white transition rounded-lg bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                                    <svg id="pay-icon" class="w-5 h-5 me-2" fill="none" stroke="currentColor"
+                                    <svg id="pay-icon" class="w-5 h-5 me-2 rtl:ms-2 rtl:me-0" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                                         </path>
                                     </svg>
-                                    <svg id="pay-spinner" class="hidden w-5 h-5 animate-spin me-2" fill="none"
+                                    <svg id="pay-spinner" class="hidden w-5 h-5 animate-spin me-2 rtl:ms-2 rtl:me-0" fill="none"
                                         viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4"></circle>
@@ -235,11 +235,11 @@
                                         </path>
                                     </svg>
                                     <span id="pay-text">
-                                        {{ __('guest.btn_pay_now') }} - {{ number_format($booking->total_amount, 3) }}
-                                        {{ __('OMR') }}
+                                        {{ __('payment.pay_now') }} - {{ number_format($booking->total_amount, 3) }}
+                                        {{ __('currency.omr') }}
                                     </span>
                                     <span id="pay-loading-text"
-                                        class="hidden">{{ __('Redirecting to payment...') }}</span>
+                                        class="hidden">{{ __('payment.redirecting') }}</span>
                                 </button>
                             </form>
                         </div>
@@ -250,7 +250,7 @@
                 <div class="lg:col-span-1">
                     <div class="sticky overflow-hidden bg-white shadow-sm rounded-xl top-4">
                         <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                            <h3 class="font-semibold text-gray-900">{{ __('Booking Summary') }}</h3>
+                            <h3 class="font-semibold text-gray-900">{{ __('booking.summary') }}</h3>
                         </div>
 
                         <div class="p-4">
@@ -263,7 +263,7 @@
                                 @endif
                                 <div>
                                     <h4 class="font-medium text-gray-900">
-                                        {{ $booking->hall?->getTranslation('name', app()->getLocale()) ?? 'Hall' }}</h4>
+                                        {{ $booking->hall?->getTranslation('name', app()->getLocale()) ?? __('booking.hall') }}</h4>
                                     <p class="text-sm text-gray-500">
                                         {{ $booking->hall?->city?->getTranslation('name', app()->getLocale()) }}</p>
                                 </div>
@@ -274,29 +274,29 @@
                             {{-- Booking Details --}}
                             <div class="mb-4 space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">{{ __('Booking #') }}</span>
+                                    <span class="text-gray-600">{{ __('booking.number') }}</span>
                                     <span class="font-mono font-medium">{{ $booking->booking_number }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">{{ __('Date') }}</span>
-                                    <span>{{ $booking->booking_date->format('M j, Y') }}</span>
+                                    <span class="text-gray-600">{{ __('booking.date') }}</span>
+                                    <span>{{ $booking->booking_date->format(__('date.format')) }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">{{ __('Time') }}</span>
+                                    <span class="text-gray-600">{{ __('booking.time') }}</span>
                                     <span>
                                         @php
                                             $timeSlotLabels = [
-                                                'morning' => __('Morning'),
-                                                'afternoon' => __('Afternoon'),
-                                                'evening' => __('Evening'),
-                                                'full_day' => __('Full Day'),
+                                                'morning' => __('booking.morning'),
+                                                'afternoon' => __('booking.afternoon'),
+                                                'evening' => __('booking.evening'),
+                                                'full_day' => __('booking.full_day'),
                                             ];
                                         @endphp
                                         {{ $timeSlotLabels[$booking->time_slot] ?? $booking->time_slot }}
                                     </span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">{{ __('Guests') }}</span>
+                                    <span class="text-gray-600">{{ __('booking.guests') }}</span>
                                     <span>{{ $booking->number_of_guests }}</span>
                                 </div>
                             </div>
@@ -306,30 +306,30 @@
                             {{-- Price Breakdown --}}
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">{{ __('Hall Rental') }}</span>
-                                    <span>{{ number_format($booking->hall_price, 3) }} {{ __('OMR') }}</span>
+                                    <span class="text-gray-600">{{ __('payment.hall_rental') }}</span>
+                                    <span>{{ number_format($booking->hall_price, 3) }} {{ __('currency.omr') }}</span>
                                 </div>
 
                                 @if ($booking->services_price > 0)
                                     <div class="flex justify-between">
-                                        <span class="text-gray-600">{{ __('Services') }}</span>
-                                        <span>{{ number_format($booking->services_price, 3) }} {{ __('OMR') }}</span>
+                                        <span class="text-gray-600">{{ __('payment.services') }}</span>
+                                        <span>{{ number_format($booking->services_price, 3) }} {{ __('currency.omr') }}</span>
                                     </div>
                                 @endif
 
                                 @if ($booking->platform_fee > 0)
                                     <div class="flex justify-between">
-                                        <span class="text-gray-600">{{ __('Platform Fee') }}</span>
-                                        <span>{{ number_format($booking->platform_fee, 3) }} {{ __('OMR') }}</span>
+                                        <span class="text-gray-600">{{ __('payment.platform_fee') }}</span>
+                                        <span>{{ number_format($booking->platform_fee, 3) }} {{ __('currency.omr') }}</span>
                                     </div>
                                 @endif
 
                                 <hr class="my-2">
 
                                 <div class="flex justify-between text-base font-semibold">
-                                    <span>{{ __('Total') }}</span>
+                                    <span>{{ __('payment.total') }}</span>
                                     <span class="text-primary-600">{{ number_format($booking->total_amount, 3) }}
-                                        {{ __('OMR') }}</span>
+                                        {{ __('currency.omr') }}</span>
                                 </div>
                             </div>
 
@@ -337,7 +337,7 @@
                             <hr class="my-4">
 
                             <div class="text-sm">
-                                <h4 class="mb-2 font-medium text-gray-900">{{ __('Customer') }}</h4>
+                                <h4 class="mb-2 font-medium text-gray-900">{{ __('booking.customer') }}</h4>
                                 <p class="text-gray-600">{{ $booking->customer_name }}</p>
                                 <p class="text-gray-600">{{ $booking->customer_email }}</p>
                                 <p class="text-gray-600">{{ $booking->customer_phone }}</p>
@@ -366,7 +366,7 @@
                 // Check if terms are agreed
                 if (!agreeTerms.checked) {
                     e.preventDefault();
-                    alert('{{ __('Please agree to the terms and conditions') }}');
+                    alert('{{ __('payment.terms_required') }}');
                     return false;
                 }
 
@@ -392,8 +392,8 @@
                         '{{ number_format($advanceAmount ?? $booking->total_amount, 3) }}' :
                         '{{ number_format($booking->total_amount, 3) }}';
 
-                    payText.innerHTML = '{{ __('guest.btn_pay_now') }} - ' + amount +
-                        ' {{ __('OMR') }}';
+                    payText.innerHTML = '{{ __('payment.pay_now') }} - ' + amount +
+                        ' {{ __('currency.omr') }}';
                 });
             });
         });

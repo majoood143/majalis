@@ -416,6 +416,9 @@ return [
     'currency_omr' => 'ريال عماني',
     'price_total' => 'الإجمالي',
     'back' => 'رجوع',
+    'page_title_payment' => 'الدفع',
+    'step_4_payment' => 'الدفع',
+    'btn_pay_now' => 'ادفع الآن',
 
 
 

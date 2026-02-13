@@ -754,6 +754,7 @@ return [
         'no_notes' => 'No notes provided',
         'balance_not_paid' => 'Balance not paid yet',
         'no_admin_notes' => 'No admin notes',
+        'guest_booking' => 'Guest Booking',
     ],
 
     // Descriptions
@@ -1050,4 +1051,18 @@ return [
         'reminder_past_booking' => 'Cannot send reminder for past bookings.',
         'reminder_no_email' => 'Customer email address is not available.',
     ],
+    // Booking summary
+    'summary' => 'Booking Summary',
+    'hall' => 'Hall',
+    'number' => 'Booking #',
+    'date' => 'Date',
+    'time' => 'Time',
+    'guests' => 'Guests',
+    'customer' => 'Customer',
+
+    // Time slots
+    'morning' => 'Morning',
+    'afternoon' => 'Afternoon',
+    'evening' => 'Evening',
+    'full_day' => 'Full Day',
 ];

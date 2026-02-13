@@ -230,7 +230,7 @@ class Hall extends Model
      */
     public function availabilities(): HasMany
     {
-        return $this->availability();
+        return $this->hasMany(HallAvailability::class);
     }
 
     /**

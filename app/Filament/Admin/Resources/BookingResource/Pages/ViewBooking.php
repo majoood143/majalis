@@ -151,9 +151,9 @@ class ViewBooking extends ViewRecord
                 ->action(function () {
                     // Check if invoice exists
                     if ($this->record->invoice_path) {
-                        // Return download response from public storage
+                        // Return download response from private storage
                         return response()->download(
-                            storage_path('app/public/' . $this->record->invoice_path)
+                            storage_path('app/private/' . $this->record->invoice_path)
                         );
                     } else {
                         // Show warning if invoice not available

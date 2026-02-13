@@ -1,0 +1,638 @@
+{{--
+|--------------------------------------------------------------------------
+| Smart Search — Hall Browsing Page (FIXED)
+|--------------------------------------------------------------------------
+|
+| REPLACES: resources/views/customer/halls/index.blade.php
+|
+| Route:      customer.halls.index
+| Controller: App\Http\Controllers\Customer\HallController@index
+|
+| Variables from controller:
+|   $halls, $regions, $cities, $features, $timeSlots,
+|   $isDateSearch, $suggestions, $availableCount,
+|   $mapHalls, $stats, $hallsByRegion
+|
+--}}
+
+@extends('customer.layout')
+
+@section('title', __('Browse Halls') . ' | Majalis')
+
+@section('content')
+
+{{-- ═══════════════════════════════════════════════════════════════
+     PHASE 1: SMART SEARCH HERO SECTION
+     ═══════════════════════════════════════════════════════════════ --}}
+<section class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900">
+    {{-- Decorative background pattern --}}
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;%3E%3Cg fill=&quot;%23ffffff&quot; fill-opacity=&quot;0.15&quot;%3E%3Cpath d=&quot;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z&quot;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+    </div>
+
+    <div class="relative px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8 md:py-20">
+        {{-- Heading --}}
+        <div class="mb-8 text-center">
+            <h1 class="mb-3 text-3xl font-bold text-white md:text-5xl">
+                {{ __('Find Your Perfect Hall') }}
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg text-emerald-200/80">
+                {{ __('Search by date and time to see only available venues — no guesswork') }}
+            </p>
+        </div>
+
+        {{-- ── Search Form ── --}}
+        <form
+            id="smart-search-form"
+            action="{{ route('customer.halls.index') }}"
+            method="GET"
+            class="max-w-5xl p-4 mx-auto border shadow-2xl bg-white/10 backdrop-blur-xl rounded-2xl md:p-6 border-white/20"
+        >
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-12 md:gap-4">
+
+                {{-- 1. DATE PICKER (required) --}}
+                <div class="md:col-span-3">
+                    <label for="search-date" class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                        {{ __('Event Date') }} <span class="text-red-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <input
+                            type="date"
+                            id="search-date"
+                            name="date"
+                            value="{{ request('date', '') }}"
+                            min="{{ now()->format('Y-m-d') }}"
+                            required
+                            class="w-full px-4 py-3 font-medium border-0 bg-white/90 text-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 placeholder-slate-400"
+                        >
+                        {{-- AJAX availability badge --}}
+                        <div id="date-availability-badge" class="hidden absolute -top-2 {{ app()->getLocale() === 'ar' ? '-left-2' : '-right-2' }} bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg animate-bounce">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2. TIME SLOT (required) --}}
+                <div class="md:col-span-3">
+                    <label for="search-time-slot" class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                        {{ __('Time Slot') }} <span class="text-red-400">*</span>
+                    </label>
+                    <select
+                        id="search-time-slot"
+                        name="time_slot"
+                        required
+                        class="w-full px-4 py-3 font-medium border-0 appearance-none bg-white/90 text-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    >
+                        <option value="" disabled {{ request('time_slot') ? '' : 'selected' }}>
+                            {{ __('Select time…') }}
+                        </option>
+                        @foreach ($timeSlots as $value => $label)
+                            <option value="{{ $value }}" {{ request('time_slot') === $value ? 'selected' : '' }}>
+                                {{ __($label) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- 3. REGION (optional — cascades to cities) --}}
+                <div class="md:col-span-2">
+                    <label for="search-region" class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                        {{ __('booking.fields.region_id.label') }}
+                    </label>
+                    <select
+                        id="search-region"
+                        name="region_id"
+                        class="w-full px-4 py-3 font-medium border-0 appearance-none bg-white/90 text-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    >
+                        <option value="">{{ __('All Regions') }}</option>
+                        @foreach ($regions as $region)
+                            <option value="{{ $region->id }}" {{ (int) request('region_id') === $region->id ? 'selected' : '' }}>
+                                {{ $region->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- 4. CITY (optional — filtered by region via AJAX) --}}
+                <div class="md:col-span-2">
+                    <label for="search-city" class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                        {{ __('City') }}
+                    </label>
+                    <select
+                        id="search-city"
+                        name="city_id"
+                        class="w-full px-4 py-3 font-medium border-0 appearance-none bg-white/90 text-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    >
+                        <option value="">{{ __('All Cities') }}</option>
+                        @foreach ($cities as $city)
+                            <option value="{{ $city->id }}" {{ (int) request('city_id') === $city->id ? 'selected' : '' }}>
+                                {{ $city->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- 5. SEARCH BUTTON --}}
+                <div class="flex items-end md:col-span-2">
+                    <button
+                        type="submit"
+                        class="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/30 hover:shadow-emerald-400/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <span>{{ __('Search') }}</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- ── Advanced Filters Toggle ── --}}
+            <div x-data="{ showAdvanced: {{ request('max_price') || request('features') || request('min_guests') ? 'true' : 'false' }} }" class="mt-3">
+                <button
+                    type="button"
+                    @click="showAdvanced = !showAdvanced"
+                    class="flex items-center gap-1 text-sm transition text-emerald-300 hover:text-white"
+                >
+                    <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showAdvanced }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                    <span x-text="showAdvanced ? '{{ __('Hide filters') }}' : '{{ __('More filters') }}'"></span>
+                </button>
+
+                <div x-show="showAdvanced" x-collapse class="grid grid-cols-1 gap-4 mt-3 sm:grid-cols-3">
+                    {{-- Guest Count --}}
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                            {{ __('Min Guests') }}
+                        </label>
+                        <input
+                            type="number"
+                            name="min_guests"
+                            value="{{ request('min_guests', '') }}"
+                            placeholder="{{ __('Any') }}"
+                            min="1"
+                            class="w-full px-4 py-3 font-medium border-0 bg-white/90 text-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 placeholder-slate-400"
+                        >
+                    </div>
+
+                    {{-- Max Price --}}
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                            {{ __('Max Price (OMR)') }}
+                        </label>
+                        <input
+                            type="number"
+                            name="max_price"
+                            value="{{ request('max_price', '') }}"
+                            placeholder="{{ __('No limit') }}"
+                            min="0"
+                            step="0.001"
+                            class="w-full px-4 py-3 font-medium border-0 bg-white/90 text-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 placeholder-slate-400"
+                        >
+                    </div>
+
+                    {{-- Features --}}
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1.5">
+                            {{ __('Features') }}
+                        </label>
+                        <div class="flex flex-wrap gap-2 p-2 overflow-y-auto max-h-32 bg-white/5 rounded-xl">
+                            @foreach ($features as $feature)
+                                @php
+                                    $isChecked = in_array($feature->id, array_map('intval', (array) request('features', [])));
+                                @endphp
+                                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition text-sm
+                                    {{ $isChecked ? 'bg-emerald-500 text-white' : 'bg-white/20 text-white/80 hover:bg-white/30' }}">
+                                    <input
+                                        type="checkbox"
+                                        name="features[]"
+                                        value="{{ $feature->id }}"
+                                        class="sr-only peer"
+                                        {{ $isChecked ? 'checked' : '' }}
+                                    >
+                                    @if ($feature->icon)
+                                        <i class="{{ $feature->icon }} text-xs"></i>
+                                    @endif
+                                    <span>{{ $feature->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+{{-- ═══════════════════════════════════════════════════════════════
+     RESULTS SECTION
+     ═══════════════════════════════════════════════════════════════ --}}
+<section class="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8 md:py-12">
+
+    {{-- ── Results Header ── --}}
+    @if ($isDateSearch)
+        <div class="flex flex-col items-start justify-between gap-3 mb-6 sm:flex-row sm:items-center">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">
+                    @if ($availableCount > 0)
+                        {{ __(':count halls available', ['count' => $availableCount]) }}
+                    @else
+                        {{ __('No halls available') }}
+                    @endif
+                    <span class="block mt-1 text-base font-normal text-slate-400 sm:inline sm:mt-0">
+                        {{ __('on') }} {{ \Carbon\Carbon::parse(request('date'))->translatedFormat('l, j F Y') }}
+                        · {{ __($timeSlots[request('time_slot')] ?? request('time_slot')) }}
+                    </span>
+                </h2>
+                @if ($halls->count() > $availableCount && $availableCount > 0)
+                    <p class="mt-1 text-sm text-slate-500">
+                        {{ __('+ :count fully booked halls shown below', ['count' => $halls->count() - $availableCount]) }}
+                    </p>
+                @endif
+            </div>
+
+            {{-- Sort --}}
+            <div class="flex items-center flex-shrink-0 gap-2">
+                <label for="sort-select" class="text-sm text-slate-500 whitespace-nowrap">{{ __('Sort by:') }}</label>
+                <select
+                    id="sort-select"
+                    onchange="updateSort(this.value)"
+                    class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-400 bg-white"
+                >
+                    <option value="" {{ !request('sort') ? 'selected' : '' }}>{{ __('Best Match') }}</option>
+                    <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>{{ __('Highest Rated') }}</option>
+                    <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>{{ __('Price: Low → High') }}</option>
+                    <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>{{ __('Price: High → Low') }}</option>
+                    <option value="capacity" {{ request('sort') === 'capacity' ? 'selected' : '' }}>{{ __('Largest Capacity') }}</option>
+                </select>
+            </div>
+        </div>
+    @else
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-slate-800">
+                {{ __('All Halls') }}
+                <span class="text-base font-normal text-slate-400">({{ $halls->count() }} {{ __('booking.fields.hall_id.label') }})</span>
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                {{ __('Search by date and time above to see real-time availability') }}
+            </p>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════
+         PHASE 4: NO RESULTS — NEARBY DATE SUGGESTIONS
+         ═══════════════════════════════════════════════════════════ --}}
+    @if ($isDateSearch && $availableCount === 0 && count($suggestions) > 0)
+        <div class="p-5 mb-8 border bg-amber-50 border-amber-200 rounded-2xl md:p-6">
+            <div class="flex items-start gap-3">
+                <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-full bg-amber-100">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="mb-1 text-lg font-bold text-amber-800">
+                        {{ __('No availability on :date', ['date' => \Carbon\Carbon::parse(request('date'))->translatedFormat('j F Y')]) }}
+                    </h3>
+                    <p class="mb-4 text-sm text-amber-700">
+                        {{ __('Try one of these nearby dates with available halls:') }}
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($suggestions as $suggestion)
+                            <a
+                                href="{{ route('customer.halls.index', array_merge(request()->except('date'), ['date' => $suggestion['date']])) }}"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-amber-200 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                            >
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700">
+                                        {{ $suggestion['formatted'] }}
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        {{ $suggestion['hall_count'] }} {{ trans_choice('hall|halls', $suggestion['hall_count']) }} {{ __('available') }}
+                                    </div>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition {{ app()->getLocale() === 'ar' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @elseif ($isDateSearch && $availableCount === 0 && count($suggestions) === 0)
+        <div class="p-8 mb-8 text-center border bg-slate-50 border-slate-200 rounded-2xl">
+            <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100">
+                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="mb-2 text-lg font-bold text-slate-700">{{ __('No halls available around this date') }}</h3>
+            <p class="text-sm text-slate-500">{{ __('Try a different date, time slot, or broaden your filters.') }}</p>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════
+         PHASE 2: HALL CARDS WITH AVAILABILITY BADGES
+         ═══════════════════════════════════════════════════════════ --}}
+    @if ($halls->count() > 0)
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
+            @foreach ($halls as $hall)
+                @php
+                    $isAvailable   = $hall->is_available ?? true;
+                    $availSlots    = $hall->available_slots ?? [];
+                    $slotPrices    = $hall->slot_prices ?? [];
+                    $selectedSlot  = request('time_slot');
+                    $displayPrice  = null;
+
+                    // Determine the display price
+                    if ($isDateSearch && $selectedSlot && isset($slotPrices[$selectedSlot])) {
+                        $displayPrice = $slotPrices[$selectedSlot];
+                    } elseif ($isDateSearch && count($availSlots) > 0) {
+                        $availPrices  = array_intersect_key($slotPrices, array_flip($availSlots));
+                        $displayPrice = $availPrices ? min($availPrices) : null;
+                    }
+                @endphp
+
+                <div class="group relative bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-300
+                    {{ $isAvailable
+                        ? 'hover:shadow-xl hover:-translate-y-1 hover:border-emerald-200'
+                        : 'opacity-60 grayscale-[30%]' }}
+                ">
+                    {{-- FULLY BOOKED OVERLAY --}}
+                    @if ($isDateSearch && !$isAvailable)
+                        <div class="absolute top-4 {{ app()->getLocale() === 'ar' ? 'right-4' : 'left-4' }} z-20">
+                            <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-white rounded-full shadow-lg bg-red-500/90 backdrop-blur-sm">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                                {{ __('Fully Booked') }}
+                            </span>
+                        </div>
+                    @endif
+
+                    {{-- Featured badge --}}
+                    @if ($hall->is_featured && $isAvailable)
+                        <div class="absolute top-4 {{ app()->getLocale() === 'ar' ? 'right-4' : 'left-4' }} z-20">
+                            <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full shadow-lg bg-amber-400 text-amber-900">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                {{ __('Featured') }}
+                            </span>
+                        </div>
+                    @endif
+
+                    {{-- Hall Image --}}
+                    <a href="{{ route('customer.halls.show', $hall->slug) }}" class="relative block h-48 overflow-hidden sm:h-52">
+                        @if ($hall->featured_image)
+                            <img
+                                src="{{ asset('storage/' . $hall->featured_image) }}"
+                                alt="{{ $hall->name }}"
+                                class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                                loading="lazy"
+                            >
+                        @else
+                            <div class="flex items-center justify-center w-full h-full bg-gradient-to-br from-slate-200 to-slate-300">
+                                <svg class="w-16 h-16 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                        @endif
+
+                        {{-- Price badge --}}
+                        <div class="absolute bottom-3 {{ app()->getLocale() === 'ar' ? 'left-3' : 'right-3' }}">
+                            @if ($displayPrice !== null)
+                                <span class="inline-flex items-baseline gap-0.5 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-md font-bold text-emerald-700">
+                                    <span class="text-xs font-medium text-slate-500">{{ __('OMR') }}</span>
+                                    <span class="text-lg">{{ number_format($displayPrice, 3) }}</span>
+                                </span>
+                            @else
+                                <span class="inline-flex items-baseline gap-0.5 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-md font-bold text-slate-600">
+                                    <span class="text-xs font-medium text-slate-400">{{ __('from') }}</span>
+                                    <span class="text-xs font-medium text-slate-500">{{ __('OMR') }}</span>
+                                    <span class="text-lg">{{ number_format((float) $hall->price_per_slot, 3) }}</span>
+                                </span>
+                            @endif
+                        </div>
+                    </a>
+
+                    {{-- Card Body --}}
+                    <div class="p-4 sm:p-5">
+                        {{-- Name + Rating --}}
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <a href="{{ route('customer.halls.show', $hall->slug) }}" class="flex-1 min-w-0 transition hover:text-emerald-600">
+                                <h3 class="text-lg font-bold leading-tight text-slate-800 line-clamp-1">
+                                    {{ $hall->name }}
+                                </h3>
+                            </a>
+                            @if ((float) $hall->average_rating > 0)
+                                <div class="flex-shrink-0 flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded-md">
+                                    <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold text-amber-700">{{ number_format((float) $hall->average_rating, 1) }}</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Location --}}
+                        <div class="flex items-center gap-1.5 text-sm text-slate-500 mb-2">
+                            <svg class="flex-shrink-0 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span class="line-clamp-1">{{ $hall->city?->name ?? '' }}</span>
+                        </div>
+
+                        {{-- Capacity --}}
+                        <div class="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+                            <svg class="flex-shrink-0 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>{{ $hall->capacity_min }}–{{ $hall->capacity_max }} {{ __('guests') }}</span>
+                        </div>
+
+                        {{-- ══════════════════════════════════════
+                             AVAILABILITY SLOT BADGES
+                             ══════════════════════════════════════ --}}
+                        @if ($isDateSearch)
+                            <div class="pt-3 mb-4 border-t border-slate-100">
+                                @if ($isAvailable && count($availSlots) > 0)
+                                    <p class="mb-2 text-xs font-semibold tracking-wider uppercase text-slate-400">
+                                        {{ __('Available Slots') }}
+                                    </p>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @foreach ($availSlots as $slot)
+                                            @php
+                                                $slotPrice = $slotPrices[$slot] ?? (float) $hall->price_per_slot;
+                                                $shortLabel = match($slot) {
+                                                    'morning'   => __('Morning'),
+                                                    'afternoon' => __('Afternoon'),
+                                                    'evening'   => __('Evening'),
+                                                    'full_day'  => __('Full Day'),
+                                                    default     => ucfirst($slot),
+                                                };
+                                            @endphp
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200">
+                                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                                                {{ $shortLabel }}
+                                                <span class="text-emerald-500">·</span>
+                                                <span class="font-bold">{{ number_format($slotPrice, 3) }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-2 text-sm text-red-400">
+                                        <span class="w-2 h-2 bg-red-400 rounded-full"></span>
+                                        {{ __('All slots booked for this date') }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- CTA Button --}}
+                        @if ($isAvailable)
+                            @if ($isDateSearch && $selectedSlot && in_array($selectedSlot, $availSlots))
+                                <a
+                                    href="{{ route('customer.halls.show', $hall->slug) }}?date={{ request('date') }}&time_slot={{ $selectedSlot }}"
+                                    class="block w-full text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                                >
+                                    {{ __('Book') }} {{ __($timeSlots[$selectedSlot] ?? ucfirst($selectedSlot)) }} —
+                                    {{ __('OMR') }} {{ number_format($slotPrices[$selectedSlot] ?? (float) $hall->price_per_slot, 3) }}
+                                </a>
+                            @else
+                                <a
+                                    href="{{ route('customer.halls.show', $hall->slug) }}{{ $isDateSearch ? '?date=' . request('date') : '' }}"
+                                    class="block w-full text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                                >
+                                    {{ __('View & Book') }}
+                                </a>
+                            @endif
+                        @else
+                            <a
+                                href="{{ route('customer.halls.show', $hall->slug) }}"
+                                class="block w-full text-center px-4 py-2.5 bg-slate-100 text-slate-400 font-semibold rounded-xl"
+                            >
+                                {{ __('Fully Booked') }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @elseif (!$isDateSearch)
+        <div class="py-16 text-center">
+            <div class="flex items-center justify-center w-20 h-20 mx-auto mb-4 rounded-full bg-slate-100">
+                <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-700">{{ __('No halls found') }}</h3>
+            <p class="mt-1 text-slate-500">{{ __('Try adjusting your filters or search for a different city.') }}</p>
+        </div>
+    @endif
+</section>
+
+@endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dateInput   = document.getElementById('search-date');
+    const slotSelect  = document.getElementById('search-time-slot');
+    const regionSelect = document.getElementById('search-region');
+    const citySelect  = document.getElementById('search-city');
+    const badge       = document.getElementById('date-availability-badge');
+    let debounceTimer = null;
+
+    // ── AJAX: Region → City cascade ──
+    if (regionSelect) {
+        regionSelect.addEventListener('change', function () {
+            const regionId = this.value;
+            citySelect.innerHTML = '<option value="">{{ __("All Cities") }}</option>';
+
+            if (!regionId) return;
+
+            fetch(`{{ url('/halls/cities') }}/${regionId}`)
+                .then(r => r.json())
+                .then(cities => {
+                    const locale = '{{ app()->getLocale() }}';
+                    cities.forEach(city => {
+                        const opt = document.createElement('option');
+                        opt.value = city.id;
+                        // Handle translatable name (JSON object)
+                        opt.textContent = typeof city.name === 'object'
+                            ? (city.name[locale] || city.name['en'] || Object.values(city.name)[0])
+                            : city.name;
+                        citySelect.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error('Failed to load cities:', err));
+        });
+    }
+
+    // ── AJAX: Live availability count badge ──
+    function checkAvailability() {
+        const date = dateInput?.value;
+        const slot = slotSelect?.value;
+
+        if (!date || !slot) {
+            badge?.classList.add('hidden');
+            return;
+        }
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const params = new URLSearchParams({ date, time_slot: slot });
+            const city = citySelect?.value;
+            if (city) params.append('city_id', city);
+
+            fetch(`/api/halls/check-availability?${params}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.available_count > 0) {
+                        badge.textContent = data.available_count + ' {{ __("booking.fields.hall_id.label") }}';
+                        badge.classList.remove('hidden', 'bg-red-500');
+                        badge.classList.add('bg-emerald-500');
+                    } else {
+                        badge.textContent = '{{ __("0 halls") }}';
+                        badge.classList.remove('hidden', 'bg-emerald-500');
+                        badge.classList.add('bg-red-500');
+                    }
+                    badge.classList.add('animate-bounce');
+                    setTimeout(() => badge.classList.remove('animate-bounce'), 2000);
+                })
+                .catch(() => badge?.classList.add('hidden'));
+        }, 400);
+    }
+
+    dateInput?.addEventListener('change', checkAvailability);
+    slotSelect?.addEventListener('change', checkAvailability);
+    citySelect?.addEventListener('change', checkAvailability);
+
+    // Run on load if pre-filled
+    if (dateInput?.value && slotSelect?.value) checkAvailability();
+
+    // ── Feature checkbox toggle styling ──
+    document.querySelectorAll('input[name="features[]"]').forEach(cb => {
+        cb.addEventListener('change', function () {
+            const label = this.closest('label');
+            if (this.checked) {
+                label.classList.remove('bg-white/20', 'text-white/80');
+                label.classList.add('bg-emerald-500', 'text-white');
+            } else {
+                label.classList.remove('bg-emerald-500', 'text-white');
+                label.classList.add('bg-white/20', 'text-white/80');
+            }
+        });
+    });
+});
+
+/** Sort handler — updates URL sort param */
+function updateSort(value) {
+    const url = new URL(window.location.href);
+    value ? url.searchParams.set('sort', value) : url.searchParams.delete('sort');
+    window.location.href = url.toString();
+}
+</script>
+@endpush

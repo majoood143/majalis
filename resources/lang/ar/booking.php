@@ -603,6 +603,7 @@ return [
         'slots_available' => ':count فترة/فترات متاحة',
         'custom_price_applied' => 'سعر مخصص لهذا التاريخ/الفترة',
         'default_price' => 'السعر الافتراضي للقاعة لفترة :slot',
+        'no_notes_provided' => 'لا توجد ملاحظات',
     ],
 
     /*
@@ -720,6 +721,9 @@ return [
         'cancellation_reason' => 'سبب الإلغاء',
         'refund_amount' => 'مبلغ الاسترداد',
         'admin_notes' => 'ملاحظات المسؤول',
+        'registered_user' => 'مستخدم مسجل',
+        'guest_user' => 'ضيف',
+        'customer_notes_placeholder' => 'أدخل أي ملاحظات خاصة أو طلبات خاصة'
     ],
 
     // Placeholders
@@ -727,6 +731,8 @@ return [
         'no_notes' => 'لا توجد ملاحظات',
         'balance_not_paid' => 'الرصيد لم يدفع بعد',
         'no_admin_notes' => 'لا توجد ملاحظات للمسؤول',
+        'guest_booking' => 'حجز ضيف (بدون حساب مستخدم)',
+        'no_notes' => ' No notes provided ',
     ],
 
     // Descriptions
@@ -790,6 +796,7 @@ return [
     // Messages
     'messages' => [
         'reference_copied' => 'تم نسخ المرجع!',
+
     ],
 
     'exceptions' => [
@@ -916,4 +923,18 @@ return [
         'persons' => 'شخص',
         'event_type' => 'نوع المناسبة',
     ],
+    // Booking summary
+    'summary' => 'ملخص الحجز',
+    'hall' => 'القاعة',
+    'number' => 'رقم الحجز',
+    'date' => 'التاريخ',
+    'time' => 'الوقت',
+    'guests' => 'عدد الضيوف',
+    'customer' => 'العميل',
+
+    // Time slots
+    'morning' => 'صباحي',
+    'afternoon' => 'بعد الظهر',
+    'evening' => 'مسائي',
+    'full_day' => 'يوم كامل',
 ];

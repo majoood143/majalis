@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hall Owner Performance Report</title>
     <style>
@@ -10,14 +11,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 10px;
             line-height: 1.6;
             color: #333;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -25,24 +26,24 @@
             text-align: center;
             margin-bottom: 30px;
         }
-        
+
         .header h1 {
             font-size: 24px;
             margin-bottom: 10px;
         }
-        
+
         .header p {
             font-size: 12px;
             opacity: 0.9;
         }
-        
+
         .owner-info {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 30px;
         }
-        
+
         .owner-info h2 {
             font-size: 16px;
             color: #667eea;
@@ -50,38 +51,38 @@
             border-bottom: 2px solid #667eea;
             padding-bottom: 5px;
         }
-        
+
         .info-grid {
             display: table;
             width: 100%;
         }
-        
+
         .info-row {
             display: table-row;
         }
-        
+
         .info-label {
             display: table-cell;
             font-weight: bold;
             padding: 8px 15px 8px 0;
             width: 40%;
         }
-        
+
         .info-value {
             display: table-cell;
             padding: 8px 0;
         }
-        
+
         .stats-grid {
             display: table;
             width: 100%;
             margin-bottom: 30px;
         }
-        
+
         .stats-row {
             display: table-row;
         }
-        
+
         .stat-box {
             display: table-cell;
             background: #fff;
@@ -90,23 +91,23 @@
             text-align: center;
             width: 25%;
         }
-        
+
         .stat-box.success {
             border-top: 3px solid #28a745;
         }
-        
+
         .stat-box.primary {
             border-top: 3px solid #667eea;
         }
-        
+
         .stat-box.warning {
             border-top: 3px solid #ffc107;
         }
-        
+
         .stat-box.danger {
             border-top: 3px solid #dc3545;
         }
-        
+
         .stat-label {
             font-size: 9px;
             color: #6c757d;
@@ -114,17 +115,17 @@
             font-weight: bold;
             margin-bottom: 8px;
         }
-        
+
         .stat-value {
             font-size: 20px;
             font-weight: bold;
             color: #333;
         }
-        
+
         .section {
             margin-bottom: 30px;
         }
-        
+
         .section-title {
             font-size: 16px;
             color: #667eea;
@@ -132,41 +133,41 @@
             border-bottom: 2px solid #667eea;
             padding-bottom: 5px;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
             font-size: 9px;
         }
-        
+
         table thead {
             background: #667eea;
             color: white;
         }
-        
+
         table th, table td {
             padding: 12px;
             text-align: left;
             border: 1px solid #dee2e6;
         }
-        
+
         table tbody tr:nth-child(even) {
             background: #f8f9fa;
         }
-        
+
         table tbody tr:hover {
             background: #e9ecef;
         }
-        
+
         .text-right {
             text-align: right;
         }
-        
+
         .text-center {
             text-align: center;
         }
-        
+
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -175,27 +176,27 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        
+
         .badge-success {
             background: #d4edda;
             color: #155724;
         }
-        
+
         .badge-warning {
             background: #fff3cd;
             color: #856404;
         }
-        
+
         .badge-danger {
             background: #f8d7da;
             color: #721c24;
         }
-        
+
         .badge-info {
             background: #d1ecf1;
             color: #0c5460;
         }
-        
+
         .footer {
             margin-top: 50px;
             padding-top: 20px;
@@ -204,11 +205,11 @@
             font-size: 9px;
             color: #6c757d;
         }
-        
+
         .page-break {
             page-break-after: always;
         }
-        
+
         .summary-box {
             background: #fff;
             border: 2px solid #667eea;
@@ -216,7 +217,7 @@
             padding: 20px;
             margin-bottom: 30px;
         }
-        
+
         .summary-title {
             font-size: 14px;
             font-weight: bold;

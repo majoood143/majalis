@@ -305,4 +305,26 @@ return [
     // Common
     'n_a' => 'غير متوفر',
     'processed_by' => 'تمت المعالجة بواسطة',
+    // Payment page
+    'method' => 'طريقة الدفع',
+    'select_option' => 'اختر طريقة الدفع',
+    'full' => 'الدفع الكامل',
+    'full_description' => 'ادفع المبلغ كاملاً الآن',
+    'advance' => 'دفعة مقدمة',
+    'advance_description' => 'ادفع :percentage% الآن، والباقي قبل الحدث',
+    'balance' => 'المبلغ المتبقي',
+    'total_amount' => 'إجمالي المبلغ',
+    'secure' => 'دفع آمن',
+    'redirect_message' => 'سيتم توجيهك إلى بوابة الدفع الآمنة ثواني لإتمام عملية الدفع.',
+    'terms_agreement' => 'أوافق على أن يتم تأكيد حجزي بعد الدفع بنجاح.',
+    'view_terms' => 'عرض الشروط والأحكام',
+    'pay_now' => 'ادفع الآن',
+    'redirecting' => 'جاري التحويل إلى بوابة الدفع...',
+    'terms_required' => 'يرجى الموافقة على الشروط والأحكام',
+
+    // Price breakdown
+    'hall_rental' => 'تأجير القاعة',
+    'services' => 'الخدمات',
+    'platform_fee' => 'رسوم المنصة',
+    'total' => 'الإجمالي',
 ];
