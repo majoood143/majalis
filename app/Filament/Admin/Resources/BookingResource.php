@@ -621,48 +621,6 @@ class BookingResource extends Resource
             ]);
     }
 
-    /**
-     * Get available time slots from HallAvailabilities and exclude booked slots
-     */
-    // protected static function getAvailableTimeSlots($hallId, $bookingDate): array
-    // {
-    //     if (!$hallId || !$bookingDate) {
-    //         return [];
-    //     }
-
-    //     // Get slots marked as available in HallAvailabilities
-    //     $availableSlots = HallAvailability::where('hall_id', $hallId)
-    //         ->where('date', $bookingDate)
-    //         ->where('is_available', true)
-    //         ->get()
-    //         ->pluck('time_slot')
-    //         ->toArray();
-
-    //     // Get already booked slots (confirmed or pending bookings)
-    //     $bookedSlots = Booking::where('hall_id', $hallId)
-    //         ->where('booking_date', $bookingDate)
-    //         ->whereIn('status', ['pending', 'confirmed'])
-    //         ->pluck('time_slot')
-    //         ->toArray();
-
-    //     // Remove booked slots from available slots
-    //     $actuallyAvailableSlots = array_diff($availableSlots, $bookedSlots);
-
-    //     // Map to user-friendly labels
-    //     $slotLabels = [
-    //         'morning' => 'Morning (8 AM - 12 PM)',
-    //         'afternoon' => 'Afternoon (12 PM - 5 PM)',
-    //         'evening' => 'Evening (5 PM - 11 PM)',
-    //         'full_day' => 'Full Day (8 AM - 11 PM)',
-    //     ];
-
-    //     $options = [];
-    //     foreach ($actuallyAvailableSlots as $slot) {
-    //         $options[$slot] = $slotLabels[$slot] ?? ucfirst(str_replace('_', ' ', $slot));
-    //     }
-
-    //     return $options;
-    // }
 
     /**
      * Get available time slots from HallAvailabilities and exclude booked slots

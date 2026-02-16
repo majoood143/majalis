@@ -67,7 +67,11 @@
             <div class="flex-1">
                 <h3 class="font-semibold text-gray-900">{{ $hall->getTranslation('name', app()->getLocale()) }}</h3>
                 <p class="text-sm text-gray-500">{{ $hall->city?->getTranslation('name', app()->getLocale()) }}</p>
-                <p class="text-sm font-medium text-primary-600">{{ number_format($hall->price_per_slot, 3) }} {{ __('guest.currency_omr') }}</p>
+                <p class="text-sm font-medium text-primary-600">{{ number_format($hall->price_per_slot, 3) }}
+                    
+                     <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal" class="inline w-5 h-5 -mt-1">
+
+                </p>
             </div>
         </div>
 

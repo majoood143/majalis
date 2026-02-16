@@ -353,7 +353,7 @@ class EditCommissionSetting extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),

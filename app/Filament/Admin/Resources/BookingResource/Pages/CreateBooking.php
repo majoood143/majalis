@@ -120,11 +120,11 @@ class CreateBooking extends CreateRecord
 
             return $data;
         } catch (Exception $e) {
-            // Log the error (you can add logging here if needed)
-            // \Log::error('Error in mutateFormDataBeforeCreate: ' . $e->getMessage(), [
-            //     'exception' => $e,
-            //     'data' => $data
-            // ]);
+            //Log the error (you can add logging here if needed)
+            Log::error('Error in mutateFormDataBeforeCreate: ' . $e->getMessage(), [
+                'exception' => $e,
+                'data' => $data
+            ]);
 
             Notification::make()
                 ->danger()
@@ -196,17 +196,6 @@ class CreateBooking extends CreateRecord
                 // Create booking
                 $record = static::getModel()::create($data);
 
-                // Attach extra services if any
-                // if (!empty($extraServices)) {
-                //     foreach ($extraServices as $service) {
-                //         $record->extraServices()->attach($service['service_id'], [
-                //             'service_name' => json_encode($service['service_name']), // Already an array
-                //             'unit_price' => $service['unit_price'] ?? 0,
-                //             'quantity' => $service['quantity'] ?? 1,
-                //             'total_price' => $service['total_price'] ?? 0,
-                //         ]);
-                //     }
-                // }
 
                 if (!empty($extraServices)) {
                     foreach ($extraServices as $service) {
@@ -244,10 +233,10 @@ class CreateBooking extends CreateRecord
             });
         } catch (Exception $e) {
             // Log the error (you can add logging here if needed)
-            // \Log::error('Error in handleRecordCreation: ' . $e->getMessage(), [
-            //     'exception' => $e,
-            //     'data' => $data
-            // ]);
+            Log::error('Error in handleRecordCreation: ' . $e->getMessage(), [
+                'exception' => $e,
+                'data' => $data
+            ]);
 
             // Rollback happens automatically when exception is thrown in transaction
 
@@ -276,9 +265,9 @@ class CreateBooking extends CreateRecord
             // Catch any unexpected errors during the entire creation process
 
             // Log the error (you can add logging here if needed)
-            // \Log::error('Unexpected error in booking creation: ' . $e->getMessage(), [
-            //     'exception' => $e
-            // ]);
+            Log::error('Unexpected error in booking creation: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
 
             Notification::make()
                 ->danger()
@@ -323,7 +312,7 @@ class CreateBooking extends CreateRecord
             return 'BK-' . date('Y') . '-' . time() . '-' . rand(100, 999);
         } catch (Exception $e) {
             // Fallback to timestamp-based booking number if generation fails
-            // \Log::error('Error generating booking number: ' . $e->getMessage());
+            Log::error('Error generating booking number: ' . $e->getMessage());
 
             return 'BK-' . date('Y') . '-' . time() . '-' . rand(100, 999);
         }
@@ -360,7 +349,7 @@ class CreateBooking extends CreateRecord
             return 'BK-' . $year . '-' . str_pad((string) $sequence, 5, '0', STR_PAD_LEFT);
         } catch (Exception $e) {
             // Fallback to simple timestamp-based number
-            // \Log::error('Error in generateBookingNumber: ' . $e->getMessage());
+            Log::error('Error in generateBookingNumber: ' . $e->getMessage());
 
             return 'BK-' . date('Y') . '-' . time() . '-' . rand(100, 999);
         }
@@ -409,7 +398,7 @@ class CreateBooking extends CreateRecord
             }
         } catch (Exception $e) {
             // Silently fail for afterCreate errors to not disrupt the flow
-            // \Log::error('Error in afterCreate: ' . $e->getMessage());
+            Log::error('Error in afterCreate: ' . $e->getMessage());
         }
     }
 

@@ -128,7 +128,7 @@ class HallRecentBookingsWidget extends BaseWidget
 
                 // Booking Date
                 Tables\Columns\TextColumn::make('booking_date')
-                    ->label(__('Date'))
+                    //->label(__('Date'))
                     ->date('d M Y')
                     ->sortable()
                     ->icon('heroicon-o-calendar'),
@@ -173,7 +173,7 @@ class HallRecentBookingsWidget extends BaseWidget
 
                 // Payment Status
                 Tables\Columns\TextColumn::make('payment_status')
-                    ->label(__('Payment'))
+                    //->label(__('Payment'))
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'unpaid' => __('Unpaid'),
@@ -218,7 +218,7 @@ class HallRecentBookingsWidget extends BaseWidget
 
                 // Payment Status Filter
                 Tables\Filters\SelectFilter::make('payment_status')
-                    ->label(__('Payment'))
+                    ->label('Payment')
                     ->options([
                         'unpaid' => __('Unpaid'),
                         'partial' => __('Partial'),

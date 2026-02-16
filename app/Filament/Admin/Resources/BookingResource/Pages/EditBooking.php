@@ -69,31 +69,6 @@ class EditBooking extends EditRecord
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Check if hall, date, or time slot changed
-        // if (
-        //     $data['hall_id'] != $this->record->hall_id ||
-        //     $data['booking_date'] != $this->record->booking_date->format('Y-m-d') ||
-        //     $data['time_slot'] != $this->record->time_slot
-        // ) {
-        //     // Validate no double booking
-        //     $existingBooking = Booking::where('hall_id', $data['hall_id'])
-        //         ->where('booking_date', $data['booking_date'])
-        //         ->where('time_slot', $data['time_slot'])
-        //         ->whereIn('status', ['pending', 'confirmed'])
-        //         ->where('id', '!=', $this->record->id) // Exclude current booking
-        //         ->first();
-
-        //     if ($existingBooking) {
-        //         Notification::make()
-        //             ->danger()
-        //             ->title('Slot Already Booked')
-        //             ->body("This time slot is already booked (Booking #{$existingBooking->booking_number}). Cannot change to this slot.")
-        //             ->persistent()
-        //             ->send();
-
-        //         $this->halt();
-        //     }
-        // }
 
         // Check if hall, date, or time slot changed
         // Use null coalescing to safely access keys that may not exist in form data
@@ -130,18 +105,6 @@ class EditBooking extends EditRecord
         $shouldRecalculateAdvance = false;
         $reasonForRecalculation = '';
 
-        // // Check if total amount changed (services, pricing, etc.)
-        // if (isset($data['total_amount']) &&
-        //     (float)$data['total_amount'] !== (float)$this->record->total_amount) {
-        //     $shouldRecalculateAdvance = true;
-        //     $reasonForRecalculation = 'total amount changed';
-        // }
-
-        // // Check if hall changed
-        // if (isset($data['hall_id']) && $data['hall_id'] != $this->record->hall_id) {
-        //     $shouldRecalculateAdvance = true;
-        //     $reasonForRecalculation = 'hall changed';
-        // }
 
         // Check if total amount changed (services, pricing, etc.)
         $newTotalAmount = $data['total_amount'] ?? $this->record->total_amount;
@@ -279,30 +242,6 @@ class EditBooking extends EditRecord
         return 'Booking updated successfully';
     }
 
-    /**
-     * Mutate form data before fill
-     *
-     * This ensures relationships are loaded properly without triggering
-     * scope errors on BelongsToMany relationships.
-     *
-     * The extra_services relationship needs special handling because it's
-     * a BelongsToMany with pivot data, and we need to avoid applying
-     * active() scopes during form population.
-     *
-     * @param array $data The data to populate the form with
-     * @return array The mutated data
-     */
-    // protected function mutateFormDataBeforeFill(array $data): array
-    // {
-    //     // Load extra services relationship properly
-    //     // This prevents the "active()" scope error by loading the relationship
-    //     // directly without applying scopes during form population
-    //     if ($this->record->relationLoaded('extraServices')) {
-    //         $data['extra_services'] = $this->record->extraServices->pluck('id')->toArray();
-    //     }
-
-    //     return $data;
-    // }
 
     /**
      * Mutate form data before fill

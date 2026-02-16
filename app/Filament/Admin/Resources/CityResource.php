@@ -182,6 +182,7 @@ class CityResource extends Resource
                         ->label(__('city.table_actions.edit')),
                     Tables\Actions\DeleteAction::make()
                         ->label(__('city.table_actions.delete')),
+                Tables\Actions\ViewAction::make(),
                 ]),
             ])
             ->bulkActions([
@@ -204,6 +205,7 @@ class CityResource extends Resource
         return [
             'index' => Pages\ListCities::route('/'),
             'create' => Pages\CreateCity::route('/create'),
+            'view' => Pages\ViewCity::route('/{record}'),
             'edit' => Pages\EditCity::route('/{record}/edit'),
         ];
     }

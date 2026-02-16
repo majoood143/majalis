@@ -542,6 +542,60 @@ class Booking extends Model
      *
      * @return void
      */
+    // public function calculateAdvancePayment(): void
+    // {
+    //     // Load hall relationship if not already loaded
+    //     if (!$this->relationLoaded('hall')) {
+    //         $this->load('hall');
+    //     }
+
+    //     // Safety check: if no hall or hall doesn't require advance
+    //     if (!$this->hall || !method_exists($this->hall, 'requiresAdvancePayment') || !$this->hall->requiresAdvancePayment()) {
+    //         $this->payment_type = 'full';
+    //         $this->advance_amount = null;
+    //         $this->balance_due = null;
+    //         return;
+    //     }
+
+    //     // Calculate advance based on total (hall + services)
+    //     // Cast to float immediately to handle string values from database (strict types compatibility)
+    //     $totalAmount = (float) ($this->subtotal ?? $this->total_amount ?? 0);
+
+    //     // Set payment type to advance
+    //     $this->payment_type = 'advance';
+
+    //     // Calculate advance and balance using LOCAL variables (avoids Eloquent cast string conversion cycle)
+    //     // This prevents TypeError when strict_types=1 is enabled
+    //     $advanceAmount = $this->hall->calculateAdvanceAmount($totalAmount);
+    //     $balanceDue = $this->hall->calculateBalanceDue($totalAmount, $advanceAmount);
+
+    //     // Assign to model properties at the end (single round-trip through cast system)
+    //     $this->advance_amount = $advanceAmount;
+    //     $this->balance_due = $balanceDue;
+    // }
+
+    /**
+     * Calculate and set advance payment details from hall settings.
+     *
+     * ✅ FIX: Now includes full platform fee in the advance (online) payment.
+     *    The platform collects its commission upfront during online payment.
+     *
+     * Logic:
+     *   1. Calculate base advance from hall settings (on subtotal)
+     *   2. Add full platform_fee to the advance amount
+     *   3. balance_due = total_amount - advance_amount
+     *
+     * Example (20% advance, 10% platform fee):
+     *   Subtotal: 150 OMR → Base advance: 30 OMR
+     *   + Platform fee: 15 OMR
+     *   = Advance paid: 45 OMR (online payment)
+     *   Balance due: 120 OMR (before event)
+     *
+     * Call this when creating a booking for a hall that requires advance.
+     * Ensures hall relationship is loaded and handles null cases safely.
+     *
+     * @return void
+     */
     public function calculateAdvancePayment(): void
     {
         // Load hall relationship if not already loaded
@@ -549,29 +603,51 @@ class Booking extends Model
             $this->load('hall');
         }
 
-        // Safety check: if no hall or hall doesn't require advance
-        if (!$this->hall || !method_exists($this->hall, 'requiresAdvancePayment') || !$this->hall->requiresAdvancePayment()) {
-            $this->payment_type = 'full';
+        // Safety check: if no hall or hall doesn't require advance payment
+        if (
+            !$this->hall
+            || !method_exists($this->hall, 'requiresAdvancePayment')
+            || !$this->hall->requiresAdvancePayment()
+        ) {
+            $this->payment_type   = 'full';
             $this->advance_amount = null;
-            $this->balance_due = null;
+            $this->balance_due    = null;
             return;
         }
 
-        // Calculate advance based on total (hall + services)
-        // Cast to float immediately to handle string values from database (strict types compatibility)
-        $totalAmount = (float) ($this->subtotal ?? $this->total_amount ?? 0);
+        // ✅ FIX: Get subtotal (hall + services, BEFORE platform fee)
+        // Previously used: $totalAmount = (float) ($this->subtotal ?? $this->total_amount ?? 0);
+        // That mixed subtotal/total and excluded platform fee from advance
+        $subtotal    = (float) ($this->subtotal ?? 0);
+        $totalAmount = (float) ($this->total_amount ?? $subtotal);
+        $platformFee = (float) ($this->platform_fee ?? 0);
 
         // Set payment type to advance
         $this->payment_type = 'advance';
 
-        // Calculate advance and balance using LOCAL variables (avoids Eloquent cast string conversion cycle)
-        // This prevents TypeError when strict_types=1 is enabled
-        $advanceAmount = $this->hall->calculateAdvanceAmount($totalAmount);
-        $balanceDue = $this->hall->calculateBalanceDue($totalAmount, $advanceAmount);
+        // Calculate base advance on SUBTOTAL (hall + services, without fee)
+        // This uses the hall's advance settings (percentage or fixed)
+        $baseAdvance = $this->hall->calculateAdvanceAmount($subtotal);
 
-        // Assign to model properties at the end (single round-trip through cast system)
-        $this->advance_amount = $advanceAmount;
-        $this->balance_due = $balanceDue;
+        // ✅ FIX: Add full platform fee to the advance amount
+        // The platform collects its entire commission upfront during online payment
+        // This ensures the platform is paid even if customer delays the balance
+        $advanceAmount = $baseAdvance + $platformFee;
+
+        // Safety: ensure advance doesn't exceed total amount
+        if ($advanceAmount > $totalAmount) {
+            $advanceAmount = $totalAmount;
+        }
+
+        // Balance = total - advance (customer pays this before the event)
+        $balanceDue = $totalAmount - $advanceAmount;
+
+        // Ensure balance is not negative
+        $balanceDue = max(0.0, $balanceDue);
+
+        // Assign to model properties (single round-trip through cast system)
+        $this->advance_amount = round($advanceAmount, 3);
+        $this->balance_due    = round($balanceDue, 3);
     }
 
 

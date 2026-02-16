@@ -13,7 +13,6 @@ use Spatie\Health\Checks\Checks\PingCheck;
 use Spatie\Health\Checks\Checks\QueueCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
 use App\Services\BookingService;
-use App\Services\CommissionService;
 use App\Services\NotificationService;
 use App\Services\PaymentService;
 use App\Services\PDFService;
@@ -23,6 +22,9 @@ use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     /**
      * Register any application services.
      */
@@ -41,17 +43,10 @@ class AppServiceProvider extends ServiceProvider
             return new PDFService();
         });
 
-        // ✅ FIX: CommissionService has no dependencies — register it
-        $this->app->singleton(CommissionService::class, function ($app) {
-            return new CommissionService();
-        });
-
-        // ✅ FIX: BookingService now requires CommissionService (not PaymentService)
-        // OLD: new BookingService($app->make(PaymentService::class), $app->make(NotificationService::class))
-        // NEW: new BookingService($app->make(CommissionService::class))
         $this->app->singleton(BookingService::class, function ($app) {
             return new BookingService(
-                $app->make(CommissionService::class)
+                $app->make(PaymentService::class),
+                $app->make(NotificationService::class)
             );
         });
     }

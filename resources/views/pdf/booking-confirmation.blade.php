@@ -1,15 +1,42 @@
+{{--
+|--------------------------------------------------------------------------
+| Enhanced Booking Confirmation PDF Template - Booking.com Style
+|--------------------------------------------------------------------------
+|
+| This template generates a professional, single-page booking confirmation
+| inspired by Booking.com's clean and information-rich PDF design.
+|
+| Features:
+| - Modern header with booking reference and confirmation badge
+| - Prominent property details with contact info
+| - Two-column layout for efficient space usage
+| - Detailed price breakdown with advance payment info
+| - Static map using OpenStreetMap tiles
+| - Important information and policies section
+| - Compact footer with contact details and timestamp
+|
+| @package    Majalis
+| @version    3.0.0
+| @author     Majalis Development Team
+| @requires   DomPDF, Laravel 12, PHP 8.4.12
+|
+--}}
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <title>{{ __('halls.booking_confirmation') }} - {{ $booking->booking_number }}</title>
+
     <style>
+        /* ==========================================================================
+           Page Setup - A4 Single Page
+           ========================================================================== */
         @page {
-            margin: 0;
-            padding: 0;
+            size: A4;
+            margin: 15mm 15mm 12mm 15mm;
         }
 
         * {
@@ -19,437 +46,725 @@
         }
 
         body {
-            font-family: 'DejaVu Sans', 'Arial Unicode MS', sans-serif;
-            font-size: 11pt;
-            color: #333;
-            line-height: 1.5;
+            font-family: 'DejaVu Sans', 'Arial Unicode MS', 'Helvetica', sans-serif;
+            font-size: 9pt;
+            color: #2c3e50;
+            line-height: 1.45;
+            background: #ffffff;
             direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
             text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
 
-        .container {
-            padding: 30px;
+        /* ==========================================================================
+           Typography & Colors
+           ========================================================================== */
+        h1, h2, h3 {
+            font-weight: 500;
+            margin: 0 0 6px 0;
         }
 
-        /* Header */
+        .text-primary { color: #0066b3; }      /* Booking.com blue */
+        .text-success { color: #008b5d; }       /* Green for confirmed */
+        .text-muted { color: #6b7a8d; }
+        .text-small { font-size: 7.5pt; }
+        .text-large { font-size: 12pt; font-weight: 500; }
+
+        .bg-light { background-color: #f8fafc; }
+        .border-bottom { border-bottom: 1px solid #e4e7eb; }
+        .border-top { border-top: 1px solid #e4e7eb; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mt-3 { margin-top: 12px; }
+        .p-2 { padding: 8px; }
+        .p-3 { padding: 12px; }
+        .rounded { border-radius: 6px; }
+
+        /* ==========================================================================
+           Header - Booking.com Style
+           ========================================================================== */
         .header {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-            color: white;
-            padding: 30px;
-            margin: -30px -30px 30px -30px;
+            display: table;
+            width: 100%;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #0066b3;
+        }
+
+        .header-left {
+            display: table-cell;
+            vertical-align: middle;
+            width: 50%;
+        }
+
+        .header-right {
+            display: table-cell;
+            vertical-align: middle;
+            width: 50%;
+            text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};
         }
 
         .logo {
-            font-size: 32pt;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .header-title {
-            font-size: 18pt;
-            margin-bottom: 20px;
-        }
-
-        .confirmation-box {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .confirmation-number {
             font-size: 24pt;
-            font-weight: bold;
-            letter-spacing: 2px;
+            font-weight: 500;
+            color: #0066b3;
+            letter-spacing: -0.5px;
         }
 
-        /* Info Box */
-        .info-box {
-            background: #f0f9ff;
-            border: 2px solid #0284c7;
+        .logo span {
+            font-weight: 300;
+            color: #4a5a6e;
+        }
+
+        .confirmation-badge {
+            background: #008b5d;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 9pt;
+            font-weight: 500;
+            display: inline-block;
+            letter-spacing: 0.3px;
+            margin-bottom: 5px;
+        }
+
+        .booking-ref {
+            font-size: 14pt;
+            font-weight: 500;
+            color: #1a2b3c;
+        }
+
+        .booking-ref-label {
+            font-size: 7.5pt;
+            color: #6b7a8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ==========================================================================
+           Property Card
+           ========================================================================== */
+        .property-card {
+            background: #f1f9ff;
+            border-left: 4px solid #0066b3;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .property-name {
+            font-size: 16pt;
+            font-weight: 500;
+            color: #1a2b3c;
+            margin-bottom: 4px;
+        }
+
+        .property-address {
+            font-size: 8.5pt;
+            color: #4a5a6e;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .property-contact {
+            font-size: 8pt;
+            color: #2c3e50;
+        }
+
+        .property-contact i {  /* dummy for icon alignment */
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           Two Column Layout
+           ========================================================================== */
+        .two-column {
+            display: table;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .col-left {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}: 10px;
+        }
+
+        .col-right {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 10px;
+        }
+
+        /* ==========================================================================
+           Info Grid (Booking.com style date/guest boxes)
+           ========================================================================== */
+        .info-grid {
+            display: table;
+            width: 100%;
+            background: white;
+            border: 1px solid #e4e7eb;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+            overflow: hidden;
+            margin-bottom: 16px;
         }
 
         .info-row {
-            display: table;
-            width: 100%;
-            margin-bottom: 15px;
+            display: table-row;
         }
 
         .info-cell {
             display: table-cell;
-            width: 25%;
-            vertical-align: top;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e4e7eb;
+            vertical-align: middle;
+        }
+
+        .info-cell:last-child {
+            border-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}: none;
         }
 
         .info-label {
-            color: #666;
-            font-size: 9pt;
-            margin-bottom: 5px;
+            font-size: 7pt;
+            color: #6b7a8d;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
         }
 
         .info-value {
-            font-size: 14pt;
-            font-weight: bold;
-            color: #0369a1;
+            font-size: 11pt;
+            font-weight: 500;
+            color: #1a2b3c;
         }
 
-        /* Hall Details */
-        .hall-section {
-            margin-bottom: 30px;
+        .info-sub {
+            font-size: 7.5pt;
+            color: #6b7a8d;
         }
 
-        .hall-image {
+        /* ==========================================================================
+           Section Titles
+           ========================================================================== */
+        .section-title {
+            font-size: 11pt;
+            font-weight: 500;
+            color: #1a2b3c;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #d0d7de;
+        }
+
+        .section-title i {  /* icon placeholder */
+            color: #0066b3;
+            margin-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}: 6px;
+        }
+
+        /* ==========================================================================
+           Customer & Booking Details
+           ========================================================================== */
+        .detail-row {
+            display: table;
             width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 6px;
         }
 
-        .hall-name {
-            font-size: 18pt;
-            font-weight: bold;
-            color: #0369a1;
-            margin-bottom: 5px;
+        .detail-label {
+            display: table-cell;
+            width: 30%;
+            color: #6b7a8d;
+            font-size: 8pt;
         }
 
-        .hall-address {
-            color: #666;
-            margin-bottom: 15px;
+        .detail-value {
+            display: table-cell;
+            width: 70%;
+            font-weight: 500;
+            color: #1a2b3c;
+            font-size: 9pt;
         }
 
-        /* Table */
-        table {
+        /* ==========================================================================
+           Price Table (Booking.com style)
+           ========================================================================== */
+        .price-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            font-size: 8.5pt;
+            margin-bottom: 10px;
         }
 
-        table th {
-            background: #f0f9ff;
-            padding: 12px;
-            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
-            font-weight: bold;
-            border-bottom: 2px solid #0284c7;
+        .price-table td {
+            padding: 6px 0;
+            border-bottom: 1px dashed #e4e7eb;
         }
 
-        table td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .text-right {
+        .price-table td:last-child {
             text-align: right;
+            font-weight: 500;
         }
 
-        .total-row {
-            background: #f9fafb;
+        .price-table .total-row {
+            font-weight: 700;
+            font-size: 10pt;
+            color: #1a2b3c;
+            border-top: 2px solid #1a2b3c;
+            border-bottom: none;
+        }
+
+        .price-table .total-row td {
+            padding-top: 10px;
+            border-bottom: none;
+        }
+
+        .advance-box {
+            background: #f0f7f0;
+            border: 1px solid #c3e0c3;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-top: 8px;
+        }
+
+        .advance-row {
+            display: table;
+            width: 100%;
+            font-size: 8.5pt;
+        }
+
+        .advance-label {
+            display: table-cell;
+            color: #2c5f2d;
+        }
+
+        .advance-value {
+            display: table-cell;
+            text-align: right;
+            font-weight: 500;
+            color: #1e7e34;
+        }
+
+        /* ==========================================================================
+           Map & Location
+           ========================================================================== */
+        .map-container {
+            border: 1px solid #e4e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .map-image {
+            width: 100%;
+            height: 130px;
+            display: block;
+            background: #eef2f6;
+        }
+
+        .map-coords {
+            font-size: 7pt;
+            color: #6b7a8d;
+            text-align: center;
+        }
+
+        .map-link {
+            font-size: 7pt;
+            text-align: center;
+            color: #0066b3;
+            text-decoration: none;
+        }
+
+        /* ==========================================================================
+           Important Notes Box
+           ========================================================================== */
+        .notes-box {
+            background: #fef9e7;
+            border: 1px solid #f5c542;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .notes-title {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #9e6b00;
+            margin-bottom: 6px;
+        }
+
+        .notes-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .notes-list li {
+            font-size: 7.5pt;
+            color: #664d00;
+            padding: 3px 0 3px 16px;
+            position: relative;
+        }
+
+        .notes-list li:before {
+            content: "•";
+            color: #f5c542;
             font-weight: bold;
-            font-size: 12pt;
+            position: absolute;
+            {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 4px;
         }
 
-        .total-amount {
-            color: #0369a1;
-            font-size: 16pt;
-        }
-
-        /* Features */
-        .features-grid {
+        /* ==========================================================================
+           Footer
+           ========================================================================== */
+        .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #d0d7de;
             display: table;
             width: 100%;
         }
 
-        .feature-row {
-            display: table-row;
-        }
-
-        .feature-cell {
+        .footer-left {
             display: table-cell;
-            width: 50%;
-            padding: 8px;
+            width: 60%;
+            vertical-align: middle;
+            font-size: 7pt;
+            color: #6b7a8d;
         }
 
-        .feature-item {
-            padding: 8px;
-            background: #f9fafb;
-            border-radius: 4px;
-            margin-bottom: 5px;
+        .footer-right {
+            display: table-cell;
+            width: 40%;
+            vertical-align: middle;
+            text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};
+            font-size: 7pt;
+            color: #8a9cb0;
         }
 
-        /* Map Placeholder */
-        .map-box {
-            background: #e5e7eb;
-            height: 250px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 20px 0;
+        .footer-contact strong {
+            color: #1a2b3c;
         }
 
-        /* Footer */
-        .footer {
-            background: #f9fafb;
-            padding: 20px;
-            margin: 30px -30px -30px -30px;
-            border-top: 2px solid #e5e7eb;
-            text-align: center;
-            font-size: 9pt;
-            color: #666;
+        .footer-logo {
+            font-size: 12pt;
+            font-weight: 500;
+            color: #0066b3;
         }
 
-        .contact-info {
-            margin: 15px 0;
-        }
-
-        .qr-code {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        /* Utilities */
-        .mb-10 {
-            margin-bottom: 10px;
-        }
-
-        .mb-20 {
-            margin-bottom: 20px;
-        }
-
-        .mt-20 {
-            margin-top: 20px;
-        }
-
-        .bold {
-            font-weight: bold;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
+        /* ==========================================================================
+           Payment Status Badge
+           ========================================================================== */
         .status-badge {
             display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 10pt;
-            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 7.5pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .status-pending {
-            background: #fef3c7;
-            color: #92400e;
+            background: #fff3cd;
+            color: #856404;
         }
 
         .status-confirmed {
-            background: #d1fae5;
-            color: #065f46;
+            background: #d4edda;
+            color: #155724;
         }
 
         .status-paid {
-            background: #dbeafe;
-            color: #1e40af;
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-partial {
+            background: #e2d5f1;
+            color: #563d7c;
+        }
+
+        /* ==========================================================================
+           RTL Adjustments
+           ========================================================================== */
+        [dir="rtl"] .property-card {
+            border-left: none;
+            border-right: 4px solid #0066b3;
+            border-radius: 8px 0 0 8px;
+        }
+
+        [dir="rtl"] .notes-list li {
+            padding: 3px 16px 3px 0;
+        }
+
+        [dir="rtl"] .notes-list li:before {
+            left: auto;
+            right: 4px;
+        }
+
+        [dir="rtl"] .price-table td:last-child {
+            text-align: left;
+        }
+
+        [dir="rtl"] .advance-value {
+            text-align: left;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
 
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">Majalis</div>
-            <div class="header-title">{{ __('halls.booking_confirmed') }}</div>
+    {{-- ========================================================================
+        Header - Logo & Booking Reference
+        ======================================================================== --}}
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">Majalis<span>.om</span></div>
+        </div>
+        <div class="header-right">
+            <div class="confirmation-badge">{{ __('halls.booking_confirmed') }}</div>
+            <div class="booking-ref-label">{{ __('halls.booking_reference') }}</div>
+            <div class="booking-ref">{{ $booking->booking_number }}</div>
+        </div>
+    </div>
 
-            <div class="confirmation-box">
-                <div style="font-size: 10pt; margin-bottom: 5px;">{{ __('halls.booking_reference') }}</div>
-                <div class="confirmation-number">{{ $booking->booking_number }}</div>
+    {{-- ========================================================================
+        Property Card (Prominent)
+        ======================================================================== --}}
+    @php
+        $hallName = is_array($booking->hall->name)
+            ? ($booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] ?? 'N/A')
+            : $booking->hall->name;
+
+        $cityName = is_array($booking->hall->city->name)
+            ? ($booking->hall->city->name[app()->getLocale()] ?? $booking->hall->city->name['en'] ?? '')
+            : $booking->hall->city->name;
+
+        $regionName = is_array($booking->hall->city->region->name)
+            ? ($booking->hall->city->region->name[app()->getLocale()] ?? $booking->hall->city->region->name['en'] ?? '')
+            : $booking->hall->city->region->name;
+    @endphp
+
+    <div class="property-card">
+        <div class="property-name">{{ $hallName }}</div>
+        <div class="property-address">
+            {{ $booking->hall->address }}, {{ $cityName }}, {{ $regionName }}
+        </div>
+        @if ($booking->hall->phone)
+            <div class="property-contact">
+                <span>📞</span> {{ $booking->hall->phone }}
+                @if ($booking->hall->email) | ✉️ {{ $booking->hall->email }} @endif
+            </div>
+        @endif
+    </div>
+
+    {{-- ========================================================================
+        Booking Details Grid (Date, Time, Guests, Status)
+        ======================================================================== --}}
+    <div class="info-grid">
+        <div class="info-row">
+            {{-- Booking Date --}}
+            <div class="info-cell" style="width: 25%;">
+                <div class="info-label">{{ __('halls.date') }}</div>
+                <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') }}</div>
+                <div class="info-sub">{{ \Carbon\Carbon::parse($booking->booking_date)->format('l') }}</div>
+            </div>
+
+            {{-- Time Slot --}}
+            <div class="info-cell" style="width: 25%;">
+                <div class="info-label">{{ __('halls.time_slot') }}</div>
+                <div class="info-value">{{ __('halls.' . $booking->time_slot) }}</div>
+            </div>
+
+            {{-- Guests --}}
+            <div class="info-cell" style="width: 25%;">
+                <div class="info-label">{{ __('halls.guests_count') }}</div>
+                <div class="info-value">{{ $booking->number_of_guests }}</div>
+                <div class="info-sub">{{ __('halls.persons') }}</div>
+            </div>
+
+            {{-- Status --}}
+            <div class="info-cell" style="width: 25%;">
+                <div class="info-label">{{ __('halls.payment_status') }}</div>
+                <span class="status-badge status-{{ $booking->payment_status }}">
+                    {{ __('halls.payment_' . $booking->payment_status) }}
+                </span>
             </div>
         </div>
+    </div>
 
-        <!-- Check-in/Check-out Info -->
-        <div class="info-box">
-            <div class="info-row">
-                <div class="info-cell">
-                    <div class="info-label">{{ __('halls.check_in') }}</div>
-                    <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d') }}</div>
-                    <div style="font-size: 9pt; color: #666;">
-                        {{ \Carbon\Carbon::parse($booking->booking_date)->format('F') }}</div>
-                    <div style="font-size: 9pt; color: #666;">
-                        {{ \Carbon\Carbon::parse($booking->booking_date)->format('l') }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">{{ __('halls.check_out') }}</div>
-                    <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('d') }}
-                    </div>
-                    <div style="font-size: 9pt; color: #666;">
-                        {{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('F') }}</div>
-                    <div style="font-size: 9pt; color: #666;">
-                        {{ \Carbon\Carbon::parse($booking->booking_date)->addDay()->format('l') }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">{{ __('halls.time_slot') }}</div>
-                    <div class="info-value">{{ __('halls.' . $booking->time_slot) }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">{{ __('halls.guests') }}</div>
-                    <div class="info-value">{{ $booking->number_of_guests }}</div>
-                </div>
+    {{-- ========================================================================
+        Two Column Layout - Guest & Price Info
+        ======================================================================== --}}
+    <div class="two-column">
+        {{-- Left Column: Guest Information + Event --}}
+        <div class="col-left">
+            <div class="section-title">
+                <span>{{ __('halls.customer_information') }}</span>
             </div>
-        </div>
-
-        <!-- Hall Details -->
-        <div class="hall-section">
-            @if ($booking->hall->featured_image)
-                <img src="{{ public_path('storage/' . $booking->hall->featured_image) }}" class="hall-image"
-                    alt="{{ is_array($booking->hall->name) ? $booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] : $booking->hall->name }}">
+            <div class="detail-row">
+                <div class="detail-label">{{ __('halls.name') }}</div>
+                <div class="detail-value">{{ $booking->customer_name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">{{ __('halls.email') }}</div>
+                <div class="detail-value">{{ $booking->customer_email }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">{{ __('halls.phone') }}</div>
+                <div class="detail-value">{{ $booking->customer_phone }}</div>
+            </div>
+            @if ($booking->event_type)
+                <div class="detail-row">
+                    <div class="detail-label">{{ __('halls.event') }}</div>
+                    <div class="detail-value">{{ __('halls.' . $booking->event_type) }}</div>
+                </div>
             @endif
 
-            <div class="hall-name">
-                {{ is_array($booking->hall->name) ? $booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] : $booking->hall->name }}
-            </div>
-            <div class="hall-address">
-                {{ $booking->hall->address }},
-                {{ is_array($booking->hall->city->name) ? $booking->hall->city->name[app()->getLocale()] ?? $booking->hall->city->name['en'] : $booking->hall->city->name }},
-                {{ is_array($booking->hall->city->region->name) ? $booking->hall->city->region->name[app()->getLocale()] ?? $booking->hall->city->region->name['en'] : $booking->hall->city->region->name }}
-            </div>
-
-            @if ($booking->hall->phone)
-                <div style="margin-bottom: 5px;">{{ __('halls.phone') }}: {{ $booking->hall->phone }}</div>
-            @endif
-
-            @if ($booking->hall->latitude && $booking->hall->longitude)
-                <div>GPS: {{ number_format($booking->hall->latitude, 6) }},
-                    {{ number_format($booking->hall->longitude, 6) }}</div>
+            {{-- Optional: Include any special requests if available --}}
+            @if ($booking->special_requests)
+                <div class="mt-3 text-small text-muted">
+                    <strong>{{ __('halls.special_requests') }}:</strong><br>
+                    {{ $booking->special_requests }}
+                </div>
             @endif
         </div>
 
-        <!-- Customer Information -->
-        <div class="mb-20">
-            <h3 style="font-size: 14pt; color: #0369a1; margin-bottom: 10px;">{{ __('halls.customer_information') }}
-            </h3>
-            <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
-                <div class="mb-10"><strong>{{ __('halls.name') }}:</strong> {{ $booking->customer_name }}</div>
-                <div class="mb-10"><strong>{{ __('halls.email') }}:</strong> {{ $booking->customer_email }}</div>
-                <div class="mb-10"><strong>{{ __('halls.phone') }}:</strong> {{ $booking->customer_phone }}</div>
-                @if ($booking->event_type)
-                    <div><strong>{{ __('halls.event_type') }}:</strong> {{ __('halls.' . $booking->event_type) }}
-                    </div>
-                @endif
+        {{-- Right Column: Price Summary --}}
+        <div class="col-right">
+            <div class="section-title">
+                <span>{{ __('halls.price_details') }}</span>
             </div>
-        </div>
-
-        <!-- Price Breakdown -->
-        <h3 style="font-size: 14pt; color: #0369a1; margin-bottom: 10px;">{{ __('halls.price_details') }}</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>{{ __('halls.description') }}</th>
-                    <th class="text-right">{{ __('halls.amount') }}</th>
-                </tr>
-            </thead>
-            <tbody>
+            <table class="price-table">
+                {{-- Base Price --}}
                 <tr>
                     <td>{{ __('halls.hall_price') }} ({{ __('halls.' . $booking->time_slot) }})</td>
-                    <td class="text-right">{{ number_format($booking->hall_price, 3) }} OMR</td>
+                    <td>{{ number_format($booking->hall_price, 3) }} OMR</td>
                 </tr>
 
-                {{-- @if ($booking->extraServices->count() > 0)
-                    @foreach ($booking->extraServices as $service)
-                        <tr>
-                            <td>
-                                {{ is_array($service->name) ? $service->name[app()->getLocale()] ?? $service->name['en'] : $service->name }}
-                                ({{ $service->pivot->quantity }} × {{ number_format($service->pivot->unit_price, 3) }}
-                                OMR)
-                            </td>
-                            <td class="text-right">{{ number_format($service->pivot->total_price, 3) }} OMR</td>
-                        </tr>
-                    @endforeach
-                @endif --}}
-
+                {{-- Extra Services --}}
                 @if ($booking->extraServices->count() > 0)
                     @foreach ($booking->extraServices as $service)
+                        @php
+                            $serviceName = $service->service_name;
+                            if (is_string($serviceName)) {
+                                $serviceName = json_decode($serviceName, true) ?? $serviceName;
+                            }
+                            $displayName = is_array($serviceName)
+                                ? ($serviceName[app()->getLocale()] ?? $serviceName['en'] ?? 'Service')
+                                : $serviceName;
+                        @endphp
                         <tr>
                             <td>
-                                {{-- FIX: Use service_name (direct attribute) instead of name --}}
-                                {{-- FIX: Access quantity/unit_price directly, NOT via pivot --}}
-                                @php
-                                    $serviceName = $service->service_name;
-                                    if (is_string($serviceName)) {
-                                        $serviceName = json_decode($serviceName, true) ?? $serviceName;
-                                    }
-                                @endphp
-                                {{ is_array($serviceName) ? $serviceName[app()->getLocale()] ?? ($serviceName['en'] ?? 'N/A') : $serviceName }}
-                                ({{ $service->quantity }} × {{ number_format((float) $service->unit_price, 3) }}
-                                OMR)
+                                {{ $displayName }}
+                                <span class="text-muted">({{ $service->quantity }} × {{ number_format((float) $service->unit_price, 3) }})</span>
                             </td>
-                            <td class="text-right">{{ number_format((float) $service->total_price, 3) }} OMR</td>
+                            <td>{{ number_format((float) $service->total_price, 3) }} OMR</td>
                         </tr>
                     @endforeach
                 @endif
 
+                {{-- Platform Fee --}}
                 @if ($booking->platform_fee > 0)
                     <tr>
                         <td>{{ __('halls.platform_fee') }}</td>
-                        <td class="text-right">{{ number_format($booking->platform_fee, 3) }} OMR</td>
+                        <td>{{ number_format($booking->platform_fee, 3) }} OMR</td>
                     </tr>
                 @endif
 
+                {{-- Total --}}
                 <tr class="total-row">
                     <td>{{ __('halls.total') }}</td>
-                    <td class="text-right total-amount">{{ number_format($booking->total_amount, 3) }} OMR</td>
+                    <td>{{ number_format($booking->total_amount, 3) }} OMR</td>
                 </tr>
-            </tbody>
-        </table>
+            </table>
 
-        <!-- Payment Status -->
-        <div style="text-align: center; margin: 20px 0;">
-            <span class="status-badge status-{{ $booking->payment_status }}">
-                {{ __('halls.payment_status') }}: {{ strtoupper($booking->payment_status) }}
-            </span>
-        </div>
-
-        <!-- Map (Placeholder) -->
-        @if ($booking->hall->latitude && $booking->hall->longitude)
-            <div class="map-box">
-                <div style="text-align: center; color: #666;">
-                    <div style="font-size: 14pt; margin-bottom: 5px;">{{ __('halls.location') }}</div>
-                    <div>GPS: {{ number_format($booking->hall->latitude, 6) }},
-                        {{ number_format($booking->hall->longitude, 6) }}</div>
-                    <div style="font-size: 9pt; margin-top: 10px;">{{ __('halls.view_on_map') }}: maps.google.com</div>
+            {{-- Advance Payment Info --}}
+            @if ($booking->payment_type === 'advance' && $booking->advance_amount > 0)
+                <div class="advance-box">
+                    <div class="advance-row">
+                        <div class="advance-label">{{ __('halls.advance_paid') }}</div>
+                        <div class="advance-value">{{ number_format($booking->advance_amount, 3) }} OMR</div>
+                    </div>
+                    <div class="advance-row">
+                        <div class="advance-label">{{ __('halls.balance_due') }}</div>
+                        <div class="advance-value">{{ number_format($booking->balance_due, 3) }} OMR</div>
+                    </div>
                 </div>
-            </div>
-        @endif
-
-        <!-- Important Information -->
-        <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="color: #92400e; margin-bottom: 10px;">{{ __('halls.important_info') }}</h4>
-            <ul style="margin-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 20px; color: #78350f;">
-                <li>{{ __('halls.bring_confirmation') }}</li>
-                <li>{{ __('halls.arrive_on_time') }}</li>
-                <li>{{ __('halls.cancellation_policy') }}</li>
-                <li>{{ __('halls.contact_property') }}</li>
-            </ul>
+            @endif
         </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="contact-info">
-                <strong>{{ __('halls.need_help') }}</strong><br>
-                {{ __('halls.email') }}: support@majalis.om | {{ __('halls.phone') }}: +968 XXXX XXXX<br>
-                {{ __('halls.website') }}: www.majalis.om
-            </div>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-                {{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}<br>
-                {{ __('halls.thank_you') }}
-            </div>
-        </div>
-
     </div>
+
+    {{-- ========================================================================
+        Map & Important Notes - Two Column Layout
+        ======================================================================== --}}
+    <div class="two-column">
+        {{-- Left Column: Map (if coordinates exist) --}}
+        <div class="col-left">
+            @if ($booking->hall->latitude && $booking->hall->longitude)
+                <div class="section-title">
+                    <span>{{ __('halls.location') }}</span>
+                </div>
+                @php
+                    $lat = number_format($booking->hall->latitude, 6, '.', '');
+                    $lng = number_format($booking->hall->longitude, 6, '.', '');
+                    // Using a reliable static map service (openstreetmap)
+                    $mapUrl = "https://staticmap.openstreetmap.de/staticmap.php?center={$lat},{$lng}&zoom=15&size=400x150&maptype=osmarenderer&markers={$lat},{$lng},red-pushpin";
+                @endphp
+                <div class="map-container">
+                    <img src="{{ $mapUrl }}"
+                         alt="{{ __('halls.map') }}"
+                         class="map-image"
+                         onerror="this.style.display='none'; this.parentNode.querySelector('.map-fallback').style.display='block';">
+                    <div class="map-fallback" style="display: none; height: 130px; background: #eef2f6; text-align: center; padding-top: 50px; color: #6b7a8d;">
+                        {{ __('halls.map_unavailable') }}
+                    </div>
+                </div>
+                <div class="map-coords">
+                    GPS: {{ $lat }}, {{ $lng }}
+                </div>
+                <div class="map-link">
+                    <a href="https://maps.google.com/?q={{ $lat }},{{ $lng }}" style="color: #0066b3; text-decoration: none;">{{ __('halls.view_on_map') }} (Google Maps)</a>
+                </div>
+            @endif
+        </div>
+
+        {{-- Right Column: Important Information --}}
+        <div class="col-right">
+            <div class="section-title">
+                <span>{{ __('halls.important_info') }}</span>
+            </div>
+            <div class="notes-box">
+                <ul class="notes-list">
+                    <li>{{ __('halls.bring_confirmation') }}</li>
+                    <li>{{ __('halls.arrive_on_time') }}</li>
+                    <li>{{ __('halls.cancellation_policy') }}</li>
+                    <li>{{ __('halls.contact_property') }}</li>
+                    @if ($booking->hall->check_in_instructions)
+                        <li>{{ $booking->hall->check_in_instructions }}</li>
+                    @endif
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========================================================================
+        Footer - Contact & Timestamp
+        ======================================================================== --}}
+    <div class="footer">
+        <div class="footer-left">
+            <div class="footer-contact">
+                <strong>{{ __('halls.need_help') }}</strong> {{ __('halls.email') }}: <a href="mailto:support@majalis.om" style="color: #0066b3; text-decoration: none;">support@majalis.om</a> |
+                {{ __('halls.phone') }}: +968 1234 5678
+            </div>
+        </div>
+        <div class="footer-right">
+            <div class="footer-logo">Majalis.om</div>
+            <div>{{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}</div>
+        </div>
+    </div>
+
 </body>
 
 </html>

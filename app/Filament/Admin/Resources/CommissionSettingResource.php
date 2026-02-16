@@ -282,6 +282,7 @@ class CommissionSettingResource extends Resource
                     ->label(__('commission-setting.edit')),
                 Tables\Actions\DeleteAction::make()
                     ->label(__('commission-setting.delete')),
+                Tables\Actions\ViewAction::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

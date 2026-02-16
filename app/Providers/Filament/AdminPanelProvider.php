@@ -30,10 +30,7 @@ use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
 use Vormkracht10\FilamentMails\Facades\FilamentMails;
 use Vormkracht10\FilamentMails\FilamentMailsPlugin;
-use Guava\FilamentKnowledgeBase\Plugins\KnowledgeBaseCompanionPlugin;
-use Guava\FilamentKnowledgeBase\Facades\KnowledgeBase;
 use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
-use Guava\FilamentKnowledgeBase\KnowledgeBasePlugin;
 use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider

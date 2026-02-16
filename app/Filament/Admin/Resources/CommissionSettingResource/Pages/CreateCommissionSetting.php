@@ -204,7 +204,7 @@ class CreateCommissionSetting extends CreateRecord
     {
         if ($this->record->hall && $this->record->hall->owner) {
             // Send notification to hall owner about new commission setting
-            // $this->record->hall->owner->notify(new CommissionSettingCreated($this->record));
+            //$this->record->hall->owner->notify(new CommissionSettingCreated($this->record));
         }
     }
 

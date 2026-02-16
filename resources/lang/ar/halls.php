@@ -232,9 +232,9 @@ return [
     'terms_description' => 'بالمتابعة، فإنك توافق على شروط الحجز',
     'processing' => 'جاري المعالجة...',
     'confirm_book' => 'تأكيد الحجز',
-    'notes_placeholder'=>'اكتب أي ملاحظات إضافية هنا...',
+    'notes_placeholder' => 'اكتب أي ملاحظات إضافية هنا...',
     'back' => 'رجوع',
-    'payment_confirmed'=>'تم تأكيد الدفع',
+    'payment_confirmed' => 'تم تأكيد الدفع',
     'full_payment_received' => 'تم استلام الدفع الكامل',
 
     'advance_payment_required' => 'دفعة مقدمة مطلوبة',
@@ -337,4 +337,8 @@ return [
     // ── Auth ──
     'login'               => 'تسجيل الدخول',
     'dashboard'           => 'لوحة التحكم',
-    ];
+
+    'hall_rental'          => 'تأجير القاعة',
+    'services'               => 'الخدمات',
+    'contact_us'            => 'اتصل بنا',
+];

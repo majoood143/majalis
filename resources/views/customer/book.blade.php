@@ -429,7 +429,10 @@
                                                     </span>
                                                     <span
                                                         class="font-bold text-primary-600">{{ number_format($service->price, 3) }}
-                                                        OMR</span>
+                                                        <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                            class="inline w-5 h-5 -mt-1">
+                                                    </span>
+
                                                 </div>
                                                 @if ($service->description)
                                                     <p class="text-sm text-gray-600">
@@ -689,12 +692,17 @@
                         <div class="py-4 space-y-3 border-t border-gray-200">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.hall_price') }}</span>
-                                <span class="font-medium text-gray-900" x-text="hallPrice.toFixed(3) + ' OMR'"></span>
+                                <span class="font-medium text-gray-900" x-text="hallPrice.toFixed(3) ">
+
+                                </span>  <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                             </div>
                             <div x-show="servicesTotal > 0" class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.extra_services_total') }}</span>
-                                <span class="font-medium text-gray-900"
-                                    x-text="servicesTotal.toFixed(3) + ' OMR'"></span>
+                                <span class="font-medium text-gray-900" x-text="servicesTotal.toFixed(3)">
+
+                                </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                             </div>
                         </div>
 
@@ -702,11 +710,13 @@
                         <div class="pt-4 border-t-2 border-gray-300">
                             <div class="flex items-center justify-between mb-4">
                                 <span class="text-lg font-bold text-gray-900">{{ __('halls.total') }}</span>
-                                <span class="text-2xl font-bold text-primary-600"
-                                    x-text="total.toFixed(3) + ' OMR'"></span>
+                                <span class="text-2xl font-bold text-primary-600" x-text="total.toFixed(3)">
+                                </span>
+                                 <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                             </div>
                         </div>
-                            
+
 
                         <!-- ✅ NEW: Advance Payment Preview -->
                         @if ($hall->requiresAdvancePayment())
@@ -728,13 +738,18 @@
                                                 class="text-blue-700">{{ __('advance_payment.customer_pays_advance') }}:</span>
                                             <span
                                                 class="font-bold text-blue-900">{{ number_format($hall->advance_payment_amount, 3) }}
-                                                OMR</span>
+                                                </span>
+                                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                    class="inline w-5 h-5 -mt-1">
                                         </div>
                                         <div class="flex justify-between">
                                             <span
                                                 class="text-blue-700">{{ __('advance_payment.balance_due') }}:</span>
                                             <span class="font-semibold text-blue-800"
-                                                x-text="(total - {{ $hall->advance_payment_amount }}).toFixed(3) + ' OMR'"></span>
+                                                x-text="(total - {{ $hall->advance_payment_amount }}).toFixed(3)">
+
+                                            </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                    class="inline w-5 h-5 -mt-1">
                                         </div>
                                     </div>
                                 @else
@@ -744,13 +759,18 @@
                                                 class="text-blue-700">{{ __('advance_payment.customer_pays_advance') }}
                                                 ({{ $hall->advance_payment_percentage }}%):</span>
                                             <span class="font-bold text-blue-900"
-                                                x-text="(total * {{ $hall->advance_payment_percentage }} / 100).toFixed(3) + ' OMR'"></span>
+                                                x-text="(total * {{ $hall->advance_payment_percentage }} / 100).toFixed(3)">
+                                               </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                    class="inline w-5 h-5 -mt-1">
                                         </div>
                                         <div class="flex justify-between">
                                             <span
                                                 class="text-blue-700">{{ __('advance_payment.balance_due') }}:</span>
                                             <span class="font-semibold text-blue-800"
-                                                x-text="(total - (total * {{ $hall->advance_payment_percentage }} / 100)).toFixed(3) + ' OMR'"></span>
+                                                x-text="(total - (total * {{ $hall->advance_payment_percentage }} / 100)).toFixed(3)">
+
+                                            </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                    class="inline w-5 h-5 -mt-1">
                                         </div>
                                     </div>
                                 @endif

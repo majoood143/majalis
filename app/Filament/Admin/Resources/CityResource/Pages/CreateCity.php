@@ -63,7 +63,7 @@ class CreateCity extends CreateRecord
 
         return $record;
     }
-    
+
 
     protected function afterCreate(): void
     {
@@ -122,13 +122,13 @@ class CreateCity extends CreateRecord
         return $code;
     }
 
-    // protected function getTitle(): string
-    // {
-    //     return 'Create City';
-    // }
+    public function getTitle(): string
+    {
+        return 'Create City';
+    }
 
-    // protected function getSubheading(): ?string
-    // {
-    //     return 'Add a new city to the system';
-    // }
+    public function getSubheading(): ?string
+    {
+        return 'Add a new city to the system';
+    }
 }

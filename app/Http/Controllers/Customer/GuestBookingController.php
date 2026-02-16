@@ -480,8 +480,26 @@ class GuestBookingController extends Controller
                 $servicesPrice = (float) ExtraService::whereIn('id', $selectedServiceIds)->sum('price');
             }
 
-            // Calculate subtotal (hall + services)
+
+            // Calculate subtotal (hall + services, before platform fee)
             $subtotal = $hallPrice + $servicesPrice;
+
+            // ✅ FIX: Calculate platform fee from CommissionSetting
+            // Previously: $platformFee = 0.00 (hardcoded)
+            // Now: resolves from commission_settings table (Hall > Owner > Global)
+            $commissionService = app(\App\Services\CommissionService::class);
+            $feeData = $commissionService->calculateFees($hall, $subtotal);
+
+            $platformFee      = (float) $feeData['platform_fee'];
+            $commissionAmount = (float) $feeData['commission_amount'];
+            $commissionType   = $feeData['commission_type'];
+            $commissionValue  = $feeData['commission_value'];
+            $totalAmount      = (float) $feeData['total_amount'];
+            $ownerPayout      = (float) $feeData['owner_payout'];
+
+
+            // Calculate subtotal (hall + services)
+            //$subtotal = $hallPrice + $servicesPrice;
 
             // ==========================================================
             // 1. SERVICE FEE — Customer-facing fee (added to total)
@@ -491,7 +509,7 @@ class GuestBookingController extends Controller
             // Service fees are OPTIONAL. If no active setting exists,
             // platform_fee remains 0 (no charge to customer).
             // ==========================================================
-            $platformFee = 0.00;
+            //$platformFee = 0.00;
             $serviceFeeType = null;
             $serviceFeeValue = null;
 
@@ -514,7 +532,7 @@ class GuestBookingController extends Controller
             }
 
             // Total amount the CUSTOMER pays (subtotal + service fee)
-            $totalAmount = $subtotal + $platformFee;
+            //$totalAmount = $subtotal + $platformFee;
 
             // ==========================================================
             // 2. COMMISSION — Owner-side charge (deducted from payout)
@@ -522,9 +540,9 @@ class GuestBookingController extends Controller
             // Resolve the applicable commission using same priority.
             // Commission is invisible to the customer.
             // ==========================================================
-            $commissionAmount = 0.00;
-            $commissionType = null;
-            $commissionValue = null;
+            //$commissionAmount = 0.00;
+            //$commissionType = null;
+            //$commissionValue = null;
 
             /** @var CommissionSetting|null $commission */
             $commission = CommissionSetting::query()

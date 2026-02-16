@@ -233,7 +233,8 @@
                                                             {{ $service->getTranslation('name', app()->getLocale()) }}
                                                         </span>
                                                         <span class="font-medium text-primary-600">
-                                                            {{ number_format($service->price, 3) }} {{ __('guest.currency_omr') }}
+                                                            {{ number_format($service->price, 3) }}  <img src="{{ asset('images/Medium.svg') }}"
+                                                                    alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                                                         </span>
                                                     </div>
                                                     @if($service->description)
@@ -327,13 +328,17 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">{{ __('guest.price_hall_rental') }}</span>
-                                <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }} {{ __('guest.currency_omr') }}</span>
+                                <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }}</span>
+                                 <img src="{{ asset('images/Medium.svg') }}"
+                                                                    alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                             </div>
 
                             <template x-for="serviceId in selectedServices" :key="serviceId">
                                 <div class="flex justify-between text-gray-600">
                                     <span x-text="getServiceName(serviceId)"></span>
-                                    <span x-text="getServicePrice(serviceId) + ' {{ __('guest.currency_omr') }}'"></span>
+                                    <span x-text="getServicePrice(serviceId) "></span>
+                                     <img src="{{ asset('images/Medium.svg') }}"
+                                                                    alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                                 </div>
                             </template>
 
@@ -341,9 +346,11 @@
 
                             <div class="flex justify-between text-base font-semibold text-gray-600">
                                 <span>{{ __('guest.price_total') }}</span>
-                                <span class="text-primary-600" x-text="calculateTotal() + ' {{ __('guest.currency_omr') }}'">
-                                    {{ number_format($hall->price_per_slot, 3) }} {{ __('guest.currency_omr') }}
+                                <span class="text-primary-600" x-text="calculateTotal() ">
+                                    {{ number_format($hall->price_per_slot, 3) }}
                                 </span>
+                                 <img src="{{ asset('images/Medium.svg') }}"
+                                                                    alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                             </div>
                         </div>
 
@@ -352,7 +359,7 @@
                             <div class="p-3 mt-4 rounded-lg bg-blue-50">
                                 <p class="text-sm text-blue-800">
                                     <strong>{{ __('guest.form_note_label') }}:</strong> {{ __('guest.form_advance_payment_note') }}
-                                    {{ $hall->advance_percentage }}%.
+                                    {{ $hall->advance_amount_percentage ?? 0 }}%.
                                 </p>
                             </div>
                         @endif

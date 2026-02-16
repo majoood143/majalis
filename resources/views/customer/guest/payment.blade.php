@@ -128,7 +128,8 @@
                                                         </div>
                                                         <span class="text-lg font-bold text-primary-600">
                                                             {{ number_format($booking->total_amount, 3) }}
-                                                            {{ __('currency.omr') }}
+                                                            <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                                class="inline w-6 h-6 -mt-1">
                                                         </span>
                                                     </div>
                                                 </div>
@@ -150,11 +151,16 @@
                                                         </div>
                                                         <div class="text-right">
                                                             <span class="text-lg font-bold text-primary-600">
-                                                                {{ number_format($advanceAmount, 3) }} {{ __('currency.omr') }}
+                                                                {{ number_format($advanceAmount, 3) }}
+                                                                <img src="{{ asset('images/Medium.svg') }}"
+                                                                    alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                                                             </span>
                                                             <p class="text-xs text-gray-500">
-                                                                {{ __('payment.balance') }}: {{ number_format($balanceDue, 3) }}
-                                                                {{ __('currency.omr') }}
+                                                                {{ __('payment.balance') }}:
+                                                                {{ number_format($balanceDue, 3) }}
+
+                                                                <img src="{{ asset('images/Medium.svg') }}"
+                                                                    alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                                                             </p>
                                                         </div>
                                                     </div>
@@ -170,7 +176,9 @@
                                         <div class="flex items-center justify-between">
                                             <span class="font-medium text-gray-900">{{ __('payment.total_amount') }}</span>
                                             <span class="text-xl font-bold text-primary-600">
-                                                {{ number_format($booking->total_amount, 3) }} {{ __('currency.omr') }}
+                                                {{ number_format($booking->total_amount, 3) }}
+                                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                    class="inline w-6 h-6 -mt-1">
                                             </span>
                                         </div>
                                     </div>
@@ -179,8 +187,8 @@
                                 {{-- Payment Gateway Info --}}
                                 <div class="p-4 mb-6 border border-blue-100 rounded-lg bg-blue-50">
                                     <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-blue-500 mt-0.5 me-3 rtl:ms-3 rtl:me-0 flex-shrink-0" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 text-blue-500 mt-0.5 me-3 rtl:ms-3 rtl:me-0 flex-shrink-0"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
@@ -220,14 +228,14 @@
                                 {{-- Submit Button --}}
                                 <button type="submit" id="pay-button"
                                     class="flex items-center justify-center w-full px-4 py-4 font-semibold text-white transition rounded-lg bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                                    <svg id="pay-icon" class="w-5 h-5 me-2 rtl:ms-2 rtl:me-0" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
+                                    <svg id="pay-icon" class="w-5 h-5 me-2 rtl:ms-2 rtl:me-0" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                                         </path>
                                     </svg>
-                                    <svg id="pay-spinner" class="hidden w-5 h-5 animate-spin me-2 rtl:ms-2 rtl:me-0" fill="none"
-                                        viewBox="0 0 24 24">
+                                    <svg id="pay-spinner" class="hidden w-5 h-5 animate-spin me-2 rtl:ms-2 rtl:me-0"
+                                        fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor"
@@ -236,10 +244,9 @@
                                     </svg>
                                     <span id="pay-text">
                                         {{ __('payment.pay_now') }} - {{ number_format($booking->total_amount, 3) }}
-                                        {{ __('currency.omr') }}
+                                         <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
                                     </span>
-                                    <span id="pay-loading-text"
-                                        class="hidden">{{ __('payment.redirecting') }}</span>
+                                    <span id="pay-loading-text" class="hidden">{{ __('payment.redirecting') }}</span>
                                 </button>
                             </form>
                         </div>
@@ -263,7 +270,8 @@
                                 @endif
                                 <div>
                                     <h4 class="font-medium text-gray-900">
-                                        {{ $booking->hall?->getTranslation('name', app()->getLocale()) ?? __('booking.hall') }}</h4>
+                                        {{ $booking->hall?->getTranslation('name', app()->getLocale()) ?? __('booking.hall') }}
+                                    </h4>
                                     <p class="text-sm text-gray-500">
                                         {{ $booking->hall?->city?->getTranslation('name', app()->getLocale()) }}</p>
                                 </div>
@@ -304,7 +312,7 @@
                             <hr class="my-4">
 
                             {{-- Price Breakdown --}}
-                            <div class="space-y-2 text-sm">
+                            {{-- <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">{{ __('payment.hall_rental') }}</span>
                                     <span>{{ number_format($booking->hall_price, 3) }} {{ __('currency.omr') }}</span>
@@ -331,7 +339,84 @@
                                     <span class="text-primary-600">{{ number_format($booking->total_amount, 3) }}
                                         {{ __('currency.omr') }}</span>
                                 </div>
+                            </div> --}}
+
+                            <div class="space-y-2 text-sm">
+                                {{-- Hall Rental --}}
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">{{ __('halls.hall_rental') }}</span>
+                                    <span>{{ number_format((float) $booking->hall_price, 3) }} <img
+                                            src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                            class="inline w-6 h-6 -mt-1"></span>
+                                </div>
+
+                                {{-- Services --}}
+                                @if ((float) $booking->services_price > 0)
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">{{ __('halls.services') }}</span>
+                                        <span>{{ number_format((float) $booking->services_price, 3) }}
+                                            <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                class="inline w-6 h-6 -mt-1"></span>
+                                    </div>
+                                @endif
+
+                                {{-- ✅ FIX: Platform Fee (shows only when fee > 0) --}}
+                                @if ((float) $booking->platform_fee > 0)
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">
+                                            {{ __('halls.platform_fee') }}
+                                            @if ($booking->commission_type === 'percentage')
+                                                <span
+                                                    class="text-xs text-gray-400">({{ $booking->commission_value }}%)</span>
+                                            @endif
+                                        </span>
+                                        <span>{{ number_format((float) $booking->platform_fee, 3) }}
+                                            <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                class="inline w-6 h-6 -mt-1"></span>
+                                    </div>
+                                @endif
+
+                                <hr class="my-2">
+
+                                {{-- Total --}}
+                                <div class="flex justify-between text-base font-semibold">
+                                    <span>{{ __('halls.total') }}</span>
+                                    <span class="text-primary-600">{{ number_format((float) $booking->total_amount, 3) }}
+                                        <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                            class="inline w-6 h-6 -mt-1"></span>
+                                </div>
+
+                                {{-- ✅ FIX: Advance Payment Details (if applicable) --}}
+                                @if ($booking->isAdvancePayment())
+                                    <hr class="my-2">
+                                    <div class="flex justify-between font-medium text-green-700">
+                                        <span>{{ __('halls.pay_now') }}</span>
+                                        <span>{{ number_format((float) $booking->advance_amount, 3) }}
+                                            <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                class="inline w-6 h-6 -mt-1"></span>
+                                    </div>
+                                    @if ((float) $booking->balance_due > 0)
+                                        <div class="flex justify-between text-orange-600">
+                                            <span>{{ __('halls.balance_due') }}</span>
+                                            <span>{{ number_format((float) $booking->balance_due, 3) }}
+                                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                    class="inline w-6 h-6 -mt-1"></span>
+                                        </div>
+                                    @endif
+
+                                    {{-- Info: platform fee included in advance --}}
+                                    @if ((float) $booking->platform_fee > 0)
+                                        <p class="mt-2 text-xs text-gray-500">
+                                            {{ __('halls.platform_fee_included_in_advance') }}
+                                        </p>
+                                    @endif
+                                @endif
                             </div>
+
+
+
+
+
 
                             {{-- Customer Info --}}
                             <hr class="my-4">
