@@ -143,7 +143,8 @@
                                                 {{ __('halls.pay_now_advance') }}
                                             </span>
                                             <span class="text-2xl font-bold text-blue-600">
-                                                {{ number_format($booking->advance_amount, 3) }} {{ __('halls.currency') }}
+                                                {{ number_format($booking->advance_amount, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                                             </span>
                                         </div>
 
@@ -153,7 +154,8 @@
                                                 {{ __('halls.balance_due_before_event') }}
                                             </span>
                                             <span class="text-lg font-semibold text-gray-800">
-                                                {{ number_format($booking->balance_due, 3) }} {{ __('halls.currency') }}
+                                                {{ number_format($booking->balance_due, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                                             </span>
                                         </div>
 
@@ -163,7 +165,8 @@
                                                 {{ __('halls.total_booking_amount') }}
                                             </span>
                                             <span class="text-lg font-semibold text-gray-900">
-                                                {{ number_format($booking->total_amount, 3) }} {{ __('halls.currency') }}
+                                                {{ number_format($booking->total_amount, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                                             </span>
                                         </div>
                                     </div>
@@ -338,18 +341,21 @@
                         <div class="py-4 space-y-3 border-t border-gray-200">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.hall_price') }}</span>
-                                <span class="font-medium text-gray-900">{{ number_format($booking->hall_price, 3) }} OMR</span>
+                                <span class="font-medium text-gray-900">{{ number_format($booking->hall_price, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                             </div>
                             @if($booking->services_price > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.extra_services_total') }}</span>
-                                <span class="font-medium text-gray-900">{{ number_format($booking->services_price, 3) }} OMR</span>
+                                <span class="font-medium text-gray-900">{{ number_format($booking->services_price, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                             </div>
                             @endif
                             @if($booking->platform_fee > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.platform_fee') }}</span>
-                                <span class="font-medium text-gray-900">{{ number_format($booking->platform_fee, 3) }} OMR</span>
+                                <span class="font-medium text-gray-900">{{ number_format($booking->platform_fee, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                             </div>
                             @endif
                         </div>
@@ -358,7 +364,8 @@
                         <div class="pt-4 border-t-2 border-gray-300">
                             <div class="flex items-center justify-between">
                                 <span class="text-lg font-bold text-gray-900">{{ __('halls.total') }}</span>
-                                <span class="text-2xl font-bold text-primary-600">{{ number_format($booking->total_amount, 3) }} OMR</span>
+                                <span class="text-2xl font-bold text-primary-600">{{ number_format($booking->total_amount, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                             </div>
                         </div>
                     </div>

@@ -128,7 +128,7 @@
             <div class="flex items-center justify-between h-16">
                 {{-- Logo --}}
                 <a href="/" class="flex items-center gap-2">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-center w-10 h-10 shadow-lg rounded-xl">
                         <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo" class="w-8 h-8">
                     </div>
                     <span class="hidden text-xl font-bold text-gray-800 sm:block">{{ __('guest.majalis') }}</span>
@@ -177,18 +177,18 @@
         {{-- Pattern overlay --}}
         <div class="absolute inset-0 opacity-[0.07]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;40&quot; height=&quot;40&quot; viewBox=&quot;0 0 40 40&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;%23fff&quot; fill-opacity=&quot;1&quot;%3E%3Cpath d=&quot;M20 20.5V18H0v-2h20v-2l2 3.5-2 3zM0 20h2v2H0v-2z&quot;/%3E%3C/g%3E%3C/svg%3E');"></div>
 
-        <div class="relative container mx-auto px-4 py-8 md:py-14">
-            <div class="text-center mb-6 md:mb-8">
-                <h1 class="text-2xl md:text-4xl font-bold mb-2">{{ __('halls.browse_halls') }}</h1>
-                <p class="text-brand-200/80 text-sm md:text-lg">{{ __('halls.find_perfect_venue') }}</p>
+        <div class="container relative px-4 py-8 mx-auto md:py-14">
+            <div class="mb-6 text-center md:mb-8">
+                <h1 class="mb-2 text-2xl font-bold md:text-4xl">{{ __('halls.browse_halls') }}</h1>
+                <p class="text-sm text-brand-200/80 md:text-lg">{{ __('halls.find_perfect_venue') }}</p>
             </div>
 
             {{-- ── Smart Search Form ── --}}
             <form id="smart-search-form" action="{{ route('customer.halls.index') }}" method="GET"
-                  class="bg-white/10 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl max-w-5xl mx-auto">
+                  class="max-w-5xl p-4 mx-auto border shadow-2xl bg-white/10 backdrop-blur-xl rounded-2xl md:p-6 border-white/20">
                 <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
 
-                <div class="grid grid-cols-2 md:grid-cols-12 gap-3">
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-12">
                     {{-- Date --}}
                     <div class="col-span-1 md:col-span-3">
                         <label class="block text-[10px] md:text-xs font-semibold text-brand-300 uppercase tracking-wider mb-1">
@@ -245,7 +245,7 @@
                     </div>
 
                     {{-- Search Button --}}
-                    <div class="col-span-2 md:col-span-2 flex items-end">
+                    <div class="flex items-end col-span-2 md:col-span-2">
                         <button type="submit"
                                 class="w-full px-4 py-2.5 md:py-3 bg-brand-500 hover:bg-brand-400 text-white font-bold rounded-xl transition-all shadow-lg shadow-brand-500/30 hover:shadow-brand-400/40 flex items-center justify-center gap-2 text-sm">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,13 +258,13 @@
 
                 {{-- Advanced Filters (collapsible) --}}
                 <div x-data="{ open: {{ request('max_price') || request('features') || request('min_guests') || request('search') ? 'true' : 'false' }} }" class="mt-3">
-                    <button type="button" @click="open = !open" class="text-xs text-brand-300 hover:text-white transition flex items-center gap-1">
+                    <button type="button" @click="open = !open" class="flex items-center gap-1 text-xs transition text-brand-300 hover:text-white">
                         <svg class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                         <span x-text="open ? '{{ __('halls.hide_filters') }}' : '{{ __('halls.more_filters') }}'"></span>
                     </button>
-                    <div x-show="open" x-collapse class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div x-show="open" x-collapse class="grid grid-cols-2 gap-3 mt-3 md:grid-cols-4">
                         {{-- Text Search --}}
                         <div class="col-span-2 md:col-span-1">
                             <label class="block text-[10px] md:text-xs font-semibold text-brand-300 uppercase tracking-wider mb-1">{{ __('halls.search_placeholder') }}</label>
@@ -279,7 +279,8 @@
                         </div>
                         {{-- Max Price --}}
                         <div>
-                            <label class="block text-[10px] md:text-xs font-semibold text-brand-300 uppercase tracking-wider mb-1">{{ __('halls.max_price') }} (OMR)</label>
+                            <label class="block text-[10px] md:text-xs font-semibold text-brand-300 uppercase tracking-wider mb-1">{{ __('halls.max_price') }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1 text-brand-300"></label>
                             <input type="number" name="max_price" value="{{ request('max_price') }}" min="0" step="0.001" placeholder="{{ __('halls.no_limit') }}"
                                    class="w-full px-3 py-2.5 bg-white/90 text-gray-800 rounded-xl border-0 focus:ring-2 focus:ring-brand-400 placeholder-gray-400 font-medium text-sm">
                         </div>
@@ -302,7 +303,8 @@
                 {{-- Price stats hint --}}
                 @if (isset($stats) && $stats['min_price'])
                     <p class="mt-2 text-[11px] text-brand-300/60 text-center">
-                        {{ __('halls.starting_from') }} {{ number_format($stats['min_price'], 3) }} – {{ number_format($stats['max_price'], 3) }} {{ __('OMR') }}
+                        {{ __('halls.starting_from') }} {{ number_format($stats['min_price'], 3) }} – {{ number_format($stats['max_price'], 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1">
                     </p>
                 @endif
             </form>
@@ -312,7 +314,7 @@
     {{-- ═══════════════════════════════════════════════════════════
          RESULTS TOOLBAR (count + view mode + sort)
          ═══════════════════════════════════════════════════════════ --}}
-    <div class="container mx-auto px-4 pt-6 pb-2">
+    <div class="container px-4 pt-6 pb-2 mx-auto">
         <div class="flex flex-wrap items-center justify-between gap-3">
             {{-- Left: result count + availability summary --}}
             <div class="flex-1 min-w-0">
@@ -340,7 +342,7 @@
             </div>
 
             {{-- Right: View mode + Sort (desktop only) --}}
-            <div class="hidden md:flex items-center gap-2">
+            <div class="items-center hidden gap-2 md:flex">
                 {{-- View mode: All / By Region --}}
                 <div class="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
                     <a href="{{ request()->fullUrlWithQuery(['view_mode' => null]) }}"
@@ -355,12 +357,12 @@
 
                 {{-- Grid / Map toggle --}}
                 <div class="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
-                    <button @click="view = 'grid'" :class="view === 'grid' ? 'bg-white shadow-sm' : ''" class="p-2 rounded-lg transition">
+                    <button @click="view = 'grid'" :class="view === 'grid' ? 'bg-white shadow-sm' : ''" class="p-2 transition rounded-lg">
                         <svg class="w-5 h-5" :class="view === 'grid' ? 'text-brand-600' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                         </svg>
                     </button>
-                    <button @click="view = 'map'" :class="view === 'map' ? 'bg-white shadow-sm' : ''" class="p-2 rounded-lg transition">
+                    <button @click="view = 'map'" :class="view === 'map' ? 'bg-white shadow-sm' : ''" class="p-2 transition rounded-lg">
                         <svg class="w-5 h-5" :class="view === 'map' ? 'text-brand-600' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                         </svg>
@@ -369,7 +371,7 @@
 
                 {{-- Sort --}}
                 <select id="sort-select" onchange="updateSort(this.value)"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-400 bg-white font-medium">
+                        class="px-3 py-2 text-sm font-medium bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-400">
                     <option value="" {{ !request('sort') ? 'selected' : '' }}>{{ __('halls.best_match') }}</option>
                     <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>{{ __('halls.highest_rated') }}</option>
                     <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>{{ __('halls.price_low_high') }}</option>
@@ -384,20 +386,20 @@
          PHASE 4: NO RESULTS — DATE SUGGESTIONS
          ═══════════════════════════════════════════════════════════ --}}
     @if ($isDateSearch && $availableCount === 0)
-        <div class="container mx-auto px-4 mb-4">
+        <div class="container px-4 mx-auto mb-4">
             @if (count($suggestions) > 0)
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5">
+                <div class="p-4 border bg-amber-50 border-amber-200 rounded-2xl md:p-5">
                     <div class="flex items-start gap-3">
-                        <div class="flex-shrink-0 w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center">
+                        <div class="flex items-center justify-center flex-shrink-0 rounded-full w-9 h-9 bg-amber-100">
                             <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-amber-800 mb-1">
+                            <h3 class="mb-1 text-base font-bold text-amber-800">
                                 {{ __('halls.no_availability_on', ['date' => \Carbon\Carbon::parse(request('date'))->translatedFormat('j F Y')]) }}
                             </h3>
-                            <p class="text-amber-700 text-xs mb-3">{{ __('halls.try_nearby_dates') }}</p>
+                            <p class="mb-3 text-xs text-amber-700">{{ __('halls.try_nearby_dates') }}</p>
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($suggestions as $s)
                                     <a href="{{ route('customer.halls.index', array_merge(request()->except('date'), ['date' => $s['date']])) }}"
@@ -416,14 +418,14 @@
                     </div>
                 </div>
             @else
-                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center">
-                    <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-8 text-center border border-gray-200 bg-gray-50 rounded-2xl">
+                    <div class="flex items-center justify-center mx-auto mb-3 bg-gray-100 rounded-full w-14 h-14">
+                        <svg class="text-gray-400 w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-gray-700 mb-1">{{ __('halls.no_halls_around_date') }}</h3>
-                    <p class="text-gray-500 text-sm">{{ __('halls.try_different_date') }}</p>
+                    <h3 class="mb-1 text-base font-bold text-gray-700">{{ __('halls.no_halls_around_date') }}</h3>
+                    <p class="text-sm text-gray-500">{{ __('halls.try_different_date') }}</p>
                 </div>
             @endif
         </div>
@@ -432,7 +434,7 @@
     {{-- ═══════════════════════════════════════════════════════════
          MAIN CONTENT: GRID VIEW / MAP VIEW
          ═══════════════════════════════════════════════════════════ --}}
-    <div class="container mx-auto px-4 pb-28 md:pb-12">
+    <div class="container px-4 mx-auto pb-28 md:pb-12">
 
         {{-- ── GRID VIEW ── --}}
         <div x-show="view === 'grid'">
@@ -448,12 +450,12 @@
                             @php $hasRegionResults = true; @endphp
                             <div class="mb-10">
                                 <div class="flex items-center justify-between pb-3 mb-5 border-b-2 border-brand-100">
-                                    <h2 class="text-xl md:text-2xl font-bold text-gray-800">{{ $region->name }}</h2>
+                                    <h2 class="text-xl font-bold text-gray-800 md:text-2xl">{{ $region->name }}</h2>
                                     <span class="px-3 py-1 text-sm font-medium text-gray-600 bg-gray-100 rounded-full">
                                         {{ $regionHalls->count() }} {{ __('halls.halls_in_region') }}
                                     </span>
                                 </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
                                     @foreach ($regionHalls as $hall)
                                         @include('customer.halls.partials.smart-hall-card', ['hall' => $hall, 'isDateSearch' => $isDateSearch, 'timeSlots' => $timeSlots])
                                     @endforeach
@@ -466,7 +468,7 @@
                     @endif
                 @else
                     {{-- Regular grid --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
                         @foreach ($halls as $hall)
                             @include('customer.halls.partials.smart-hall-card', ['hall' => $hall, 'isDateSearch' => $isDateSearch, 'timeSlots' => $timeSlots])
                         @endforeach
@@ -479,9 +481,9 @@
 
         {{-- ── MAP VIEW ── --}}
         <div x-show="view === 'map'" x-cloak>
-            <div id="map" class="rounded-2xl border-2 border-gray-200 shadow-lg"></div>
-            <div class="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div id="map" class="border-2 border-gray-200 shadow-lg rounded-2xl"></div>
+            <div class="flex items-center gap-2 p-3 mt-3 border border-blue-200 bg-blue-50 rounded-xl">
+                <svg class="flex-shrink-0 w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
                 <p class="text-sm font-medium text-blue-800">
@@ -515,7 +517,7 @@
                         <h3 class="text-xl font-bold text-gray-800">{{ __('halls.filters') }}</h3>
                         <p class="text-sm text-gray-500 mt-0.5" x-text="activeFiltersCount > 0 ? activeFiltersCount + ' {{ __('halls.active_filters') }}' : '{{ __('halls.no_active_filters') }}'"></p>
                     </div>
-                    <button @click="showFilters = false" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">
+                    <button @click="showFilters = false" class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100">
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -539,7 +541,7 @@
                         <div>
                             <label class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.region') }}</label>
                             <select name="region_id" x-model="mobileFilters.region_id" @change="loadCitiesMobile()"
-                                    class="w-full h-14 px-4 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                                    class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
                                 <option value="">{{ __('halls.all_regions') }}</option>
                                 @foreach ($regions as $region)
                                     <option value="{{ $region->id }}">{{ $region->name }}</option>
@@ -551,7 +553,7 @@
                         <div x-show="mobileCities.length > 0">
                             <label class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.city') }}</label>
                             <select name="city_id" x-model="mobileFilters.city_id"
-                                    class="w-full h-14 px-4 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                                    class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
                                 <option value="">{{ __('halls.all_cities') }}</option>
                                 <template x-for="city in mobileCities" :key="city.id">
                                     <option :value="city.id" x-text="typeof city.name === 'object' ? (city.name['{{ app()->getLocale() }}'] || city.name.en) : city.name"></option>
@@ -563,7 +565,7 @@
                         <div>
                             <label class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.guests') }}</label>
                             <input type="number" name="min_guests" value="{{ request('min_guests') }}" min="1" placeholder="{{ __('halls.enter_guests') }}"
-                                   class="w-full h-14 px-4 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                                   class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
                         </div>
 
                         {{-- Price Range --}}
@@ -571,12 +573,13 @@
                             <label class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.price_range') }}</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <input type="number" name="min_price" value="{{ request('min_price') }}" step="0.001" placeholder="{{ __('halls.min_price') }}"
-                                       class="w-full h-14 px-4 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                                       class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
                                 <input type="number" name="max_price" value="{{ request('max_price') }}" step="0.001" placeholder="{{ __('halls.max_price') }}"
-                                       class="w-full h-14 px-4 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                                       class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
                             </div>
                             @if (isset($stats) && $stats['min_price'])
-                                <p class="mt-2 text-xs text-gray-500">{{ __('halls.starting_from') }} {{ number_format($stats['min_price'], 3) }} – {{ number_format($stats['max_price'], 3) }} OMR</p>
+                                <p class="mt-2 text-xs text-gray-500">{{ __('halls.starting_from') }} {{ number_format($stats['min_price'], 3) }} – {{ number_format($stats['max_price'], 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></p>
                             @endif
                         </div>
 
@@ -584,12 +587,12 @@
                         <div>
                             <label class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.view_mode') }}</label>
                             <div class="grid grid-cols-2 gap-3">
-                                <label class="flex items-center justify-center h-14 px-4 border-2 rounded-xl cursor-pointer transition"
+                                <label class="flex items-center justify-center px-4 transition border-2 cursor-pointer h-14 rounded-xl"
                                        :class="!mobileFilters.view_mode ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200'">
                                     <input type="radio" name="view_mode" value="" x-model="mobileFilters.view_mode" class="hidden">
                                     <span class="font-medium">{{ __('halls.view_all') }}</span>
                                 </label>
-                                <label class="flex items-center justify-center h-14 px-4 border-2 rounded-xl cursor-pointer transition"
+                                <label class="flex items-center justify-center px-4 transition border-2 cursor-pointer h-14 rounded-xl"
                                        :class="mobileFilters.view_mode === 'by_region' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200'">
                                     <input type="radio" name="view_mode" value="by_region" x-model="mobileFilters.view_mode" class="hidden">
                                     <span class="font-medium">{{ __('halls.view_by_region') }}</span>
@@ -600,7 +603,7 @@
                         {{-- Sort --}}
                         <div>
                             <label class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.sort_by') }}</label>
-                            <select name="sort" class="w-full h-14 px-4 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                            <select name="sort" class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
                                 <option value="" {{ !request('sort') ? 'selected' : '' }}>{{ __('halls.best_match') }}</option>
                                 <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>{{ __('halls.highest_rated') }}</option>
                                 <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>{{ __('halls.price_low_high') }}</option>
@@ -614,11 +617,11 @@
                 <div class="filter-footer">
                     <div class="grid grid-cols-2 gap-3">
                         <a href="{{ route('customer.halls.index') }}?lang={{ app()->getLocale() }}"
-                           class="flex items-center justify-center h-14 font-semibold text-gray-700 border-2 border-gray-300 rounded-xl hover:bg-gray-50">
+                           class="flex items-center justify-center font-semibold text-gray-700 border-2 border-gray-300 h-14 rounded-xl hover:bg-gray-50">
                             {{ __('halls.clear_filters') }}
                         </a>
                         <button type="submit"
-                                class="flex items-center justify-center h-14 font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700 shadow-lg">
+                                class="flex items-center justify-center font-bold text-white shadow-lg h-14 bg-brand-600 rounded-xl hover:bg-brand-700">
                             {{ __('halls.apply') }}
                         </button>
                     </div>
@@ -750,7 +753,8 @@
                             ${img}
                             ${badge}
                             <strong style="font-size:14px;">${name}</strong><br>
-                            <span style="color:#059669;font-weight:bold;font-size:13px;">${parseFloat(h.price).toFixed(3)} OMR</span><br>
+                            <span style="color:#059669;font-weight:bold;font-size:13px;">${parseFloat(h.price).toFixed(3)} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span><br>
                             <a href="${viewUrl}/${h.slug}" style="display:block;text-align:center;background:#059669;color:white;padding:8px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;font-size:13px;">
                                 {{ __('halls.view_details') }}
                             </a>

@@ -57,7 +57,8 @@
         <div class="flex items-center justify-between pt-3 border-t border-gray-100">
             <div>
                 <span class="text-2xl font-bold text-gray-900">{{ number_format($hall->price_per_slot, 3) }}</span>
-                <span class="text-sm text-gray-600"> OMR</span>
+                <span class="text-sm text-gray-600"> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
             </div>
             <span class="text-sm font-medium text-primary-600">{{ __('halls.view_details') }} →</span>
         </div>

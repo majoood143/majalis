@@ -456,7 +456,8 @@
                             <div class="mb-1 text-xs text-gray-600">{{ __('halls.price_per_day') }}</div>
                             <div class="text-lg font-bold text-primary-600">
                                 {{ number_format($hall->price_per_slot, 3) }}</div>
-                            <div class="text-xs text-gray-500">OMR</div>
+                            <div class="text-xs text-gray-500"><img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></div>
                         </div>
                         <div class="text-center">
                             <div class="mb-1 text-xs text-gray-600">{{ __('halls.total_bookings') }}</div>
@@ -546,7 +547,8 @@
                                     <div
                                         class="text-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }} {{ app()->getLocale() === 'ar' ? 'mr-4' : 'ml-4' }}">
                                         <div class="font-bold text-primary-600 whitespace-nowrap">
-                                            {{ number_format($service->price, 3) }} OMR</div>
+                                            {{ number_format($service->price, 3) }} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></div>
                                         <div class="text-xs text-gray-500">{{ $service->unit }}</div>
                                     </div>
                                 </div>
@@ -597,7 +599,8 @@
                     <!-- Price -->
                     <div class="pb-6 mb-6 text-center border-b border-gray-200">
                         <div class="mb-2 text-4xl font-bold text-primary-600">
-                            {{ number_format($hall->price_per_slot, 3) }} <span class="text-xl">OMR</span>
+                            {{ number_format($hall->price_per_slot, 3) }} <span class="text-xl"><img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-6 h-6 -mt-3"></span>
                         </div>
                         <div class="text-sm text-gray-600">{{ __('halls.per_day') }}</div>
                     </div>
@@ -704,7 +707,8 @@
                                     <div>
                                         <span
                                             class="text-xl font-bold text-primary-600">{{ number_format($similar->price_per_slot, 3) }}</span>
-                                        <span class="text-sm text-gray-600"> OMR</span>
+                                        <span class="text-sm text-gray-600"> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                                     </div>
                                     <span class="text-sm font-medium text-primary-600">{{ __('halls.view_details') }}
                                         →</span>
@@ -724,7 +728,8 @@
                 <div>
                     <div class="mb-1 text-xs text-gray-600">{{ __('halls.price_per_day') }}</div>
                     <div class="text-2xl font-bold text-primary-600">
-                        {{ number_format($hall->price_per_slot, 3) }} <span class="text-sm">OMR</span>
+                        {{ number_format($hall->price_per_slot, 3) }} <span class="text-sm"><img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                     </div>
                 </div>
                 @auth

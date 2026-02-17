@@ -80,14 +80,14 @@
     @endif
 
     {{-- ── HALL IMAGE ── --}}
-    <a href="{{ route('customer.halls.show', $hall->slug) }}" class="block relative h-48 sm:h-52 overflow-hidden bg-gray-200">
+    <a href="{{ route('customer.halls.show', $hall->slug) }}" class="relative block h-48 overflow-hidden bg-gray-200 sm:h-52">
         @if ($hall->featured_image)
             <img src="{{ asset('storage/' . $hall->featured_image) }}"
                  alt="{{ $hallName }}"
-                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                 class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
                  loading="lazy">
         @else
-            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300">
+            <div class="flex items-center justify-center w-full h-full bg-gradient-to-br from-gray-100 to-gray-300">
                 <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
@@ -98,13 +98,15 @@
         <div class="absolute bottom-3 {{ app()->getLocale() === 'ar' ? 'left-3' : 'right-3' }}">
             @if ($displayPrice !== null)
                 <span class="inline-flex items-baseline gap-0.5 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-md font-bold text-brand-700">
-                    <span class="text-[10px] font-medium text-gray-500">{{ __('OMR') }}</span>
+                    <span class="text-[10px] font-medium text-gray-500"><img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                     <span class="text-lg">{{ number_format($displayPrice, 3) }}</span>
                 </span>
             @else
                 <span class="inline-flex items-baseline gap-0.5 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-md font-bold text-gray-600">
                     <span class="text-[10px] font-medium text-gray-400">{{ __('halls.starting_from') }}</span>
-                    <span class="text-[10px] font-medium text-gray-500 {{ app()->getLocale() === 'ar' ? 'mr-1' : 'ml-1' }}">{{ __('OMR') }}</span>
+                    <span class="text-[10px] font-medium text-gray-500 {{ app()->getLocale() === 'ar' ? 'mr-1' : 'ml-1' }}"><img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                        class="inline w-5 h-5 -mt-1"></span>
                     <span class="text-lg">{{ number_format((float) ($hall->price_per_slot ?? 0), 3) }}</span>
                 </span>
             @endif
@@ -112,7 +114,7 @@
 
         {{-- Wishlist / favorite heart (top-right) --}}
         <div class="absolute top-3 {{ app()->getLocale() === 'ar' ? 'left-3' : 'right-3' }} z-10">
-            <button type="button" class="w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100" style="opacity: 0.7;">
+            <button type="button" class="flex items-center justify-center w-8 h-8 transition rounded-full shadow-md opacity-0 bg-white/80 backdrop-blur-sm hover:bg-white group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100" style="opacity: 0.7;">
                 <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
@@ -124,8 +126,8 @@
     <div class="p-4">
         {{-- Name + Rating row --}}
         <div class="flex items-start justify-between gap-2 mb-1.5">
-            <a href="{{ route('customer.halls.show', $hall->slug) }}" class="flex-1 min-w-0 hover:text-brand-600 transition">
-                <h3 class="text-base font-bold text-gray-800 leading-tight line-clamp-1">{{ $hallName }}</h3>
+            <a href="{{ route('customer.halls.show', $hall->slug) }}" class="flex-1 min-w-0 transition hover:text-brand-600">
+                <h3 class="text-base font-bold leading-tight text-gray-800 line-clamp-1">{{ $hallName }}</h3>
             </a>
             @if ((float) ($hall->average_rating ?? 0) > 0)
                 <div class="flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 rounded-md">
@@ -138,7 +140,7 @@
         </div>
 
         {{-- Location --}}
-        <div class="flex items-center gap-1 text-sm text-gray-500 mb-1">
+        <div class="flex items-center gap-1 mb-1 text-sm text-gray-500">
             <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -147,7 +149,7 @@
         </div>
 
         {{-- Capacity --}}
-        <div class="flex items-center gap-1 text-sm text-gray-500 mb-3">
+        <div class="flex items-center gap-1 mb-3 text-sm text-gray-500">
             <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
@@ -158,7 +160,7 @@
              AVAILABILITY SLOT BADGES (date search only)
              ═════════════════════════════════════════ --}}
         @if ($isDateSearch)
-            <div class="border-t border-gray-100 pt-3 mb-3">
+            <div class="pt-3 mb-3 border-t border-gray-100">
                 @if ($isAvailable && count($availSlots) > 0)
                     <div class="flex flex-wrap gap-1.5">
                         @foreach ($availSlots as $slot)
