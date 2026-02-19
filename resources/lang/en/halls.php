@@ -338,4 +338,9 @@ return [
     // ── Auth ──
     'login'               => 'Login',
     'dashboard'           => 'Dashboard',
+    'booking_created_proceed_payment' => 'Booking created successfully! Please proceed to complete payment',
+    'platform_fee'      => 'Platform Fee',
+    'service_fee'       => 'Service Fee',
+    'platform_fee_info' => 'A small fee to cover platform services and support',
+    'subtotal'          => 'Subtotal',
 ];

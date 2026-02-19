@@ -9,6 +9,7 @@ use App\Models\HallAvailability;
 use App\Models\Region;
 use App\Models\City;
 use App\Models\ExtraService;
+use App\Models\ServiceFeeSetting;
 use App\Services\InvoiceService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -488,6 +489,20 @@ class BookingResource extends Resource
                             ->readOnly()
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
+                        // ✅ Platform Fee (Service Fee) - Added to customer total
+                        Forms\Components\TextInput::make('platform_fee')
+                            ->label(__('booking.fields.platform_fee.label'))
+                            ->numeric()
+                            ->prefix('OMR')
+                            ->default(0)
+                            ->readOnly()
+                            ->helperText('Service fee charged to customer')
+                            ->extraAttributes(['class' => 'text-lg text-blue-600']),
+
+                        // Hidden fields to store fee audit data
+                        Forms\Components\Hidden::make('service_fee_type'),
+                        Forms\Components\Hidden::make('service_fee_value'),
+
                         Forms\Components\TextInput::make('commission_amount')
                             ->label(__('booking.fields.commission_amount.label'))
                             ->numeric()
@@ -774,41 +789,75 @@ class BookingResource extends Resource
         $set('total_price', $total);
     }
 
+    /**
+     * Update hall price and calculate initial platform fee
+     * 
+     * @param Set $set Filament form setter
+     * @param mixed $hallId Hall ID
+     * @param mixed $bookingDate Booking date
+     * @param mixed $timeSlot Time slot
+     */
     protected static function updateHallPrice(Set $set, $hallId, $bookingDate, $timeSlot): void
     {
         if (!$hallId || !$bookingDate || !$timeSlot) {
             return;
         }
 
-        // First, check if there's a custom price in HallAvailability
+        // Get the hall model
+        $hall = Hall::find($hallId);
+        if (!$hall) {
+            return;
+        }
+
+        // Check if there's a custom price in HallAvailability
         $availability = HallAvailability::where('hall_id', $hallId)
             ->where('date', $bookingDate)
             ->where('time_slot', $timeSlot)
             ->first();
 
         if ($availability && $availability->custom_price !== null) {
-            // Use custom price from HallAvailability
             $hallPrice = (float) $availability->custom_price;
         } else {
-            // Use default Hall price for this time slot
-            $hall = Hall::find($hallId);
-            if ($hall) {
-                $hallPrice = $hall->getPriceForSlot($timeSlot);
-            } else {
-                $hallPrice = 0;
-            }
+            $hallPrice = $hall->getPriceForSlot($timeSlot);
         }
 
+        // =====================================================================
+        // ✅ FIX: Calculate Platform Fee (Service Fee) on initial load
+        // =====================================================================
+        $platformFee = 0.0;
+        $serviceFeeType = null;
+        $serviceFeeValue = null;
+
+        $serviceFee = ServiceFeeSetting::resolveForHall($hall);
+        if ($serviceFee) {
+            $serviceFeeType = $serviceFee->fee_type->value;
+            $serviceFeeValue = (float) $serviceFee->fee_value;
+            $platformFee = $serviceFee->calculateFee($hallPrice);
+        }
+
+        // Set all pricing fields
         $set('hall_price', $hallPrice);
         $set('services_price', 0);
         $set('subtotal', $hallPrice);
+        $set('platform_fee', round($platformFee, 3));
+        $set('service_fee_type', $serviceFeeType);
+        $set('service_fee_value', $serviceFeeValue);
         $set('commission_amount', 0);
-        $set('total_amount', $hallPrice);
+        $set('total_amount', round($hallPrice + $platformFee, 3)); // ✅ Include platform fee
         $set('owner_payout', $hallPrice);
     }
 
     /**
-     * Calculate all totals
+     * Calculate all totals including platform fee
+     * 
+     * Calculation Flow:
+     *   subtotal = hall_price + services_price
+     *   platform_fee = subtotal × fee_percentage (or fixed amount)
+     *   total_amount = subtotal + platform_fee  ← Customer pays this
+     *   owner_payout = subtotal - commission_amount ← Owner receives this
+     *
+     * @param Set $set Filament form setter
+     * @param callable|Get $get Filament form getter
      */
     protected static function calculateAllTotals(Set $set, $get): void
     {
@@ -824,12 +873,13 @@ class BookingResource extends Resource
             return null;
         };
 
+        $hallId = $getValue('hall_id');
         $hallPrice = (float) ($getValue('hall_price') ?? 0);
         $extraServices = $getValue('extra_services') ?? [];
         $commissionAmount = (float) ($getValue('commission_amount') ?? 0);
 
         // Calculate services total from repeater
-        $servicesPrice = 0;
+        $servicesPrice = 0.0;
         if (is_array($extraServices)) {
             foreach ($extraServices as $service) {
                 if (is_array($service)) {
@@ -838,15 +888,45 @@ class BookingResource extends Resource
             }
         }
 
+        // Calculate subtotal (hall + services)
         $subtotal = $hallPrice + $servicesPrice;
-        //$totalAmount = $subtotal + $commissionAmount;
-        $totalAmount = $subtotal + $commissionAmount;
+
+        // =====================================================================
+        // ✅ FIX: Calculate Platform Fee (Service Fee)
+        // =====================================================================
+        // Platform fee is ADDED to the customer's total
+        // Commission is DEDUCTED from owner's payout (not added to total)
+        // =====================================================================
+        $platformFee = 0.0;
+        $serviceFeeType = null;
+        $serviceFeeValue = null;
+
+        if ($hallId) {
+            $hall = Hall::find($hallId);
+            if ($hall) {
+                $serviceFee = ServiceFeeSetting::resolveForHall($hall);
+                if ($serviceFee) {
+                    $serviceFeeType = $serviceFee->fee_type->value;
+                    $serviceFeeValue = (float) $serviceFee->fee_value;
+                    $platformFee = $serviceFee->calculateFee($subtotal);
+                }
+            }
+        }
+
+        // ✅ Total = subtotal + platform_fee (what customer pays)
+        $totalAmount = $subtotal + $platformFee;
+
+        // ✅ Owner payout = subtotal - commission (what owner receives)
         $ownerPayout = $subtotal - $commissionAmount;
 
-        $set('services_price', $servicesPrice);
-        $set('subtotal', $subtotal);
-        $set('total_amount', $totalAmount);
-        $set('owner_payout', max(0, $ownerPayout));
+        // Update all form fields
+        $set('services_price', round($servicesPrice, 3));
+        $set('subtotal', round($subtotal, 3));
+        $set('platform_fee', round($platformFee, 3));
+        $set('service_fee_type', $serviceFeeType);
+        $set('service_fee_value', $serviceFeeValue);
+        $set('total_amount', round($totalAmount, 3));
+        $set('owner_payout', max(0, round($ownerPayout, 3)));
     }
 
     /**

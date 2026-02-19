@@ -532,10 +532,7 @@ class GuestBookingController extends Controller
             }
 
             // Total amount the CUSTOMER pays (subtotal + service fee)
-            // ✅ FIX: Recalculate total after ServiceFeeSetting may have updated $platformFee.
-            // Previously commented out, causing $totalAmount to retain stale CommissionService value.
-            // Without this line: platform_fee shows correctly but total_amount excludes it.
-            $totalAmount = $subtotal + $platformFee;
+            //$totalAmount = $subtotal + $platformFee;
 
             // ==========================================================
             // 2. COMMISSION — Owner-side charge (deducted from payout)

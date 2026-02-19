@@ -27,7 +27,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
+    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
     <title>{{ __('halls.booking_confirmation') }} - {{ $booking->booking_number }}</title>
 
     <style>

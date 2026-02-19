@@ -687,22 +687,45 @@
                                 {{ is_array($hall->city->name) ? $hall->city->name[app()->getLocale()] ?? $hall->city->name['en'] : $hall->city->name }}
                             </p>
                         </div>
-
                         <!-- Pricing -->
                         <div class="py-4 space-y-3 border-t border-gray-200">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.hall_price') }}</span>
-                                <span class="font-medium text-gray-900" x-text="hallPrice.toFixed(3) ">
-
-                                </span>  <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                        class="inline w-5 h-5 -mt-1">
+                                <span class="font-medium text-gray-900" x-text="hallPrice.toFixed(3)"></span>
+                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                    class="inline w-5 h-5 -mt-1">
                             </div>
+
                             <div x-show="servicesTotal > 0" class="flex justify-between text-sm">
                                 <span class="text-gray-600">{{ __('halls.extra_services_total') }}</span>
-                                <span class="font-medium text-gray-900" x-text="servicesTotal.toFixed(3)">
+                                <span class="font-medium text-gray-900" x-text="servicesTotal.toFixed(3)"></span>
+                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                    class="inline w-5 h-5 -mt-1">
+                            </div>
 
-                                </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                        class="inline w-5 h-5 -mt-1">
+                            <!-- FIX: Platform Fee Display -->
+                            <div x-show="platformFee > 0" class="flex justify-between text-sm">
+                                <span class="text-gray-600">
+                                    <template x-if="serviceFee && serviceFee.type === 'percentage'">
+                                        <span x-text="serviceFee.name + ' (' + serviceFee.value + '%)'"></span>
+                                    </template>
+                                    <template x-if="serviceFee && serviceFee.type !== 'percentage'">
+                                        <span x-text="serviceFee.name"></span>
+                                    </template>
+                                </span>
+                                <span class="font-medium text-gray-900" x-text="platformFee.toFixed(3)"></span>
+                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                    class="inline w-5 h-5 -mt-1">
+                            </div>
+                        </div>
+
+                        <!-- Subtotal (shown when platform fee applies) -->
+                        <div x-show="platformFee > 0" class="pt-2 border-t border-gray-200">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">{{ __('halls.subtotal') }}</span>
+                                <span class="font-medium text-gray-900" x-text="subtotal.toFixed(3)"></span>
+                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                    class="inline w-5 h-5 -mt-1">
                             </div>
                         </div>
 
@@ -710,10 +733,9 @@
                         <div class="pt-4 border-t-2 border-gray-300">
                             <div class="flex items-center justify-between mb-4">
                                 <span class="text-lg font-bold text-gray-900">{{ __('halls.total') }}</span>
-                                <span class="text-2xl font-bold text-primary-600" x-text="total.toFixed(3)">
-                                </span>
-                                 <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                        class="inline w-5 h-5 -mt-1">
+                                <span class="text-2xl font-bold text-primary-600" x-text="total.toFixed(3)"></span>
+                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                    class="inline w-5 h-5 -mt-1">
                             </div>
                         </div>
 
@@ -738,9 +760,9 @@
                                                 class="text-blue-700">{{ __('advance_payment.customer_pays_advance') }}:</span>
                                             <span
                                                 class="font-bold text-blue-900">{{ number_format($hall->advance_payment_amount, 3) }}
-                                                </span>
-                                                <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                                    class="inline w-5 h-5 -mt-1">
+                                            </span>
+                                            <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                class="inline w-5 h-5 -mt-1">
                                         </div>
                                         <div class="flex justify-between">
                                             <span
@@ -749,7 +771,7 @@
                                                 x-text="(total - {{ $hall->advance_payment_amount }}).toFixed(3)">
 
                                             </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                                    class="inline w-5 h-5 -mt-1">
+                                                class="inline w-5 h-5 -mt-1">
                                         </div>
                                     </div>
                                 @else
@@ -760,8 +782,8 @@
                                                 ({{ $hall->advance_payment_percentage }}%):</span>
                                             <span class="font-bold text-blue-900"
                                                 x-text="(total * {{ $hall->advance_payment_percentage }} / 100).toFixed(3)">
-                                               </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                                    class="inline w-5 h-5 -mt-1">
+                                            </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                class="inline w-5 h-5 -mt-1">
                                         </div>
                                         <div class="flex justify-between">
                                             <span
@@ -770,7 +792,7 @@
                                                 x-text="(total - (total * {{ $hall->advance_payment_percentage }} / 100)).toFixed(3)">
 
                                             </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                                    class="inline w-5 h-5 -mt-1">
+                                                class="inline w-5 h-5 -mt-1">
                                         </div>
                                     </div>
                                 @endif
@@ -814,6 +836,11 @@
                 selectedServices: [],
                 servicesTotal: 0,
                 hallPrice: {{ $hall->price_per_slot }},
+
+                // FIX: Platform fee properties
+                serviceFee: @json($serviceFeeData ?? null),
+                platformFee: 0,
+                subtotal: {{ $hall->price_per_slot }},
                 total: {{ $hall->price_per_slot }},
                 isAvailable: false,
                 availabilityMessage: '',
@@ -823,6 +850,10 @@
 
                 init() {
                     console.log('Booking wizard initialized');
+
+                    // Calculate initial totals including platform fee
+                    this.calculateTotal();
+
                     if (this.formData.booking_date && this.formData.time_slot) {
                         this.checkAvailability();
                     }
@@ -879,7 +910,22 @@
                 },
 
                 calculateTotal() {
-                    this.total = this.hallPrice + this.servicesTotal;
+                    // Calculate subtotal (hall + services)
+                    this.subtotal = this.hallPrice + this.servicesTotal;
+
+                    // Calculate platform fee
+                    if (this.serviceFee) {
+                        if (this.serviceFee.type === 'percentage') {
+                            this.platformFee = (this.subtotal * this.serviceFee.value) / 100;
+                        } else {
+                            this.platformFee = this.serviceFee.value;
+                        }
+                    } else {
+                        this.platformFee = 0;
+                    }
+
+                    // Total = subtotal + platform fee
+                    this.total = this.subtotal + this.platformFee;
                 },
 
                 canProceed() {

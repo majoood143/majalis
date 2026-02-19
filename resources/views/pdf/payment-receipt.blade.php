@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
+    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Payment Receipt - {{ $payment->payment_reference }}</title>
     <style>

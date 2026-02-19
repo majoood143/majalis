@@ -19,6 +19,7 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\CustomerBookingConfirmationNotification;
+use App\Models\ServiceFeeSetting;
 
 /**
  * Controller for handling customer booking operations
@@ -58,7 +59,22 @@ class BookingController extends BaseController
         // Load necessary relationships
         $hall->load(['city.region', 'owner', 'activeExtraServices']);
 
-        return view('customer.book', compact('hall'));
+        $serviceFee = ServiceFeeSetting::resolveForHall($hall);
+
+        // Prepare service fee data for JavaScript consumption
+        $serviceFeeData = null;
+        if ($serviceFee) {
+            $serviceFeeData = [
+                'type'  => $serviceFee->fee_type->value,   // 'percentage' or 'fixed'
+                'value' => (float) $serviceFee->fee_value, // e.g., 5.00 for 5%
+                'name'  => $serviceFee->getTranslation('name', app()->getLocale())
+                    ?? $serviceFee->getTranslation('name', 'en')
+                    ?? __('halls.platform_fee'),
+            ];
+        }
+
+
+        return view('customer.book', compact('hall', 'serviceFee' , 'serviceFeeData'));
     }
 
     /**

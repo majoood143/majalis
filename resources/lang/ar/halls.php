@@ -341,4 +341,5 @@ return [
     'hall_rental'          => 'تأجير القاعة',
     'services'               => 'الخدمات',
     'contact_us'            => 'اتصل بنا',
+    'booking_created_proceed_payment' => 'تم إنشاء الحجز بنجاح! يرجى المتابعة لإتمام الدفع',
 ];
