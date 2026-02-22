@@ -3,12 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- FIX: Removed viewport meta — not relevant for PDF rendering --}}
     {{-- FIX: Null-safe access to $owner prevents "Undefined variable" if auth fails --}}
     <title>{{ __('owner_report.reports.pdf.title') }} - {{ ($owner ?? null)?->name ?? __('owner_report.reports.pdf.owner') }}</title>
     <style>
-        /* Base Styles */
+        /* ==============================================================
+         * Majalis - Owner Dashboard PDF Template (mPDF)
+         * ==============================================================
+         * This template is rendered by mPDF for PDF generation.
+         *
+         * FIX CHANGELOG:
+         * 1. Changed font-family from 'Tajawal' to 'tajawal' (lowercase)
+         *    → mPDF registers fonts in lowercase. Using 'Tajawal' (capital T)
+         *      causes mPDF to fall back to the default font since it can't
+         *      find a font registered as 'Tajawal' in its font data map.
+         *
+         * 2. Removed all emoji characters (💰📈📅🏢📊) from section titles
+         *    → mPDF cannot render emoji Unicode characters. They cause
+         *      "undefined character" warnings and corrupt the PDF output.
+         *      Replaced with simple text-based markers or removed entirely.
+         *
+         * 3. Removed @font-face declarations
+         *    → mPDF does NOT use CSS @font-face. Fonts are registered via
+         *      the constructor config (fontDir + fontdata). Having @font-face
+         *      in CSS causes mPDF to attempt loading the font a second time,
+         *      which can fail with permission errors.
+         *
+         * 4. Fixed .currency font-family from 'monospace' to 'tajawal'
+         *    → mPDF's monospace font doesn't support Arabic numerals well.
+         *      Using tajawal ensures consistent rendering across all text.
+         *
+         * 5. Fixed hall performance table column references:
+         *    → $hall->bookings_count (matches the SQL alias in Reports.php)
+         *    → $hall->avg_booking_value (new computed alias in query)
+         * ============================================================== */
+
+        /* Reset & Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -16,16 +46,15 @@
         }
 
         body {
-            font-family: {{ $fontFamily ?? 'Tajawal, DejaVu Sans, sans-serif' }};
+            /* FIX: Use lowercase 'tajawal' — mPDF registers fonts in lowercase.
+             * The fontdata key in PdfExportService is 'tajawal' (lowercase).
+             * CSS font-family must match this key exactly for mPDF to resolve it. */
+            font-family: tajawal, sans-serif;
             font-size: 12px;
             line-height: 1.5;
             color: #1f2937;
             direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
         }
-
-        [dir="rtl"] {
-    unicode-bidi: embed;
-}
 
         /* Header */
         .header {
@@ -88,7 +117,7 @@
             font-weight: 500;
         }
 
-        /* Stats Grid */
+        /* Stats Grid — using table layout for mPDF compatibility */
         .stats-grid {
             display: table;
             width: 100%;
@@ -122,7 +151,7 @@
         .stat-value.success { color: #059669; }
         .stat-value.primary { color: #4f46e5; }
         .stat-value.warning { color: #d97706; }
-        .stat-value.danger { color: #dc2626; }
+        .stat-value.danger  { color: #dc2626; }
 
         .stat-label {
             font-size: 11px;
@@ -143,6 +172,19 @@
             padding-bottom: 10px;
             border-bottom: 2px solid #059669;
             margin-bottom: 15px;
+        }
+
+        /* FIX: Section icon — replaces emoji characters.
+         * mPDF cannot render emoji Unicode (💰📈📅🏢📊).
+         * Using a simple colored bullet/marker instead. */
+        .section-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #059669;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
         }
 
         /* Tables */
@@ -170,16 +212,19 @@
             background: #f9fafb;
         }
 
-        .text-right { text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }}; }
+        .text-right  { text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }}; }
         .text-center { text-align: center; }
 
+        /* FIX: Changed from font-family: monospace to tajawal.
+         * mPDF's monospace font doesn't render Arabic numerals properly.
+         * Tajawal has tabular numerals that work well for currency display. */
         .currency {
-            font-family: monospace;
+            font-family: tajawal, sans-serif;
             font-weight: 600;
         }
 
         .currency.success { color: #059669; }
-        .currency.danger { color: #dc2626; }
+        .currency.danger  { color: #dc2626; }
         .currency.primary { color: #4f46e5; }
 
         /* Summary Box */
@@ -310,8 +355,13 @@
     </div>
 
     {{-- Financial Overview --}}
+    {{-- FIX: Replaced 💰 emoji with CSS .section-icon (green dot).
+         mPDF cannot render emoji — they produce empty boxes or corrupt output. --}}
     <div class="section">
-        <div class="section-title">💰 {{ __('owner_report.reports.pdf.financial_overview') }}</div>
+        <div class="section-title">
+            <span class="section-icon"></span>
+            {{ __('owner_report.reports.pdf.financial_overview') }}
+        </div>
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stat-box">
@@ -337,7 +387,10 @@
     {{-- Monthly Comparison --}}
     @if(!empty($comparison))
         <div class="section">
-            <div class="section-title">📈 {{ __('owner_report.reports.pdf.monthly_comparison') }}</div>
+            <div class="section-title">
+                <span class="section-icon"></span>
+                {{ __('owner_report.reports.pdf.monthly_comparison') }}
+            </div>
             <div class="comparison-grid">
                 <div class="comparison-box">
                     <div class="comparison-change {{ $comparison['revenue_change'] >= 0 ? 'positive' : 'negative' }}">
@@ -357,7 +410,10 @@
 
     {{-- Booking Statistics --}}
     <div class="section">
-        <div class="section-title">📅 {{ __('owner_report.reports.pdf.booking_stats') }}</div>
+        <div class="section-title">
+            <span class="section-icon"></span>
+            {{ __('owner_report.reports.pdf.booking_stats') }}
+        </div>
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stat-box">
@@ -401,7 +457,10 @@
     {{-- Hall Performance --}}
     @if($hallPerformance->isNotEmpty())
         <div class="section page-break">
-            <div class="section-title">🏢 {{ __('owner_report.reports.pdf.hall_performance') }}</div>
+            <div class="section-title">
+                <span class="section-icon"></span>
+                {{ __('owner_report.reports.pdf.hall_performance') }}
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -415,14 +474,25 @@
                 <tbody>
                     @foreach($hallPerformance as $index => $hall)
                         @php
-                            $hallName = is_array($hall->name) ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? '') : $hall->name;
+                            // Handle Spatie translatable name field
+                            $hallName = is_array($hall->name)
+                                ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? '')
+                                : $hall->name;
                         @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $hallName }}</td>
+                            {{-- FIX: Use 'bookings_count' — matches the SQL alias
+                                 in Reports::hallPerformance() query.
+                                 Previous template used 'bookings_count' but query
+                                 aliased as 'total_bookings'. Now both use 'bookings_count'. --}}
                             <td class="text-center">{{ $hall->bookings_count }}</td>
                             <td class="text-right currency success">{{ number_format((float) $hall->total_revenue, 3) }} OMR</td>
-                            <td class="text-right currency">{{ number_format((float) $hall->avg_booking_value, 3) }} OMR</td>
+                            {{-- FIX: Use 'avg_booking_value' — now computed in the
+                                 Reports::hallPerformance() query via AVG(total_amount).
+                                 Previously this column didn't exist in the query result,
+                                 causing a null/error when rendered. --}}
+                            <td class="text-right currency">{{ number_format((float) ($hall->avg_booking_value ?? 0), 3) }} OMR</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -440,7 +510,10 @@
 
     {{-- Hall Summary --}}
     <div class="section">
-        <div class="section-title">📊 {{ __('owner_report.reports.pdf.hall_summary') }}</div>
+        <div class="section-title">
+            <span class="section-icon"></span>
+            {{ __('owner_report.reports.pdf.hall_summary') }}
+        </div>
         <div class="stats-grid">
             <div class="stats-row">
                 <div class="stat-box">
@@ -453,14 +526,18 @@
                 </div>
                 <div class="stat-box">
                     @php
-                        $avgPerHall = $stats['total_halls'] > 0 ? $stats['total_bookings'] / $stats['total_halls'] : 0;
+                        $avgPerHall = $stats['total_halls'] > 0
+                            ? $stats['total_bookings'] / $stats['total_halls']
+                            : 0;
                     @endphp
                     <div class="stat-value">{{ number_format($avgPerHall, 1) }}</div>
                     <div class="stat-label">{{ __('owner_report.reports.pdf.avg_bookings_per_hall') }}</div>
                 </div>
                 <div class="stat-box">
                     @php
-                        $avgEarningsPerHall = $stats['total_halls'] > 0 ? $stats['total_earnings'] / $stats['total_halls'] : 0;
+                        $avgEarningsPerHall = $stats['total_halls'] > 0
+                            ? $stats['total_earnings'] / $stats['total_halls']
+                            : 0;
                     @endphp
                     <div class="stat-value success">{{ number_format($avgEarningsPerHall, 3) }}</div>
                     <div class="stat-label">{{ __('owner_report.reports.pdf.avg_earnings_per_hall') }} (OMR)</div>

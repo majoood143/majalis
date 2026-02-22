@@ -12,10 +12,26 @@ use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware to set application locale based on user preference
+ * Middleware to set application locale based on user preference.
  *
- * This middleware handles locale detection and setting with proper
- * null-safety for Filament admin panel compatibility
+ * Handles locale detection and setting with proper null-safety
+ * for Filament admin panel compatibility.
+ *
+ * Priority order:
+ *   1. URL parameter (?locale= or ?lang=) — highest priority
+ *   2. Session stored locale (persists across requests)
+ *   3. Authenticated user's language_preference
+ *   4. Default app locale (config fallback)
+ *
+ * FIX APPLIED (2026-02-22):
+ *   ✅ Checks BOTH ?locale= AND ?lang= query parameters
+ *   ✅ Session locale takes priority over user DB preference
+ *      (so clicking the switcher actually sticks)
+ *   ✅ Redirects to clean URL after setting locale in session
+ *      (prevents bookmark/share issues with ?lang= in URL)
+ *   ✅ Fixed redirect()->response() crash in expired session handler
+ *
+ * @package App\Http\Middleware
  */
 class SetUserLanguage
 {
@@ -23,68 +39,112 @@ class SetUserLanguage
      * Handle an incoming request.
      *
      * Sets the application locale based on user preference or session
-     * with proper null-safety checks for Filament authentication flow
+     * with proper null-safety checks for Filament authentication flow.
      *
-     * @param Request $request
-     * @param Closure $next
+     * @param  Request  $request
+     * @param  Closure  $next
      * @return Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check for expired session before processing
+        // ─────────────────────────────────────────────────────────
+        // GUARD: Check for expired session before processing
+        // ─────────────────────────────────────────────────────────
         if ($this->hasExpiredSession($request)) {
             $request->session()->flush();
             Auth::logout();
 
-            // Get the appropriate redirect URL based on context
             $redirectUrl = $this->getRedirectUrlForExpiredSession($request);
 
-            // Convert Livewire Redirector to Response
-            return redirect($redirectUrl)->response($request);
+            // FIX: redirect() already returns a valid RedirectResponse
+            // The old ->response($request) call doesn't exist in Laravel 12
+            return redirect($redirectUrl);
         }
 
         // Initialize locale variable
         $locale = null;
 
+        // ─────────────────────────────────────────────────────────
         // STEP 1: Check URL parameter first (highest priority)
-        $urlLocale = $request->get('locale');
+        //
+        // FIX: Check BOTH ?locale= (used by Filament panels) AND
+        //      ?lang= (used by customer blade templates).
+        // ─────────────────────────────────────────────────────────
+        $urlLocale = $request->query('locale') ?? $request->query('lang');
 
         if ($urlLocale && in_array($urlLocale, $this->getAvailableLocales(), true)) {
-            // Store locale in session if provided via URL
+            // Store in session — this is the source of truth going forward
             Session::put('locale', $urlLocale);
             $locale = $urlLocale;
 
-            // STEP 2: Safely update user preference if authenticated
-            // Only update if user is fully loaded and not in authentication flow
+            // Attempt to persist to user's DB record (fire-and-forget)
             $this->updateUserLanguagePreference($urlLocale);
+
+            // ─────────────────────────────────────────────────────
+            // FIX: Redirect to the SAME URL without the lang/locale
+            // query param. This ensures:
+            //   a) The session holds the locale (sticky across pages)
+            //   b) The URL stays clean (no ?lang=ar in bookmarks)
+            //   c) Browser back/forward doesn't flip languages
+            // ─────────────────────────────────────────────────────
+            $cleanUrl = $this->removeLocaleQueryParams($request);
+
+            // Only redirect if the URL actually changed (avoid infinite loop)
+            if ($cleanUrl !== $request->fullUrl()) {
+                // Set locale before redirect so the redirected request
+                // picks it up from session immediately
+                App::setLocale($locale);
+                $this->setTextDirection($locale);
+
+                return redirect($cleanUrl);
+            }
         }
-        // STEP 3: Check authenticated user with null-safety
-        elseif ($this->hasAuthenticatedUser()) {
-            // Use null-safe operator to access user property
+
+        // ─────────────────────────────────────────────────────────
+        // STEP 2: Check session (persists the user's last choice)
+        //
+        // FIX: Session now takes priority OVER the user's DB
+        // language_preference. This is critical because:
+        //   - The user clicks EN → session = 'en'
+        //   - Next request: if we check DB first and DB still
+        //     says 'ar' (update failed silently), the switch
+        //     appears broken.
+        //   - By checking session first, the click always works.
+        // ─────────────────────────────────────────────────────────
+        if (! $locale && Session::has('locale')) {
+            $sessionLocale = Session::get('locale');
+            if (in_array($sessionLocale, $this->getAvailableLocales(), true)) {
+                $locale = $sessionLocale;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────
+        // STEP 3: Check authenticated user's DB preference
+        // (only if session didn't have a locale)
+        // ─────────────────────────────────────────────────────────
+        if (! $locale && $this->hasAuthenticatedUser()) {
             $user = $this->getAuthenticatedUser();
+            $userLocale = $user?->language_preference;
 
-            // Safely get language preference with fallback
-            $locale = $user?->language_preference ?? Session::get('locale') ?? config('app.locale', 'ar');
-
-            // Only store in session if we got a valid locale
-            if ($locale) {
+            if ($userLocale && in_array($userLocale, $this->getAvailableLocales(), true)) {
+                $locale = $userLocale;
+                // Sync to session so future requests use session path
                 Session::put('locale', $locale);
             }
         }
-        // STEP 4: Fall back to session locale for guests
-        elseif (Session::has('locale')) {
-            $locale = Session::get('locale');
-        }
-        // STEP 5: Use default locale as final fallback
-        else {
+
+        // ─────────────────────────────────────────────────────────
+        // STEP 4: Use default locale as final fallback
+        // ─────────────────────────────────────────────────────────
+        if (! $locale) {
             $locale = config('app.locale', 'en');
         }
 
-        // STEP 6: Validate and set locale
-        if ($locale && in_array($locale, $this->getAvailableLocales(), true)) {
+        // ─────────────────────────────────────────────────────────
+        // STEP 5: Apply locale to the application
+        // ─────────────────────────────────────────────────────────
+        if (in_array($locale, $this->getAvailableLocales(), true)) {
             App::setLocale($locale);
-
-            // Set direction for RTL languages
             $this->setTextDirection($locale);
         }
 
@@ -92,32 +152,60 @@ class SetUserLanguage
     }
 
     /**
-     * Check if session has expired
+     * Remove locale/lang query parameters from the current URL.
      *
-     * @param Request $request
+     * Returns a clean URL suitable for redirect after storing
+     * the locale in the session.
+     *
+     * @param  Request  $request
+     * @return string
+     */
+    protected function removeLocaleQueryParams(Request $request): string
+    {
+        // Get all current query parameters
+        $query = $request->query();
+
+        // Remove both locale and lang keys
+        unset($query['locale'], $query['lang']);
+
+        // Rebuild the URL
+        $baseUrl = $request->url(); // URL without query string
+
+        if (! empty($query)) {
+            return $baseUrl . '?' . http_build_query($query);
+        }
+
+        return $baseUrl;
+    }
+
+    /**
+     * Check if session has expired.
+     *
+     * @param  Request  $request
      * @return bool
      */
     protected function hasExpiredSession(Request $request): bool
     {
-        // Don't check expiration for login page or public pages
-        if ($request->routeIs('login') || $request->routeIs('logout') ||
-            $request->routeIs('password.*') || $request->is('auth/*')) {
+        // Don't check expiration for login/logout/password pages
+        if (
+            $request->routeIs('login') || $request->routeIs('logout') ||
+            $request->routeIs('password.*') || $request->is('auth/*')
+        ) {
             return false;
         }
 
-        // Check if user was previously authenticated but session expired
-        if ($request->session()->has('_token')) {
-            // Check session lifetime
-            if ($request->session()->has('last_activity')) {
-                $lastActivity = $request->session()->get('last_activity');
-                $sessionLifetime = config('session.lifetime', 120); // minutes
+        // Check if session has a last_activity timestamp
+        if ($request->session()->has('_token') && $request->session()->has('last_activity')) {
+            $lastActivity = $request->session()->get('last_activity');
+            $sessionLifetime = (int) config('session.lifetime', 120); // minutes
 
-                if (now()->diffInMinutes($lastActivity) > $sessionLifetime) {
-                    return true;
-                }
+            if (now()->diffInMinutes($lastActivity) > $sessionLifetime) {
+                return true;
             }
+        }
 
-            // Update last activity timestamp
+        // Update last activity timestamp
+        if ($request->session()->has('_token')) {
             $request->session()->put('last_activity', now());
         }
 
@@ -125,54 +213,49 @@ class SetUserLanguage
     }
 
     /**
-     * Get redirect URL for expired session based on context
+     * Get redirect URL for expired session based on context.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return string
      */
     protected function getRedirectUrlForExpiredSession(Request $request): string
     {
-        // Check if this is an AJAX/Livewire request
-        if ($request->header('X-Livewire') || $request->ajax() || $request->wantsJson()) {
-            // For AJAX requests, we can't redirect normally, but middleware needs a Response
-            return route('login');
-        }
-
-        // Check if this is a Filament admin request
+        // Filament admin panel → admin login
         if (str_starts_with($request->path(), 'admin')) {
             return route('filament.admin.auth.login');
         }
 
-        // Default login route
+        // Filament owner panel → owner login
+        if (str_starts_with($request->path(), 'owner')) {
+            return route('filament.owner.auth.login');
+        }
+
+        // Default → customer login
         return route('login');
     }
 
     /**
-     * Check if user is authenticated with null-safety
+     * Check if user is authenticated with null-safety.
      *
-     * This method safely checks authentication without causing
-     * errors during Filament's authentication flow
+     * Safely checks authentication without causing errors
+     * during Filament's authentication flow.
      *
      * @return bool
      */
     protected function hasAuthenticatedUser(): bool
     {
         try {
-            // Get the appropriate guard for the current request
             $guard = $this->getGuardName();
 
-            // Check if user is authenticated on this guard
-            return Auth::guard($guard)->check() && Auth::guard($guard)->user() !== null;
+            return Auth::guard($guard)->check()
+                && Auth::guard($guard)->user() !== null;
         } catch (\Exception $e) {
-            // If any error occurs during auth check, safely return false
             return false;
         }
     }
 
     /**
-     * Get authenticated user safely
-     *
-     * Returns the authenticated user or null without throwing exceptions
+     * Get authenticated user safely.
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
@@ -187,54 +270,49 @@ class SetUserLanguage
     }
 
     /**
-     * Update user language preference safely
+     * Update user language preference safely.
      *
-     * Only updates if user is authenticated and the update is safe
-     * Wrapped in try-catch to prevent middleware failures
+     * Fire-and-forget: wrapped in try-catch so a DB failure
+     * never breaks the language switch (session is the real
+     * source of truth).
      *
-     * @param string $locale
+     * @param  string  $locale
      * @return void
      */
     protected function updateUserLanguagePreference(string $locale): void
     {
         try {
-            // Only update if user exists and has the language_preference column
             $user = $this->getAuthenticatedUser();
 
             if ($user && method_exists($user, 'update') && $user->exists) {
-                // Check if language_preference attribute exists on model
-                if (array_key_exists('language_preference', $user->getAttributes()) ||
-                    $user->isFillable('language_preference')) {
+                if (
+                    array_key_exists('language_preference', $user->getAttributes()) ||
+                    $user->isFillable('language_preference')
+                ) {
                     $user->update(['language_preference' => $locale]);
                 }
             }
         } catch (\Exception $e) {
-            // Silently fail - don't break the request if update fails
-            // You can log this if needed: Log::warning('Failed to update user language preference', ['error' => $e->getMessage()]);
+            // Silently fail — session already has the correct locale
         }
     }
 
     /**
-     * Get the guard name for current request
-     *
-     * Detects if request is for Filament panel and uses appropriate guard
+     * Get the guard name for current request.
      *
      * @return string|null
      */
     protected function getGuardName(): ?string
     {
-        // Check if this is a Filament admin request
         if (str_starts_with(request()->path(), 'admin')) {
-            // Use Filament's configured guard (check your filament panel config)
             return config('filament.auth.guard', 'web');
         }
 
-        // Default to web guard
         return 'web';
     }
 
     /**
-     * Get available locales from configuration
+     * Get available locales from configuration.
      *
      * @return array<string>
      */
@@ -244,22 +322,18 @@ class SetUserLanguage
     }
 
     /**
-     * Set text direction based on locale
+     * Set text direction based on locale.
      *
-     * Shares the text direction with all views for proper RTL support
+     * Shares the text direction with all views for proper RTL support.
      *
-     * @param string $locale
+     * @param  string  $locale
      * @return void
      */
     protected function setTextDirection(string $locale): void
     {
-        // Define RTL languages
         $rtlLocales = ['ar', 'he', 'fa', 'ur'];
-
-        // Determine direction
         $direction = in_array($locale, $rtlLocales, true) ? 'rtl' : 'ltr';
 
-        // Share direction with all views
         view()->share('textDirection', $direction);
     }
 }

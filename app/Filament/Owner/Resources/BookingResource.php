@@ -581,7 +581,7 @@ class BookingResource extends OwnerResource
                             });
                     }))
                     ->toggle(),
-                    
+
             // Add booking type filter
             GuestBookingComponents::bookingTypeFilter(),
                     ])
@@ -694,7 +694,7 @@ class BookingResource extends OwnerResource
             //             ->send();
             //     }),
 
-            
+
 
             Tables\Actions\Action::make('reject')
                 ->label(__('Reject'))
@@ -821,9 +821,9 @@ class BookingResource extends OwnerResource
                     ->color('gray')
                     ->button(),
 
-                
+
             ])
-            
+
             ->bulkActions([
                 // Owners have limited bulk actions
                 Tables\Actions\BulkActionGroup::make([
@@ -840,7 +840,7 @@ class BookingResource extends OwnerResource
                         }),
                 ]),
             ])
-            
+
             ->defaultSort('booking_date', 'desc')
             ->poll('30s')
             ->striped()
@@ -1049,13 +1049,14 @@ class BookingResource extends OwnerResource
                     ]),
 
                 // Extra Services Section
-                Infolists\Components\Section::make(__('owner_booking.infolist.sections.extra_services'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.extra_services.extra_services'))
                     ->icon('heroicon-o-sparkles')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('extraServices')
+                        ->label(__('owner_booking.infolist.sections.extra_services.extra_services'))
                             ->schema([
                                 Infolists\Components\TextEntry::make('service_name')
-                                    ->label(__('owner_booking.infolist.sections.extra_services.service'))
+                                    ->label(__('owner_booking.infolist.sections.extra_services.extra_services'))
                                     ->formatStateUsing(function ($state): string {
                                         if (is_string($state)) {
                                             $decoded = json_decode($state, true);

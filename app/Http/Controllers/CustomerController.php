@@ -266,6 +266,8 @@ class CustomerController extends Controller
         };
     }
 
+
+
     /**
      * Get the display price for sorting purposes.
      *
@@ -322,5 +324,53 @@ class CustomerController extends Controller
         ];
 
         return view('customer.dashboard', compact('upcomingBookings', 'stats'));
+    }
+
+    /**
+     * Display user bookings
+     */
+    public function bookings(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = Booking::query()
+            ->where('user_id', $user->id)
+            ->with(['hall.city']);
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date range
+        if ($request->filled('from_date')) {
+            $query->where('booking_date', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->where('booking_date', '<=', $request->to_date);
+        }
+
+        $bookings = $query->latest('booking_date')->paginate(10)->withQueryString();
+
+        return view('customer.bookings', compact('bookings'));
+    }
+
+    /**
+     * Display booking details
+     */
+    public function bookingDetails(Booking $booking)
+    {
+        // Ensure user owns this booking
+        if ($booking->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $booking->load([
+            'hall.city',
+            'hall.owner',
+            'extraServices'
+        ]);
+
+        return view('customer.booking-details', compact('booking'));
     }
 }

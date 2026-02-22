@@ -56,6 +56,7 @@ Route::get('/test-pdf-arabic', function () {
     return $pdf->download('test.pdf');
 });
 
+
 Route::get('/test-tajawal-fixed', function () {
     try {
         // Check if font files exist

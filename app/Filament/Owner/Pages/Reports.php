@@ -7,7 +7,7 @@ namespace App\Filament\Owner\Pages;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Services\ReportService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PdfExportService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms;
@@ -20,7 +20,9 @@ use Filament\Support\Enums\MaxWidth;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use App\Models\User;
 
@@ -29,136 +31,84 @@ use App\Models\User;
  *
  * Comprehensive reporting dashboard for hall owners.
  * Includes earnings reports, booking analytics, hall performance,
- * and export capabilities.
+ * and export capabilities (CSV + PDF via mPDF).
+ *
+ * FIX CHANGELOG:
+ * ──────────────
+ * 1. REMOVED: `use Barryvdh\DomPDF\Facade\Pdf` — project uses mPDF now
+ * 2. REMOVED: `use Mpdf\Mpdf` — handled internally by PdfExportService
+ * 3. REMOVED: Duplicate 'exportPdf' header action (was still using DomPDF)
+ * 4. FIXED: hallPerformance() query — added 'bookings_count' and
+ *    'avg_booking_value' aliases to match what the Blade template expects
+ * 5. ADDED: Font cache clearing on first PDF export to ensure config changes
+ *    take effect (stale cache was the #1 cause of font rendering issues)
  *
  * @package App\Filament\Owner\Pages
  *
- * @property-read array $dashboardStats Dashboard statistics computed property
- * @property-read array $revenueTrend Revenue trend data computed property
- * @property-read array $bookingDistribution Booking status distribution computed property
- * @property-read Collection $hallPerformance Hall performance data computed property
- * @property-read array $timeSlotDistribution Time slot distribution computed property
- * @property-read array $monthlyComparison Monthly comparison data computed property
+ * @property-read array $dashboardStats
+ * @property-read array $revenueTrend
+ * @property-read array $bookingDistribution
+ * @property-read Collection $hallPerformance
+ * @property-read array $timeSlotDistribution
+ * @property-read array $monthlyComparison
  */
 class Reports extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    /**
-     * The view for this page.
-     *
-     * @var string
-     */
+    /** @var string */
     protected static string $view = 'filament.owner.pages.reports';
 
-    /**
-     * The navigation icon.
-     *
-     * @var string|null
-     */
+    /** @var string|null */
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
 
-    /**
-     * The navigation group.
-     *
-     * @var string|null
-     */
+    /** @var string|null */
     protected static ?string $navigationGroup = 'Analytics';
 
-    /**
-     * The navigation sort order.
-     *
-     * @var int|null
-     */
+    /** @var int|null */
     protected static ?int $navigationSort = 10;
 
-    /**
-     * The page slug.
-     *
-     * @var string|null
-     */
+    /** @var string|null */
     protected static ?string $slug = 'reports';
 
-    /**
-     * Report date range start.
-     *
-     * @var string|null
-     */
+    /** Report date range start. */
     public ?string $startDate = null;
 
-    /**
-     * Report date range end.
-     *
-     * @var string|null
-     */
+    /** Report date range end. */
     public ?string $endDate = null;
 
-    /**
-     * Selected hall filter.
-     *
-     * FIX: This property is now actively used in all computed properties
-     * to filter data by specific hall when selected.
-     *
-     * @var int|null
-     */
+    /** Selected hall filter — used in all computed properties. */
     public ?int $hallId = null;
 
-    /**
-     * Active report tab.
-     *
-     * @var string
-     */
+    /** Active report tab. */
     public string $activeTab = 'overview';
 
     /**
      * Mount the page.
      *
-     * Initializes the date range to current month by default.
-     *
      * @return void
      */
     public function mount(): void
     {
-        // Set default date range to current month
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
 
-    /**
-     * Get the page title.
-     *
-     * @return string
-     */
     public function getTitle(): string
     {
         return __('owner_report.reports.title');
     }
 
-    /**
-     * Get the page heading.
-     *
-     * @return string
-     */
     public function getHeading(): string
     {
         return __('owner_report.reports.heading');
     }
 
-    /**
-     * Get the page subheading.
-     *
-     * @return string|null
-     */
     public function getSubheading(): ?string
     {
         return __('owner_report.reports.subheading');
     }
 
-    /**
-     * Get the navigation label.
-     *
-     * @return string
-     */
     public static function getNavigationLabel(): string
     {
         return __('owner_report.reports.nav_label');
@@ -167,10 +117,8 @@ class Reports extends Page implements HasForms
     /**
      * Define the filter form.
      *
-     * Creates the form with date pickers, hall selector, and preset options.
-     *
-     * @param Form $form The form instance
-     * @return Form The configured form
+     * @param Form $form
+     * @return Form
      */
     public function form(Form $form): Form
     {
@@ -178,55 +126,50 @@ class Reports extends Page implements HasForms
             ->schema([
                 Forms\Components\Grid::make(5)
                     ->schema([
-                        // Start date filter with live updates
                         Forms\Components\DatePicker::make('startDate')
                             ->label(__('owner_report.reports.filters.start_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
                             ->maxDate(now())
                             ->live()
-                            ->afterStateUpdated(fn () => $this->loadData()),
+                            ->afterStateUpdated(fn() => $this->loadData()),
 
-                        // End date filter with live updates
                         Forms\Components\DatePicker::make('endDate')
                             ->label(__('owner_report.reports.filters.end_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
                             ->maxDate(now())
                             ->live()
-                            ->afterStateUpdated(fn () => $this->loadData()),
+                            ->afterStateUpdated(fn() => $this->loadData()),
 
-                        // Hall selector for filtering by specific hall
                         Forms\Components\Select::make('hallId')
                             ->label(__('owner_report.reports.filters.hall'))
-                            ->options(fn () => $this->getOwnerHalls())
+                            ->options(fn() => $this->getOwnerHalls())
                             ->placeholder(__('owner_report.reports.filters.all_halls'))
                             ->live()
-                            ->afterStateUpdated(fn () => $this->loadData()),
+                            ->afterStateUpdated(fn() => $this->loadData()),
 
-                        // Quick preset selector for common date ranges
                         Forms\Components\Select::make('preset')
                             ->label(__('owner_report.reports.filters.preset'))
                             ->options([
-                                'today' => __('owner_report.reports.presets.today'),
-                                'yesterday' => __('owner_report.reports.presets.yesterday'),
-                                'this_week' => __('owner_report.reports.presets.this_week'),
-                                'last_week' => __('owner_report.reports.presets.last_week'),
-                                'this_month' => __('owner_report.reports.presets.this_month'),
-                                'last_month' => __('owner_report.reports.presets.last_month'),
+                                'today'        => __('owner_report.reports.presets.today'),
+                                'yesterday'    => __('owner_report.reports.presets.yesterday'),
+                                'this_week'    => __('owner_report.reports.presets.this_week'),
+                                'last_week'    => __('owner_report.reports.presets.last_week'),
+                                'this_month'   => __('owner_report.reports.presets.this_month'),
+                                'last_month'   => __('owner_report.reports.presets.last_month'),
                                 'this_quarter' => __('owner_report.reports.presets.this_quarter'),
-                                'this_year' => __('owner_report.reports.presets.this_year'),
+                                'this_year'    => __('owner_report.reports.presets.this_year'),
                             ])
                             ->placeholder(__('owner_report.reports.filters.custom'))
                             ->live()
-                            ->afterStateUpdated(fn ($state) => $this->applyPreset($state)),
+                            ->afterStateUpdated(fn($state) => $this->applyPreset($state)),
 
-                        // Refresh action button
                         Forms\Components\Actions::make([
                             Forms\Components\Actions\Action::make('refresh')
                                 ->label(__('owner_report.reports.actions.refresh'))
                                 ->icon('heroicon-o-arrow-path')
-                                ->action(fn () => $this->loadData()),
+                                ->action(fn() => $this->loadData()),
                         ])->verticallyAlignEnd(),
                     ]),
             ]);
@@ -235,18 +178,16 @@ class Reports extends Page implements HasForms
     /**
      * Get owner's halls for filter dropdown.
      *
-     * Retrieves all halls belonging to the current owner with proper
-     * locale handling for translatable names.
-     *
-     * @return array<int, string> Array of hall names keyed by ID
+     * @return array<int, string>
      */
     protected function getOwnerHalls(): array
     {
         return Hall::where('owner_id', Auth::id())
             ->pluck('name', 'id')
             ->map(function ($name) {
-                // Handle translatable name field
-                return is_array($name) ? ($name[app()->getLocale()] ?? $name['en'] ?? '') : $name;
+                return is_array($name)
+                    ? ($name[app()->getLocale()] ?? $name['en'] ?? '')
+                    : $name;
             })
             ->toArray();
     }
@@ -254,16 +195,10 @@ class Reports extends Page implements HasForms
     /**
      * Get the hall IDs to filter by.
      *
-     * FIX: Central helper that resolves which hall IDs should be used
-     * in all queries. If a specific hall is selected (and belongs to
-     * the current owner), returns only that hall's ID. Otherwise,
-     * returns all hall IDs for the owner.
-     *
-     * @return Collection<int, int> Collection of hall IDs
+     * @return Collection<int, int>
      */
     protected function getFilteredHallIds(): Collection
     {
-        // If a specific hall is selected, validate ownership and return it
         if ($this->hallId) {
             $hallBelongsToOwner = Hall::where('id', $this->hallId)
                 ->where('owner_id', Auth::id())
@@ -274,16 +209,13 @@ class Reports extends Page implements HasForms
             }
         }
 
-        // Default: return all halls for the owner
         return Hall::where('owner_id', Auth::id())->pluck('id');
     }
 
     /**
      * Apply date preset.
      *
-     * Sets the start and end dates based on the selected preset option.
-     *
-     * @param string|null $preset The preset identifier
+     * @param string|null $preset
      * @return void
      */
     public function applyPreset(?string $preset): void
@@ -292,17 +224,16 @@ class Reports extends Page implements HasForms
             return;
         }
 
-        // Determine date range based on preset
         [$start, $end] = match ($preset) {
-            'today' => [now()->startOfDay(), now()],
-            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
-            'this_week' => [now()->startOfWeek(), now()],
-            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
-            'this_month' => [now()->startOfMonth(), now()],
-            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'today'        => [now()->startOfDay(), now()],
+            'yesterday'    => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
+            'this_week'    => [now()->startOfWeek(), now()],
+            'last_week'    => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
+            'this_month'   => [now()->startOfMonth(), now()],
+            'last_month'   => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
             'this_quarter' => [now()->startOfQuarter(), now()],
-            'this_year' => [now()->startOfYear(), now()],
-            default => [now()->startOfMonth(), now()],
+            'this_year'    => [now()->startOfYear(), now()],
+            default        => [now()->startOfMonth(), now()],
         };
 
         $this->startDate = $start->format('Y-m-d');
@@ -313,19 +244,10 @@ class Reports extends Page implements HasForms
     /**
      * Load/refresh report data.
      *
-     * Clears computed property caches to force data refresh
-     * and dispatches event to reinitialize charts.
-     *
-     * IMPORTANT: In Livewire 3, computed properties are cached per-request.
-     * We use unset() to clear the cached values which forces recalculation
-     * on next access.
-     *
      * @return void
      */
     public function loadData(): void
     {
-        // Clear computed property caches using Livewire 3 approach
-        // This forces the computed properties to recalculate on next access
         unset(
             $this->dashboardStats,
             $this->revenueTrend,
@@ -335,73 +257,43 @@ class Reports extends Page implements HasForms
             $this->monthlyComparison
         );
 
-        // Dispatch event to reinitialize charts in JavaScript
-        // This is critical for charts to update with new data
         $this->dispatch('chartsDataUpdated');
     }
 
     /**
      * Set the active tab.
      *
-     * Switches to the specified tab and dispatches event
-     * to reinitialize charts on the new tab.
-     *
-     * FIX: This method dispatches the event that JavaScript
-     * listens for to reinitialize Chart.js charts.
-     *
-     * @param string $tab The tab identifier to switch to
+     * @param string $tab
      * @return void
      */
     public function setActiveTab(string $tab): void
     {
         $this->activeTab = $tab;
-
-        // CRITICAL FIX: Dispatch event for chart reinitialization
-        // This event is listened to by the JavaScript in the blade template
-        // Without this, charts won't render when switching tabs
         $this->dispatch('activeTabUpdated', tab: $tab);
     }
 
     /**
      * Get all chart data for JavaScript consumption.
      *
-     * Called by the @script block via `$wire.getChartData()` to fetch
-     * fresh data from the server. This ensures charts always reflect
-     * the current filter state (date range, hall selection).
-     *
-     * Returns the existing #[Computed] properties aggregated into a
-     * single array, using the key names the JavaScript expects.
-     *
-     * @return array{
-     *     revenueTrend: array{labels: array, revenue: array, payout: array, bookings: array},
-     *     bookingDistribution: array{labels: array, data: array},
-     *     timeSlotDistribution: array{labels: array, data: array}
-     * }
+     * @return array
      */
     public function getChartData(): array
     {
         return [
-            // Earnings trend line chart data (Earnings tab)
-            'revenueTrend' => $this->revenueTrend,
-
-            // Booking status doughnut chart data (Bookings tab)
-            'bookingDistribution' => $this->bookingDistribution,
-
-            // Time slot bar chart data (Earnings tab)
+            'revenueTrend'         => $this->revenueTrend,
+            'bookingDistribution'  => $this->bookingDistribution,
             'timeSlotDistribution' => $this->timeSlotDistribution,
         ];
     }
 
+    // ======================================================================
+    // COMPUTED PROPERTIES
+    // ======================================================================
+
     /**
-     * Get dashboard statistics.
+     * Dashboard statistics — scoped to selected hall + date range.
      *
-     * Computed property that retrieves comprehensive statistics
-     * for the owner's dashboard within the selected date range.
-     *
-     * FIX: Now respects the hallId filter. When a specific hall
-     * is selected, statistics are scoped to that hall only.
-     *
-     * @return array<string, mixed> Array of dashboard statistics
+     * @return array<string, mixed>
      */
     #[Computed]
     public function dashboardStats(): array
@@ -410,67 +302,40 @@ class Reports extends Page implements HasForms
         $endDate = Carbon::parse($this->endDate);
         $hallIds = $this->getFilteredHallIds();
 
-        // Base query scoped to filtered halls and date range
         $bookingsQuery = Booking::whereIn('hall_id', $hallIds)
             ->whereBetween('booking_date', [$startDate, $endDate]);
 
         return [
-            // Revenue Stats
-            'total_revenue' => (float) $bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->sum('total_amount'),
-            'total_earnings' => (float) $bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->sum('owner_payout'),
-            'platform_commission' => (float) $bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->sum('commission_amount'),
+            'total_revenue'       => (float) $bookingsQuery->clone()->where('payment_status', 'paid')->sum('total_amount'),
+            'total_earnings'      => (float) $bookingsQuery->clone()->where('payment_status', 'paid')->sum('owner_payout'),
+            'platform_commission' => (float) $bookingsQuery->clone()->where('payment_status', 'paid')->sum('commission_amount'),
 
-            // Booking Stats
-            'total_bookings' => $bookingsQuery->clone()->count(),
+            'total_bookings'     => $bookingsQuery->clone()->count(),
             'confirmed_bookings' => $bookingsQuery->clone()->where('status', 'confirmed')->count(),
             'completed_bookings' => $bookingsQuery->clone()->where('status', 'completed')->count(),
-            'pending_bookings' => $bookingsQuery->clone()->where('status', 'pending')->count(),
+            'pending_bookings'   => $bookingsQuery->clone()->where('status', 'pending')->count(),
             'cancelled_bookings' => $bookingsQuery->clone()->where('status', 'cancelled')->count(),
 
-            // Hall Stats — adjusted for hall filter context
-            'total_halls' => $this->hallId
-                ? 1
-                : Hall::where('owner_id', Auth::id())->count(),
+            'total_halls'  => $this->hallId ? 1 : Hall::where('owner_id', Auth::id())->count(),
             'active_halls' => $this->hallId
                 ? (int) Hall::where('id', $this->hallId)->where('is_active', true)->exists()
                 : Hall::where('owner_id', Auth::id())->where('is_active', true)->count(),
 
-            // Payout Stats — always show owner-level payouts
-            'pending_payouts' => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
-                ->where('status', \App\Enums\PayoutStatus::PENDING)
-                ->sum('net_payout'),
+            'pending_payouts'   => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
+                ->where('status', \App\Enums\PayoutStatus::PENDING)->sum('net_payout'),
             'completed_payouts' => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
-                ->where('status', \App\Enums\PayoutStatus::COMPLETED)
-                ->sum('net_payout'),
+                ->where('status', \App\Enums\PayoutStatus::COMPLETED)->sum('net_payout'),
 
-            // Performance
-            'average_booking_value' => (float) ($bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->avg('total_amount') ?? 0),
-            'total_guests' => (int) $bookingsQuery->clone()
-                ->whereIn('status', ['confirmed', 'completed'])
-                ->sum('number_of_guests'),
+            'average_booking_value' => (float) ($bookingsQuery->clone()->where('payment_status', 'paid')->avg('total_amount') ?? 0),
+            'total_guests'          => (int) $bookingsQuery->clone()->whereIn('status', ['confirmed', 'completed'])->sum('number_of_guests'),
 
-            // Period Info
             'period_start' => $startDate->format('Y-m-d'),
-            'period_end' => $endDate->format('Y-m-d'),
+            'period_end'   => $endDate->format('Y-m-d'),
         ];
     }
 
     /**
-     * Get revenue trend data.
-     *
-     * Computed property that retrieves revenue and payout trends
-     * over the selected date range. Automatically determines the
-     * best grouping (day/week/month) based on range length.
-     *
-     * FIX: Now respects the hallId filter by scoping to filtered hall IDs.
+     * Revenue trend data for Chart.js line chart.
      *
      * @return array{labels: array, revenue: array, payout: array, bookings: array}
      */
@@ -481,16 +346,13 @@ class Reports extends Page implements HasForms
         $end = Carbon::parse($this->endDate);
         $hallIds = $this->getFilteredHallIds();
 
-        // Determine optimal grouping based on date range length
         $days = $start->diffInDays($end);
         $dateFormat = match (true) {
-            $days <= 31 => '%Y-%m-%d',
-            $days <= 90 => '%Y-%u',
-            default => '%Y-%m',
+            $days <= 31  => '%Y-%m-%d',
+            $days <= 90  => '%Y-%u',
+            default      => '%Y-%m',
         };
 
-        // FIX: Query directly with filtered hall IDs instead of relying
-        // on the service which only accepts ownerId (no hallId support)
         $data = Booking::select(
             DB::raw("DATE_FORMAT(booking_date, '{$dateFormat}') as period"),
             DB::raw('SUM(total_amount) as revenue'),
@@ -505,22 +367,16 @@ class Reports extends Page implements HasForms
             ->orderBy('period')
             ->get();
 
-        // Return formatted data for Chart.js
         return [
-            'labels' => $data->pluck('period')->toArray(),
-            'revenue' => $data->pluck('revenue')->map(fn ($v) => (float) $v)->toArray(),
-            'payout' => $data->pluck('payout')->map(fn ($v) => (float) $v)->toArray(),
+            'labels'   => $data->pluck('period')->toArray(),
+            'revenue'  => $data->pluck('revenue')->map(fn($v) => (float) $v)->toArray(),
+            'payout'   => $data->pluck('payout')->map(fn($v) => (float) $v)->toArray(),
             'bookings' => $data->pluck('bookings')->toArray(),
         ];
     }
 
     /**
-     * Get booking status distribution.
-     *
-     * Computed property that retrieves the count of bookings
-     * grouped by their status within the selected date range.
-     *
-     * FIX: Now respects the hallId filter.
+     * Booking status distribution for doughnut chart.
      *
      * @return array{labels: array, data: array}
      */
@@ -529,31 +385,24 @@ class Reports extends Page implements HasForms
     {
         $hallIds = $this->getFilteredHallIds();
 
-        // FIX: Query directly with filtered hall IDs
         $data = Booking::select('status', DB::raw('COUNT(*) as count'))
             ->whereIn('hall_id', $hallIds)
-            ->whereBetween('booking_date', [
-                Carbon::parse($this->startDate),
-                Carbon::parse($this->endDate),
-            ])
+            ->whereBetween('booking_date', [Carbon::parse($this->startDate), Carbon::parse($this->endDate)])
             ->groupBy('status')
             ->get();
 
-        // Return formatted data with translated labels
         return [
-            'labels' => $data->pluck('status')->map(fn ($s) => __('owner_report.reports.status.' . $s))->toArray(),
-            'data' => $data->pluck('count')->toArray(),
+            'labels' => $data->pluck('status')->map(fn($s) => __('owner_report.reports.status.' . $s))->toArray(),
+            'data'   => $data->pluck('count')->toArray(),
         ];
     }
 
     /**
-     * Get hall performance data.
+     * Hall performance data for the table.
      *
-     * Computed property that retrieves performance metrics
-     * for halls owned by the current user.
-     *
-     * FIX: Now respects the hallId filter — shows only the
-     * selected hall when one is chosen.
+     * FIX: Added 'bookings_count' alias (was 'total_bookings')
+     *      Added 'avg_booking_value' alias (was missing entirely)
+     *      The Blade template references these exact column names.
      *
      * @return Collection
      */
@@ -562,14 +411,16 @@ class Reports extends Page implements HasForms
     {
         $hallIds = $this->getFilteredHallIds();
 
-        // FIX: Filter by specific hall IDs (respects hallId selection)
         return Hall::select(
             'halls.id',
             'halls.name',
             'halls.owner_id',
-            DB::raw('COUNT(bookings.id) as total_bookings'),
+            // FIX: Alias as 'bookings_count' to match Blade template
+            DB::raw('COUNT(bookings.id) as bookings_count'),
             DB::raw('SUM(bookings.total_amount) as total_revenue'),
-            DB::raw('SUM(bookings.owner_payout) as total_payout')
+            DB::raw('SUM(bookings.owner_payout) as total_payout'),
+            // FIX: Compute average booking value — was missing, caused null in PDF
+            DB::raw('AVG(bookings.total_amount) as avg_booking_value')
         )
             ->leftJoin('bookings', function ($join) {
                 $join->on('halls.id', '=', 'bookings.hall_id')
@@ -586,192 +437,29 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * Export report as PDF.
-     *
-     * Generates a PDF file download with owner dashboard summary.
-     *
-     * FIX: Previously used Auth::user() directly which can return null
-     * in Livewire streamDownload contexts. Now uses Auth::id() captured
-     * early + User::findOrFail() for reliable user resolution.
-     * Also added null-safe operator for hallOwner relationship.
-     *
-     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\StreamedResponse
-     */
-    public function exportPDF()
-    {
-        /**
-         * FIX: Capture Auth::id() first (reliable in Livewire action context),
-         * then resolve the full User model from the database.
-         * This avoids the null Auth::user() issue in streamDownload contexts.
-         */
-        $ownerId = Auth::id();
-        $user = User::findOrFail($ownerId);
-        $hallOwner = $user->hallOwner ?? null;
-
-        $pdf = Pdf::setOptions([
-            'fontDir' => storage_path('fonts'),
-            'fontCache' => storage_path('fonts'),
-            'defaultFont' => 'Tajawal'
-        ]);
-
-        // Generate PDF from view template
-        $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
-            'stats' => $this->dashboardStats,
-            'hallPerformance' => $this->hallPerformance,
-            'comparison' => $this->monthlyComparison,
-            'owner' => $user,
-            'hallOwner' => $hallOwner,
-            'startDate' => $this->startDate,
-            'endDate' => $this->endDate,
-            'generatedAt' => now()->format('d M Y H:i'),
-            //'locale' => app()->getLocale(),
-            //'direction' => app()->getLocale() === 'ar' ? 'rtl' : 'ltr',
-            'fontFamily' => 'Tajawal, DejaVu Sans, sans-serif',
-        ]);
-
-        $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
-
-        return response()->streamDownload(
-            fn() => print($pdf->output()),
-            $filename,
-            ['Content-Type' => 'application/pdf']
-        );
-    }
-
-    /**
-     * Export report as PDF.
-     *
-     * Generates a PDF file download with owner dashboard summary.
-     *
-     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\StreamedResponse
-     */
-//     public function exportPDF()
-//     {
-//         $ownerId = Auth::id();
-//         $user = User::findOrFail($ownerId);
-//         $hallOwner = $user->hallOwner ?? null;
-
-//         // FIX: Register the font properly before generating PDF
-//         $fontPath = storage_path('fonts/Tajawal-Regular.ttf');
-
-//         // Verify font exists
-//         if (!file_exists($fontPath)) {
-//             Notification::make()
-//                 ->danger()
-//                 ->title('Font Error')
-//                 ->body('Tajawal font file not found. Please ensure it exists in storage/fonts/')
-//                 ->send();
-//             return null;
-//         }
-
-//         // FIX: Create HTML content with proper font-face declaration
-//         $html = view('pdf.reports.owner-dashboard', [
-//             'stats' => $this->dashboardStats,
-//             'hallPerformance' => $this->hallPerformance,
-//             'comparison' => $this->monthlyComparison,
-//             'owner' => $user,
-//             'hallOwner' => $hallOwner,
-//             'startDate' => $this->startDate,
-//             'endDate' => $this->endDate,
-//             'generatedAt' => now()->format('d M Y H:i'),
-//             'fontFamily' => 'Tajawal, DejaVu Sans, sans-serif',
-//         ])->render();
-
-//         // FIX: Add font-face declaration to the HTML
-//         $html = '<!DOCTYPE html>
-// <html>
-// <head>
-//     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-//     <style>
-//         @font-face {
-//             font-family: \'Tajawal\';
-//             src: url("' . $fontPath . '") format("truetype");
-//             font-weight: normal;
-//             font-style: normal;
-//             font-display: swap;
-//         }
-//         @font-face {
-//             font-family: \'Tajawal\';
-//             src: url("' . storage_path('fonts/Tajawal-Bold.ttf') . '") format("truetype");
-//             font-weight: bold;
-//             font-style: normal;
-//             font-display: swap;
-//         }
-//         body {
-//             font-family: \'Tajawal\', DejaVu Sans, sans-serif;
-//             direction: ' . (app()->getLocale() === 'ar' ? 'rtl' : 'ltr') . ';
-//             text-align: ' . (app()->getLocale() === 'ar' ? 'right' : 'left') . ';
-//         }
-//     </style>
-// </head>
-// <body>
-//     ' . $html . '
-// </body>
-// </html>';
-
-//         // FIX: Use loadHTML instead of loadView to include our font-face declaration
-//         $pdf = Pdf::setOptions([
-//             'fontDir' => storage_path('fonts'),
-//             'fontCache' => storage_path('fonts'),
-//             'defaultFont' => 'Tajawal',
-//             'isHtml5ParserEnabled' => true,
-//             'isRemoteEnabled' => true,
-//             'isFontSubsettingEnabled' => true,
-//             'chroot' => storage_path('fonts'),
-//         ]);
-
-//         $pdf = Pdf::loadHTML($html);
-
-//         $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
-
-//         return response()->streamDownload(
-//             fn() => print($pdf->output()),
-//             $filename,
-//             ['Content-Type' => 'application/pdf']
-//         );
-//     }
-
-    /**
-     * Get time slot distribution.
-     *
-     * Computed property that retrieves the count of bookings
-     * grouped by time slot (morning, afternoon, evening, full_day).
-     *
-     * FIX: Now respects the hallId filter.
+     * Time slot distribution for bar chart.
      *
      * @return array{labels: array, data: array}
      */
-    #[Computed]
     public function timeSlotDistribution(): array
     {
         $hallIds = $this->getFilteredHallIds();
 
-        // FIX: Query directly with filtered hall IDs
         $data = Booking::select('time_slot', DB::raw('COUNT(*) as count'))
             ->whereIn('hall_id', $hallIds)
-            ->whereBetween('booking_date', [
-                Carbon::parse($this->startDate),
-                Carbon::parse($this->endDate),
-            ])
+            ->whereBetween('booking_date', [Carbon::parse($this->startDate), Carbon::parse($this->endDate)])
             ->whereIn('status', ['confirmed', 'completed'])
             ->groupBy('time_slot')
             ->get();
 
-        // Return formatted data with translated slot names
         return [
-            'labels' => $data->pluck('time_slot')->map(fn ($s) => __('slots.' . $s))->toArray(),
-            'data' => $data->pluck('count')->toArray(),
+            'labels' => $data->pluck('time_slot')->map(fn($s) => __('slots.' . $s))->toArray(),
+            'data'   => $data->pluck('count')->toArray(),
         ];
     }
 
     /**
-     * Get monthly comparison data.
-     *
-     * Computed property that retrieves comparison metrics
-     * between current and previous month.
-     *
-     * NOTE: Monthly comparison always uses the full owner scope
-     * (not filtered by hallId) as it's a high-level trend indicator.
+     * Monthly comparison (current vs previous month).
      *
      * @return array<string, mixed>
      */
@@ -780,22 +468,94 @@ class Reports extends Page implements HasForms
     {
         /** @var ReportService $service */
         $service = app(ReportService::class);
-
         return $service->getMonthlyComparison(Auth::id());
     }
 
+    // ======================================================================
+    // EXPORT ACTIONS
+    // ======================================================================
+
     /**
-     * Get header actions.
+     * Export report as PDF using mPDF.
      *
-     * Defines the export and print actions available in the page header.
+     * FIX: Clears font cache on first run to ensure fresh font metrics.
+     * The stale cache from previous DomPDF/mPDF configurations was the
+     * primary cause of Arabic rendering issues (missing letters, corrupted text).
+     *
+     * @param bool $debug Return raw HTML instead of PDF for browser inspection
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|\Illuminate\Http\Response|null
+     */
+    public function exportPDF(bool $debug = false)
+    {
+        try {
+            // Resolve authenticated owner
+            $ownerId = Auth::id();
+            $user = User::findOrFail($ownerId);
+            $hallOwner = $user->hallOwner ?? null;
+
+            // Render Blade → HTML (HTML-first approach)
+            $html = view('pdf.reports.owner-dashboard', [
+                'stats'           => $this->dashboardStats,
+                'hallPerformance' => $this->hallPerformance,
+                'comparison'      => $this->monthlyComparison,
+                'owner'           => $user,
+                'hallOwner'       => $hallOwner,
+                'startDate'       => $this->startDate,
+                'endDate'         => $this->endDate,
+                'generatedAt'     => now()->format('d M Y H:i'),
+            ])->render();
+
+            // Debug mode: return HTML for browser inspection
+            if ($debug) {
+                return response($html)->header('Content-Type', 'text/html; charset=utf-8');
+            }
+
+            // Save debug HTML (non-blocking)
+            try {
+                Storage::disk('local')->put(
+                    'pdf-debug/report-' . now()->timestamp . '.html',
+                    $html
+                );
+            } catch (\Throwable $e) {
+                Log::warning('PDF debug save failed: ' . $e->getMessage());
+            }
+
+            // Generate PDF via mPDF
+            // clearFontCache: true on first call ensures stale cache is purged
+            $pdfService = new PdfExportService(clearFontCache: true);
+            $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
+
+            return $pdfService
+                ->generateFromHtml($html)
+                ->download($filename);
+        } catch (\Throwable $e) {
+            Log::error('PDF Export failed', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
+
+            Notification::make()
+                ->danger()
+                ->title(__('owner_report.reports.errors.export_failed'))
+                ->body($e->getMessage())
+                ->send();
+
+            return null;
+        }
+    }
+
+    /**
+     * Header actions — Export CSV, Export PDF, Print.
+     *
+     * FIX: Only ONE PDF action now (was two: one DomPDF, one mPDF).
      *
      * @return array<Action>
      */
     protected function getHeaderActions(): array
     {
         return [
-
-            // Export CSV Action
+            // Export CSV
             Action::make('export_csv')
                 ->label(__('owner_report.reports.actions.export_csv'))
                 ->icon('heroicon-o-table-cells')
@@ -804,70 +564,36 @@ class Reports extends Page implements HasForms
                     Forms\Components\Select::make('report_type')
                         ->label(__('owner_report.reports.export.type'))
                         ->options([
-                            'summary' => __('owner_report.reports.export.summary'),
+                            'summary'  => __('owner_report.reports.export.summary'),
                             'bookings' => __('owner_report.reports.export.bookings'),
-                            'revenue' => __('owner_report.reports.export.revenue'),
-                            'halls' => __('owner_report.reports.export.halls'),
+                            'revenue'  => __('owner_report.reports.export.revenue'),
+                            'halls'    => __('owner_report.reports.export.halls'),
                         ])
                         ->required()
                         ->default('summary'),
                 ])
                 ->action(fn(array $data) => $this->exportCSV($data['report_type'])),
 
-            // Export to PDF action
-            Action::make('exportPdf')
-                ->label(__('owner_report.reports.actions.export_pdf'))
-                ->icon('heroicon-o-document-arrow-down')
-                ->color('success')
-                ->action(function () {
-                    try {
-                        $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
-                            'stats' => $this->dashboardStats,
-                            'comparison' => $this->monthlyComparison,
-                            'hallPerformance' => $this->hallPerformance,
-                            'startDate' => $this->startDate,
-                            'endDate' => $this->endDate,
-                        ]);
-
-                        $filename = 'owner-report-' . now()->format('Y-m-d') . '.pdf';
-
-                        return Response::streamDownload(
-                            fn () => print($pdf->output()),
-                            $filename,
-                            ['Content-Type' => 'application/pdf']
-                        );
-                    } catch (\Throwable $e) {
-                        Notification::make()
-                            ->danger()
-                            ->title(__('owner_report.reports.errors.export_failed'))
-                            ->body($e->getMessage())
-                            ->send();
-                    }
-                }),
-            // Export PDF Action
+            // Export PDF (mPDF with Arabic support)
             Action::make('export_pdf')
                 ->label(__('owner_report.reports.actions.export_pdf'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('danger')
                 ->action(fn() => $this->exportPDF()),
 
-            // Print Action
+            // Print (browser dialog)
             Action::make('print')
                 ->label(__('owner_report.reports.actions.print'))
                 ->icon('heroicon-o-printer')
                 ->color('gray')
-                ->extraAttributes([
-                    'onclick' => 'window.print()',
-                ]),
+                ->extraAttributes(['onclick' => 'window.print()']),
         ];
     }
 
     /**
      * Export report as CSV.
      *
-     * Generates a CSV file download with the selected report type data.
-     *
-     * @param string $reportType The type of report to export
+     * @param string $reportType
      * @return \Symfony\Component\HttpFoundation\StreamedResponse|null
      */
     public function exportCSV(string $reportType)
@@ -882,7 +608,6 @@ class Reports extends Page implements HasForms
             Auth::id()
         );
 
-        // Check for empty data
         if (empty($data)) {
             Notification::make()
                 ->title(__('owner_report.reports.notifications.no_data'))
@@ -895,29 +620,21 @@ class Reports extends Page implements HasForms
 
         return Response::streamDownload(function () use ($data): void {
             $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
 
-            // Add UTF-8 BOM for proper Excel encoding
-            fwrite($handle, "\xEF\xBB\xBF");
-
-            // Write header row
             if (!empty($data)) {
                 fputcsv($handle, array_keys($data[0]));
             }
 
-            // Write data rows
             foreach ($data as $row) {
                 fputcsv($handle, $row);
             }
 
             fclose($handle);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=utf-8',
-        ]);
+        }, $filename, ['Content-Type' => 'text/csv; charset=utf-8']);
     }
 
     /**
-     * Get max content width.
-     *
      * @return MaxWidth
      */
     public function getMaxContentWidth(): MaxWidth

@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+/**
+ * Clear mPDF Font Cache
+ *
+ * mPDF caches parsed font metrics (glyph widths, OTL tables, etc.) in
+ * the tempDir/ttfontdata/ directory. When you change fontdata configuration
+ * (add fonts, change OTL settings, etc.), the stale cache causes the old
+ * (broken) font metrics to persist — leading to Arabic text corruption,
+ * missing letters, and reversed text.
+ *
+ * Run this command after:
+ * - Changing PdfExportService font configuration
+ * - Replacing .ttf font files in storage/fonts/
+ * - Upgrading the mpdf/mpdf package
+ *
+ * Usage:
+ *   php artisan mpdf:clear-cache
+ *
+ * @package App\Console\Commands
+ */
+class ClearMpdfFontCache extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'mpdf:clear-cache';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Clear mPDF font cache (ttfontdata) to force fresh font metric parsing';
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
+    public function handle(): int
+    {
+        $cacheDir = storage_path('app/mpdf-tmp/ttfontdata');
+
+        // Also check the default vendor cache location
+        $vendorCacheDir = base_path('vendor/mpdf/mpdf/tmp/mpdf/ttfontdata');
+
+        $totalCleared = 0;
+
+        // Clear custom temp directory
+        $totalCleared += $this->clearDirectory($cacheDir, 'Custom (storage/app/mpdf-tmp)');
+
+        // Clear vendor temp directory (if exists)
+        $totalCleared += $this->clearDirectory($vendorCacheDir, 'Vendor (vendor/mpdf/mpdf/tmp)');
+
+        if ($totalCleared > 0) {
+            $this->info("✅ Cleared {$totalCleared} cached font files.");
+            $this->info('   Next PDF generation will rebuild the font cache with current config.');
+        } else {
+            $this->info('ℹ️  No cached font files found. Cache is already clean.');
+        }
+
+        // Verify font files exist
+        $this->newLine();
+        $this->info('Font file check:');
+        $fontDir = storage_path('fonts');
+        $fonts = [
+            'Tajawal-Regular.ttf',
+            'Tajawal-Bold.ttf',
+        ];
+
+        foreach ($fonts as $font) {
+            $path = $fontDir . '/' . $font;
+            if (file_exists($path)) {
+                $size = round(filesize($path) / 1024, 1);
+                $this->line("  ✅ {$font} ({$size} KB)");
+            } else {
+                $this->error("  ❌ {$font} NOT FOUND at {$path}");
+            }
+        }
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Clear all files in a directory.
+     *
+     * @param string $dir Directory path
+     * @param string $label Human-readable label for output
+     * @return int Number of files cleared
+     */
+    private function clearDirectory(string $dir, string $label): int
+    {
+        if (!is_dir($dir)) {
+            $this->line("  ⏭️  {$label}: directory not found, skipping.");
+            return 0;
+        }
+
+        $files = glob($dir . '/*');
+        if ($files === false || count($files) === 0) {
+            $this->line("  ⏭️  {$label}: no cached files found.");
+            return 0;
+        }
+
+        $count = 0;
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                unlink($file);
+                $count++;
+            }
+        }
+
+        $this->line("  🗑️  {$label}: cleared {$count} files.");
+
+        return $count;
+    }
+}

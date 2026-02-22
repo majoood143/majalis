@@ -1015,12 +1015,16 @@ class HallResource extends OwnerResource
                                     ->label(__('owner.halls.fields.city'))
                                     ->formatStateUsing(fn($record) => $record->city?->getTranslation('name', app()->getLocale()))
                                     ->icon('heroicon-o-map-pin'),
+                                    
 
                                 Infolists\Components\Grid::make(4)
                                     ->schema([
                                         Infolists\Components\TextEntry::make('total_bookings')
                                             ->label(__('owner.halls.stats.bookings'))
                                             ->badge()
+                                ->state(function ($record) {
+                                    return $record->bookings()->count();
+                                })
                                             ->color('info'),
 
                                         Infolists\Components\TextEntry::make('average_rating')

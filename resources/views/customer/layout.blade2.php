@@ -3,16 +3,14 @@
 | Customer Dashboard Layout
 |--------------------------------------------------------------------------
 |
-| Path: resources/views/customer/layout.blade.php
-|
 | Main layout for authenticated customer pages (dashboard, bookings, profile).
-| Used by: @extends('customer.layout')
+| Extends: Used by @extends('customer.layout')
 |
 | FIX APPLIED:
 |   ✅ Added language switcher (AR/EN toggle) in desktop & mobile nav
 |   ✅ Replaced all hardcoded English nav text with __() translation keys
 |   ✅ RTL-aware spacing (space-x-reverse for Arabic)
-|   ✅ Mobile nav includes language switcher
+|   ✅ Mobile menu includes language switcher link
 |   ✅ RTL text-alignment for logout button in mobile menu
 |
 --}}
@@ -40,8 +38,7 @@
 </head>
 <body class="font-sans antialiased bg-gray-50">
     <!-- Navigation -->
-    {{-- Alpine scope: mobileMenuOpen must be on <nav> so both the hamburger button and the menu panel can access it --}}
-    <nav class="bg-white border-b border-gray-200 shadow-sm" x-data="{ mobileMenuOpen: false }">
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
         <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <!-- Logo -->
@@ -54,14 +51,18 @@
 
                 <!-- Desktop Navigation Links -->
                 <div class="items-center hidden space-x-8 md:flex {{ app()->getLocale() === 'ar' ? 'space-x-reverse' : '' }}">
+                    <!-- Browse Halls Link -->
                     <a href="{{ route('customer.halls.index') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.halls.*') ? 'text-indigo-600 font-semibold' : '' }}">
                         {{ __('dashboard.browse_halls') }}
                     </a>
 
                     @auth
+                        <!-- Dashboard Link -->
                         <a href="{{ route('customer.dashboard') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.dashboard') ? 'text-indigo-600 font-semibold' : '' }}">
                             {{ __('dashboard.nav_dashboard') }}
                         </a>
+
+                        <!-- My Bookings Link -->
                         <a href="{{ route('customer.bookings') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.bookings') || request()->routeIs('customer.booking.*') ? 'text-indigo-600 font-semibold' : '' }}">
                             {{ __('dashboard.my_bookings') }}
                         </a>
@@ -69,15 +70,18 @@
                         <!-- User Dropdown -->
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open" class="flex items-center space-x-2 {{ app()->getLocale() === 'ar' ? 'space-x-reverse' : '' }} text-gray-700 hover:text-indigo-600">
+                                <!-- User Avatar Initial -->
                                 <div class="flex items-center justify-center w-8 h-8 font-medium text-white bg-indigo-600 rounded-full">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                 </div>
                                 <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
+                                <!-- Chevron Icon -->
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
+                            <!-- Dropdown Menu -->
                             <div x-show="open" @click.away="open = false" x-cloak
                                 class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} w-48 py-1 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
                                 <a href="{{ route('customer.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -92,30 +96,40 @@
                             </div>
                         </div>
                     @else
+                        <!-- Guest: Login Link -->
                         <a href="{{ route('login') }}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600">
                             {{ __('dashboard.login') }}
                         </a>
+                        <!-- Guest: Register Link -->
                         <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
                             {{ __('dashboard.register') }}
                         </a>
                     @endauth
 
-                    {{-- Language Switcher (Desktop) --}}
+                    {{-- ============================================================
+                         LANGUAGE SWITCHER (Desktop)
+                         Toggles between Arabic ↔ English via ?lang= query parameter.
+                         Matches the pattern used in layouts/customer.blade.php
+                         and customer/halls/index.blade.php.
+                         ============================================================ --}}
                     <a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() === 'ar' ? 'en' : 'ar']) }}"
                         class="flex items-center gap-2 px-3 py-2 transition rounded-lg hover:bg-gray-100">
+                        <!-- Globe/Language Icon -->
                         <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129">
                             </path>
                         </svg>
+                        <!-- Show opposite language label -->
                         <span class="text-sm font-medium text-gray-700">
                             {{ app()->getLocale() === 'ar' ? 'EN' : 'ع' }}
                         </span>
                     </a>
                 </div>
 
-                <!-- Mobile: Language Switcher + Hamburger -->
+                <!-- Mobile: Language Switcher + Hamburger Menu -->
                 <div class="flex items-center gap-2 md:hidden">
+                    {{-- Language Switcher (Mobile - always visible) --}}
                     <a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() === 'ar' ? 'en' : 'ar']) }}"
                         class="flex items-center gap-1 px-2 py-2 transition rounded-lg hover:bg-gray-100">
                         <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,6 +142,7 @@
                         </span>
                     </a>
 
+                    {{-- Hamburger Menu Button --}}
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-700 hover:text-indigo-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -137,23 +152,31 @@
             </div>
         </div>
 
-        <!-- Mobile Menu -->
-        {{-- Mobile menu panel: x-show reads mobileMenuOpen from parent <nav> x-data --}}
-        <div x-show="mobileMenuOpen" x-cloak class="md:hidden">
+        <!-- Mobile Menu (Slide-down) -->
+        <div x-show="mobileMenuOpen" x-cloak class="md:hidden" x-data="{ mobileMenuOpen: false }">
             <div class="px-2 pt-2 pb-3 space-y-1">
+                <!-- Browse Halls -->
                 <a href="{{ route('customer.halls.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                     {{ __('dashboard.browse_halls') }}
                 </a>
+
                 @auth
+                    <!-- Dashboard -->
                     <a href="{{ route('customer.dashboard') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.nav_dashboard') }}
                     </a>
+
+                    <!-- My Bookings -->
                     <a href="{{ route('customer.bookings') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.my_bookings') }}
                     </a>
+
+                    <!-- Profile -->
                     <a href="{{ route('customer.profile') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.my_profile') }}
                     </a>
+
+                    <!-- Logout -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="block w-full px-3 py-2 text-base font-medium {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
@@ -161,9 +184,12 @@
                         </button>
                     </form>
                 @else
+                    <!-- Guest: Login -->
                     <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.login') }}
                     </a>
+
+                    <!-- Guest: Register -->
                     <a href="{{ route('register') }}" class="block px-3 py-2 text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
                         {{ __('dashboard.register') }}
                     </a>
@@ -178,6 +204,7 @@
             {{ session('success') }}
         </div>
     @endif
+
     @if(session('error'))
         <div class="px-4 py-3 mx-auto mt-4 text-red-800 bg-red-100 border border-red-200 rounded-lg max-w-7xl sm:px-6 lg:px-8">
             {{ session('error') }}
