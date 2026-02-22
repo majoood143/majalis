@@ -42,6 +42,74 @@ Route::middleware('auth')->group(function () {
 //     return redirect('/');
 // })->name('logout');
 
+// Temporary test route
+Route::get('/test-pdf-arabic', function () {
+    $html = '<!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: DejaVu Sans;">
+        <h1>Test Arabic: مرحبا بالعالم</h1>
+    </body>
+    </html>';
+
+    $pdf = PDF::setOptions(['defaultFont' => 'DejaVu Sans'])->loadHTML($html);
+    return $pdf->download('test.pdf');
+});
+
+Route::get('/test-tajawal-fixed', function () {
+    try {
+        // Check if font files exist
+        $fontDir = storage_path('fonts');
+        $fontFile = $fontDir . '/Tajawal-Regular.ttf';
+
+        if (!file_exists($fontFile)) {
+            return "Error: Tajawal font not found in {$fontDir}";
+        }
+
+        // Simple HTML with explicit font declaration
+        $html = '<!DOCTYPE html>
+        <html>
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+            <style>
+                @font-face {
+                    font-family: "Tajawal";
+                    src: url("file://' . $fontFile . '") format("truetype");
+                    font-weight: normal;
+                    font-style: normal;
+                }
+                body {
+                    font-family: "Tajawal", sans-serif;
+                    font-size: 16px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>مرحبا بالعالم - Test 1</h1>
+            <p>اللغة العربية - Test 2</p>
+            <p>الأرقام: ١٢٣٤٥</p>
+        </body>
+        </html>';
+
+        $pdf = PDF::setOptions([
+            'font_dir' => storage_path('fonts'),
+            'font_cache' => storage_path('fonts'),
+            'defaultFont' => 'Tajawal',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'isFontSubsettingEnabled' => true,
+            'log_output_file' => storage_path('logs/dompdf.log'),
+        ]);
+
+        // Load HTML directly
+        $pdf->loadHTML($html);
+
+        return $pdf->download('tajawal-fixed-test.pdf');
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
 /**
  * Customer Authentication Routes
  *

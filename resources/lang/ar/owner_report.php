@@ -463,6 +463,7 @@ return [
             'revenue' => 'الإيرادات',
             'avg_booking' => 'متوسط الحجز',
             'total' => 'الإجمالي',
+            'earnings' => 'الأرباح',
         ],
 
         // Comparison

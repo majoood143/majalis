@@ -365,15 +365,15 @@ class Reports extends Page implements HasForms
     /**
      * Get all chart data for JavaScript consumption.
      *
-     * FIX: This public method provides fresh chart data to the
-     * frontend JavaScript via $wire.getChartData(). This replaces
-     * the stale @json() approach that only rendered data once.
+     * Called by the @script block via `$wire.getChartData()` to fetch
+     * fresh data from the server. This ensures charts always reflect
+     * the current filter state (date range, hall selection).
      *
-     * Called by the @script block whenever charts need to be
-     * initialized or refreshed (tab switch, filter change, etc.)
+     * Returns the existing #[Computed] properties aggregated into a
+     * single array, using the key names the JavaScript expects.
      *
      * @return array{
-     *     revenueTrend: array{labels: array, revenue: array, payout: array},
+     *     revenueTrend: array{labels: array, revenue: array, payout: array, bookings: array},
      *     bookingDistribution: array{labels: array, data: array},
      *     timeSlotDistribution: array{labels: array, data: array}
      * }
@@ -381,8 +381,13 @@ class Reports extends Page implements HasForms
     public function getChartData(): array
     {
         return [
+            // Earnings trend line chart data (Earnings tab)
             'revenueTrend' => $this->revenueTrend,
+
+            // Booking status doughnut chart data (Bookings tab)
             'bookingDistribution' => $this->bookingDistribution,
+
+            // Time slot bar chart data (Earnings tab)
             'timeSlotDistribution' => $this->timeSlotDistribution,
         ];
     }
@@ -603,6 +608,12 @@ class Reports extends Page implements HasForms
         $user = User::findOrFail($ownerId);
         $hallOwner = $user->hallOwner ?? null;
 
+        $pdf = Pdf::setOptions([
+            'fontDir' => storage_path('fonts'),
+            'fontCache' => storage_path('fonts'),
+            'defaultFont' => 'Tajawal'
+        ]);
+
         // Generate PDF from view template
         $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
             'stats' => $this->dashboardStats,
@@ -613,6 +624,9 @@ class Reports extends Page implements HasForms
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
             'generatedAt' => now()->format('d M Y H:i'),
+            //'locale' => app()->getLocale(),
+            //'direction' => app()->getLocale() === 'ar' ? 'rtl' : 'ltr',
+            'fontFamily' => 'Tajawal, DejaVu Sans, sans-serif',
         ]);
 
         $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
@@ -623,6 +637,99 @@ class Reports extends Page implements HasForms
             ['Content-Type' => 'application/pdf']
         );
     }
+
+    /**
+     * Export report as PDF.
+     *
+     * Generates a PDF file download with owner dashboard summary.
+     *
+     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
+//     public function exportPDF()
+//     {
+//         $ownerId = Auth::id();
+//         $user = User::findOrFail($ownerId);
+//         $hallOwner = $user->hallOwner ?? null;
+
+//         // FIX: Register the font properly before generating PDF
+//         $fontPath = storage_path('fonts/Tajawal-Regular.ttf');
+
+//         // Verify font exists
+//         if (!file_exists($fontPath)) {
+//             Notification::make()
+//                 ->danger()
+//                 ->title('Font Error')
+//                 ->body('Tajawal font file not found. Please ensure it exists in storage/fonts/')
+//                 ->send();
+//             return null;
+//         }
+
+//         // FIX: Create HTML content with proper font-face declaration
+//         $html = view('pdf.reports.owner-dashboard', [
+//             'stats' => $this->dashboardStats,
+//             'hallPerformance' => $this->hallPerformance,
+//             'comparison' => $this->monthlyComparison,
+//             'owner' => $user,
+//             'hallOwner' => $hallOwner,
+//             'startDate' => $this->startDate,
+//             'endDate' => $this->endDate,
+//             'generatedAt' => now()->format('d M Y H:i'),
+//             'fontFamily' => 'Tajawal, DejaVu Sans, sans-serif',
+//         ])->render();
+
+//         // FIX: Add font-face declaration to the HTML
+//         $html = '<!DOCTYPE html>
+// <html>
+// <head>
+//     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+//     <style>
+//         @font-face {
+//             font-family: \'Tajawal\';
+//             src: url("' . $fontPath . '") format("truetype");
+//             font-weight: normal;
+//             font-style: normal;
+//             font-display: swap;
+//         }
+//         @font-face {
+//             font-family: \'Tajawal\';
+//             src: url("' . storage_path('fonts/Tajawal-Bold.ttf') . '") format("truetype");
+//             font-weight: bold;
+//             font-style: normal;
+//             font-display: swap;
+//         }
+//         body {
+//             font-family: \'Tajawal\', DejaVu Sans, sans-serif;
+//             direction: ' . (app()->getLocale() === 'ar' ? 'rtl' : 'ltr') . ';
+//             text-align: ' . (app()->getLocale() === 'ar' ? 'right' : 'left') . ';
+//         }
+//     </style>
+// </head>
+// <body>
+//     ' . $html . '
+// </body>
+// </html>';
+
+//         // FIX: Use loadHTML instead of loadView to include our font-face declaration
+//         $pdf = Pdf::setOptions([
+//             'fontDir' => storage_path('fonts'),
+//             'fontCache' => storage_path('fonts'),
+//             'defaultFont' => 'Tajawal',
+//             'isHtml5ParserEnabled' => true,
+//             'isRemoteEnabled' => true,
+//             'isFontSubsettingEnabled' => true,
+//             'chroot' => storage_path('fonts'),
+//         ]);
+
+//         $pdf = Pdf::loadHTML($html);
+
+//         $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
+
+//         return response()->streamDownload(
+//             fn() => print($pdf->output()),
+//             $filename,
+//             ['Content-Type' => 'application/pdf']
+//         );
+//     }
 
     /**
      * Get time slot distribution.
@@ -737,6 +844,21 @@ class Reports extends Page implements HasForms
                             ->send();
                     }
                 }),
+            // Export PDF Action
+            Action::make('export_pdf')
+                ->label(__('owner_report.reports.actions.export_pdf'))
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('danger')
+                ->action(fn() => $this->exportPDF()),
+
+            // Print Action
+            Action::make('print')
+                ->label(__('owner_report.reports.actions.print'))
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->extraAttributes([
+                    'onclick' => 'window.print()',
+                ]),
         ];
     }
 

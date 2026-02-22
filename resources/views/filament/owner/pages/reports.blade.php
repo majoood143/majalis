@@ -316,7 +316,7 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 dark:bg-gray-800">
                             <tr>
-                                <th class="px-4 py-3 font-medium text-left text-gray-500 dark:text-gray-400">
+                                <th class="px-4 py-3 font-medium text-center text-gray-500 dark:text-gray-400">
                                     {{ __('owner_report.reports.table.hall') }}
                                 </th>
                                 <th class="px-4 py-3 font-medium text-center text-gray-500 dark:text-gray-400">
@@ -422,7 +422,7 @@
     @endPushOnce
 
     @script
-    <script>
+     <script>
         /**
          * Owner Reports Charts — Livewire 3 Script Implementation
          *
@@ -857,5 +857,9 @@
             themeObserver.disconnect();
         };
     </script>
+
+
     @endscript
+
+
 </x-filament-panels::page>

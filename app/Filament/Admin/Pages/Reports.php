@@ -513,6 +513,36 @@ class Reports extends Page implements HasForms
     }
 
     /**
+     * Get all chart data for JavaScript consumption.
+     *
+     * Called by the @script block via `$wire.getChartData()` to fetch
+     * fresh data from the server. This ensures charts always reflect
+     * the current filter state (date range, hall selection).
+     *
+     * Returns the existing #[Computed] properties aggregated into a
+     * single array, using the key names the JavaScript expects.
+     *
+     * @return array{
+     *     revenueTrend: array{labels: array, revenue: array, payout: array, bookings: array},
+     *     bookingDistribution: array{labels: array, data: array},
+     *     timeSlotDistribution: array{labels: array, data: array}
+     * }
+     */
+    public function getChartData(): array
+    {
+        return [
+            // Earnings trend line chart data (Earnings tab)
+            'revenueTrend' => $this->revenueTrend,
+
+            // Booking status doughnut chart data (Bookings tab)
+            'bookingDistribution' => $this->bookingDistribution,
+
+            // Time slot bar chart data (Earnings tab)
+            'timeSlotDistribution' => $this->timeSlotDistribution,
+        ];
+    }
+
+    /**
      * Get max content width.
      *
      * @return MaxWidth

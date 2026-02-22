@@ -2,6 +2,7 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{-- FIX: Null-safe access to $owner prevents "Undefined variable" if auth fails --}}
@@ -15,12 +16,16 @@
         }
 
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: {{ $fontFamily ?? 'Tajawal, DejaVu Sans, sans-serif' }};
             font-size: 12px;
             line-height: 1.5;
             color: #1f2937;
             direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
         }
+
+        [dir="rtl"] {
+    unicode-bidi: embed;
+}
 
         /* Header */
         .header {
@@ -401,7 +406,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>{{ __('owner_report.reports.pdf.hall_name') }}</th>
+                        <th class="text-right">{{ __('owner_report.reports.pdf.hall_name') }}</th>
                         <th class="text-center">{{ __('owner_report.reports.pdf.bookings') }}</th>
                         <th class="text-right">{{ __('owner_report.reports.pdf.revenue') }}</th>
                         <th class="text-right">{{ __('owner_report.reports.pdf.avg_booking') }}</th>

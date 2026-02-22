@@ -66,7 +66,8 @@ return [
          * The temporary directory is required to download remote images and when
          * using the PDFLib back end.
          */
-        'temp_dir' => sys_get_temp_dir(),
+        //'temp_dir' => sys_get_temp_dir(),
+        'temp_dir' => storage_path('tmp'),
 
         /**
          * ==== IMPORTANT ====
@@ -81,6 +82,7 @@ return [
          * $dompdf = new DOMPDF();  $dompdf->load_html($htmldata); $dompdf->render(); $pdfdata = $dompdf->output();
          */
         'chroot' => realpath(base_path()),
+        //'chroot' => public_path(),
 
         /**
          * Protocol whitelist
@@ -107,12 +109,12 @@ return [
         /**
          * @var string
          */
-        'log_output_file' => null,
+        'log_output_file' => storage_path('logs/dompdf.html'),
 
         /**
          * Whether to enable font subsetting or not.
          */
-        'enable_font_subsetting' => true,
+        'enable_font_subsetting' => false,
 
         /**
          * The PDF rendering backend to use
@@ -181,7 +183,7 @@ return [
          *
          * @var string
          */
-        'default_font' => 'DejaVu Sans',
+        'default_font' => 'Tajawal',
 
         /**
          * Image DPI setting
@@ -235,7 +237,7 @@ return [
          *
          * @var bool
          */
-        'enable_php' => false,
+        'enable_php' => true,
 
         /**
          * Rnable inline JavaScript
