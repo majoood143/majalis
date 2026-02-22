@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Pages;
 
-use App\Models\Booking;
 use App\Models\Hall;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,12 +16,9 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\MaxWidth;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Computed;
-use App\Models\User;
 
 /**
  * Owner Reports Page
@@ -36,7 +32,7 @@ use App\Models\User;
  * @property-read array $dashboardStats Dashboard statistics computed property
  * @property-read array $revenueTrend Revenue trend data computed property
  * @property-read array $bookingDistribution Booking status distribution computed property
- * @property-read Collection $hallPerformance Hall performance data computed property
+ * @property-read \Illuminate\Support\Collection $hallPerformance Hall performance data computed property
  * @property-read array $timeSlotDistribution Time slot distribution computed property
  * @property-read array $monthlyComparison Monthly comparison data computed property
  */
@@ -95,9 +91,6 @@ class Reports extends Page implements HasForms
 
     /**
      * Selected hall filter.
-     *
-     * FIX: This property is now actively used in all computed properties
-     * to filter data by specific hall when selected.
      *
      * @var int|null
      */
@@ -252,33 +245,6 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * Get the hall IDs to filter by.
-     *
-     * FIX: Central helper that resolves which hall IDs should be used
-     * in all queries. If a specific hall is selected (and belongs to
-     * the current owner), returns only that hall's ID. Otherwise,
-     * returns all hall IDs for the owner.
-     *
-     * @return Collection<int, int> Collection of hall IDs
-     */
-    protected function getFilteredHallIds(): Collection
-    {
-        // If a specific hall is selected, validate ownership and return it
-        if ($this->hallId) {
-            $hallBelongsToOwner = Hall::where('id', $this->hallId)
-                ->where('owner_id', Auth::id())
-                ->exists();
-
-            if ($hallBelongsToOwner) {
-                return collect([$this->hallId]);
-            }
-        }
-
-        // Default: return all halls for the owner
-        return Hall::where('owner_id', Auth::id())->pluck('id');
-    }
-
-    /**
      * Apply date preset.
      *
      * Sets the start and end dates based on the selected preset option.
@@ -341,121 +307,24 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * Set the active tab.
-     *
-     * Switches to the specified tab and dispatches event
-     * to reinitialize charts on the new tab.
-     *
-     * FIX: This method dispatches the event that JavaScript
-     * listens for to reinitialize Chart.js charts.
-     *
-     * @param string $tab The tab identifier to switch to
-     * @return void
-     */
-    public function setActiveTab(string $tab): void
-    {
-        $this->activeTab = $tab;
-
-        // CRITICAL FIX: Dispatch event for chart reinitialization
-        // This event is listened to by the JavaScript in the blade template
-        // Without this, charts won't render when switching tabs
-        $this->dispatch('activeTabUpdated', tab: $tab);
-    }
-
-    /**
-     * Get all chart data for JavaScript consumption.
-     *
-     * FIX: This public method provides fresh chart data to the
-     * frontend JavaScript via $wire.getChartData(). This replaces
-     * the stale @json() approach that only rendered data once.
-     *
-     * Called by the @script block whenever charts need to be
-     * initialized or refreshed (tab switch, filter change, etc.)
-     *
-     * @return array{
-     *     revenueTrend: array{labels: array, revenue: array, payout: array},
-     *     bookingDistribution: array{labels: array, data: array},
-     *     timeSlotDistribution: array{labels: array, data: array}
-     * }
-     */
-    public function getChartData(): array
-    {
-        return [
-            'revenueTrend' => $this->revenueTrend,
-            'bookingDistribution' => $this->bookingDistribution,
-            'timeSlotDistribution' => $this->timeSlotDistribution,
-        ];
-    }
-
-    /**
      * Get dashboard statistics.
      *
      * Computed property that retrieves comprehensive statistics
      * for the owner's dashboard within the selected date range.
-     *
-     * FIX: Now respects the hallId filter. When a specific hall
-     * is selected, statistics are scoped to that hall only.
      *
      * @return array<string, mixed> Array of dashboard statistics
      */
     #[Computed]
     public function dashboardStats(): array
     {
-        $startDate = Carbon::parse($this->startDate);
-        $endDate = Carbon::parse($this->endDate);
-        $hallIds = $this->getFilteredHallIds();
+        /** @var ReportService $service */
+        $service = app(ReportService::class);
 
-        // Base query scoped to filtered halls and date range
-        $bookingsQuery = Booking::whereIn('hall_id', $hallIds)
-            ->whereBetween('booking_date', [$startDate, $endDate]);
-
-        return [
-            // Revenue Stats
-            'total_revenue' => (float) $bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->sum('total_amount'),
-            'total_earnings' => (float) $bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->sum('owner_payout'),
-            'platform_commission' => (float) $bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->sum('commission_amount'),
-
-            // Booking Stats
-            'total_bookings' => $bookingsQuery->clone()->count(),
-            'confirmed_bookings' => $bookingsQuery->clone()->where('status', 'confirmed')->count(),
-            'completed_bookings' => $bookingsQuery->clone()->where('status', 'completed')->count(),
-            'pending_bookings' => $bookingsQuery->clone()->where('status', 'pending')->count(),
-            'cancelled_bookings' => $bookingsQuery->clone()->where('status', 'cancelled')->count(),
-
-            // Hall Stats — adjusted for hall filter context
-            'total_halls' => $this->hallId
-                ? 1
-                : Hall::where('owner_id', Auth::id())->count(),
-            'active_halls' => $this->hallId
-                ? (int) Hall::where('id', $this->hallId)->where('is_active', true)->exists()
-                : Hall::where('owner_id', Auth::id())->where('is_active', true)->count(),
-
-            // Payout Stats — always show owner-level payouts
-            'pending_payouts' => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
-                ->where('status', \App\Enums\PayoutStatus::PENDING)
-                ->sum('net_payout'),
-            'completed_payouts' => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
-                ->where('status', \App\Enums\PayoutStatus::COMPLETED)
-                ->sum('net_payout'),
-
-            // Performance
-            'average_booking_value' => (float) ($bookingsQuery->clone()
-                ->where('payment_status', 'paid')
-                ->avg('total_amount') ?? 0),
-            'total_guests' => (int) $bookingsQuery->clone()
-                ->whereIn('status', ['confirmed', 'completed'])
-                ->sum('number_of_guests'),
-
-            // Period Info
-            'period_start' => $startDate->format('Y-m-d'),
-            'period_end' => $endDate->format('Y-m-d'),
-        ];
+        return $service->getOwnerDashboardStats(
+            Auth::id(),
+            Carbon::parse($this->startDate),
+            Carbon::parse($this->endDate)
+        );
     }
 
     /**
@@ -465,40 +334,25 @@ class Reports extends Page implements HasForms
      * over the selected date range. Automatically determines the
      * best grouping (day/week/month) based on range length.
      *
-     * FIX: Now respects the hallId filter by scoping to filtered hall IDs.
-     *
      * @return array{labels: array, revenue: array, payout: array, bookings: array}
      */
     #[Computed]
     public function revenueTrend(): array
     {
+        /** @var ReportService $service */
+        $service = app(ReportService::class);
         $start = Carbon::parse($this->startDate);
         $end = Carbon::parse($this->endDate);
-        $hallIds = $this->getFilteredHallIds();
 
         // Determine optimal grouping based on date range length
         $days = $start->diffInDays($end);
-        $dateFormat = match (true) {
-            $days <= 31 => '%Y-%m-%d',
-            $days <= 90 => '%Y-%u',
-            default => '%Y-%m',
+        $groupBy = match (true) {
+            $days <= 31 => 'day',
+            $days <= 90 => 'week',
+            default => 'month',
         };
 
-        // FIX: Query directly with filtered hall IDs instead of relying
-        // on the service which only accepts ownerId (no hallId support)
-        $data = Booking::select(
-            DB::raw("DATE_FORMAT(booking_date, '{$dateFormat}') as period"),
-            DB::raw('SUM(total_amount) as revenue'),
-            DB::raw('SUM(commission_amount) as commission'),
-            DB::raw('SUM(owner_payout) as payout'),
-            DB::raw('COUNT(*) as bookings')
-        )
-            ->whereIn('hall_id', $hallIds)
-            ->whereBetween('booking_date', [$start, $end])
-            ->where('payment_status', 'paid')
-            ->groupBy('period')
-            ->orderBy('period')
-            ->get();
+        $data = $service->getRevenueTrend($start, $end, Auth::id(), $groupBy);
 
         // Return formatted data for Chart.js
         return [
@@ -515,24 +369,19 @@ class Reports extends Page implements HasForms
      * Computed property that retrieves the count of bookings
      * grouped by their status within the selected date range.
      *
-     * FIX: Now respects the hallId filter.
-     *
      * @return array{labels: array, data: array}
      */
     #[Computed]
     public function bookingDistribution(): array
     {
-        $hallIds = $this->getFilteredHallIds();
+        /** @var ReportService $service */
+        $service = app(ReportService::class);
 
-        // FIX: Query directly with filtered hall IDs
-        $data = Booking::select('status', DB::raw('COUNT(*) as count'))
-            ->whereIn('hall_id', $hallIds)
-            ->whereBetween('booking_date', [
-                Carbon::parse($this->startDate),
-                Carbon::parse($this->endDate),
-            ])
-            ->groupBy('status')
-            ->get();
+        $data = $service->getBookingStatusDistribution(
+            Carbon::parse($this->startDate),
+            Carbon::parse($this->endDate),
+            Auth::id()
+        );
 
         // Return formatted data with translated labels
         return [
@@ -545,82 +394,21 @@ class Reports extends Page implements HasForms
      * Get hall performance data.
      *
      * Computed property that retrieves performance metrics
-     * for halls owned by the current user.
+     * for all halls owned by the current user.
      *
-     * FIX: Now respects the hallId filter — shows only the
-     * selected hall when one is chosen.
-     *
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
     #[Computed]
-    public function hallPerformance(): Collection
+    public function hallPerformance(): \Illuminate\Support\Collection
     {
-        $hallIds = $this->getFilteredHallIds();
+        /** @var ReportService $service */
+        $service = app(ReportService::class);
 
-        // FIX: Filter by specific hall IDs (respects hallId selection)
-        return Hall::select(
-            'halls.id',
-            'halls.name',
-            'halls.owner_id',
-            DB::raw('COUNT(bookings.id) as total_bookings'),
-            DB::raw('SUM(bookings.total_amount) as total_revenue'),
-            DB::raw('SUM(bookings.owner_payout) as total_payout')
-        )
-            ->leftJoin('bookings', function ($join) {
-                $join->on('halls.id', '=', 'bookings.hall_id')
-                    ->whereBetween('bookings.booking_date', [
-                        Carbon::parse($this->startDate),
-                        Carbon::parse($this->endDate),
-                    ])
-                    ->where('bookings.payment_status', 'paid');
-            })
-            ->whereIn('halls.id', $hallIds)
-            ->groupBy('halls.id', 'halls.name', 'halls.owner_id')
-            ->orderByDesc('total_revenue')
-            ->get();
-    }
-
-    /**
-     * Export report as PDF.
-     *
-     * Generates a PDF file download with owner dashboard summary.
-     *
-     * FIX: Previously used Auth::user() directly which can return null
-     * in Livewire streamDownload contexts. Now uses Auth::id() captured
-     * early + User::findOrFail() for reliable user resolution.
-     * Also added null-safe operator for hallOwner relationship.
-     *
-     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\StreamedResponse
-     */
-    public function exportPDF()
-    {
-        /**
-         * FIX: Capture Auth::id() first (reliable in Livewire action context),
-         * then resolve the full User model from the database.
-         * This avoids the null Auth::user() issue in streamDownload contexts.
-         */
-        $ownerId = Auth::id();
-        $user = User::findOrFail($ownerId);
-        $hallOwner = $user->hallOwner ?? null;
-
-        // Generate PDF from view template
-        $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
-            'stats' => $this->dashboardStats,
-            'hallPerformance' => $this->hallPerformance,
-            'comparison' => $this->monthlyComparison,
-            'owner' => $user,
-            'hallOwner' => $hallOwner,
-            'startDate' => $this->startDate,
-            'endDate' => $this->endDate,
-            'generatedAt' => now()->format('d M Y H:i'),
-        ]);
-
-        $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
-
-        return response()->streamDownload(
-            fn() => print($pdf->output()),
-            $filename,
-            ['Content-Type' => 'application/pdf']
+        return $service->getTopHalls(
+            Carbon::parse($this->startDate),
+            Carbon::parse($this->endDate),
+            100,
+            Auth::id()
         );
     }
 
@@ -630,25 +418,19 @@ class Reports extends Page implements HasForms
      * Computed property that retrieves the count of bookings
      * grouped by time slot (morning, afternoon, evening, full_day).
      *
-     * FIX: Now respects the hallId filter.
-     *
      * @return array{labels: array, data: array}
      */
     #[Computed]
     public function timeSlotDistribution(): array
     {
-        $hallIds = $this->getFilteredHallIds();
+        /** @var ReportService $service */
+        $service = app(ReportService::class);
 
-        // FIX: Query directly with filtered hall IDs
-        $data = Booking::select('time_slot', DB::raw('COUNT(*) as count'))
-            ->whereIn('hall_id', $hallIds)
-            ->whereBetween('booking_date', [
-                Carbon::parse($this->startDate),
-                Carbon::parse($this->endDate),
-            ])
-            ->whereIn('status', ['confirmed', 'completed'])
-            ->groupBy('time_slot')
-            ->get();
+        $data = $service->getTimeSlotDistribution(
+            Carbon::parse($this->startDate),
+            Carbon::parse($this->endDate),
+            Auth::id()
+        );
 
         // Return formatted data with translated slot names
         return [
@@ -662,9 +444,6 @@ class Reports extends Page implements HasForms
      *
      * Computed property that retrieves comparison metrics
      * between current and previous month.
-     *
-     * NOTE: Monthly comparison always uses the full owner scope
-     * (not filtered by hallId) as it's a high-level trend indicator.
      *
      * @return array<string, mixed>
      */
@@ -687,7 +466,6 @@ class Reports extends Page implements HasForms
     protected function getHeaderActions(): array
     {
         return [
-
             // Export CSV Action
             Action::make('export_csv')
                 ->label(__('owner_report.reports.actions.export_csv'))
@@ -705,38 +483,23 @@ class Reports extends Page implements HasForms
                         ->required()
                         ->default('summary'),
                 ])
-                ->action(fn(array $data) => $this->exportCSV($data['report_type'])),
+                ->action(fn (array $data) => $this->exportCSV($data['report_type'])),
 
-            // Export to PDF action
-            Action::make('exportPdf')
+            // Export PDF Action
+            Action::make('export_pdf')
                 ->label(__('owner_report.reports.actions.export_pdf'))
                 ->icon('heroicon-o-document-arrow-down')
-                ->color('success')
-                ->action(function () {
-                    try {
-                        $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
-                            'stats' => $this->dashboardStats,
-                            'comparison' => $this->monthlyComparison,
-                            'hallPerformance' => $this->hallPerformance,
-                            'startDate' => $this->startDate,
-                            'endDate' => $this->endDate,
-                        ]);
+                ->color('danger')
+                ->action(fn () => $this->exportPDF()),
 
-                        $filename = 'owner-report-' . now()->format('Y-m-d') . '.pdf';
-
-                        return Response::streamDownload(
-                            fn () => print($pdf->output()),
-                            $filename,
-                            ['Content-Type' => 'application/pdf']
-                        );
-                    } catch (\Throwable $e) {
-                        Notification::make()
-                            ->danger()
-                            ->title(__('owner_report.reports.errors.export_failed'))
-                            ->body($e->getMessage())
-                            ->send();
-                    }
-                }),
+            // Print Action
+            Action::make('print')
+                ->label(__('owner_report.reports.actions.print'))
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->extraAttributes([
+                    'onclick' => 'window.print()',
+                ]),
         ];
     }
 
@@ -791,6 +554,61 @@ class Reports extends Page implements HasForms
         }, $filename, [
             'Content-Type' => 'text/csv; charset=utf-8',
         ]);
+    }
+
+    /**
+     * Export report as PDF.
+     *
+     * Generates a PDF file download with owner dashboard summary.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function exportPDF()
+    {
+        $user = Auth::user();
+        $hallOwner = $user->hallOwner;
+
+        // Generate PDF from view template
+        $pdf = Pdf::loadView('pdf.reports.owner-dashboard', [
+            'stats' => $this->dashboardStats,
+            'hallPerformance' => $this->hallPerformance,
+            'comparison' => $this->monthlyComparison,
+            'owner' => $user,
+            'hallOwner' => $hallOwner,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'generatedAt' => now()->format('d M Y H:i'),
+        ]);
+
+        $filename = "owner_report_{$this->startDate}_{$this->endDate}.pdf";
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
+    /**
+     * Set active tab.
+     *
+     * Switches to the specified tab and dispatches event
+     * to reinitialize charts on the new tab.
+     *
+     * FIX: This method now dispatches the event that JavaScript
+     * listens for to reinitialize Chart.js charts.
+     *
+     * @param string $tab The tab identifier to switch to
+     * @return void
+     */
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+
+        // CRITICAL FIX: Dispatch event for chart reinitialization
+        // This event is listened to by the JavaScript in the blade template
+        // Without this, charts won't render when switching tabs
+        $this->dispatch('activeTabUpdated', tab: $tab);
     }
 
     /**

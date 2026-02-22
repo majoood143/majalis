@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\HallResource\Widgets;
+namespace App\Filament\Owner\Resources\HallResource\Widgets;
 
 use App\Models\Hall;
 use App\Models\Booking;
@@ -143,7 +143,7 @@ class HallRecentBookingsWidget extends BaseWidget
                 Tables\Actions\Action::make('view')
                     ->label(__('common.actions.view'))
                     ->icon('heroicon-o-eye')
-                    ->url(fn(Booking $record): string => route('filament.admin.resources.bookings.view', $record))
+                    ->url(fn(Booking $record): string => route('filament.owner.resources.bookings.view', $record))
                     ->openUrlInNewTab(),
             ])
             ->emptyStateHeading(__('widgets.hall-recent-bookings.empty_state.heading'))

@@ -41,7 +41,7 @@
 
 <body>
     <div class="header">
-        <img src="{{ asset('images/logo.webp') }}" alt="Majalis Logo">
+        <img src="{{ public_path('images/logo.webp') }}" alt="Majalis Logo">
         <h1>MAJALIS</h1>
         <h2>Booking Invoice</h2>
     </div>
@@ -66,28 +66,35 @@
             <tr>
                 <td>Hall Booking - {{ $booking->time_slot }}</td>
                 <td>1</td>
-                <td>{{ number_format($booking->hall_price, 3) }} </td>
-                <td>{{ number_format($booking->hall_price, 3) }} </td>
+                <td>{{ number_format($booking->hall_price, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
+                <td>{{ number_format($booking->hall_price, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
             </tr>
             @foreach ($extraServices as $service)
                 <tr>
                     <td>{{ $service->service_name }}</td>
                     <td>{{ $service->quantity }}</td>
-                    <td>{{ number_format($service->unit_price, 3) }} </td>
-                    <td>{{ number_format($service->total_price, 3) }} </td>
+                    <td>{{ number_format($service->unit_price, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
+                    <td>{{ number_format($service->total_price, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
                 </tr>
             @endforeach
             <tr>
                 <td colspan="3" style="text-align: right;">Subtotal:</td>
-                <td>{{ number_format($booking->subtotal, 3) }} </td>
+                <td>{{ number_format($booking->subtotal, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
             </tr>
             <tr>
                 <td colspan="3" style="text-align: right;">Platform Fee:</td>
-                <td>{{ number_format($booking->platform_fee, 3) }} </td>
+                <td>{{ number_format($booking->platform_fee, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
             </tr>
             <tr class="total">
                 <td colspan="3" style="text-align: right;">TOTAL:</td>
-                <td>{{ number_format($booking->total_amount, 3) }} </td>
+                <td>{{ number_format($booking->total_amount, 3) }} <img src="{{ public_path('images/Medium.svg') }}"
+                            alt="Omani Riyal" height="17px" width="20px" class="inline w-5 h-5 -mt-1"></td>
             </tr>
         </tbody>
     </table>

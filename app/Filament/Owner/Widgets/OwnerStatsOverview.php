@@ -48,28 +48,28 @@ class OwnerStatsOverview extends BaseWidget
             ->count();
 
         return [
-            Stat::make('My Halls', $totalHalls)
-                ->description($activeHalls . ' active halls')
+            Stat::make(__('widgets.owner-stats-overview.my_halls'), $totalHalls)
+                ->description(__('widgets.owner-stats-overview.active_halls_desc', ['count' => $activeHalls]))
                 ->descriptionIcon('heroicon-m-building-office-2')
                 ->color('primary'),
 
-            Stat::make('Total Earnings', number_format($totalEarnings, 3) . ' OMR')
-                ->description('All-time earnings')
+            Stat::make(__('widgets.owner-stats-overview.total_earnings'), number_format($totalEarnings, 3) . ' ' . __('common.currency.omr'))
+                ->description(__('widgets.owner-stats-overview.all_time_earnings'))
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('success'),
 
-            Stat::make('Monthly Earnings', number_format($monthlyEarnings, 3) . ' OMR')
-                ->description('This month')
+            Stat::make(__('widgets.owner-stats-overview.monthly_earnings'), number_format($monthlyEarnings, 3) . ' ' . __('common.currency.omr'))
+                ->description(__('widgets.owner-stats-overview.this_month'))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('info'),
 
-            Stat::make('Total Bookings', $totalBookings)
-                ->description($upcomingBookings . ' upcoming')
+            Stat::make(__('widgets.owner-stats-overview.total_bookings'), $totalBookings)
+                ->description(__('widgets.owner-stats-overview.upcoming_desc', ['count' => $upcomingBookings]))
                 ->descriptionIcon('heroicon-m-calendar-days')
                 ->color('warning'),
 
-            Stat::make('Pending Bookings', $pendingBookings)
-                ->description('Requires action')
+            Stat::make(__('widgets.owner-stats-overview.pending_bookings'), $pendingBookings)
+                ->description(__('widgets.owner-stats-overview.requires_action'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color($pendingBookings > 0 ? 'danger' : 'gray'),
         ];

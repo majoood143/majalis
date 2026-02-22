@@ -87,7 +87,11 @@
                             {{ __('owner.reports.daily_revenue') }}
                         </h3>
                         <div class="h-64">
-                            <canvas id="dailyRevenueChart" wire:ignore></canvas>
+                            {{-- <canvas id="dailyRevenueChart" wire:ignore></canvas> --}}
+                            <canvas id="dailyRevenueChart" wire:ignore
+    data-labels="{{ json_encode(array_column($reportData['daily_data'] ?? [], 'date')) }}"
+    data-values="{{ json_encode(array_column($reportData['daily_data'] ?? [], 'net_earnings')) }}">
+</canvas>
                         </div>
                     </div>
 
@@ -205,7 +209,12 @@
                         {{ __('owner.reports.monthly_revenue') }}
                     </h3>
                     <div class="h-72">
-                        <canvas id="monthlyRevenueChart" wire:ignore></canvas>
+                        {{-- <canvas id="monthlyRevenueChart" wire:ignore></canvas> --}}
+                        <canvas id="monthlyRevenueChart" wire:ignore
+    data-labels="{{ json_encode(array_column($reportData['monthly_data'] ?? [], 'month_name')) }}"
+    data-gross="{{ json_encode(array_column($reportData['monthly_data'] ?? [], 'gross')) }}"
+    data-net="{{ json_encode(array_column($reportData['monthly_data'] ?? [], 'net')) }}">
+</canvas>
                     </div>
                 </div>
 
@@ -576,194 +585,6 @@
     @endif
 
     {{-- Chart Scripts --}}
-    {{-- @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            // Global chart instances storage
-            window.chartInstances = {};
-
-            // Function to destroy all charts
-            function destroyAllCharts() {
-                Object.values(window.chartInstances).forEach(chart => {
-                    if (chart && typeof chart.destroy === 'function') {
-                        chart.destroy();
-                    }
-                });
-                window.chartInstances = {};
-            }
-
-            // Function to initialize charts
-            function initializeCharts() {
-                // Destroy existing charts first
-                destroyAllCharts();
-
-                @if (!empty($reportData) && $reportData['type'] === 'monthly' && isset($reportData['daily_data']))
-                    // Daily Revenue Chart
-                    const dailyCtx = document.getElementById('dailyRevenueChart');
-                    if (dailyCtx) {
-                        const dailyData = {!! json_encode($reportData['daily_data']) !!};
-
-                        // Convert to arrays for chart
-                        const dailyLabels = [];
-                        const dailyNetValues = [];
-
-                        Object.values(dailyData).forEach(day => {
-                            dailyLabels.push(day.date);
-                            dailyNetValues.push(day.net);
-                        });
-
-                        window.chartInstances.dailyRevenueChart = new Chart(dailyCtx, {
-                            type: 'bar',
-                            data: {
-                                labels: dailyLabels,
-                                datasets: [{
-                                    label: '{{ __('owner.reports.net_earnings') }}',
-                                    data: dailyNetValues,
-                                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                                    borderColor: 'rgb(34, 197, 94)',
-                                    borderWidth: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        display: false
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: {
-                                            callback: function(value) {
-                                                return value.toFixed(3) + ' OMR';
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                @endif
-
-                @if (!empty($reportData) && $reportData['type'] === 'yearly' && isset($reportData['monthly_data']))
-                    // Monthly Revenue Chart for Yearly Report
-                    const monthlyCtx = document.getElementById('monthlyRevenueChart');
-                    if (monthlyCtx) {
-                        const monthlyData = {!! json_encode($reportData['monthly_data']) !!};
-
-                        // Extract labels and data
-                        const monthlyLabels = monthlyData.map(item => item.month_name || `Month ${item.month}`);
-                        const grossData = monthlyData.map(item => item.gross || item.gross_revenue || 0);
-                        const netData = monthlyData.map(item => item.net || item.net_earnings || 0);
-
-                        window.chartInstances.monthlyRevenueChart = new Chart(monthlyCtx, {
-                            type: 'line',
-                            data: {
-                                labels: monthlyLabels,
-                                datasets: [{
-                                        label: '{{ __('owner.reports.gross') }}',
-                                        data: grossData,
-                                        borderColor: 'rgb(59, 130, 246)',
-                                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                        fill: true,
-                                        tension: 0.3
-                                    },
-                                    {
-                                        label: '{{ __('owner.reports.net') }}',
-                                        data: netData,
-                                        borderColor: 'rgb(34, 197, 94)',
-                                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                        fill: true,
-                                        tension: 0.3
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                interaction: {
-                                    intersect: false,
-                                    mode: 'index'
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: {
-                                            callback: function(value) {
-                                                return value.toFixed(0) + ' OMR';
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                @endif
-
-                // Hall performance charts
-                document.querySelectorAll('[id^="hallChart"]').forEach(function(canvas) {
-                    const values = JSON.parse(canvas.dataset.values || '[]');
-                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov',
-                        'Dec'
-                    ];
-
-                    window.chartInstances[canvas.id] = new Chart(canvas, {
-                        type: 'line',
-                        data: {
-                            labels: months,
-                            datasets: [{
-                                label: 'Revenue',
-                                data: values,
-                                borderColor: 'rgb(34, 197, 94)',
-                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                fill: true,
-                                tension: 0.3
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    display: false
-                                },
-                                x: {
-                                    display: true
-                                }
-                            }
-                        }
-                    });
-                });
-            }
-
-            // Initialize charts when DOM is ready
-            document.addEventListener('DOMContentLoaded', initializeCharts);
-
-            // Handle Livewire updates
-            document.addEventListener('livewire:init', () => {
-                Livewire.on('report-updated', () => {
-                    // Small delay to ensure DOM is updated
-                    setTimeout(initializeCharts, 100);
-                });
-            });
-
-            // // Reinitialize charts when Livewire updates the component
-            // Livewire.hook('message.processed', (message, component) => {
-            //     if (component.serverMemo.data.reportData) {
-            //         setTimeout(initializeCharts, 50);
-            //     }
-            // });
-        </script>
-    @endpush --}}
-
-    {{-- Chart Scripts --}}
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -857,62 +678,52 @@
         /**
          * Initialize Monthly Revenue Chart (Yearly Report)
          */
-        function initializeMonthlyChart() {
-            const monthlyCtx = document.getElementById('monthlyRevenueChart');
-            if (!monthlyCtx) return;
+       function initializeMonthlyChart() {
+    const monthlyCtx = document.getElementById('monthlyRevenueChart');
+    if (!monthlyCtx) return;
 
-            @if (!empty($reportData) && ($reportData['type'] ?? '') === 'yearly' && isset($reportData['monthly_data']))
-                const monthlyData = @json(array_values($reportData['monthly_data']));
+    const labels = monthlyCtx.dataset.labels ? JSON.parse(monthlyCtx.dataset.labels) : [];
+    const grossData = monthlyCtx.dataset.gross ? JSON.parse(monthlyCtx.dataset.gross) : [];
+    const netData = monthlyCtx.dataset.net ? JSON.parse(monthlyCtx.dataset.net) : [];
 
-                if (!monthlyData || monthlyData.length === 0) return;
+    if (labels.length === 0 || grossData.length === 0) return;
 
-                const monthlyLabels = monthlyData.map(item => item.month_name || `Month ${item.month}`);
-                const grossData = monthlyData.map(item => item.gross || item.gross_revenue || 0);
-                const netData = monthlyData.map(item => item.net || item.net_earnings || 0);
-
-                window.chartInstances.monthlyRevenueChart = new Chart(monthlyCtx, {
-                    type: 'line',
-                    data: {
-                        labels: monthlyLabels,
-                        datasets: [{
-                                label: '{{ __('owner.reports.gross') }}',
-                                data: grossData,
-                                borderColor: 'rgb(59, 130, 246)',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                fill: true,
-                                tension: 0.3
-                            },
-                            {
-                                label: '{{ __('owner.reports.net') }}',
-                                data: netData,
-                                borderColor: 'rgb(34, 197, 94)',
-                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                fill: true,
-                                tension: 0.3
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            intersect: false,
-                            mode: 'index'
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toFixed(0) + ' OMR';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            @endif
+    window.chartInstances.monthlyRevenueChart = new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '{{ __('owner.reports.gross') }}',
+                    data: grossData,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: '{{ __('owner.reports.net') }}',
+                    data: netData,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: value => value.toFixed(0) + ' OMR' }
+                }
+            }
         }
+    });
+}
 
         /**
          * Initialize Hall Performance Charts (Hall Report)
@@ -978,4 +789,5 @@
         });
     </script>
 @endpush
+
 </x-filament-panels::page>

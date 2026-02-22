@@ -48,6 +48,6 @@
         </div>
     </div>
 
-    {{-- ✅ Calendar Widget is rendered via getFooterWidgets() in AvailabilityCalendarPage.php --}}
-    {{-- Do NOT use @livewire here — it breaks Filament's action/modal lifecycle --}}
+    {{-- The Calendar Widget --}}
+    @livewire(\App\Filament\Owner\Widgets\AvailabilityCalendarWidget::class)
 </x-filament-panels::page>

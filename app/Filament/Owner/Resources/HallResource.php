@@ -506,334 +506,334 @@ class HallResource extends OwnerResource
                                     ]),
                             ]),
 
-                // ==================== TAB 7: Settings ====================
-                // ==================== TAB 7: Settings ====================
-                Forms\Components\Tabs\Tab::make(__('owner.halls.tabs.settings'))
-                    ->icon('heroicon-o-cog-6-tooth')
-                    ->badge(fn(Forms\Get $get): ?string => !$get('is_active') ? __('owner.halls.badges.inactive') : null)
-                    ->badgeColor('danger')
-                    ->schema([
-                        // ===========================================
-                        // SECTION 1: STATUS SETTINGS
-                        // ===========================================
-                        Forms\Components\Section::make(__('owner.halls.sections.status'))
-                            ->description(__('owner.halls.sections.status_desc'))
-                            ->icon('heroicon-o-signal')
-                            ->collapsible()
-                            ->columns(2)
+                        // ==================== TAB 7: Settings ====================
+                        // ==================== TAB 7: Settings ====================
+                        Forms\Components\Tabs\Tab::make(__('owner.halls.tabs.settings'))
+                            ->icon('heroicon-o-cog-6-tooth')
+                            ->badge(fn(Forms\Get $get): ?string => !$get('is_active') ? __('owner.halls.badges.inactive') : null)
+                            ->badgeColor('danger')
                             ->schema([
-                                // Hall Active Status Toggle
-                                Forms\Components\Toggle::make('is_active')
-                                    ->label(__('owner.halls.fields.is_active'))
-                                    ->helperText(__('owner.halls.helpers.is_active'))
-                                    ->default(true)
-                                    ->onColor('success')
-                                    ->offColor('danger')
-                                    ->inline(false)
-                                    ->live(),
-
-                                // Featured Status - Display Only (Admin Controlled)
-                                Forms\Components\Placeholder::make('featured_status')
-                                    ->label(__('owner.halls.fields.is_featured'))
-                                    ->content(function ($record): \Illuminate\Support\HtmlString {
-                                        if (!$record) {
-                                            return new \Illuminate\Support\HtmlString(
-                                                '<span class="text-sm text-gray-500">' .
-                                                    __('owner.halls.placeholders.not_available') .
-                                                    '</span>'
-                                            );
-                                        }
-
-                                        $isFeatured = (bool) ($record->is_featured ?? false);
-
-                                        if ($isFeatured) {
-                                            return new \Illuminate\Support\HtmlString(
-                                                '<div class="flex items-center gap-2">' .
-                                                    '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">' .
-                                                    '<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>' .
-                                                    __('owner.halls.status.featured') .
-                                                    '</span></div>'
-                                            );
-                                        }
-
-                                        return new \Illuminate\Support\HtmlString(
-                                            '<span class="text-sm text-gray-500">' .
-                                                __('owner.halls.status.not_featured') .
-                                                '</span>'
-                                        );
-                                    })
-                                    ->hint(__('owner.halls.helpers.featured_admin_only'))
-                                    ->hintIcon('heroicon-o-information-circle')
-                                    ->hintColor('info'),
-
-                                // Status Summary Card - Full Width
-                                Forms\Components\Placeholder::make('status_summary')
-                                    ->label('')
-                                    ->content(function ($record, Forms\Get $get): \Illuminate\Support\HtmlString {
-                                        $isActive = $get('is_active') ?? ($record?->is_active ?? true);
-
-                                        if (!$isActive) {
-                                            return new \Illuminate\Support\HtmlString(
-                                                '<div class="p-4 border rounded-lg bg-danger-50 dark:bg-danger-950 border-danger-200 dark:border-danger-800">' .
-                                                    '<div class="flex items-center gap-3">' .
-                                                    '<svg class="w-6 h-6 text-danger-600 dark:text-danger-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
-                                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>' .
-                                                    '</svg>' .
-                                                    '<div>' .
-                                                    '<p class="font-semibold text-danger-700 dark:text-danger-300">' . __('owner.halls.alerts.inactive_title') . '</p>' .
-                                                    '<p class="text-sm text-danger-600 dark:text-danger-400">' . __('owner.halls.alerts.inactive_message') . '</p>' .
-                                                    '</div></div></div>'
-                                            );
-                                        }
-
-                                        return new \Illuminate\Support\HtmlString(
-                                            '<div class="p-4 border rounded-lg bg-success-50 dark:bg-success-950 border-success-200 dark:border-success-800">' .
-                                                '<div class="flex items-center gap-3">' .
-                                                '<svg class="w-6 h-6 text-success-600 dark:text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
-                                                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>' .
-                                                '</svg>' .
-                                                '<div>' .
-                                                '<p class="font-semibold text-success-700 dark:text-success-300">' . __('owner.halls.alerts.active_title') . '</p>' .
-                                                '<p class="text-sm text-success-600 dark:text-success-400">' . __('owner.halls.alerts.active_message') . '</p>' .
-                                                '</div></div></div>'
-                                        );
-                                    })
-                                    ->columnSpanFull(),
-                            ]),
-
-                        // ===========================================
-                        // SECTION 2: BOOKING SETTINGS
-                        // ===========================================
-                        Forms\Components\Section::make(__('owner.halls.sections.booking_settings'))
-                            ->description(__('owner.halls.sections.booking_settings_desc'))
-                            ->icon('heroicon-o-calendar-days')
-                            ->collapsible()
-                            ->columns(2)
-                            ->schema([
-                                // Requires Approval Toggle
-                                Forms\Components\Toggle::make('requires_approval')
-                                    ->label(__('owner.halls.fields.requires_approval'))
-                                    ->helperText(__('owner.halls.helpers.requires_approval'))
-                                    ->default(false)
-                                    ->onColor('warning')
-                                    ->offColor('gray')
-                                    ->inline(false)
-                                    ->live()
-                                    ->columnSpanFull(),
-
-                                // Approval Info Card
-                                Forms\Components\Placeholder::make('approval_info')
-                                    ->label('')
-                                    ->content(function (Forms\Get $get): \Illuminate\Support\HtmlString {
-                                        $requiresApproval = $get('requires_approval') ?? false;
-
-                                        if ($requiresApproval) {
-                                            return new \Illuminate\Support\HtmlString(
-                                                '<div class="p-3 text-sm border rounded-lg bg-warning-50 dark:bg-warning-950 border-warning-200 dark:border-warning-800">' .
-                                                    '<div class="flex items-start gap-2">' .
-                                                    '<svg class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
-                                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>' .
-                                                    '</svg>' .
-                                                    '<div class="text-warning-700 dark:text-warning-300">' .
-                                                    '<strong>' . __('owner.halls.alerts.approval_enabled_title') . '</strong><br>' .
-                                                    __('owner.halls.alerts.approval_enabled_message') .
-                                                    '</div></div></div>'
-                                            );
-                                        }
-
-                                        return new \Illuminate\Support\HtmlString(
-                                            '<div class="p-3 text-sm text-gray-600 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400">' .
-                                                '<strong>' . __('owner.halls.alerts.auto_approval_title') . '</strong><br>' .
-                                                __('owner.halls.alerts.auto_approval_message') .
-                                                '</div>'
-                                        );
-                                    })
-                                    ->columnSpanFull(),
-
-                                // Cancellation Hours
-                                Forms\Components\TextInput::make('cancellation_hours')
-                                    ->label(__('owner.halls.fields.cancellation_hours'))
-                                    ->helperText(__('owner.halls.helpers.cancellation_hours'))
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(720)
-                                    ->step(1)
-                                    ->default(24)
-                                    ->suffix(__('owner.halls.suffixes.hours'))
-                                    ->prefixIcon('heroicon-o-clock')
-                                    ->required()
-                                    ->live(),
-
-                                // Cancellation Fee Percentage
-                                Forms\Components\TextInput::make('cancellation_fee_percentage')
-                                    ->label(__('owner.halls.fields.cancellation_fee'))
-                                    ->helperText(__('owner.halls.helpers.cancellation_fee'))
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(100)
-                                    ->step(0.01)
-                                    ->default(0)
-                                    ->suffix('%')
-                                    ->prefixIcon('heroicon-o-receipt-percent')
-                                    ->required(),
-
-                                // Cancellation Policy Summary
-                                Forms\Components\Placeholder::make('cancellation_summary')
-                                    ->label(__('owner.halls.fields.cancellation_policy'))
-                                    ->content(function (Forms\Get $get): \Illuminate\Support\HtmlString {
-                                        $hours = (int) ($get('cancellation_hours') ?? 24);
-                                        $fee = (float) ($get('cancellation_fee_percentage') ?? 0);
-
-                                        $days = (int) floor($hours / 24);
-                                        $remainingHours = $hours % 24;
-
-                                        // Build time string
-                                        $timeString = '';
-                                        if ($days > 0) {
-                                            $timeString .= $days . ' ' . __('owner.halls.time.days');
-                                            if ($remainingHours > 0) {
-                                                $timeString .= ' ' . __('owner.halls.time.and') . ' ';
-                                            }
-                                        }
-                                        if ($remainingHours > 0 || $days === 0) {
-                                            $timeString .= $remainingHours . ' ' . __('owner.halls.time.hours');
-                                        }
-
-                                        return new \Illuminate\Support\HtmlString(
-                                            '<div class="p-4 border rounded-lg bg-primary-50 dark:bg-primary-950 border-primary-200 dark:border-primary-800">' .
-                                                '<p class="mb-2 font-medium text-primary-900 dark:text-primary-100">' .
-                                                __('owner.halls.policy.title') .
-                                                '</p>' .
-                                                '<ul class="space-y-1 text-sm list-disc list-inside text-primary-700 dark:text-primary-300">' .
-                                                '<li>' . __('owner.halls.policy.free_before', ['time' => $timeString]) . '</li>' .
-                                                ($fee > 0
-                                                    ? '<li>' . __('owner.halls.policy.fee_after', ['fee' => number_format($fee, 2)]) . '</li>'
-                                                    : '<li>' . __('owner.halls.policy.no_fee') . '</li>') .
-                                                '</ul></div>'
-                                        );
-                                    })
-                                    ->columnSpanFull(),
-                            ]),
-
-                        // ===========================================
-                        // SECTION 3: SEO SETTINGS (Optional/Advanced)
-                        // ===========================================
-                        Forms\Components\Section::make(__('owner.halls.sections.seo'))
-                            ->description(__('owner.halls.sections.seo_desc'))
-                            ->icon('heroicon-o-magnifying-glass')
-                            ->collapsed()
-                            ->collapsible()
-                            ->schema([
-                                // SEO English Fields
-                                Forms\Components\Fieldset::make(__('owner.halls.fieldsets.seo_english'))
+                                // ===========================================
+                                // SECTION 1: STATUS SETTINGS
+                                // ===========================================
+                                Forms\Components\Section::make(__('owner.halls.sections.status'))
+                                    ->description(__('owner.halls.sections.status_desc'))
+                                    ->icon('heroicon-o-signal')
+                                    ->collapsible()
+                                    ->columns(2)
                                     ->schema([
-                                        Forms\Components\TextInput::make('meta_title.en')
-                                            ->label(__('owner.halls.fields.meta_title'))
-                                            ->placeholder(__('owner.halls.placeholders.meta_title'))
-                                            ->maxLength(60)
-                                            ->helperText(__('owner.halls.helpers.meta_title')),
+                                        // Hall Active Status Toggle
+                                        Forms\Components\Toggle::make('is_active')
+                                            ->label(__('owner.halls.fields.is_active'))
+                                            ->helperText(__('owner.halls.helpers.is_active'))
+                                            ->default(true)
+                                            ->onColor('success')
+                                            ->offColor('danger')
+                                            ->inline(false)
+                                            ->live(),
 
-                                        Forms\Components\Textarea::make('meta_description.en')
-                                            ->label(__('owner.halls.fields.meta_description'))
-                                            ->placeholder(__('owner.halls.placeholders.meta_description'))
-                                            ->maxLength(160)
-                                            ->rows(3)
-                                            ->helperText(__('owner.halls.helpers.meta_description')),
-
-                                        Forms\Components\TextInput::make('meta_keywords.en')
-                                            ->label(__('owner.halls.fields.meta_keywords'))
-                                            ->placeholder(__('owner.halls.placeholders.meta_keywords'))
-                                            ->maxLength(255)
-                                            ->helperText(__('owner.halls.helpers.meta_keywords')),
-                                    ])
-                                    ->columns(1),
-
-                                // SEO Arabic Fields
-                                Forms\Components\Fieldset::make(__('owner.halls.fieldsets.seo_arabic'))
-                                    ->schema([
-                                        Forms\Components\TextInput::make('meta_title.ar')
-                                            ->label(__('owner.halls.fields.meta_title'))
-                                            ->placeholder(__('owner.halls.placeholders.meta_title_ar'))
-                                            ->maxLength(60)
-                                            ->extraInputAttributes(['dir' => 'rtl'])
-                                            ->helperText(__('owner.halls.helpers.meta_title')),
-
-                                        Forms\Components\Textarea::make('meta_description.ar')
-                                            ->label(__('owner.halls.fields.meta_description'))
-                                            ->placeholder(__('owner.halls.placeholders.meta_description_ar'))
-                                            ->maxLength(160)
-                                            ->rows(3)
-                                            ->extraInputAttributes(['dir' => 'rtl'])
-                                            ->helperText(__('owner.halls.helpers.meta_description')),
-
-                                        Forms\Components\TextInput::make('meta_keywords.ar')
-                                            ->label(__('owner.halls.fields.meta_keywords'))
-                                            ->placeholder(__('owner.halls.placeholders.meta_keywords_ar'))
-                                            ->maxLength(255)
-                                            ->extraInputAttributes(['dir' => 'rtl'])
-                                            ->helperText(__('owner.halls.helpers.meta_keywords')),
-                                    ])
-                                    ->columns(1),
-
-                                // SEO Tips Card
-                                Forms\Components\Placeholder::make('seo_tips')
-                                    ->label('')
-                                    ->content(new \Illuminate\Support\HtmlString(
-                                        '<div class="p-4 border rounded-lg bg-info-50 dark:bg-info-950 border-info-200 dark:border-info-800">' .
-                                            '<p class="flex items-center gap-2 mb-2 font-medium text-info-900 dark:text-info-100">' .
-                                            '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
-                                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>' .
-                                            '</svg>' .
-                                            __('owner.halls.seo.tips_title') .
-                                            '</p>' .
-                                            '<ul class="space-y-1 text-sm list-disc list-inside text-info-700 dark:text-info-300">' .
-                                            '<li>' . __('owner.halls.seo.tip_1') . '</li>' .
-                                            '<li>' . __('owner.halls.seo.tip_2') . '</li>' .
-                                            '<li>' . __('owner.halls.seo.tip_3') . '</li>' .
-                                            '</ul></div>'
-                                    ))
-                                    ->columnSpanFull(),
-                            ]),
-
-                        // ===========================================
-                        // SECTION 4: STATISTICS (Read-Only Display)
-                        // ===========================================
-                        Forms\Components\Section::make(__('owner.halls.sections.statistics'))
-                            ->description(__('owner.halls.sections.statistics_desc'))
-                            ->icon('heroicon-o-chart-bar')
-                            ->collapsed()
-                            ->collapsible()
-                            ->visible(fn($record): bool => $record !== null)
-                            ->schema([
-                                Forms\Components\Grid::make(4)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('total_bookings_stat')
-                                            ->label(__('owner.halls.stats.total_bookings'))
-                                            ->content(fn($record): string => number_format((int) ($record?->total_bookings ?? 0))),
-
-                                        Forms\Components\Placeholder::make('average_rating_stat')
-                                            ->label(__('owner.halls.stats.average_rating'))
+                                        // Featured Status - Display Only (Admin Controlled)
+                                        Forms\Components\Placeholder::make('featured_status')
+                                            ->label(__('owner.halls.fields.is_featured'))
                                             ->content(function ($record): \Illuminate\Support\HtmlString {
-                                                $rating = (float) ($record?->average_rating ?? 0);
-                                                $stars = str_repeat('★', (int) round($rating)) . str_repeat('☆', 5 - (int) round($rating));
+                                                if (!$record) {
+                                                    return new \Illuminate\Support\HtmlString(
+                                                        '<span class="text-sm text-gray-500">' .
+                                                            __('owner.halls.placeholders.not_available') .
+                                                            '</span>'
+                                                    );
+                                                }
+
+                                                $isFeatured = (bool) ($record->is_featured ?? false);
+
+                                                if ($isFeatured) {
+                                                    return new \Illuminate\Support\HtmlString(
+                                                        '<div class="flex items-center gap-2">' .
+                                                            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">' .
+                                                            '<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>' .
+                                                            __('owner.halls.status.featured') .
+                                                            '</span></div>'
+                                                    );
+                                                }
+
                                                 return new \Illuminate\Support\HtmlString(
-                                                    '<span class="text-yellow-500">' . $stars . '</span> ' .
-                                                        '<span class="text-gray-600 dark:text-gray-400">(' . number_format($rating, 2) . ')</span>'
+                                                    '<span class="text-sm text-gray-500">' .
+                                                        __('owner.halls.status.not_featured') .
+                                                        '</span>'
                                                 );
-                                            }),
+                                            })
+                                            ->hint(__('owner.halls.helpers.featured_admin_only'))
+                                            ->hintIcon('heroicon-o-information-circle')
+                                            ->hintColor('info'),
 
-                                        Forms\Components\Placeholder::make('total_reviews_stat')
-                                            ->label(__('owner.halls.stats.total_reviews'))
-                                            ->content(fn($record): string => number_format((int) ($record?->total_reviews ?? 0))),
+                                        // Status Summary Card - Full Width
+                                        Forms\Components\Placeholder::make('status_summary')
+                                            ->label('')
+                                            ->content(function ($record, Forms\Get $get): \Illuminate\Support\HtmlString {
+                                                $isActive = $get('is_active') ?? ($record?->is_active ?? true);
 
-                                        Forms\Components\Placeholder::make('created_at_stat')
-                                            ->label(__('owner.halls.stats.created_at'))
-                                            ->content(fn($record): string => $record?->created_at?->format('M d, Y') ?? '-'),
+                                                if (!$isActive) {
+                                                    return new \Illuminate\Support\HtmlString(
+                                                        '<div class="p-4 border rounded-lg bg-danger-50 dark:bg-danger-950 border-danger-200 dark:border-danger-800">' .
+                                                            '<div class="flex items-center gap-3">' .
+                                                            '<svg class="w-6 h-6 text-danger-600 dark:text-danger-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
+                                                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>' .
+                                                            '</svg>' .
+                                                            '<div>' .
+                                                            '<p class="font-semibold text-danger-700 dark:text-danger-300">' . __('owner.halls.alerts.inactive_title') . '</p>' .
+                                                            '<p class="text-sm text-danger-600 dark:text-danger-400">' . __('owner.halls.alerts.inactive_message') . '</p>' .
+                                                            '</div></div></div>'
+                                                    );
+                                                }
+
+                                                return new \Illuminate\Support\HtmlString(
+                                                    '<div class="p-4 border rounded-lg bg-success-50 dark:bg-success-950 border-success-200 dark:border-success-800">' .
+                                                        '<div class="flex items-center gap-3">' .
+                                                        '<svg class="w-6 h-6 text-success-600 dark:text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
+                                                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>' .
+                                                        '</svg>' .
+                                                        '<div>' .
+                                                        '<p class="font-semibold text-success-700 dark:text-success-300">' . __('owner.halls.alerts.active_title') . '</p>' .
+                                                        '<p class="text-sm text-success-600 dark:text-success-400">' . __('owner.halls.alerts.active_message') . '</p>' .
+                                                        '</div></div></div>'
+                                                );
+                                            })
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                // ===========================================
+                                // SECTION 2: BOOKING SETTINGS
+                                // ===========================================
+                                Forms\Components\Section::make(__('owner.halls.sections.booking_settings'))
+                                    ->description(__('owner.halls.sections.booking_settings_desc'))
+                                    ->icon('heroicon-o-calendar-days')
+                                    ->collapsible()
+                                    ->columns(2)
+                                    ->schema([
+                                        // Requires Approval Toggle
+                                        Forms\Components\Toggle::make('requires_approval')
+                                            ->label(__('owner.halls.fields.requires_approval'))
+                                            ->helperText(__('owner.halls.helpers.requires_approval'))
+                                            ->default(false)
+                                            ->onColor('warning')
+                                            ->offColor('gray')
+                                            ->inline(false)
+                                            ->live()
+                                            ->columnSpanFull(),
+
+                                        // Approval Info Card
+                                        Forms\Components\Placeholder::make('approval_info')
+                                            ->label('')
+                                            ->content(function (Forms\Get $get): \Illuminate\Support\HtmlString {
+                                                $requiresApproval = $get('requires_approval') ?? false;
+
+                                                if ($requiresApproval) {
+                                                    return new \Illuminate\Support\HtmlString(
+                                                        '<div class="p-3 text-sm border rounded-lg bg-warning-50 dark:bg-warning-950 border-warning-200 dark:border-warning-800">' .
+                                                            '<div class="flex items-start gap-2">' .
+                                                            '<svg class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
+                                                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>' .
+                                                            '</svg>' .
+                                                            '<div class="text-warning-700 dark:text-warning-300">' .
+                                                            '<strong>' . __('owner.halls.alerts.approval_enabled_title') . '</strong><br>' .
+                                                            __('owner.halls.alerts.approval_enabled_message') .
+                                                            '</div></div></div>'
+                                                    );
+                                                }
+
+                                                return new \Illuminate\Support\HtmlString(
+                                                    '<div class="p-3 text-sm text-gray-600 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400">' .
+                                                        '<strong>' . __('owner.halls.alerts.auto_approval_title') . '</strong><br>' .
+                                                        __('owner.halls.alerts.auto_approval_message') .
+                                                        '</div>'
+                                                );
+                                            })
+                                            ->columnSpanFull(),
+
+                                        // Cancellation Hours
+                                        Forms\Components\TextInput::make('cancellation_hours')
+                                            ->label(__('owner.halls.fields.cancellation_hours'))
+                                            ->helperText(__('owner.halls.helpers.cancellation_hours'))
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(720)
+                                            ->step(1)
+                                            ->default(24)
+                                            ->suffix(__('owner.halls.suffixes.hours'))
+                                            ->prefixIcon('heroicon-o-clock')
+                                            ->required()
+                                            ->live(),
+
+                                        // Cancellation Fee Percentage
+                                        Forms\Components\TextInput::make('cancellation_fee_percentage')
+                                            ->label(__('owner.halls.fields.cancellation_fee'))
+                                            ->helperText(__('owner.halls.helpers.cancellation_fee'))
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->step(0.01)
+                                            ->default(0)
+                                            ->suffix('%')
+                                            ->prefixIcon('heroicon-o-receipt-percent')
+                                            ->required(),
+
+                                        // Cancellation Policy Summary
+                                        Forms\Components\Placeholder::make('cancellation_summary')
+                                            ->label(__('owner.halls.fields.cancellation_policy'))
+                                            ->content(function (Forms\Get $get): \Illuminate\Support\HtmlString {
+                                                $hours = (int) ($get('cancellation_hours') ?? 24);
+                                                $fee = (float) ($get('cancellation_fee_percentage') ?? 0);
+
+                                                $days = (int) floor($hours / 24);
+                                                $remainingHours = $hours % 24;
+
+                                                // Build time string
+                                                $timeString = '';
+                                                if ($days > 0) {
+                                                    $timeString .= $days . ' ' . __('owner.halls.time.days');
+                                                    if ($remainingHours > 0) {
+                                                        $timeString .= ' ' . __('owner.halls.time.and') . ' ';
+                                                    }
+                                                }
+                                                if ($remainingHours > 0 || $days === 0) {
+                                                    $timeString .= $remainingHours . ' ' . __('owner.halls.time.hours');
+                                                }
+
+                                                return new \Illuminate\Support\HtmlString(
+                                                    '<div class="p-4 border rounded-lg bg-primary-50 dark:bg-primary-950 border-primary-200 dark:border-primary-800">' .
+                                                        '<p class="mb-2 font-medium text-primary-900 dark:text-primary-100">' .
+                                                        __('owner.halls.policy.title') .
+                                                        '</p>' .
+                                                        '<ul class="space-y-1 text-sm list-disc list-inside text-primary-700 dark:text-primary-300">' .
+                                                        '<li>' . __('owner.halls.policy.free_before', ['time' => $timeString]) . '</li>' .
+                                                        ($fee > 0
+                                                            ? '<li>' . __('owner.halls.policy.fee_after', ['fee' => number_format($fee, 2)]) . '</li>'
+                                                            : '<li>' . __('owner.halls.policy.no_fee') . '</li>') .
+                                                        '</ul></div>'
+                                                );
+                                            })
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                // ===========================================
+                                // SECTION 3: SEO SETTINGS (Optional/Advanced)
+                                // ===========================================
+                                Forms\Components\Section::make(__('owner.halls.sections.seo'))
+                                    ->description(__('owner.halls.sections.seo_desc'))
+                                    ->icon('heroicon-o-magnifying-glass')
+                                    ->collapsed()
+                                    ->collapsible()
+                                    ->schema([
+                                        // SEO English Fields
+                                        Forms\Components\Fieldset::make(__('owner.halls.fieldsets.seo_english'))
+                                            ->schema([
+                                                Forms\Components\TextInput::make('meta_title.en')
+                                                    ->label(__('owner.halls.fields.meta_title'))
+                                                    ->placeholder(__('owner.halls.placeholders.meta_title'))
+                                                    ->maxLength(60)
+                                                    ->helperText(__('owner.halls.helpers.meta_title')),
+
+                                                Forms\Components\Textarea::make('meta_description.en')
+                                                    ->label(__('owner.halls.fields.meta_description'))
+                                                    ->placeholder(__('owner.halls.placeholders.meta_description'))
+                                                    ->maxLength(160)
+                                                    ->rows(3)
+                                                    ->helperText(__('owner.halls.helpers.meta_description')),
+
+                                                Forms\Components\TextInput::make('meta_keywords.en')
+                                                    ->label(__('owner.halls.fields.meta_keywords'))
+                                                    ->placeholder(__('owner.halls.placeholders.meta_keywords'))
+                                                    ->maxLength(255)
+                                                    ->helperText(__('owner.halls.helpers.meta_keywords')),
+                                            ])
+                                            ->columns(1),
+
+                                        // SEO Arabic Fields
+                                        Forms\Components\Fieldset::make(__('owner.halls.fieldsets.seo_arabic'))
+                                            ->schema([
+                                                Forms\Components\TextInput::make('meta_title.ar')
+                                                    ->label(__('owner.halls.fields.meta_title'))
+                                                    ->placeholder(__('owner.halls.placeholders.meta_title_ar'))
+                                                    ->maxLength(60)
+                                                    ->extraInputAttributes(['dir' => 'rtl'])
+                                                    ->helperText(__('owner.halls.helpers.meta_title')),
+
+                                                Forms\Components\Textarea::make('meta_description.ar')
+                                                    ->label(__('owner.halls.fields.meta_description'))
+                                                    ->placeholder(__('owner.halls.placeholders.meta_description_ar'))
+                                                    ->maxLength(160)
+                                                    ->rows(3)
+                                                    ->extraInputAttributes(['dir' => 'rtl'])
+                                                    ->helperText(__('owner.halls.helpers.meta_description')),
+
+                                                Forms\Components\TextInput::make('meta_keywords.ar')
+                                                    ->label(__('owner.halls.fields.meta_keywords'))
+                                                    ->placeholder(__('owner.halls.placeholders.meta_keywords_ar'))
+                                                    ->maxLength(255)
+                                                    ->extraInputAttributes(['dir' => 'rtl'])
+                                                    ->helperText(__('owner.halls.helpers.meta_keywords')),
+                                            ])
+                                            ->columns(1),
+
+                                        // SEO Tips Card
+                                        Forms\Components\Placeholder::make('seo_tips')
+                                            ->label('')
+                                            ->content(new \Illuminate\Support\HtmlString(
+                                                '<div class="p-4 border rounded-lg bg-info-50 dark:bg-info-950 border-info-200 dark:border-info-800">' .
+                                                    '<p class="flex items-center gap-2 mb-2 font-medium text-info-900 dark:text-info-100">' .
+                                                    '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' .
+                                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>' .
+                                                    '</svg>' .
+                                                    __('owner.halls.seo.tips_title') .
+                                                    '</p>' .
+                                                    '<ul class="space-y-1 text-sm list-disc list-inside text-info-700 dark:text-info-300">' .
+                                                    '<li>' . __('owner.halls.seo.tip_1') . '</li>' .
+                                                    '<li>' . __('owner.halls.seo.tip_2') . '</li>' .
+                                                    '<li>' . __('owner.halls.seo.tip_3') . '</li>' .
+                                                    '</ul></div>'
+                                            ))
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                // ===========================================
+                                // SECTION 4: STATISTICS (Read-Only Display)
+                                // ===========================================
+                                Forms\Components\Section::make(__('owner.halls.sections.statistics'))
+                                    ->description(__('owner.halls.sections.statistics_desc'))
+                                    ->icon('heroicon-o-chart-bar')
+                                    ->collapsed()
+                                    ->collapsible()
+                                    ->visible(fn($record): bool => $record !== null)
+                                    ->schema([
+                                        Forms\Components\Grid::make(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('total_bookings_stat')
+                                                    ->label(__('owner.halls.stats.total_bookings'))
+                                                    ->content(fn($record): string => number_format((int) ($record?->total_bookings ?? 0))),
+
+                                                Forms\Components\Placeholder::make('average_rating_stat')
+                                                    ->label(__('owner.halls.stats.average_rating'))
+                                                    ->content(function ($record): \Illuminate\Support\HtmlString {
+                                                        $rating = (float) ($record?->average_rating ?? 0);
+                                                        $stars = str_repeat('★', (int) round($rating)) . str_repeat('☆', 5 - (int) round($rating));
+                                                        return new \Illuminate\Support\HtmlString(
+                                                            '<span class="text-yellow-500">' . $stars . '</span> ' .
+                                                                '<span class="text-gray-600 dark:text-gray-400">(' . number_format($rating, 2) . ')</span>'
+                                                        );
+                                                    }),
+
+                                                Forms\Components\Placeholder::make('total_reviews_stat')
+                                                    ->label(__('owner.halls.stats.total_reviews'))
+                                                    ->content(fn($record): string => number_format((int) ($record?->total_reviews ?? 0))),
+
+                                                Forms\Components\Placeholder::make('created_at_stat')
+                                                    ->label(__('owner.halls.stats.created_at'))
+                                                    ->content(fn($record): string => $record?->created_at?->format('M d, Y') ?? '-'),
+                                            ]),
                                     ]),
                             ]),
-                    ]),
 
-            ])
+                    ])
                     ->columnSpanFull()
                     ->persistTabInQueryString(),
             ]);
@@ -890,6 +890,8 @@ class HallResource extends OwnerResource
                 // Bookings Count
                 Tables\Columns\TextColumn::make('total_bookings')
                     ->label(__('owner.halls.columns.bookings'))
+                    // ->counts('bookings')
+                    ->state(fn(Hall $record): int => $record->bookings()->count())
                     ->numeric()
                     ->sortable()
                     ->icon('heroicon-o-calendar')
@@ -1056,13 +1058,13 @@ class HallResource extends OwnerResource
                             ->label(__('owner.halls.fields.capacity'))
                             ->state(fn($record): string => "{$record->capacity_min} - {$record->capacity_max} " . __('owner.halls.guests')),
 
-                        Infolists\Components\TextEntry::make('area_sqm')
+                        Infolists\Components\TextEntry::make('area')
                             ->label(__('owner.halls.fields.area'))
                             ->suffix(' m²'),
 
                         Infolists\Components\TextEntry::make('address')
-                            ->label(__('owner.halls.fields.address'))
-                            ->columnSpanFull(),
+                            ->label(__('owner.halls.fields.address_ar')),
+                            //->columnSpanFull(),
                     ]),
 
                 // Status Section
@@ -1122,11 +1124,11 @@ class HallResource extends OwnerResource
     /**
      * Get the Eloquent query with soft deletes.
      */
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-    }
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     return parent::getEloquentQuery()
+    //         ->withoutGlobalScopes([
+    //             SoftDeletingScope::class,
+    //         ]);
+    // }
 }

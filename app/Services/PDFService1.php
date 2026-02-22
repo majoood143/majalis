@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class PDFService
+class PDFService1
 {
     /**
      * Generate booking invoice PDF

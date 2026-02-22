@@ -13,18 +13,6 @@ use Filament\Pages\Page;
  * Dedicated page for the FullCalendar availability widget.
  * Provides a full-screen calendar experience for managing hall availability.
  *
- * ✅ FIX: Moved widget from getHeaderWidgets() to getFooterWidgets().
- *
- *    Filament rendering order: Header Widgets → Page Content (blade) → Footer Widgets
- *
- *    Original: getHeaderWidgets() → Calendar appeared ABOVE the legend/instructions
- *    Fixed:    getFooterWidgets() → Legend/instructions appear FIRST, then calendar
- *
- *    IMPORTANT: The widget MUST be rendered through Filament's widget system
- *    (getHeaderWidgets/getFooterWidgets), NOT via @livewire directive.
- *    Using @livewire breaks the action/modal lifecycle needed for
- *    create/edit/delete modals and header actions.
- *
  * @package App\Filament\Owner\Pages
  */
 class AvailabilityCalendarPage extends Page
@@ -35,8 +23,10 @@ class AvailabilityCalendarPage extends Page
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
     /**
-     * Get the navigation group.
+     * The navigation group.
      */
+    //protected static ?string $navigationGroup = 'Hall Management';
+
     public static function getNavigationGroup(): ?string
     {
         return __('owner.nav_groups.hall_management');
@@ -85,18 +75,11 @@ class AvailabilityCalendarPage extends Page
     }
 
     /**
-     * ✅ FIX: Calendar widget renders as FOOTER widget.
-     *
-     * This ensures the blade content (legend + instructions) appears
-     * BEFORE the calendar in the page layout.
-     *
-     * Rendering order:
-     *  1. Page Content / Blade → legend + instructions
-     *  2. Footer Widgets       → calendar
+     * Get the widgets for this page.
      *
      * @return array<class-string>
      */
-    protected function getFooterWidgets(): array
+    protected function getHeaderWidgets(): array
     {
         return [
             AvailabilityCalendarWidget::class,
@@ -104,9 +87,9 @@ class AvailabilityCalendarPage extends Page
     }
 
     /**
-     * Get the footer widgets column configuration.
+     * Get the header widgets column configuration.
      */
-    public function getFooterWidgetsColumns(): int|array
+    public function getHeaderWidgetsColumns(): int|array
     {
         return 1;
     }

@@ -7,6 +7,11 @@ namespace App\Filament\Owner\Resources\HallResource\Pages;
 use App\Filament\Owner\Resources\HallResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
+use App\Filament\Owner\Resources\HallResource\Widgets\HallStatsOverviewWidget;
+use App\Filament\Owner\Resources\HallResource\Widgets\HallBookingTrendWidget;
+use App\Filament\Owner\Resources\HallResource\Widgets\HallRevenueChartWidget;
+use App\Filament\Owner\Resources\HallResource\Widgets\HallBookingStatusWidget;
+use App\Filament\Owner\Resources\HallResource\Widgets\HallRecentBookingsWidget;
 
 /**
  * ViewHall Page for Owner Panel
@@ -57,6 +62,37 @@ class ViewHall extends ViewRecord
                 ->color('gray')
                 //->url(fn () => route('halls.index', $this->record->slug))
                 ->openUrlInNewTab(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            // Stats Overview - Key metrics at a glance
+            HallStatsOverviewWidget::class,
+        ];
+    }
+
+     /**
+     * Get the footer widgets for the view page.
+     *
+     * Displays detailed analysis widgets below the infolist content.
+     * Includes charts and recent bookings table.
+     *
+     * @return array<class-string>
+     */
+    protected function getFooterWidgets(): array
+    {
+        return [
+            // Charts row - Booking trends and Revenue analysis
+            HallBookingTrendWidget::class,
+            HallRevenueChartWidget::class,
+
+            // Booking status distribution
+            HallBookingStatusWidget::class,
+
+            // Recent bookings table
+            HallRecentBookingsWidget::class,
         ];
     }
 

@@ -33,7 +33,7 @@ class PaymentsRelationManager extends RelationManager
      */
     public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
     {
-        return __('Payment History');
+        return __('relation-managers.payments.title');
     }
 
     /**
@@ -75,32 +75,28 @@ class PaymentsRelationManager extends RelationManager
             ->columns([
                 // Payment Reference
                 Tables\Columns\TextColumn::make('payment_reference')
-                    ->label(__('Reference'))
+                    ->label(__('relation-managers.payments.columns.reference'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
-                    ->copyMessage(__('Reference copied'))
+                    ->copyMessage(__('relation-managers.payments.messages.reference_copied'))
                     ->weight(FontWeight::Medium)
                     ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
 
                 // Amount
                 Tables\Columns\TextColumn::make('amount')
-                    ->label(__('Amount'))
+                    ->label(__('relation-managers.payments.columns.amount'))
                     ->money('OMR')
                     ->sortable()
                     ->weight(FontWeight::Bold),
 
                 // Payment Method
                 Tables\Columns\TextColumn::make('payment_method')
-                    ->label(__('Method'))
+                    ->label(__('relation-managers.payments.columns.method'))
                     ->badge()
-                    ->formatStateUsing(fn(?string $state): string => match ($state) {
-                        'online' => __('Online'),
-                        'cash' => __('Cash'),
-                        'bank_transfer' => __('Bank Transfer'),
-                        'card' => __('Card'),
-                        default => ucfirst($state ?? 'N/A'),
-                    })
+                    ->formatStateUsing(fn(?string $state): string => $state
+                        ? __("common.payment_methods.{$state}")
+                        : __('common.na'))
                     ->color(fn(?string $state): string => match ($state) {
                         'online' => 'info',
                         'cash' => 'success',
@@ -118,17 +114,9 @@ class PaymentsRelationManager extends RelationManager
 
                 // Status
                 Tables\Columns\TextColumn::make('status')
-                    ->label(__('Status'))
+                    ->label(__('relation-managers.payments.columns.status'))
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'pending' => __('Pending'),
-                        'processing' => __('Processing'),
-                        'paid' => __('Paid'),
-                        'failed' => __('Failed'),
-                        'cancelled' => __('Cancelled'),
-                        'refunded' => __('Refunded'),
-                        default => ucfirst($state),
-                    })
+                    ->formatStateUsing(fn(string $state): string => __("common.payment_status.{$state}"))
                     ->color(fn(string $state): string => match ($state) {
                         'paid' => 'success',
                         'pending' => 'warning',
@@ -150,10 +138,10 @@ class PaymentsRelationManager extends RelationManager
 
                 // Paid At
                 Tables\Columns\TextColumn::make('paid_at')
-                    ->label(__('Paid At'))
+                    ->label(__('relation-managers.payments.columns.paid_at'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
-                    ->placeholder(__('Not paid'))
+                    ->placeholder(__('common.not_paid'))
                     ->toggleable(),
 
                 /**
@@ -169,12 +157,12 @@ class PaymentsRelationManager extends RelationManager
                  * @see https://filamentphp.com/docs/3.x/tables/columns/getting-started#conditional-formatting
                  */
                 Tables\Columns\TextColumn::make('refund_amount')
-                    ->label(__('Refund'))
+                    ->label(__('relation-managers.payments.columns.refund'))
                     ->money('OMR')
                     ->color('danger')
                     ->toggleable(isToggledHiddenByDefault: true)
                     // Use placeholder for null/empty values instead of visible()
-                    ->placeholder(__('N/A'))
+                    ->placeholder(__('common.na'))
                     // Alternative: Only show formatted value when status is refunded
                     ->formatStateUsing(function ($state, $record): ?string {
                         // Safely check if record exists and has refunded status
@@ -189,38 +177,38 @@ class PaymentsRelationManager extends RelationManager
 
                 // Transaction ID (external)
                 Tables\Columns\TextColumn::make('transaction_id')
-                    ->label(__('Transaction ID'))
+                    ->label(__('relation-managers.payments.columns.transaction_id'))
                     ->searchable()
                     ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->placeholder(__('N/A')),
+                    ->placeholder(__('common.na')),
 
                 // Created At
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('Created'))
+                    ->label(__('relation-managers.payments.columns.created'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label(__('Status'))
+                    ->label(__('relation-managers.payments.filters.status'))
                     ->options([
-                        'pending' => __('Pending'),
-                        'processing' => __('Processing'),
-                        'paid' => __('Paid'),
-                        'failed' => __('Failed'),
-                        'cancelled' => __('Cancelled'),
-                        'refunded' => __('Refunded'),
+                        'pending' => __('common.payment_status.pending'),
+                        'processing' => __('common.payment_status.processing'),
+                        'paid' => __('common.payment_status.paid'),
+                        'failed' => __('common.payment_status.failed'),
+                        'cancelled' => __('common.payment_status.cancelled'),
+                        'refunded' => __('common.payment_status.refunded'),
                     ]),
 
                 Tables\Filters\SelectFilter::make('payment_method')
-                    ->label(__('Payment Method'))
+                    ->label(__('relation-managers.payments.filters.payment_method'))
                     ->options([
-                        'online' => __('Online'),
-                        'cash' => __('Cash'),
-                        'bank_transfer' => __('Bank Transfer'),
-                        'card' => __('Card'),
+                        'online' => __('common.payment_methods.online'),
+                        'cash' => __('common.payment_methods.cash'),
+                        'bank_transfer' => __('common.payment_methods.bank_transfer'),
+                        'card' => __('common.payment_methods.card'),
                     ]),
             ])
             ->headerActions([
@@ -229,15 +217,15 @@ class PaymentsRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->iconButton()
-                    ->modalHeading(fn($record) => __('Payment: :ref', ['ref' => $record->payment_reference]))
+                    ->modalHeading(fn($record) => __('relation-managers.payments.messages.view_payment', ['ref' => $record->payment_reference]))
                     ->modalWidth('lg'),
             ])
             ->bulkActions([
                 // No bulk actions for owners
             ])
             ->defaultSort('created_at', 'desc')
-            ->emptyStateHeading(__('No payments recorded'))
-            ->emptyStateDescription(__('Payment records will appear here once processed.'))
+            ->emptyStateHeading(__('relation-managers.payments.empty_state.heading'))
+            ->emptyStateDescription(__('relation-managers.payments.empty_state.description'))
             ->emptyStateIcon('heroicon-o-credit-card');
     }
 }

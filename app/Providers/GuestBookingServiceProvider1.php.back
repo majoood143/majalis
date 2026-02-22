@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Models\Booking;
 use App\Models\User;
-use App\Observers\BookingObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\ServiceProvider;
 
@@ -16,18 +14,20 @@ use Illuminate\Support\ServiceProvider;
  * Registers services, observers, and configurations related to
  * the guest booking feature.
  *
- * ✅ FIX: Added BookingObserver registration to sync booking status
- *    changes to HallAvailability table. Without this observer,
- *    creating/cancelling bookings never updated the availability table,
- *    causing the calendar to only show "available" and "past" slots.
- *
  * Features registered:
  * - User observer for auto-linking guest bookings
- * - Booking observer for syncing availability status ✅ NEW
  * - Configuration bindings
  *
+ * Registration in config/app.php:
+ * ```php
+ * 'providers' => [
+ *     // ...
+ *     App\Providers\GuestBookingServiceProvider::class,
+ * ],
+ * ```
+ *
  * @package App\Providers
- * @version 1.1.0
+ * @version 1.0.0
  */
 class GuestBookingServiceProvider extends ServiceProvider
 {
@@ -54,10 +54,6 @@ class GuestBookingServiceProvider extends ServiceProvider
     {
         // Register observers
         User::observe(UserObserver::class);
-
-        // ✅ FIX: Register BookingObserver to sync booking status to HallAvailability
-        // This ensures the calendar shows booked/cancelled slots correctly
-        Booking::observe(BookingObserver::class);
 
         // Publish configuration (optional)
         if ($this->app->runningInConsole()) {

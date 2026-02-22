@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('owner_report.reports.pdf.title') }} - {{ $owner->name }}</title>
+    {{-- FIX: Null-safe access to $owner prevents "Undefined variable" if auth fails --}}
+    <title>{{ __('owner_report.reports.pdf.title') }} - {{ ($owner ?? null)?->name ?? __('owner_report.reports.pdf.owner') }}</title>
     <style>
         /* Base Styles */
         * {
@@ -261,7 +262,7 @@
     <div class="header">
         <div class="header-title">{{ __('owner_report.reports.pdf.earnings_report') }}</div>
         @if($hallOwner)
-            <div class="header-business">{{ $hallOwner->business_name ?? $owner->name }}</div>
+            <div class="header-business">{{ $hallOwner->business_name ?? (($owner ?? null)?->name ?? '') }}</div>
         @endif
         <div class="header-subtitle">{{ __('owner_report.reports.pdf.subtitle') }}</div>
         <div class="header-meta">
@@ -276,11 +277,11 @@
             <div class="owner-info-title">{{ __('owner_report.reports.pdf.owner_details') }}</div>
             <div class="owner-info-row">
                 <span class="owner-info-label">{{ __('owner_report.reports.pdf.owner_name') }}:</span>
-                <span class="owner-info-value">{{ $owner->name }}</span>
+                <span class="owner-info-value">{{ ($owner ?? null)?->name ?? __('owner_report.general.na') }}</span>
             </div>
             <div class="owner-info-row">
                 <span class="owner-info-label">{{ __('owner_report.reports.pdf.email') }}:</span>
-                <span class="owner-info-value">{{ $owner->email }}</span>
+                <span class="owner-info-value">{{ ($owner ?? null)?->email ?? __('owner_report.general.na') }}</span>
             </div>
             @if($hallOwner->business_name)
                 <div class="owner-info-row">

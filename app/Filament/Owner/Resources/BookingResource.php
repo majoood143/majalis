@@ -113,6 +113,33 @@ class BookingResource extends OwnerResource
     }
 
     /**
+     * Override parent's checkRecordOwnership for bookings.
+     *
+     * FIX: The parent OwnerResource checks `user_id` for ownership, but on
+     * Booking records `user_id` refers to the CUSTOMER who made the booking,
+     * not the hall owner. This caused the View action (and all record-level
+     * actions) to only appear for guest bookings (where user_id is NULL and
+     * the check falls through to the hall relationship).
+     *
+     * For registered bookings, user_id is the customer's ID which never
+     * matches the owner's ID, so checkRecordOwnership returned false,
+     * hiding the View action button.
+     *
+     * This override verifies ownership through the hall relationship instead,
+     * consistent with applyOwnerScope() above.
+     *
+     * @param Model $record The booking record to check
+     * @param mixed $user The authenticated owner user
+     * @return bool Whether the owner owns this booking's hall
+     */
+    protected static function checkRecordOwnership(Model $record, $user): bool
+    {
+        // Verify ownership through the hall relationship.
+        // The hall's owner_id must match the authenticated owner's ID.
+        return $record->hall?->owner_id === $user->id;
+    }
+
+    /**
      * Define the form schema for viewing/editing bookings.
      * Note: Most fields are disabled as owners have limited edit access.
      */
@@ -554,6 +581,7 @@ class BookingResource extends OwnerResource
                             });
                     }))
                     ->toggle(),
+                    
             // Add booking type filter
             GuestBookingComponents::bookingTypeFilter(),
                     ])
@@ -561,7 +589,10 @@ class BookingResource extends OwnerResource
             ->actions([
                 // View Action
                 Tables\Actions\ViewAction::make()
-                    ->iconButton(),
+                //->iconButton()
+                ->icon('heroicon-o-eye') // Explicitly set icon
+                ->label('View')
+                , // Add a label,
 
             // Approve Action (for pending bookings that require approval)
             // Tables\Actions\Action::make('approve')
@@ -662,6 +693,8 @@ class BookingResource extends OwnerResource
             //             ->warning()
             //             ->send();
             //     }),
+
+            
 
             Tables\Actions\Action::make('reject')
                 ->label(__('Reject'))
@@ -787,7 +820,10 @@ class BookingResource extends OwnerResource
                     ->icon('heroicon-o-chat-bubble-bottom-center-text')
                     ->color('gray')
                     ->button(),
+
+                
             ])
+            
             ->bulkActions([
                 // Owners have limited bulk actions
                 Tables\Actions\BulkActionGroup::make([
@@ -804,6 +840,7 @@ class BookingResource extends OwnerResource
                         }),
                 ]),
             ])
+            
             ->defaultSort('booking_date', 'desc')
             ->poll('30s')
             ->striped()
@@ -877,7 +914,7 @@ class BookingResource extends OwnerResource
                     ]),
 
                 // Event Details Section
-                Infolists\Components\Section::make(__('owner_booking.infolist.sections.event_details'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.event_details.hall'))
                     ->icon('heroicon-o-calendar-days')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -925,7 +962,7 @@ class BookingResource extends OwnerResource
                     ]),
 
                 // Customer Information Section
-                Infolists\Components\Section::make(__('owner_booking.infolist.sections.customer_information'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.customer_information.customer_information'))
                     ->icon('heroicon-o-user')
                     ->schema([
                         Infolists\Components\Grid::make(3)
@@ -955,7 +992,7 @@ class BookingResource extends OwnerResource
                     ]),
 
                 // Financial Summary Section
-                Infolists\Components\Section::make(__('owner_booking.infolist.sections.financial_summary'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.financial_summary.financial_summary'))
                     ->icon('heroicon-o-banknotes')
                     ->schema([
                         Infolists\Components\Grid::make(4)
@@ -1049,7 +1086,7 @@ class BookingResource extends OwnerResource
                     ->collapsible(),
 
                 // Timeline Section
-                Infolists\Components\Section::make(__('owner_booking.infolist.sections.booking_timeline'))
+                Infolists\Components\Section::make(__('owner_booking.infolist.sections.booking_timeline.booking_timeline'))
                     ->icon('heroicon-o-clock')
                     ->schema([
                         Infolists\Components\Grid::make(4)

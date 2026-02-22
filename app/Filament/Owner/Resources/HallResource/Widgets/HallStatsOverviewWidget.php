@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\HallResource\Widgets;
+namespace App\Filament\Owner\Resources\HallResource\Widgets;
 
 use App\Models\Hall;
 use App\Models\Booking;
