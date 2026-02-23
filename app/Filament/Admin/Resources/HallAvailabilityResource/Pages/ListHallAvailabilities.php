@@ -324,7 +324,7 @@ class ListHallAvailabilities extends ListRecords
         }
 
         // Clear cache
-        Cache::tags(['availability', 'hall_' . $data['hall_id']])->flush();
+        //Cache::tags(['availability', 'hall_' . $data['hall_id']])->flush();
 
         Notification::make()
             ->success()

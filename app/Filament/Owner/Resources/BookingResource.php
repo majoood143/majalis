@@ -346,13 +346,13 @@ class BookingResource extends OwnerResource
                 // Hall Name (translatable)
                 Tables\Columns\TextColumn::make('hall.name')
                     ->label(__('owner_booking.table.columns.hall'))
-                    ->formatStateUsing(function ($record): string {
-                        if (!$record?->hall) {
-                            return __('owner_booking.general.na');
-                        }
-                        $name = $record->hall->name;
-                        return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
-                    })
+                    // ->formatStateUsing(function ($record): string {
+                    //     if (!$record?->hall) {
+                    //         return __('owner_booking.general.na');
+                    //     }
+                    //     $name = $record->hall->name;
+                    //     return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
+                    // })
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereHas('hall', function (Builder $q) use ($search): void {
                             $q->where('name', 'like', "%{$search}%");
@@ -395,7 +395,7 @@ class BookingResource extends OwnerResource
                     ->color(fn(string $state): string => match ($state) {
                         'morning' => 'info',
                         'afternoon' => 'warning',
-                        'evening' => 'purple',
+                        'evening' => 'gray',
                         'full_day' => 'success',
                         default => 'gray',
                     }),
@@ -486,10 +486,10 @@ class BookingResource extends OwnerResource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-            GuestBookingComponents::guestBadgeColumn(),
+                GuestBookingComponents::guestBadgeColumn(),
 
-            // Optionally add token column for admins
-            GuestBookingComponents::guestTokenColumn(),
+                // Optionally add token column for admins
+                GuestBookingComponents::guestTokenColumn(),
             ])
             ->filters([
                 // Hall Filter
@@ -582,159 +582,158 @@ class BookingResource extends OwnerResource
                     }))
                     ->toggle(),
 
-            // Add booking type filter
-            GuestBookingComponents::bookingTypeFilter(),
-                    ])
+                // Add booking type filter
+                GuestBookingComponents::bookingTypeFilter(),
+            ])
             ->filtersFormColumns(2)
             ->actions([
                 // View Action
                 Tables\Actions\ViewAction::make()
-                //->iconButton()
-                ->icon('heroicon-o-eye') // Explicitly set icon
-                ->label('View')
-                , // Add a label,
+                    //->iconButton()
+                    ->icon('heroicon-o-eye') // Explicitly set icon
+                    ->label(__('owner_booking.actions.view.label')), // Add a label,
 
-            // Approve Action (for pending bookings that require approval)
-            // Tables\Actions\Action::make('approve')
-            //     ->label(__('owner_booking.actions.approve.label'))
-            //     ->icon('heroicon-o-check-circle')
-            //     ->color('success')
-            //     ->requiresConfirmation()
-            //     ->modalHeading(__('owner_booking.actions.approve.modal_heading'))
-            //     ->modalDescription(__('owner_booking.actions.approve.modal_description'))
-            //     ->modalSubmitActionLabel(__('owner_booking.actions.approve.modal_submit_label'))
-            //     ->visible(fn(Booking $record): bool =>
-            //         $record->status === 'pending' &&
-            //         $record->hall?->requires_approval
-            //     )
-            //     ->action(function (Booking $record): void {
-            //         $record->update([
-            //             'status' => 'confirmed',
-            //             'confirmed_at' => now(),
-            //         ]);
+                // Approve Action (for pending bookings that require approval)
+                // Tables\Actions\Action::make('approve')
+                //     ->label(__('owner_booking.actions.approve.label'))
+                //     ->icon('heroicon-o-check-circle')
+                //     ->color('success')
+                //     ->requiresConfirmation()
+                //     ->modalHeading(__('owner_booking.actions.approve.modal_heading'))
+                //     ->modalDescription(__('owner_booking.actions.approve.modal_description'))
+                //     ->modalSubmitActionLabel(__('owner_booking.actions.approve.modal_submit_label'))
+                //     ->visible(fn(Booking $record): bool =>
+                //         $record->status === 'pending' &&
+                //         $record->hall?->requires_approval
+                //     )
+                //     ->action(function (Booking $record): void {
+                //         $record->update([
+                //             'status' => 'confirmed',
+                //             'confirmed_at' => now(),
+                //         ]);
 
-            //         // TODO: Send notification to customer
-            //         // event(new BookingApproved($record));
+                //         // TODO: Send notification to customer
+                //         // event(new BookingApproved($record));
 
-            //         Notification::make()
-            //             ->title(__('owner_booking.notifications.approve.title'))
-            //             ->body(__('owner_booking.notifications.approve.body', ['number' => $record->booking_number]))
-            //             ->success()
-            //             ->send();
-            //     }),
-
-
-            Tables\Actions\Action::make('approve')
-                ->label(__('Approve'))
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->requiresConfirmation()
-                ->modalHeading(__('Approve Booking'))
-                ->modalDescription(__('Are you sure you want to approve this booking? The customer will receive an email notification.'))
-                ->modalSubmitActionLabel(__('Yes, Approve'))
-                ->visible(
-                    fn(Booking $record): bool =>
-                    $record->status === 'pending' &&
-                        $record->hall?->requires_approval
-                )
-                ->action(function (Booking $record): void {
-                    $record->update([
-                        'status' => 'confirmed',
-                        'confirmed_at' => now(),
-                    ]);
-
-                    // Dispatch event - triggers email notification
-                    event(new BookingApproved(
-                        booking: $record,
-                        approvedBy: Auth::id()
-                    ));
-
-                    Notification::make()
-                        ->title(__('Booking Approved'))
-                        ->body(__('Booking :number has been approved. Customer notified via email.', [
-                            'number' => $record->booking_number
-                        ]))
-                        ->success()
-                        ->send();
-                }),
-
-            // Reject Action (for pending bookings that require approval)
-            // Tables\Actions\Action::make('reject')
-            //     ->label(__('owner_booking.actions.reject.label'))
-            //     ->icon('heroicon-o-x-circle')
-            //     ->color('danger')
-            //     ->requiresConfirmation()
-            //     ->modalHeading(__('owner_booking.actions.reject.modal_heading'))
-            //     ->modalDescription(__('owner_booking.actions.reject.modal_description'))
-            //     ->form([
-            //         Forms\Components\Textarea::make('rejection_reason')
-            //             ->label(__('owner_booking.actions.reject.reason_label'))
-            //             ->required()
-            //             ->maxLength(500)
-            //             ->placeholder(__('owner_booking.actions.reject.reason_placeholder')),
-            //     ])
-            //     ->visible(fn(Booking $record): bool =>
-            //         $record->status === 'pending' &&
-            //         $record->hall?->requires_approval
-            //     )
-            //     ->action(function (Booking $record, array $data): void {
-            //         $record->update([
-            //             'status' => 'cancelled',
-            //             'cancelled_at' => now(),
-            //             'cancellation_reason' => __('owner_booking.actions.reject.cancellation_reason_prefix') . $data['rejection_reason'],
-            //         ]);
-
-            //         // TODO: Send notification to customer
-            //         // event(new BookingRejected($record));
-
-            //         Notification::make()
-            //             ->title(__('owner_booking.notifications.reject.title'))
-            //             ->body(__('owner_booking.notifications.reject.body', ['number' => $record->booking_number]))
-            //             ->warning()
-            //             ->send();
-            //     }),
+                //         Notification::make()
+                //             ->title(__('owner_booking.notifications.approve.title'))
+                //             ->body(__('owner_booking.notifications.approve.body', ['number' => $record->booking_number]))
+                //             ->success()
+                //             ->send();
+                //     }),
 
 
+                Tables\Actions\Action::make('approve')
+                    ->label(__('owner_booking.actions.approve.label'))
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('owner_booking.actions.approve.modal_heading'))
+                    ->modalDescription(__('owner_booking.actions.approve.modal_description'))
+                    ->modalSubmitActionLabel(__('owner_booking.actions.approve.modal_submit_label'))
+                    ->visible(
+                        fn(Booking $record): bool =>
+                        $record->status === 'pending' &&
+                            $record->hall?->requires_approval
+                    )
+                    ->action(function (Booking $record): void {
+                        $record->update([
+                            'status' => 'confirmed',
+                            'confirmed_at' => now(),
+                        ]);
 
-            Tables\Actions\Action::make('reject')
-                ->label(__('Reject'))
-                ->icon('heroicon-o-x-circle')
-                ->color('danger')
-                ->requiresConfirmation()
-                ->modalHeading(__('Reject Booking'))
-                ->modalDescription(__('The customer will be notified via email.'))
-                ->form([
-                    Forms\Components\Textarea::make('rejection_reason')
-                        ->label(__('Reason for Rejection'))
-                        ->required()
-                        ->maxLength(500)
-                        ->helperText(__('This will be included in the customer email.')),
-                ])
-                ->visible(
-                    fn(Booking $record): bool =>
-                    $record->status === 'pending' &&
-                        $record->hall?->requires_approval
-                )
-                ->action(function (Booking $record, array $data): void {
-                    $record->update([
-                        'status' => 'cancelled',
-                        'cancelled_at' => now(),
-                        'cancellation_reason' => 'Rejected: ' . $data['rejection_reason'],
-                    ]);
+                        // Dispatch event - triggers email notification
+                        event(new BookingApproved(
+                            booking: $record,
+                            approvedBy: Auth::id()
+                        ));
 
-                    // Dispatch event - triggers email notification
-                    event(new BookingRejected(
-                        booking: $record,
-                        reason: $data['rejection_reason'],
-                        rejectedBy: Auth::id()
-                    ));
+                        Notification::make()
+                            ->title(__('Booking Approved'))
+                            ->body(__('Booking :number has been approved. Customer notified via email.', [
+                                'number' => $record->booking_number
+                            ]))
+                            ->success()
+                            ->send();
+                    }),
 
-                    Notification::make()
-                        ->title(__('Booking Rejected'))
-                        ->body(__('Customer notified via email.'))
-                        ->warning()
-                        ->send();
-                }),
+                // Reject Action (for pending bookings that require approval)
+                // Tables\Actions\Action::make('reject')
+                //     ->label(__('owner_booking.actions.reject.label'))
+                //     ->icon('heroicon-o-x-circle')
+                //     ->color('danger')
+                //     ->requiresConfirmation()
+                //     ->modalHeading(__('owner_booking.actions.reject.modal_heading'))
+                //     ->modalDescription(__('owner_booking.actions.reject.modal_description'))
+                //     ->form([
+                //         Forms\Components\Textarea::make('rejection_reason')
+                //             ->label(__('owner_booking.actions.reject.reason_label'))
+                //             ->required()
+                //             ->maxLength(500)
+                //             ->placeholder(__('owner_booking.actions.reject.reason_placeholder')),
+                //     ])
+                //     ->visible(fn(Booking $record): bool =>
+                //         $record->status === 'pending' &&
+                //         $record->hall?->requires_approval
+                //     )
+                //     ->action(function (Booking $record, array $data): void {
+                //         $record->update([
+                //             'status' => 'cancelled',
+                //             'cancelled_at' => now(),
+                //             'cancellation_reason' => __('owner_booking.actions.reject.cancellation_reason_prefix') . $data['rejection_reason'],
+                //         ]);
+
+                //         // TODO: Send notification to customer
+                //         // event(new BookingRejected($record));
+
+                //         Notification::make()
+                //             ->title(__('owner_booking.notifications.reject.title'))
+                //             ->body(__('owner_booking.notifications.reject.body', ['number' => $record->booking_number]))
+                //             ->warning()
+                //             ->send();
+                //     }),
+
+
+
+                Tables\Actions\Action::make('reject')
+                    ->label(__('Reject'))
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('Reject Booking'))
+                    ->modalDescription(__('The customer will be notified via email.'))
+                    ->form([
+                        Forms\Components\Textarea::make('rejection_reason')
+                            ->label(__('Reason for Rejection'))
+                            ->required()
+                            ->maxLength(500)
+                            ->helperText(__('This will be included in the customer email.')),
+                    ])
+                    ->visible(
+                        fn(Booking $record): bool =>
+                        $record->status === 'pending' &&
+                            $record->hall?->requires_approval
+                    )
+                    ->action(function (Booking $record, array $data): void {
+                        $record->update([
+                            'status' => 'cancelled',
+                            'cancelled_at' => now(),
+                            'cancellation_reason' => 'Rejected: ' . $data['rejection_reason'],
+                        ]);
+
+                        // Dispatch event - triggers email notification
+                        event(new BookingRejected(
+                            booking: $record,
+                            reason: $data['rejection_reason'],
+                            rejectedBy: Auth::id()
+                        ));
+
+                        Notification::make()
+                            ->title(__('Booking Rejected'))
+                            ->body(__('Customer notified via email.'))
+                            ->warning()
+                            ->send();
+                    }),
 
                 // Mark Balance Received (for advance payment bookings)
                 Tables\Actions\Action::make('mark_balance_received')
@@ -767,11 +766,12 @@ class BookingResource extends OwnerResource
                             ->placeholder(__('owner_booking.actions.mark_balance.notes_placeholder'))
                             ->maxLength(500),
                     ])
-                    ->visible(fn(Booking $record): bool =>
+                    ->visible(
+                        fn(Booking $record): bool =>
                         $record->payment_type === 'advance' &&
-                        (float) ($record->balance_due ?? 0) > 0 &&
-                        $record->balance_paid_at === null &&
-                        in_array($record->status, ['confirmed', 'pending'])
+                            (float) ($record->balance_due ?? 0) > 0 &&
+                            $record->balance_paid_at === null &&
+                            in_array($record->status, ['confirmed', 'pending'])
                     )
                     ->action(function (Booking $record, array $data): void {
                         $record->update([
@@ -921,13 +921,14 @@ class BookingResource extends OwnerResource
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall.name')
                                     ->label(__('owner_booking.infolist.sections.event_details.hall'))
-                                    ->formatStateUsing(function ($record): string {
-                                        if (!$record?->hall) {
-                                            return __('owner_booking.general.na');
-                                        }
-                                        $name = $record->hall->name;
-                                        return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
-                                    }),
+                                    // ->formatStateUsing(function ($record): string {
+                                    //     if (!$record?->hall) {
+                                    //         return __('owner_booking.general.na');
+                                    //     }
+                                    //     $name = $record->hall->name;
+                                    //     return $name[app()->getLocale()] ?? $name['en'] ?? __('owner_booking.general.na');
+                                    // }),
+                                    ,
 
                                 Infolists\Components\TextEntry::make('booking_date')
                                     ->label(__('owner_booking.infolist.sections.event_details.event_date'))
@@ -1009,6 +1010,16 @@ class BookingResource extends OwnerResource
                                     ->label(__('owner_booking.infolist.sections.financial_summary.total_amount'))
                                     ->money('OMR')
                                     ->weight(FontWeight::Bold),
+                                // Infolists\Components\TextEntry::make('platform_fee')
+                                //     ->label(__('owner_booking.infolist.sections.financial_summary.platform_fee'))
+                                //     ->money('OMR')
+                                //     ->weight(FontWeight::Bold)
+                                //     ->color('warning'),
+                                Infolists\Components\TextEntry::make('commission_amount')
+                                    ->label(__('owner_booking.infolist.sections.financial_summary.commission_amount'))
+                                    ->money('OMR')
+                                    ->weight(FontWeight::Bold)
+                                    ->color('warning'),
 
                                 Infolists\Components\TextEntry::make('owner_payout')
                                     ->label(__('owner_booking.infolist.sections.financial_summary.your_earnings'))
@@ -1053,7 +1064,7 @@ class BookingResource extends OwnerResource
                     ->icon('heroicon-o-sparkles')
                     ->schema([
                         Infolists\Components\RepeatableEntry::make('extraServices')
-                        ->label(__('owner_booking.infolist.sections.extra_services.extra_services'))
+                            ->label(__('owner_booking.infolist.sections.extra_services.extra_services'))
                             ->schema([
                                 Infolists\Components\TextEntry::make('service_name')
                                     ->label(__('owner_booking.infolist.sections.extra_services.extra_services'))

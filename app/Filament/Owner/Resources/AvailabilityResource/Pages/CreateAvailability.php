@@ -165,7 +165,7 @@ class CreateAvailability extends CreateRecord
                         ]),
                 ])
                 ->columnSpanFull()
-                ->submitAction(new \Filament\Support\Components\ViewComponent('filament-panels::components.wizard.submit-action')),
+                // ->submitAction(new \Filament\Support\Components\ViewComponent('filament-panels::components.wizard.submit-action')),
             ]);
     }
 

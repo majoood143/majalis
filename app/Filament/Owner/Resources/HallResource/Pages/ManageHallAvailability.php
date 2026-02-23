@@ -159,7 +159,7 @@ class ManageHallAvailability extends Page implements HasForms
                 ->modalDescription(__('owner.availability.modals.regenerate_description'))
                 ->action(function () {
                     $this->record->generateAvailability();
-                    
+
                     Notification::make()
                         ->success()
                         ->title(__('owner.availability.notifications.regenerated'))
@@ -281,8 +281,8 @@ class ManageHallAvailability extends Page implements HasForms
 
         Notification::make()
             ->success()
-            ->title($availability->is_available 
-                ? __('owner.availability.notifications.unblocked') 
+            ->title($availability->is_available
+                ? __('owner.availability.notifications.unblocked')
                 : __('owner.availability.notifications.blocked'))
             ->send();
 

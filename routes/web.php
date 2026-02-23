@@ -631,6 +631,9 @@ Route::get('/admin/payout/{payout}/receipt', function ($payout) {
 //     return response()->json($diagnostics, 200, [], JSON_PRETTY_PRINT);
 // })->name('diagnose.payment');
 
+// Or manually defined route with name
+//Route::get('/halls/{slug}', [HallController::class, 'show'])->name('halls.show');
+
 
 // Add this route for print invoice functionality
 Route::get('/bookings/{booking}/invoice/print', function (Booking $booking) {

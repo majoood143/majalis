@@ -8,7 +8,7 @@
     <div class="mb-8">
         <h1 class="mb-2 text-3xl font-bold text-gray-900">{{ __('dashboard.welcome_back', ['name' => Auth::user()->name]) }}</h1>
         <p class="text-gray-600">{{ __('dashboard.manage_subtitle') }}</p>
-        
+
     </div>
 
     <!-- Stats Cards -->
@@ -30,6 +30,7 @@
         <div class="p-6 bg-white rounded-lg shadow-md">
             <div class="flex items-center justify-between">
                 <div>
+
                     <p class="mb-1 text-sm text-gray-600">{{ __('dashboard.upcoming') }}</p>
                     <p class="text-3xl font-bold text-blue-600">{{ $stats['upcoming'] }}</p>
                 </div>
@@ -84,6 +85,7 @@
                 </div>
 
                 <div class="divide-y divide-gray-200">
+                    
                     @forelse($upcomingBookings as $booking)
                         <div class="p-6 transition hover:bg-gray-50">
                             <div class="flex items-start justify-between">

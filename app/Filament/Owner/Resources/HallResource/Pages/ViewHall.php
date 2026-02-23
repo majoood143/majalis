@@ -60,7 +60,7 @@ class ViewHall extends ViewRecord
                 ->label(__('owner.halls.actions.view_public'))
                 ->icon('heroicon-o-globe-alt')
                 ->color('gray')
-                //->url(fn () => route('halls.index', $this->record->slug))
+                ->url(fn () => route('customer.halls.show', $this->record->slug))
                 ->openUrlInNewTab(),
         ];
     }

@@ -28,6 +28,12 @@ return [
         'paid' => 'مدفوع',
         'refunded' => 'مسترجع',
         'pending' => 'قيد الانتظار',
+        'failed' => 'فشل',
+        'cancelled' => 'ملغي',
+        'disputed' => 'متنازع عليه',
+        'unknown' => 'غير معروف',
+        'voided' => 'ملغي',
+        'processing' => 'قيد المعالجة',
     ],
     'payment_methods' => [
         'online' => 'عبر الإنترنت',
@@ -36,4 +42,5 @@ return [
         'card' => 'بطاقة',
     ],
     'na' => 'غير متوفر',
+    'not_paid' => 'غير مدفوع',
 ];

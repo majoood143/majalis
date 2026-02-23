@@ -28,6 +28,12 @@ return [
         'paid' => 'Paid',
         'refunded' => 'Refunded',
         'pending' => 'Pending',
+        'failed' => 'Failed',
+        'cancelled' => 'Cancelled',
+        'disputed' => 'Disputed',
+        'unknown' => 'Unknown',
+        'voided' => 'Voided',
+        'processing' => 'Processing',
     ],
     'payment_methods' => [
         'online' => 'Online',
@@ -36,4 +42,5 @@ return [
         'card' => 'Card',
     ],
     'na' => 'N/A',
+    'not_paid' => 'Not Paid',
 ];

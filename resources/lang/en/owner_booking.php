@@ -121,6 +121,11 @@ return [
     ],
 
     'actions' => [
+
+    'view' => [
+            'label' => 'View',
+        ],
+
         'approve' => [
             'label' => 'Approve',
             'modal_heading' => 'Approve Booking',
@@ -236,6 +241,8 @@ return [
                 'balance_due' => 'Balance Due',
                 'balance_received' => 'Balance Received',
                 'payment_method' => 'Payment Method',
+                'platform_fee' => 'Platform Fee',
+                'commission_amount' => 'Commission Amount',
             ],
 
             'extra_services' => [

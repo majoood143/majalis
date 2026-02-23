@@ -40,6 +40,10 @@ class OwnerPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
                 'success' => Color::Green,
                 'info' => Color::Sky,
+                'gray' => Color::Slate,
+                'secondary' => Color::Slate,
+                'purple' => Color::Purple,
+                'indigo' => Color::Indigo,
             ])
             ->font('Cairo') // Arabic-friendly font
             ->brandName(__('owner.brand.name', ['app' => config('app.name')]))

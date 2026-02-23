@@ -121,6 +121,11 @@ return [
     ],
 
     'actions' => [
+
+    'view' => [
+            'label' => 'عرض',
+        ],
+
         'approve' => [
             'label' => 'الموافقة',
             'modal_heading' => 'الموافقة على الحجز',
@@ -236,6 +241,8 @@ return [
                 'balance_due' => 'المبلغ المتبقي',
                 'balance_received' => 'تم استلام المبلغ المتبقي',
                 'payment_method' => 'طريقة الدفع',
+                'platform_fee' => 'عمولة المنصة',
+                'commission_amount' => 'مبلغ العمولة',
             ],
 
             'extra_services' => [
