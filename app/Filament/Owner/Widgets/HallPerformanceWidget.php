@@ -57,7 +57,6 @@ class HallPerformanceWidget extends BaseWidget
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label(__('owner.halls.name'))
-                    //->getStateUsing(fn($record) => $record->name[app()->getLocale()] ?? $record->name['en'])
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
@@ -119,7 +118,7 @@ class HallPerformanceWidget extends BaseWidget
                 Tables\Actions\Action::make('manage')
                     ->label(__('owner.actions.manage'))
                     ->icon('heroicon-m-cog')
-                    //->url(fn($record) => route('filament.owner.resources.halls.edit', $record))
+                    ->url(fn($record) => route('filament.owner.resources.halls.edit', $record))
                     ->button()
                     ->outlined(),
             ])

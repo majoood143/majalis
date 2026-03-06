@@ -1,11 +1,86 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
+
 <head>
     <meta charset="UTF-8">
     {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Payout Receipt - {{ $payout_number }}</title>
     <style>
+
+        /* Page setup for A4 with proper margins */
+@page {
+    size: A4;
+    margin: 1.5cm 1.5cm 1.5cm 1.5cm; /* Top, Right, Bottom, Left margins */
+}
+
+body {
+    font-family: 'DejaVu Sans', Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #333;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.container {
+    width: 100%;
+    max-width: 100%; /* Remove the 800px max-width constraint */
+    margin: 0;
+    padding: 0; /* Remove padding as margins are handled by @page */
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Adjust header padding to account for no container padding */
+.header {
+    display: table;
+    width: 100%;
+    margin-bottom: 25px; /* Slightly reduced */
+    border-bottom: 4px solid #2563eb;
+    padding-bottom: 20px; /* Slightly reduced */
+}
+
+/* Keep the rest of your styles the same, but consider adjusting these for better spacing: */
+.section {
+    margin-bottom: 20px; /* Reduced from 28px */
+}
+
+.net-payout-box {
+    margin: 20px 0; /* Reduced from 30px */
+}
+
+/* Ensure the watermark stays within bounds */
+.watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 120px;
+    color: rgba(37, 99, 235, 0.06);
+    font-weight: bold;
+    z-index: -1;
+    white-space: nowrap;
+    letter-spacing: 5px;
+    pointer-events: none; /* Prevents interference with text selection */
+}
+
+/* Print-specific adjustments */
+@media print {
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Ensure background colors print correctly */
+    .status-badge, .net-payout-box, .financial-table th {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
         /* Reset and Base Styles */
         * {
             margin: 0;
@@ -19,8 +94,10 @@
             line-height: 1.5;
             color: #333;
             background: #fff;
-            width: 210mm; /* A4 width */
-            height: 297mm; /* A4 height */
+            width: 210mm;
+            /* A4 width */
+            height: 297mm;
+            /* A4 height */
             margin: 0 auto;
         }
 
@@ -126,7 +203,7 @@
             text-transform: uppercase;
             margin-top: 12px;
             letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .status-completed {
@@ -211,7 +288,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .financial-table th,
@@ -270,7 +347,7 @@
             border-radius: 12px;
             text-align: center;
             margin: 30px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
         }
@@ -282,7 +359,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 40%);
+            background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
         }
 
         .net-payout-label {
@@ -311,7 +388,7 @@
             border: 1px solid #e5e7eb;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .payment-row {
@@ -402,6 +479,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Watermark -->
     <div class="watermark">PAID</div>
@@ -526,15 +604,17 @@
                         <td class="deduction">Platform Commission ({{ $commission_rate }}%)</td>
                         <td class="amount deduction">- {{ number_format($commission_amount, 3) }}</td>
                     </tr>
-                    @if((float) str_replace(',', '', $adjustments) != 0)
-                    <tr>
-                        <td class="{{ (float) str_replace(',', '', $adjustments) > 0 ? 'addition' : 'deduction' }}">
-                            Adjustments
-                        </td>
-                        <td class="amount {{ (float) str_replace(',', '', $adjustments) > 0 ? 'addition' : 'deduction' }}">
-                            {{ (float) str_replace(',', '', $adjustments) > 0 ? '+ ' : '- ' }}{{ number_format(ltrim(str_replace('-', '', $adjustments), '-'), 3) }}
-                        </td>
-                    </tr>
+                    @if ((float) str_replace(',', '', $adjustments) != 0)
+                        <tr>
+                            <td
+                                class="{{ (float) str_replace(',', '', $adjustments) > 0 ? 'addition' : 'deduction' }}">
+                                Adjustments
+                            </td>
+                            <td
+                                class="amount {{ (float) str_replace(',', '', $adjustments) > 0 ? 'addition' : 'deduction' }}">
+                                {{ (float) str_replace(',', '', $adjustments) > 0 ? '+ ' : '- ' }}{{ number_format(ltrim(str_replace('-', '', $adjustments), '-'), 3) }}
+                            </td>
+                        </tr>
                     @endif
                     <tr class="total-row">
                         <td><strong>Net Payout</strong></td>
@@ -571,7 +651,7 @@
                     <div class="payment-label">Processed By:</div>
                     <div class="payment-value">{{ $processed_by }}</div>
                 </div>
-                {{-- @if($notes)
+                {{-- @if ($notes)
                 <div class="payment-row">
                     <div class="payment-label">Notes:</div>
                     <div class="payment-value">{{ $notes }}</div>
@@ -597,4 +677,5 @@
         </div>
     </div>
 </body>
+
 </html>

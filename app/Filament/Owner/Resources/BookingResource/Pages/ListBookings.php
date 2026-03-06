@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Filament\Owner\Resources\BookingResource\Pages;
 
 use App\Filament\Owner\Resources\BookingResource;
+use App\Models\Booking;
+use App\Models\Hall;
+use App\Services\PdfExportService;
 use Filament\Actions;
+use Filament\Forms;
 use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * ListBookings Page for Owner Panel
@@ -44,12 +48,73 @@ class ListBookings extends ListRecords
                 ->label(__('owner_booking.pages.list.export_label'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
-                ->action(function () {
-                    // TODO: Implement export
-                    \Filament\Notifications\Notification::make()
-                        ->title(__('owner_booking.pages.list.export_notification'))
-                        ->info()
-                        ->send();
+                ->modalHeading(__('owner_booking.export.modal_heading'))
+                ->modalDescription(__('owner_booking.export.modal_description'))
+                ->modalSubmitActionLabel(__('owner_booking.export.submit_label'))
+                ->form([
+                    Forms\Components\Select::make('hall_id')
+                        ->label(__('owner_booking.export.hall_label'))
+                        ->options(fn () => Hall::where('owner_id', Auth::id())
+                            ->get()
+                            ->mapWithKeys(fn ($h) => [
+                                $h->id => ($h->name[app()->getLocale()] ?? $h->name['en'] ?? $h->name['ar'] ?? __('owner_booking.general.na')),
+                            ]))
+                        ->placeholder(__('owner_booking.export.all_halls'))
+                        ->nullable(),
+                    Forms\Components\Grid::make(2)
+                        ->schema([
+                            Forms\Components\DatePicker::make('date_from')
+                                ->label(__('owner_booking.export.date_from'))
+                                ->nullable(),
+                            Forms\Components\DatePicker::make('date_to')
+                                ->label(__('owner_booking.export.date_to'))
+                                ->nullable(),
+                        ]),
+                ])
+                ->action(function (array $data): \Symfony\Component\HttpFoundation\StreamedResponse {
+                    $query = Booking::query()
+                        ->whereHas('hall', fn (Builder $q) => $q->where('owner_id', Auth::id()))
+                        ->with(['hall', 'user', 'extraServices'])
+                        ->orderBy('booking_date', 'desc');
+
+                    if (!empty($data['hall_id'])) {
+                        $query->where('hall_id', $data['hall_id']);
+                    }
+
+                    if (!empty($data['date_from'])) {
+                        $query->whereDate('booking_date', '>=', $data['date_from']);
+                    }
+
+                    if (!empty($data['date_to'])) {
+                        $query->whereDate('booking_date', '<=', $data['date_to']);
+                    }
+
+                    $bookings = $query->get();
+                    $hall     = !empty($data['hall_id']) ? Hall::find($data['hall_id']) : null;
+
+                    $stats = [
+                        'total'          => $bookings->count(),
+                        'confirmed'      => $bookings->where('status', 'confirmed')->count(),
+                        'completed'      => $bookings->where('status', 'completed')->count(),
+                        'pending'        => $bookings->where('status', 'pending')->count(),
+                        'cancelled'      => $bookings->where('status', 'cancelled')->count(),
+                        'total_earnings' => $bookings->whereIn('status', ['confirmed', 'completed'])->sum('owner_payout'),
+                    ];
+
+                    $filename = 'bookings-' . now()->format('Y-m-d') . '.pdf';
+
+                    return (new PdfExportService(['direction' => app()->getLocale() === 'ar' ? 'rtl' : 'ltr']))
+                        ->generateFromView('pdf.owner-bookings-export', [
+                            'bookings'    => $bookings,
+                            'hall'        => $hall,
+                            'ownerName'   => Auth::user()->name,
+                            'dateFrom'    => $data['date_from'] ?? null,
+                            'dateTo'      => $data['date_to'] ?? null,
+                            'stats'       => $stats,
+                            'locale'      => app()->getLocale(),
+                            'generatedAt' => now(),
+                        ])
+                        ->download($filename);
                 }),
         ];
     }

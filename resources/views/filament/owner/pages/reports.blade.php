@@ -423,237 +423,152 @@
         - Data was baked into JS at render time; never updates on filter changes
         - With Filament SPA navigation (wire:navigate), pushed scripts dont re-execute
     --}}
-    @assets
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    @endassets
-
     @script
         <script>
-            /**
-             * Owner Reports Charts — Livewire 3 Script Implementation
-             *
-             * This script uses Livewire 3's script directive which:
-             * - Runs every time the component mounts (including SPA navigation)
-             * - Provides $wire for direct Livewire component communication
-             * - Automatically handles cleanup on component disconnect
-             */
+            // Alpine evaluates @@script content with: `__self.result = ${expression}`
+            // It only wraps in an async IIFE when the expression starts with `if(` or `let`/`const`.
+            // Starting with `const` ensures the IIFE wrapper is used, which properly hoists
+            // all `function` declarations in scope (otherwise they become inaccessible NFEs).
+            const chartInstances = { earnings: null, bookingStatus: null, timeSlot: null };
 
-            // =====================================================================
-            // Safety: ensure Chart.js is loaded (handles SPA edge case where
-            // pushOnce hasn't executed yet on first navigation)
-            // =====================================================================
-            if (typeof Chart === 'undefined') {
-                console.warn('[OwnerReports] Chart.js not yet loaded — loading dynamically');
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
+            function waitForChartJs(callback) {
+                if (typeof Chart !== 'undefined') {
+                    callback();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
+                script.onload = callback;
+                script.onerror = () => console.error('[OwnerReports] Chart.js CDN failed to load');
+                document.head.appendChild(script);
             }
 
-            // =====================================================================
-            // Chart instance storage for lifecycle management
-            // =====================================================================
-            let chartInstances = {
-                earnings: null,
-                bookingStatus: null,
-                timeSlot: null
-            };
-
-            /**
-             * Get chart color configuration based on current theme (light/dark).
-             *
-             * @returns {Object} Color configuration for Chart.js
-             */
             function getChartColors() {
                 const isDark = document.documentElement.classList.contains('dark');
                 return {
-                    text: isDark ? '#9ca3af' : '#6b7280',
-                    grid: isDark ? '#374151' : '#e5e7eb',
-                    primary: '#6366f1',
-                    primaryBg: 'rgba(99, 102, 241, 0.1)',
-                    success: '#10b981',
-                    successBg: 'rgba(16, 185, 129, 0.1)',
-                    warning: '#f59e0b',
-                    danger: '#ef4444',
-                    purple: '#8b5cf6',
-                    pink: '#a855f7',
-                    violet: '#c084fc'
+                    text:       isDark ? '#9ca3af' : '#6b7280',
+                    grid:       isDark ? '#374151' : '#e5e7eb',
+                    primary:    '#6366f1',
+                    primaryBg:  'rgba(99, 102, 241, 0.1)',
+                    success:    '#10b981',
+                    successBg:  'rgba(16, 185, 129, 0.1)',
+                    warning:    '#f59e0b',
+                    danger:     '#ef4444',
+                    purple:     '#8b5cf6',
+                    pink:       '#a855f7',
+                    violet:     '#c084fc',
                 };
             }
 
-            /**
-             * Safely destroy a single chart instance to prevent memory leaks.
-             *
-             * @param {string} chartKey - Key in chartInstances object
-             */
-            function destroyChart(chartKey) {
-                if (chartInstances[chartKey]) {
-                    chartInstances[chartKey].destroy();
-                    chartInstances[chartKey] = null;
+            function destroyChart(key) {
+                if (chartInstances[key]) {
+                    chartInstances[key].destroy();
+                    chartInstances[key] = null;
                 }
             }
 
-            /**
-             * Destroy all chart instances (used before full reinitialization).
-             */
             function destroyAllCharts() {
                 Object.keys(chartInstances).forEach(destroyChart);
             }
 
-            /**
-             * Initialize the Earnings Trend line chart.
-             *
-             * FIX: Receives data as parameter (fetched from server via $wire)
-             * instead of using stale inline data that was only evaluated once.
-             *
-             * @param {Object} colors - Chart color configuration
-             * @param {Object} chartData - Fresh data from $wire.getChartData()
-             */
+            // ─────────────────────────────────────────────────────────────────────
+            // Individual chart renderers
+            // ─────────────────────────────────────────────────────────────────────
             function initEarningsChart(colors, chartData) {
                 const ctx = document.getElementById('earningsChart');
                 if (!ctx) return;
-
-                // Destroy existing instance to prevent "Canvas already in use" error
                 destroyChart('earnings');
 
-                // Extract data from server response
-                const labels = chartData.revenueTrend?.labels || [];
-                const revenueData = chartData.revenueTrend?.revenue || [];
-                const payoutData = chartData.revenueTrend?.payout || [];
+                const labels      = chartData.revenueTrend?.labels   || [];
+                const revenueData = chartData.revenueTrend?.revenue  || [];
+                const payoutData  = chartData.revenueTrend?.payout   || [];
 
-                // Skip rendering if no data available
                 if (!labels.length) {
-                    console.log('[OwnerReports] No earnings data available');
+                    console.log('[OwnerReports] earningsChart — no data');
                     return;
                 }
 
                 chartInstances.earnings = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: labels,
-                        datasets: [{
+                        labels,
+                        datasets: [
+                            {
                                 label: '{{ __('owner_report.reports.charts.revenue') }}',
                                 data: revenueData,
                                 borderColor: colors.primary,
                                 backgroundColor: colors.primaryBg,
-                                fill: true,
-                                tension: 0.4,
-                                borderWidth: 2,
-                                pointRadius: 3,
-                                pointHoverRadius: 5
+                                fill: true, tension: 0.4, borderWidth: 2,
+                                pointRadius: 3, pointHoverRadius: 5,
                             },
                             {
                                 label: '{{ __('owner_report.reports.charts.earnings') }}',
                                 data: payoutData,
                                 borderColor: colors.success,
                                 backgroundColor: colors.successBg,
-                                fill: true,
-                                tension: 0.4,
-                                borderWidth: 2,
-                                pointRadius: 3,
-                                pointHoverRadius: 5
-                            }
-                        ]
+                                fill: true, tension: 0.4, borderWidth: 2,
+                                pointRadius: 3, pointHoverRadius: 5,
+                            },
+                        ],
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        interaction: {
-                            intersect: false,
-                            mode: 'index'
-                        },
+                        interaction: { intersect: false, mode: 'index' },
                         plugins: {
                             legend: {
                                 position: 'top',
-                                labels: {
-                                    color: colors.text,
-                                    usePointStyle: true,
-                                    padding: 20
-                                }
+                                labels: { color: colors.text, usePointStyle: true, padding: 20 },
                             },
                             tooltip: {
                                 callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' +
-                                            new Intl.NumberFormat('en-OM', {
-                                                minimumFractionDigits: 3,
-                                                maximumFractionDigits: 3
-                                            }).format(context.raw) + ' OMR';
-                                    }
-                                }
-                            }
+                                    label: (ctx) =>
+                                        ctx.dataset.label + ': ' +
+                                        new Intl.NumberFormat('en-OM', {
+                                            minimumFractionDigits: 3,
+                                            maximumFractionDigits: 3,
+                                        }).format(ctx.raw) + ' OMR',
+                                },
+                            },
                         },
                         scales: {
-                            x: {
-                                ticks: {
-                                    color: colors.text
-                                },
-                                grid: {
-                                    color: colors.grid,
-                                    display: false
-                                }
-                            },
+                            x: { ticks: { color: colors.text }, grid: { color: colors.grid, display: false } },
                             y: {
                                 ticks: {
                                     color: colors.text,
-                                    callback: function(value) {
-                                        return value.toFixed(3) + ' OMR';
-                                    }
+                                    callback: (v) => v.toFixed(3) + ' OMR',
                                 },
-                                grid: {
-                                    color: colors.grid
-                                }
-                            }
-                        }
-                    }
+                                grid: { color: colors.grid },
+                            },
+                        },
+                    },
                 });
-
-                console.log('[OwnerReports] Earnings chart initialized with', labels.length, 'data points');
+                console.log('[OwnerReports] earningsChart rendered —', labels.length, 'points');
             }
 
-            /**
-             * Initialize the Booking Status doughnut chart.
-             *
-             * FIX: Receives data as parameter (fetched from server via $wire).
-             *
-             * @param {Object} colors - Chart color configuration
-             * @param {Object} chartData - Fresh data from $wire.getChartData()
-             */
             function initBookingStatusChart(colors, chartData) {
                 const ctx = document.getElementById('bookingStatusChart');
                 if (!ctx) return;
-
-                // Destroy existing instance
                 destroyChart('bookingStatus');
 
-                // Extract data from server response
                 const labels = chartData.bookingDistribution?.labels || [];
-                const data = chartData.bookingDistribution?.data || [];
+                const data   = chartData.bookingDistribution?.data   || [];
 
-                // Skip if no meaningful data
                 if (!labels.length || !data.some(v => v > 0)) {
-                    console.log('[OwnerReports] No booking status data available');
+                    console.log('[OwnerReports] bookingStatusChart — no data');
                     return;
                 }
 
                 chartInstances.bookingStatus = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: labels,
+                        labels,
                         datasets: [{
-                            data: data,
-                            backgroundColor: [
-                                colors.success, // Confirmed - green
-                                colors.primary, // Completed - indigo
-                                colors.warning, // Pending - amber
-                                colors.danger // Cancelled - red
-                            ],
+                            data,
+                            backgroundColor: [colors.success, colors.primary, colors.warning, colors.danger],
                             borderWidth: 0,
-                            hoverOffset: 4
-                        }]
+                            hoverOffset: 4,
+                        }],
                     },
                     options: {
                         responsive: true,
@@ -662,223 +577,136 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
-                                labels: {
-                                    color: colors.text,
-                                    usePointStyle: true,
-                                    padding: 15,
-                                    font: {
-                                        size: 12
-                                    }
-                                }
+                                labels: { color: colors.text, usePointStyle: true, padding: 15, font: { size: 12 } },
                             },
                             tooltip: {
                                 callbacks: {
-                                    label: function(context) {
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ?
-                                            ((context.raw / total) * 100).toFixed(1) :
-                                            0;
-                                        return context.label + ': ' + context.raw + ' (' + percentage + '%)';
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                    label: (ctx) => {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                                        return ctx.label + ': ' + ctx.raw + ' (' + pct + '%)';
+                                    },
+                                },
+                            },
+                        },
+                    },
                 });
-
-                console.log('[OwnerReports] Booking status chart initialized with', labels.length, 'categories');
+                console.log('[OwnerReports] bookingStatusChart rendered');
             }
 
-            /**
-             * Initialize the Time Slot distribution bar chart.
-             *
-             * FIX: Receives data as parameter (fetched from server via $wire).
-             *
-             * @param {Object} colors - Chart color configuration
-             * @param {Object} chartData - Fresh data from $wire.getChartData()
-             */
             function initTimeSlotChart(colors, chartData) {
                 const ctx = document.getElementById('timeSlotChart');
                 if (!ctx) return;
-
-                // Destroy existing instance
                 destroyChart('timeSlot');
 
-                // Extract data from server response
                 const labels = chartData.timeSlotDistribution?.labels || [];
-                const data = chartData.timeSlotDistribution?.data || [];
+                const data   = chartData.timeSlotDistribution?.data   || [];
 
-                // Skip if no data
                 if (!labels.length) {
-                    console.log('[OwnerReports] No time slot data available');
+                    console.log('[OwnerReports] timeSlotChart — no data');
                     return;
                 }
 
                 chartInstances.timeSlot = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: labels,
+                        labels,
                         datasets: [{
                             label: '{{ __('owner_report.reports.charts.bookings') }}',
-                            data: data,
-                            backgroundColor: [
-                                colors.primary, // Morning
-                                colors.purple, // Afternoon
-                                colors.pink, // Evening
-                                colors.violet // Full Day
-                            ],
+                            data,
+                            backgroundColor: [colors.primary, colors.purple, colors.pink, colors.violet],
                             borderRadius: 6,
-                            borderSkipped: false
-                        }]
+                            borderSkipped: false,
+                        }],
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
-                            x: {
-                                ticks: {
-                                    color: colors.text
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            },
+                            x: { ticks: { color: colors.text }, grid: { display: false } },
                             y: {
-                                ticks: {
-                                    color: colors.text,
-                                    stepSize: 1
-                                },
-                                grid: {
-                                    color: colors.grid
-                                },
-                                beginAtZero: true
-                            }
-                        }
-                    }
+                                ticks: { color: colors.text, stepSize: 1 },
+                                grid: { color: colors.grid },
+                                beginAtZero: true,
+                            },
+                        },
+                    },
                 });
-
-                console.log('[OwnerReports] Time slot chart initialized with', labels.length, 'slots');
+                console.log('[OwnerReports] timeSlotChart rendered');
             }
 
-            /**
-             * Initialize all charts for the currently visible tab.
-             *
-             * FIX: Fetches FRESH data from the server via $wire.getChartData()
-             * every time charts are initialized. This ensures filters (date range,
-             * hall selection) are always reflected in the charts.
-             *
-             * Uses requestAnimationFrame to ensure DOM is ready after Livewire
-             * morphing completes, then adds an additional small delay for safety.
-             */
+            // ─────────────────────────────────────────────────────────────────────
+            // Master initializer — fetches fresh data then renders visible charts
+            // ─────────────────────────────────────────────────────────────────────
             async function initOwnerCharts() {
-                // Wait for next animation frame to ensure DOM is settled
+                // One rAF ensures the new DOM nodes (canvas elements) are painted
                 await new Promise(resolve => requestAnimationFrame(resolve));
 
-                // Additional delay to ensure Livewire DOM morphing is complete
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                // FIX: Fetch FRESH chart data from the Livewire component
-                // This calls the public getChartData() method on Reports.php
-                // and returns the latest computed property values
                 let chartData;
                 try {
                     chartData = await $wire.getChartData();
-                } catch (error) {
-                    console.error('[OwnerReports] Failed to fetch chart data:', error);
+                } catch (err) {
+                    console.error('[OwnerReports] getChartData() failed:', err);
                     return;
                 }
 
                 const colors = getChartColors();
 
-                // Initialize charts based on which canvas elements exist in current tab
-                if (document.getElementById('earningsChart')) {
-                    initEarningsChart(colors, chartData);
-                }
-
-                if (document.getElementById('bookingStatusChart')) {
-                    initBookingStatusChart(colors, chartData);
-                }
-
-                if (document.getElementById('timeSlotChart')) {
-                    initTimeSlotChart(colors, chartData);
-                }
+                if (document.getElementById('earningsChart'))      initEarningsChart(colors, chartData);
+                if (document.getElementById('bookingStatusChart')) initBookingStatusChart(colors, chartData);
+                if (document.getElementById('timeSlotChart'))      initTimeSlotChart(colors, chartData);
             }
 
-            // =====================================================================
-            // Event Listeners — Livewire 3 $wire.on() syntax with auto-cleanup
-            // =====================================================================
+            // ─────────────────────────────────────────────────────────────────────
+            // Reactive triggers — $wire.$watch fires AFTER the Livewire DOM diff
+            // is applied, so canvases are guaranteed to exist when we look for them.
+            // (Replaces the less-reliable $wire.on() event approach.)
+            // ─────────────────────────────────────────────────────────────────────
 
-            /**
-             * Initialize charts when the component first mounts.
-             * The script block runs on each mount, so this handles:
-             * - Initial page load
-             * - SPA navigation (wire:navigate) to/from this page
-             */
-            console.log('[OwnerReports] Component mounted — initializing charts');
-            initOwnerCharts();
-
-            /**
-             * Handle tab switching.
-             * When user clicks a different tab, Livewire re-renders the DOM
-             * and this event fires so we can initialize charts for the new tab.
-             *
-             * FIX: $wire.on() in the script block automatically cleans up when
-             * the component is disconnected (no manual cleanup needed).
-             */
-            $wire.on('activeTabUpdated', (data) => {
-                console.log('[OwnerReports] Tab updated to:', data.tab || data);
-                // Destroy old charts before rendering new ones
+            // Re-render charts whenever the active tab changes
+            $wire.$watch('activeTab', () => {
                 destroyAllCharts();
                 initOwnerCharts();
             });
 
-            /**
-             * Handle data refresh (when filters change).
-             * This fires when date range, hall selection, or preset changes
-             * via the loadData() method in Reports.php.
-             *
-             * FIX: Charts are completely destroyed and recreated with fresh
-             * data from the server, ensuring all filter changes are reflected.
-             */
-            $wire.on('chartsDataUpdated', () => {
-                console.log('[OwnerReports] Filters changed — refreshing charts');
-                destroyAllCharts();
+            // Debounced refresh for filter changes (startDate/endDate/hallId may
+            // change together when a preset is applied, so we batch them)
+            let filterDebounce = null;
+            const scheduleChartRefresh = () => {
+                if (filterDebounce) clearTimeout(filterDebounce);
+                filterDebounce = setTimeout(() => {
+                    destroyAllCharts();
+                    initOwnerCharts();
+                }, 350);
+            };
+
+            $wire.$watch('startDate', scheduleChartRefresh);
+            $wire.$watch('endDate',   scheduleChartRefresh);
+            $wire.$watch('hallId',    scheduleChartRefresh);
+
+            // Dark-mode toggle — rebuild charts with updated palette
+            const themeObserver = new MutationObserver(() => {
+                if (Object.values(chartInstances).some(c => c !== null)) {
+                    destroyAllCharts();
+                    initOwnerCharts();
+                }
+            });
+            themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+            // ─────────────────────────────────────────────────────────────────────
+            // Initial render on component mount (also covers SPA re-navigation)
+            // ─────────────────────────────────────────────────────────────────────
+            waitForChartJs(() => {
+                console.log('[OwnerReports] mounted — running initial chart pass');
                 initOwnerCharts();
             });
 
-            /**
-             * Handle theme changes (dark mode toggle).
-             * Re-renders charts with updated colors when theme switches.
-             */
-            const themeObserver = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.attributeName === 'class') {
-                        console.log('[OwnerReports] Theme changed — reinitializing charts');
-                        destroyAllCharts();
-                        initOwnerCharts();
-                    }
-                });
-            });
-
-            // Observe dark mode changes on html element
-            themeObserver.observe(document.documentElement, {
-                attributes: true
-            });
-
-            /**
-             * Cleanup function — runs when component disconnects.
-             * This is the return value of the script block and Livewire 3
-             * calls it automatically on component disconnect.
-             */
+            // Cleanup on component disconnect
             return () => {
-                console.log('[OwnerReports] Component disconnecting — cleaning up');
                 destroyAllCharts();
                 themeObserver.disconnect();
+                if (filterDebounce) clearTimeout(filterDebounce);
             };
         </script>
     @endscript

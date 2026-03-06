@@ -284,6 +284,61 @@ return [
 
     ],
 
+    'export' => [
+        'modal_heading'    => 'Export Bookings',
+        'modal_description' => 'Filter your bookings and download a PDF report.',
+        'hall_label'       => 'Hall',
+        'all_halls'        => 'All Halls',
+        'date_from'        => 'From Date',
+        'date_to'          => 'To Date',
+        'submit_label'     => 'Export PDF',
+
+        'pdf_title'        => 'Bookings Report',
+        'owner_label'      => 'Owner',
+        'period_label'     => 'Period',
+        'all_period'       => 'All Time',
+        'generated_at'     => 'Generated on',
+        'hall_filter_label' => 'Hall',
+        'all_halls_filter' => 'All Halls',
+
+        'stats' => [
+            'total_bookings'  => 'Total Bookings',
+            'confirmed'       => 'Confirmed',
+            'completed'       => 'Completed',
+            'pending'         => 'Pending',
+            'cancelled'       => 'Cancelled',
+            'total_earnings'  => 'Total Earnings',
+        ],
+
+        'table' => [
+            'booking_number' => 'Booking #',
+            'hall'           => 'Hall',
+            'customer'       => 'Customer',
+            'date'           => 'Date',
+            'time_slot'      => 'Time Slot',
+            'status'         => 'Status',
+            'payment'        => 'Payment',
+            'earnings'       => 'Earnings (OMR)',
+        ],
+
+        'status' => [
+            'confirmed'  => 'Confirmed',
+            'completed'  => 'Completed',
+            'pending'    => 'Pending',
+            'cancelled'  => 'Cancelled',
+        ],
+
+        'time_slots' => [
+            'morning'   => 'Morning',
+            'afternoon' => 'Afternoon',
+            'evening'   => 'Evening',
+            'full_day'  => 'Full Day',
+        ],
+
+        'footer'      => 'This report is confidential and generated automatically.',
+        'no_bookings' => 'No bookings found for the selected criteria.',
+    ],
+
     'pages' => [
         'list' => [
             'export_label' => 'Export',

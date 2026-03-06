@@ -233,6 +233,7 @@ return [
         'occupancy' => 'Occupancy',
         'rating' => 'Rating',
         'next_booking' => 'Next Booking',
+        'status' => 'Status',
 
         // Tabs
         'tabs' => [

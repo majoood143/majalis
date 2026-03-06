@@ -631,6 +631,8 @@ return [
         'slots_available' => ':count slot(s) available',
         'custom_price_applied' => 'Custom price for this date/slot',
         'default_price' => 'Default hall price for :slot',
+        'transaction_id_copied' => 'Transaction ID copied to clipboard',
+        'reference_copied' => 'Reference copied!',
     ],
 
     /*
@@ -826,10 +828,6 @@ return [
         'thawani' => 'Thawani',
     ],
 
-    // Messages
-    'messages' => [
-        'reference_copied' => 'Reference copied!',
-    ],
 
     'exceptions' => [
         'slot_already_booked' => 'Slot already booked',

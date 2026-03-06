@@ -1,10 +1,10 @@
 <x-filament-panels::page>
     {{-- Hall Selector & View Mode Toggle --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 mb-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="p-4 mb-6 bg-white shadow-sm dark:bg-gray-800 rounded-xl sm:p-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {{-- Hall Selector --}}
             <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                     {{ __('owner.features.manage.select_hall') }}
                 </label>
                 <div class="flex flex-wrap gap-2">
@@ -31,7 +31,7 @@
                 <button
                     wire:click="toggleViewMode"
                     type="button"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                     @if($viewMode === 'single')
                         <x-heroicon-o-table-cells class="w-4 h-4" />
@@ -47,9 +47,9 @@
 
     @if($viewMode === 'single' && $this->selectedHall)
         {{-- Single Hall View --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {{-- Feature Selection Grid --}}
-            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
+            <div class="p-4 bg-white shadow-sm lg:col-span-2 dark:bg-gray-800 rounded-xl sm:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                         {{ __('owner.features.manage.available_features') }}
@@ -73,7 +73,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     @foreach($this->getAllFeatures as $feature)
                         @php
                             $isSelected = in_array($feature->id, $this->hallFeatures);
@@ -95,19 +95,19 @@
                                 {{ $isSelected
                                     ? 'bg-success-100 dark:bg-success-900/30'
                                     : 'bg-gray-100 dark:bg-gray-700' }}">
-                                <x-dynamic-component 
-                                    :component="$icon" 
-                                    class="w-5 h-5 {{ $isSelected ? 'text-success-600 dark:text-success-400' : 'text-gray-500 dark:text-gray-400' }}" 
+                                <x-dynamic-component
+                                    :component="$icon"
+                                    class="w-5 h-5 {{ $isSelected ? 'text-success-600 dark:text-success-400' : 'text-gray-500 dark:text-gray-400' }}"
                                 />
                             </div>
 
                             {{-- Content --}}
                             <div class="flex-1 min-w-0">
-                                <div class="font-medium text-sm text-gray-900 dark:text-white truncate">
+                                <div class="text-sm font-medium text-gray-900 truncate dark:text-white">
                                     {{ $feature->getTranslation('name', app()->getLocale()) }}
                                 </div>
                                 @if($feature->getTranslation('description', app()->getLocale()))
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    <div class="text-xs text-gray-500 truncate dark:text-gray-400">
                                         {{ Str::limit($feature->getTranslation('description', app()->getLocale()), 40) }}
                                     </div>
                                 @endif
@@ -118,7 +118,7 @@
                                 @if($isSelected)
                                     <x-heroicon-s-check-circle class="w-6 h-6 text-success-500" />
                                 @else
-                                    <div class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+                                    <div class="w-6 h-6 border-2 border-gray-300 rounded-full dark:border-gray-600"></div>
                                 @endif
                             </div>
                         </button>
@@ -129,8 +129,8 @@
             {{-- Sidebar: Stats & Actions --}}
             <div class="space-y-6">
                 {{-- Current Hall Stats --}}
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <div class="p-4 bg-white shadow-sm dark:bg-gray-800 rounded-xl sm:p-6">
+                    <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                         {{ $this->selectedHall->getTranslation('name', app()->getLocale()) }}
                     </h3>
 
@@ -157,8 +157,8 @@
                                     {{ __('owner.features.stats.coverage') }}
                                 </span>
                                 <span class="text-lg font-bold text-success-600 dark:text-success-400">
-                                    {{ $this->getAllFeatures->count() > 0 
-                                        ? round((count($this->hallFeatures) / $this->getAllFeatures->count()) * 100) 
+                                    {{ $this->getAllFeatures->count() > 0
+                                        ? round((count($this->hallFeatures) / $this->getAllFeatures->count()) * 100)
                                         : 0 }}%
                                 </span>
                             </div>
@@ -167,11 +167,11 @@
 
                     {{-- Progress Bar --}}
                     <div class="mt-4">
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div 
-                                class="bg-success-500 h-2 rounded-full transition-all duration-300"
-                                style="width: {{ $this->getAllFeatures->count() > 0 
-                                    ? (count($this->hallFeatures) / $this->getAllFeatures->count()) * 100 
+                        <div class="w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700">
+                            <div
+                                class="h-2 transition-all duration-300 rounded-full bg-success-500"
+                                style="width: {{ $this->getAllFeatures->count() > 0
+                                    ? (count($this->hallFeatures) / $this->getAllFeatures->count()) * 100
                                     : 0 }}%"
                             ></div>
                         </div>
@@ -180,8 +180,8 @@
 
                 {{-- Copy Features --}}
                 @if($this->getOwnerHalls->count() > 1)
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
-                        <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    <div class="p-4 bg-white shadow-sm dark:bg-gray-800 rounded-xl sm:p-6">
+                        <h4 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                             {{ __('owner.features.actions.copy_from') }}
                         </h4>
                         <div class="space-y-2">
@@ -190,7 +190,7 @@
                                     <button
                                         wire:click="copyFeaturesFrom({{ $hall->id }})"
                                         type="button"
-                                        class="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+                                        class="flex items-center justify-between w-full px-3 py-2 text-left transition-colors rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700"
                                     >
                                         <span class="text-sm text-gray-700 dark:text-gray-300">
                                             {{ $hall->getTranslation('name', app()->getLocale()) }}
@@ -206,8 +206,8 @@
                 @endif
 
                 {{-- Legend --}}
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
-                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                    <h4 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                         {{ __('owner.features.legend.title') }}
                     </h4>
                     <div class="space-y-2 text-sm">
@@ -218,7 +218,7 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full dark:border-gray-600"></div>
                             <span class="text-gray-600 dark:text-gray-400">
                                 {{ __('owner.features.legend.not_selected') }}
                             </span>
@@ -229,16 +229,16 @@
         </div>
     @elseif($viewMode === 'matrix')
         {{-- Matrix View --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 rounded-xl">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
                         <tr class="bg-gray-50 dark:bg-gray-700/50">
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700/50 z-10">
+                            <th class="sticky left-0 z-10 px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50">
                                 {{ __('owner.features.manage.feature') }}
                             </th>
                             @foreach($this->getOwnerHalls as $hall)
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <th class="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 whitespace-nowrap">
                                     {{ $hall->getTranslation('name', app()->getLocale()) }}
                                 </th>
                             @endforeach
@@ -253,9 +253,9 @@
                                 }
                             @endphp
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                <td class="px-4 py-3 sticky left-0 bg-white dark:bg-gray-800 z-10">
+                                <td class="sticky left-0 z-10 px-4 py-3 bg-white dark:bg-gray-800">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg dark:bg-gray-700">
                                             <x-dynamic-component :component="$icon" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
                                         </div>
                                         <span class="text-sm font-medium text-gray-900 dark:text-white">
@@ -265,7 +265,7 @@
                                 </td>
                                 @foreach($this->getOwnerHalls as $hall)
                                     @php
-                                        $isChecked = isset($this->featureMatrix[$hall->id]['features'][$feature->id]) 
+                                        $isChecked = isset($this->featureMatrix[$hall->id]['features'][$feature->id])
                                             && $this->featureMatrix[$hall->id]['features'][$feature->id];
                                     @endphp
                                     <td class="px-4 py-3 text-center">
@@ -293,9 +293,9 @@
         </div>
     @else
         {{-- No Hall Selected --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 text-center">
-            <x-heroicon-o-building-office-2 class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <div class="p-8 text-center bg-white shadow-sm dark:bg-gray-800 rounded-xl">
+            <x-heroicon-o-building-office-2 class="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                 {{ __('owner.features.manage.no_hall_selected') }}
             </h3>
             <p class="text-gray-500 dark:text-gray-400">

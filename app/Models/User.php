@@ -148,8 +148,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
         // Hall Owner panel access control
         if ($panel->getId() === 'owner') {
-            // Must be a hall owner (enum role check)
-            if (!$this->isHallOwner()) {
+            // Must be a hall owner (enum role OR Spatie role)
+            if (!$this->isHallOwner() && !$this->hasRole('hall_owner')) {
                 return false;
             }
 

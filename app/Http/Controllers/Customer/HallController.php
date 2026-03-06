@@ -268,7 +268,7 @@ class HallController extends Controller
             ->firstOrFail();
 
         // Get hall features
-        $features = $hall->feature_details;
+        $features = $hall->getFeaturesList();
 
         // Get similar halls
         $similarHalls = Hall::where('is_active', true)

@@ -46,7 +46,7 @@ class ManageHallAvailability extends Page implements HasForms
      *
      * @var string
      */
-    protected static string $view = 'filament.owner.resources.hall-resource.pages.manage-hall-availability';
+    protected static string $view = 'filament.owner.resources.manage-hall-availability';
 
     /**
      * The hall record.
@@ -97,9 +97,9 @@ class ManageHallAvailability extends Page implements HasForms
     /**
      * Mount the page.
      */
-    public function mount(int|string $record): void
+    public function mount(Hall $record): void
     {
-        $this->record = Hall::findOrFail($record);
+        $this->record = $record;
 
         // Verify ownership
         $user = Auth::user();

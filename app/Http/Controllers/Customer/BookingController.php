@@ -856,8 +856,11 @@ class BookingController extends BaseController
                             // Refresh booking to get updated payment_status and invoice_path
                             $freshBooking = $booking->fresh(['hall.city.region', 'extraServices', 'user']);
 
+                            // Use notifyNow() to send synchronously — bypasses the database
+                            // queue so the email is delivered immediately on payment success,
+                            // regardless of whether a queue worker is running.
                             Notification::route('mail', $freshBooking->customer_email)
-                                ->notify(new CustomerBookingConfirmationNotification($freshBooking));
+                                ->notifyNow(new CustomerBookingConfirmationNotification($freshBooking));
 
                             Log::info('Booking confirmation email queued', [
                                 'booking_id' => $freshBooking->id,

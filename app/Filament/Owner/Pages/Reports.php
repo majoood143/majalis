@@ -83,6 +83,9 @@ class Reports extends Page implements HasForms
     /** Active report tab. */
     public string $activeTab = 'overview';
 
+    /** Quick-select preset — reset to null after each apply so re-selecting works. */
+    public ?string $preset = null;
+
     /**
      * Mount the page.
      *
@@ -91,7 +94,14 @@ class Reports extends Page implements HasForms
     public function mount(): void
     {
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
-        $this->endDate = now()->format('Y-m-d');
+        $this->endDate   = now()->format('Y-m-d');
+
+        $this->form->fill([
+            'startDate' => $this->startDate,
+            'endDate'   => $this->endDate,
+            'hallId'    => $this->hallId,
+            'preset'    => null,
+        ]);
     }
 
     public function getTitle(): string
@@ -237,7 +247,11 @@ class Reports extends Page implements HasForms
         };
 
         $this->startDate = $start->format('Y-m-d');
-        $this->endDate = $end->format('Y-m-d');
+        $this->endDate   = $end->format('Y-m-d');
+
+        // Reset dropdown to placeholder so the same preset can be re-applied later
+        $this->preset = null;
+
         $this->loadData();
     }
 
@@ -362,7 +376,7 @@ class Reports extends Page implements HasForms
         )
             ->whereIn('hall_id', $hallIds)
             ->whereBetween('booking_date', [$start, $end])
-            ->where('payment_status', 'paid')
+            ->whereIn('status', ['confirmed', 'completed'])
             ->groupBy('period')
             ->orderBy('period')
             ->get();
@@ -415,20 +429,17 @@ class Reports extends Page implements HasForms
             'halls.id',
             'halls.name',
             'halls.owner_id',
-            // FIX: Alias as 'bookings_count' to match Blade template
-            DB::raw('COUNT(bookings.id) as bookings_count'),
-            DB::raw('SUM(bookings.total_amount) as total_revenue'),
-            DB::raw('SUM(bookings.owner_payout) as total_payout'),
-            // FIX: Compute average booking value — was missing, caused null in PDF
-            DB::raw('AVG(bookings.total_amount) as avg_booking_value')
+            DB::raw('COUNT(bookings.id) as total_bookings'),
+            DB::raw('SUM(CASE WHEN bookings.payment_status = "paid" THEN bookings.total_amount ELSE 0 END) as total_revenue'),
+            DB::raw('SUM(CASE WHEN bookings.payment_status = "paid" THEN bookings.owner_payout ELSE 0 END) as total_payout'),
+            DB::raw('AVG(CASE WHEN bookings.payment_status = "paid" THEN bookings.total_amount END) as avg_booking_value')
         )
             ->leftJoin('bookings', function ($join) {
                 $join->on('halls.id', '=', 'bookings.hall_id')
                     ->whereBetween('bookings.booking_date', [
                         Carbon::parse($this->startDate),
                         Carbon::parse($this->endDate),
-                    ])
-                    ->where('bookings.payment_status', 'paid');
+                    ]);
             })
             ->whereIn('halls.id', $hallIds)
             ->groupBy('halls.id', 'halls.name', 'halls.owner_id')
@@ -441,6 +452,7 @@ class Reports extends Page implements HasForms
      *
      * @return array{labels: array, data: array}
      */
+    #[Computed]
     public function timeSlotDistribution(): array
     {
         $hallIds = $this->getFilteredHallIds();

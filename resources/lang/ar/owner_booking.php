@@ -284,6 +284,61 @@ return [
 
     ],
 
+    'export' => [
+        'modal_heading'    => 'تصدير الحجوزات',
+        'modal_description' => 'حدد الفلاتر لتنزيل تقرير PDF لحجوزاتك.',
+        'hall_label'       => 'القاعة',
+        'all_halls'        => 'جميع القاعات',
+        'date_from'        => 'من تاريخ',
+        'date_to'          => 'إلى تاريخ',
+        'submit_label'     => 'تصدير PDF',
+
+        'pdf_title'        => 'تقرير الحجوزات',
+        'owner_label'      => 'المالك',
+        'period_label'     => 'الفترة',
+        'all_period'       => 'جميع الأوقات',
+        'generated_at'     => 'تم الإنشاء في',
+        'hall_filter_label' => 'القاعة',
+        'all_halls_filter' => 'جميع القاعات',
+
+        'stats' => [
+            'total_bookings'  => 'إجمالي الحجوزات',
+            'confirmed'       => 'مؤكد',
+            'completed'       => 'مكتمل',
+            'pending'         => 'قيد الانتظار',
+            'cancelled'       => 'ملغي',
+            'total_earnings'  => 'إجمالي الأرباح',
+        ],
+
+        'table' => [
+            'booking_number' => 'رقم الحجز',
+            'hall'           => 'القاعة',
+            'customer'       => 'العميل',
+            'date'           => 'التاريخ',
+            'time_slot'      => 'الفترة الزمنية',
+            'status'         => 'الحالة',
+            'payment'        => 'الدفع',
+            'earnings'       => 'الأرباح (ر.ع)',
+        ],
+
+        'status' => [
+            'confirmed'  => 'مؤكد',
+            'completed'  => 'مكتمل',
+            'pending'    => 'قيد الانتظار',
+            'cancelled'  => 'ملغي',
+        ],
+
+        'time_slots' => [
+            'morning'   => 'صباح',
+            'afternoon' => 'ظهر',
+            'evening'   => 'مساء',
+            'full_day'  => 'يوم كامل',
+        ],
+
+        'footer'      => 'هذا التقرير سري ويتم إنشاؤه تلقائياً.',
+        'no_bookings' => 'لا توجد حجوزات تطابق المعايير المحددة.',
+    ],
+
     'pages' => [
         'list' => [
             'export_label' => 'تصدير',
