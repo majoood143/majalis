@@ -31,22 +31,17 @@
     <title>{{ __('halls.booking_confirmation') }} - {{ $booking->booking_number }}</title>
 
     <style>
-        /* ==========================================================================
-           Page Setup - A4 Single Page
-           ========================================================================== */
-        @page {
-            size: A4;
-            margin: 15mm 15mm 12mm 15mm;
-        }
+        /* Page setup is handled via mPDF constructor config (format + margins).
+           Do NOT use @page CSS — it conflicts with mPDF's format config
+           and causes phantom pages in the output. */
 
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: 'DejaVu Sans', 'Arial Unicode MS', 'Helvetica', sans-serif;
+            font-family: 'tajawal', 'DejaVu Sans', sans-serif;
             font-size: 9pt;
             color: #2c3e50;
             line-height: 1.45;
@@ -107,7 +102,6 @@
             font-size: 24pt;
             font-weight: 500;
             color: #0066b3;
-            letter-spacing: -0.5px;
         }
 
         .logo span {
@@ -119,11 +113,9 @@
             background: #008b5d;
             color: white;
             padding: 6px 14px;
-            border-radius: 30px;
             font-size: 9pt;
             font-weight: 500;
             display: inline-block;
-            letter-spacing: 0.3px;
             margin-bottom: 5px;
         }
 
@@ -136,8 +128,6 @@
         .booking-ref-label {
             font-size: 7.5pt;
             color: #6b7a8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         /* ==========================================================================
@@ -230,8 +220,6 @@
         .info-label {
             font-size: 7pt;
             color: #6b7a8d;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
             margin-bottom: 2px;
         }
 
@@ -254,8 +242,6 @@
             font-weight: 500;
             color: #1a2b3c;
             margin-bottom: 8px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #d0d7de;
         }
 
         .section-title i {  /* icon placeholder */
@@ -402,16 +388,7 @@
         .notes-list li {
             font-size: 7.5pt;
             color: #664d00;
-            padding: 3px 0 3px 16px;
-            position: relative;
-        }
-
-        .notes-list li:before {
-            content: "•";
-            color: #f5c542;
-            font-weight: bold;
-            position: absolute;
-            {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 4px;
+            padding: 3px 0;
         }
 
         /* ==========================================================================
@@ -458,11 +435,8 @@
         .status-badge {
             display: inline-block;
             padding: 4px 10px;
-            border-radius: 30px;
             font-size: 7.5pt;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
 
         .status-pending {
@@ -515,255 +489,214 @@
 
 <body>
 
-    {{-- ========================================================================
-        Header - Logo & Booking Reference
-        ======================================================================== --}}
-    <div class="header">
-        <div class="header-left">
-            <div class="logo">Majalis<span>.om</span></div>
-        </div>
-        <div class="header-right">
-            <div class="confirmation-badge">{{ __('halls.booking_confirmed') }}</div>
-            <div class="booking-ref-label">{{ __('halls.booking_reference') }}</div>
-            <div class="booking-ref">{{ $booking->booking_number }}</div>
-        </div>
-    </div>
-
-    {{-- ========================================================================
-        Property Card (Prominent)
-        ======================================================================== --}}
     @php
+        $locale = app()->getLocale();
         $hallName = is_array($booking->hall->name)
-            ? ($booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] ?? 'N/A')
-            : $booking->hall->name;
+            ? ($booking->hall->name[$locale] ?? $booking->hall->name['en'] ?? 'N/A')
+            : (string) $booking->hall->name;
 
         $cityName = is_array($booking->hall->city->name)
-            ? ($booking->hall->city->name[app()->getLocale()] ?? $booking->hall->city->name['en'] ?? '')
-            : $booking->hall->city->name;
+            ? ($booking->hall->city->name[$locale] ?? $booking->hall->city->name['en'] ?? '')
+            : (string) $booking->hall->city->name;
 
         $regionName = is_array($booking->hall->city->region->name)
-            ? ($booking->hall->city->region->name[app()->getLocale()] ?? $booking->hall->city->region->name['en'] ?? '')
-            : $booking->hall->city->region->name;
+            ? ($booking->hall->city->region->name[$locale] ?? $booking->hall->city->region->name['en'] ?? '')
+            : (string) $booking->hall->city->region->name;
+
+        $bookingDate = $booking->booking_date instanceof \Carbon\Carbon
+            ? $booking->booking_date
+            : \Carbon\Carbon::parse($booking->booking_date);
     @endphp
 
-    <div class="property-card">
+    {{-- ========================================================================
+        Header
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 2px solid #0066b3; margin-bottom: 14px;">
+        <tr>
+            <td width="50%" style="vertical-align: middle; padding-bottom: 8px;">
+                <div class="logo">Majalis<span>.om</span></div>
+            </td>
+            <td width="50%" style="vertical-align: middle; padding-bottom: 8px; text-align: {{ $locale === 'ar' ? 'left' : 'right' }};">
+                <div class="confirmation-badge">{{ __('halls.booking_confirmed') }}</div><br>
+                <div class="booking-ref-label">{{ __('halls.booking_reference') }}</div>
+                <div class="booking-ref">{{ $booking->booking_number }}</div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Property Card
+        ======================================================================== --}}
+    <div class="property-card" style="margin-bottom: 14px;">
         <div class="property-name">{{ $hallName }}</div>
-        <div class="property-address">
-            {{ $booking->hall->address }}, {{ $cityName }}, {{ $regionName }}
-        </div>
+        <div class="property-address">{{ $booking->hall->address }}, {{ $cityName }}, {{ $regionName }}</div>
         @if ($booking->hall->phone)
             <div class="property-contact">
-                <span>📞</span> {{ $booking->hall->phone }}
-                @if ($booking->hall->email) | ✉️ {{ $booking->hall->email }} @endif
+                {{ __('halls.phone') }}: {{ $booking->hall->phone }}
+                @if ($booking->hall->email) &nbsp;|&nbsp; {{ __('halls.email') }}: {{ $booking->hall->email }} @endif
             </div>
         @endif
     </div>
 
     {{-- ========================================================================
-        Booking Details Grid (Date, Time, Guests, Status)
+        Booking Details (4 columns)
         ======================================================================== --}}
-    <div class="info-grid">
-        <div class="info-row">
-            {{-- Booking Date --}}
-            <div class="info-cell" style="width: 25%;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e4e7eb; margin-bottom: 14px;">
+        <tr>
+            <td style="vertical-align: middle; padding: 8px; border-bottom: 1px solid #e4e7eb;">
                 <div class="info-label">{{ __('halls.date') }}</div>
-                <div class="info-value">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') }}</div>
-                <div class="info-sub">{{ \Carbon\Carbon::parse($booking->booking_date)->format('l') }}</div>
-            </div>
-
-            {{-- Time Slot --}}
-            <div class="info-cell" style="width: 25%;">
+                <div class="info-value">{{ $bookingDate->format('d M Y') }}</div>
+                <div class="info-sub">{{ $bookingDate->format('l') }}</div>
+            </td>
+            <td style="vertical-align: middle; padding: 8px; border-bottom: 1px solid #e4e7eb; border-{{ $locale === 'ar' ? 'right' : 'left' }}: 1px solid #e4e7eb;">
                 <div class="info-label">{{ __('halls.time_slot') }}</div>
                 <div class="info-value">{{ __('halls.' . $booking->time_slot) }}</div>
-            </div>
-
-            {{-- Guests --}}
-            <div class="info-cell" style="width: 25%;">
+            </td>
+            <td style="vertical-align: middle; padding: 8px; border-bottom: 1px solid #e4e7eb; border-{{ $locale === 'ar' ? 'right' : 'left' }}: 1px solid #e4e7eb;">
                 <div class="info-label">{{ __('halls.guests_count') }}</div>
                 <div class="info-value">{{ $booking->number_of_guests }}</div>
                 <div class="info-sub">{{ __('halls.persons') }}</div>
-            </div>
-
-            {{-- Status --}}
-            <div class="info-cell" style="width: 25%;">
+            </td>
+            <td style="vertical-align: middle; padding: 8px; border-bottom: 1px solid #e4e7eb; border-{{ $locale === 'ar' ? 'right' : 'left' }}: 1px solid #e4e7eb;">
                 <div class="info-label">{{ __('halls.payment_status') }}</div>
-                <span class="status-badge status-{{ $booking->payment_status }}">
-                    {{ __('halls.payment_' . $booking->payment_status) }}
-                </span>
-            </div>
-        </div>
-    </div>
+                <div style="background: #cce5ff; color: #004085; padding: 3px 8px; font-size: 7.5pt; font-weight: 600; display: inline-block;">{{ __('halls.payment_' . $booking->payment_status) }}</div>
+            </td>
+        </tr>
+    </table>
 
     {{-- ========================================================================
-        Two Column Layout - Guest & Price Info
+        Two Column: Customer Info + Price Summary
         ======================================================================== --}}
-    <div class="two-column">
-        {{-- Left Column: Guest Information + Event --}}
-        <div class="col-left">
-            <div class="section-title">
-                <span>{{ __('halls.customer_information') }}</span>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">{{ __('halls.name') }}</div>
-                <div class="detail-value">{{ $booking->customer_name }}</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">{{ __('halls.email') }}</div>
-                <div class="detail-value">{{ $booking->customer_email }}</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">{{ __('halls.phone') }}</div>
-                <div class="detail-value">{{ $booking->customer_phone }}</div>
-            </div>
-            @if ($booking->event_type)
-                <div class="detail-row">
-                    <div class="detail-label">{{ __('halls.event') }}</div>
-                    <div class="detail-value">{{ __('halls.' . $booking->event_type) }}</div>
-                </div>
-            @endif
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 14px;">
+        <tr>
+            {{-- Customer Information --}}
+            <td width="49%" style="vertical-align: top;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;"><tr><td style="font-size: 11pt; font-weight: 500; color: #1a2b3c; padding-bottom: 4px; border-bottom: 1px solid #d0d7de;">{{ __('halls.customer_information') }}</td></tr></table>
+                <table width="100%" cellpadding="3" cellspacing="0">
+                    <tr>
+                        <td width="35%" style="color: #6b7a8d; font-size: 8pt;">{{ __('halls.name') }}</td>
+                        <td style="font-weight: 500; font-size: 9pt;">{{ $booking->customer_name }}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #6b7a8d; font-size: 8pt;">{{ __('halls.email') }}</td>
+                        <td style="font-size: 8pt;">{{ $booking->customer_email }}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #6b7a8d; font-size: 8pt;">{{ __('halls.phone') }}</td>
+                        <td style="font-size: 9pt;">{{ $booking->customer_phone }}</td>
+                    </tr>
+                    @if ($booking->event_type)
+                    <tr>
+                        <td style="color: #6b7a8d; font-size: 8pt;">{{ __('halls.event') }}</td>
+                        <td style="font-size: 9pt;">{{ __('halls.' . $booking->event_type) }}</td>
+                    </tr>
+                    @endif
+                </table>
+            </td>
 
-            {{-- Optional: Include any special requests if available --}}
-            @if ($booking->special_requests)
-                <div class="mt-3 text-small text-muted">
-                    <strong>{{ __('halls.special_requests') }}:</strong><br>
-                    {{ $booking->special_requests }}
-                </div>
-            @endif
-        </div>
+            {{-- Spacer --}}
+            <td width="2%"></td>
 
-        {{-- Right Column: Price Summary --}}
-        <div class="col-right">
-            <div class="section-title">
-                <span>{{ __('halls.price_details') }}</span>
-            </div>
-            <table class="price-table">
-                {{-- Base Price --}}
-                <tr>
-                    <td>{{ __('halls.hall_price') }} ({{ __('halls.' . $booking->time_slot) }})</td>
-                    <td>{{ number_format($booking->hall_price, 3) }} OMR</td>
-                </tr>
-
-                {{-- Extra Services --}}
-                @if ($booking->extraServices->count() > 0)
+            {{-- Price Summary --}}
+            <td width="49%" style="vertical-align: top;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;"><tr><td style="font-size: 11pt; font-weight: 500; color: #1a2b3c; padding-bottom: 4px; border-bottom: 1px solid #d0d7de;">{{ __('halls.price_details') }}</td></tr></table>
+                <table class="price-table" width="100%">
+                    <tr>
+                        <td>{{ __('halls.hall_price') }} ({{ __('halls.' . $booking->time_slot) }})</td>
+                        <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500;">{{ number_format($booking->hall_price, 3) }} OMR</td>
+                    </tr>
                     @foreach ($booking->extraServices as $service)
                         @php
-                            $serviceName = $service->service_name;
-                            if (is_string($serviceName)) {
-                                $serviceName = json_decode($serviceName, true) ?? $serviceName;
-                            }
-                            $displayName = is_array($serviceName)
-                                ? ($serviceName[app()->getLocale()] ?? $serviceName['en'] ?? 'Service')
-                                : $serviceName;
+                            $svcName = $service->service_name;
+                            if (is_string($svcName)) { $svcName = json_decode($svcName, true) ?? $svcName; }
+                            $svcDisplay = is_array($svcName) ? ($svcName[$locale] ?? $svcName['en'] ?? 'Service') : $svcName;
                         @endphp
                         <tr>
-                            <td>
-                                {{ $displayName }}
-                                <span class="text-muted">({{ $service->quantity }} × {{ number_format((float) $service->unit_price, 3) }})</span>
-                            </td>
-                            <td>{{ number_format((float) $service->total_price, 3) }} OMR</td>
+                            <td>{{ $svcDisplay }} ({{ $service->quantity }} x {{ number_format((float)$service->unit_price, 3) }})</td>
+                            <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500;">{{ number_format((float)$service->total_price, 3) }} OMR</td>
                         </tr>
                     @endforeach
-                @endif
-
-                {{-- Platform Fee --}}
-                @if ($booking->platform_fee > 0)
+                    @if ($booking->platform_fee > 0)
                     <tr>
                         <td>{{ __('halls.platform_fee') }}</td>
-                        <td>{{ number_format($booking->platform_fee, 3) }} OMR</td>
+                        <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500;">{{ number_format($booking->platform_fee, 3) }} OMR</td>
                     </tr>
-                @endif
-
-                {{-- Total --}}
-                <tr class="total-row">
-                    <td>{{ __('halls.total') }}</td>
-                    <td>{{ number_format($booking->total_amount, 3) }} OMR</td>
-                </tr>
-            </table>
-
-            {{-- Advance Payment Info --}}
-            @if ($booking->payment_type === 'advance' && $booking->advance_amount > 0)
-                <div class="advance-box">
-                    <div class="advance-row">
-                        <div class="advance-label">{{ __('halls.advance_paid') }}</div>
-                        <div class="advance-value">{{ number_format($booking->advance_amount, 3) }} OMR</div>
-                    </div>
-                    <div class="advance-row">
-                        <div class="advance-label">{{ __('halls.balance_due') }}</div>
-                        <div class="advance-value">{{ number_format($booking->balance_due, 3) }} OMR</div>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
-
-    {{-- ========================================================================
-        Map & Important Notes - Two Column Layout
-        ======================================================================== --}}
-    <div class="two-column">
-        {{-- Left Column: Map (if coordinates exist) --}}
-        <div class="col-left">
-            @if ($booking->hall->latitude && $booking->hall->longitude)
-                <div class="section-title">
-                    <span>{{ __('halls.location') }}</span>
-                </div>
-                @php
-                    $lat = number_format($booking->hall->latitude, 6, '.', '');
-                    $lng = number_format($booking->hall->longitude, 6, '.', '');
-                    // Using a reliable static map service (openstreetmap)
-                    $mapUrl = "https://staticmap.openstreetmap.de/staticmap.php?center={$lat},{$lng}&zoom=15&size=400x150&maptype=osmarenderer&markers={$lat},{$lng},red-pushpin";
-                @endphp
-                <div class="map-container">
-                    <img src="{{ $mapUrl }}"
-                         alt="{{ __('halls.map') }}"
-                         class="map-image"
-                         onerror="this.style.display='none'; this.parentNode.querySelector('.map-fallback').style.display='block';">
-                    <div class="map-fallback" style="display: none; height: 130px; background: #eef2f6; text-align: center; padding-top: 50px; color: #6b7a8d;">
-                        {{ __('halls.map_unavailable') }}
-                    </div>
-                </div>
-                <div class="map-coords">
-                    GPS: {{ $lat }}, {{ $lng }}
-                </div>
-                <div class="map-link">
-                    <a href="https://maps.google.com/?q={{ $lat }},{{ $lng }}" style="color: #0066b3; text-decoration: none;">{{ __('halls.view_on_map') }} (Google Maps)</a>
-                </div>
-            @endif
-        </div>
-
-        {{-- Right Column: Important Information --}}
-        <div class="col-right">
-            <div class="section-title">
-                <span>{{ __('halls.important_info') }}</span>
-            </div>
-            <div class="notes-box">
-                <ul class="notes-list">
-                    <li>{{ __('halls.bring_confirmation') }}</li>
-                    <li>{{ __('halls.arrive_on_time') }}</li>
-                    <li>{{ __('halls.cancellation_policy') }}</li>
-                    <li>{{ __('halls.contact_property') }}</li>
-                    @if ($booking->hall->check_in_instructions)
-                        <li>{{ $booking->hall->check_in_instructions }}</li>
                     @endif
-                </ul>
-            </div>
-        </div>
-    </div>
+                    <tr class="total-row">
+                        <td>{{ __('halls.total') }}</td>
+                        <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }};">{{ number_format($booking->total_amount, 3) }} OMR</td>
+                    </tr>
+                </table>
+                @if ($booking->payment_type === 'advance' && $booking->advance_amount > 0)
+                    <table width="100%" cellpadding="4" cellspacing="0" style="background: #f0f7f0; border: 1px solid #c3e0c3; font-size: 8.5pt; margin-top: 8px;">
+                        <tr>
+                            <td style="color: #2c5f2d;">{{ __('halls.advance_paid') }}</td>
+                            <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500; color: #1e7e34;">{{ number_format($booking->advance_amount, 3) }} OMR</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #2c5f2d;">{{ __('halls.balance_due') }}</td>
+                            <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500; color: #1e7e34;">{{ number_format($booking->balance_due, 3) }} OMR</td>
+                        </tr>
+                    </table>
+                @endif
+            </td>
+        </tr>
+    </table>
 
     {{-- ========================================================================
-        Footer - Contact & Timestamp
+        Two Column: Location + Important Notes
         ======================================================================== --}}
-    <div class="footer">
-        <div class="footer-left">
-            <div class="footer-contact">
-                <strong>{{ __('halls.need_help') }}</strong> {{ __('halls.email') }}: <a href="mailto:support@majalis.om" style="color: #0066b3; text-decoration: none;">support@majalis.om</a> |
-                {{ __('halls.phone') }}: +968 1234 5678
-            </div>
-        </div>
-        <div class="footer-right">
-            <div class="footer-logo">Majalis.om</div>
-            <div>{{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}</div>
-        </div>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 14px;">
+        <tr>
+            {{-- Location --}}
+            <td width="49%" style="vertical-align: top;">
+                @if ($booking->hall->latitude && $booking->hall->longitude)
+                    @php
+                        $lat = number_format($booking->hall->latitude, 6, '.', '');
+                        $lng = number_format($booking->hall->longitude, 6, '.', '');
+                    @endphp
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;"><tr><td style="font-size: 11pt; font-weight: 500; color: #1a2b3c; padding-bottom: 4px; border-bottom: 1px solid #d0d7de;">{{ __('halls.location') }}</td></tr></table>
+                    <div style="font-size: 8pt; color: #4a5a6e; padding: 4px 0;">GPS: {{ $lat }}, {{ $lng }}</div>
+                    <div style="font-size: 7.5pt; color: #0066b3; word-break: break-all;">
+                        https://maps.google.com/?q={{ $lat }},{{ $lng }}
+                    </div>
+                @endif
+            </td>
+
+            {{-- Spacer --}}
+            <td width="2%"></td>
+
+            {{-- Important Notes --}}
+            <td width="49%" style="vertical-align: top;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;"><tr><td style="font-size: 11pt; font-weight: 500; color: #1a2b3c; padding-bottom: 4px; border-bottom: 1px solid #d0d7de;">{{ __('halls.important_info') }}</td></tr></table>
+                <table width="100%" cellpadding="6" cellspacing="0" style="background: #fef9e7; border: 1px solid #f5c542;">
+                    <tr><td style="font-size: 7.5pt; color: #664d00;">- {{ __('halls.bring_confirmation') }}</td></tr>
+                    <tr><td style="font-size: 7.5pt; color: #664d00;">- {{ __('halls.arrive_on_time') }}</td></tr>
+                    <tr><td style="font-size: 7.5pt; color: #664d00;">- {{ __('halls.cancellation_policy') }}</td></tr>
+                    <tr><td style="font-size: 7.5pt; color: #664d00;">- {{ __('halls.contact_property') }}</td></tr>
+                    @if ($booking->hall->check_in_instructions)
+                        <tr><td style="font-size: 7.5pt; color: #664d00;">- {{ $booking->hall->check_in_instructions }}</td></tr>
+                    @endif
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 16px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle; font-size: 7pt; color: #6b7a8d; padding-top: 10px; border-top: 1px solid #d0d7de;">
+                <strong style="color: #1a2b3c;">{{ __('halls.need_help') }}</strong>
+                {{ __('halls.email') }}: support@majalis.om &nbsp;|&nbsp; {{ __('halls.phone') }}: +968 1234 5678
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-size: 7pt; color: #8a9cb0; padding-top: 10px; border-top: 1px solid #d0d7de;">
+                <div style="font-size: 12pt; font-weight: 500; color: #0066b3;">Majalis.om</div>
+                <div>{{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}</div>
+            </td>
+        </tr>
+    </table>
 
 </body>
 

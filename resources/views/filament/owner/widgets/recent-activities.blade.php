@@ -67,7 +67,7 @@
         </div>
 
         @if($hasMore)
-            <div class="pt-4 mt-4 border-t">
+            {{-- <div class="pt-4 mt-4 border-t">
                 <x-filament::link
                     href="{{ route('filament.owner.pages.activity-log') }}"
                     color="primary"
@@ -76,7 +76,7 @@
                 >
                     {{ __('owner.widgets.view_all_activities') }}
                 </x-filament::link>
-            </div>
+            </div> --}}
         @endif
     </x-filament::section>
 </x-filament-widgets::widget>

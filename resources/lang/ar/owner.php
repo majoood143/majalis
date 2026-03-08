@@ -115,6 +115,7 @@ return [
         'bookings' => 'حجز|حجوزات',
         'today' => 'اليوم',
         'tomorrow' => 'غدًا',
+        'this_week' => 'هذا الأسبوع',
         'no_upcoming_bookings' => 'لا توجد حجوزات قادمة',
         'view_all_bookings' => 'عرض جميع الحجوزات',
         'hall_performance' => 'نظرة عامة على أداء القاعة',

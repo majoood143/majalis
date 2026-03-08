@@ -16,7 +16,7 @@ use App\Http\Controllers\Customer\BookingController as CustomerBookingController
 Route::name('customer.')->group(function () {
 
     // Homepage - Hall listings
-    Route::get('/halls', [CustomerController::class, 'index'])->name('halls.index');
+    Route::get('/', [CustomerController::class, 'index'])->name('index');
 
     // Hall details
     Route::get('/halls/{hall:slug}', [CustomerController::class, 'show'])->name('halls.show');

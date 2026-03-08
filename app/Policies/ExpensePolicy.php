@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\HallOwner;
+use App\Models\Expense;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class HallOwnerPolicy
+class ExpensePolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class HallOwnerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_hall::owner');
+        return $user->can('view_any_expense');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, HallOwner $hallOwner): bool
+    public function view(User $user, Expense $expense): bool
     {
-        return $user->can('view_hall::owner');
+        return $user->can('view_expense');
     }
 
     /**
@@ -31,23 +31,23 @@ class HallOwnerPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_hall::owner');
+        return $user->can('create_expense');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, HallOwner $hallOwner): bool
+    public function update(User $user, Expense $expense): bool
     {
-        return $user->can('update_hall::owner');
+        return $user->can('update_expense');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, HallOwner $hallOwner): bool
+    public function delete(User $user, Expense $expense): bool
     {
-        return $user->can('delete_hall::owner');
+        return $user->can('delete_expense');
     }
 
     /**
@@ -55,15 +55,15 @@ class HallOwnerPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_hall::owner');
+        return $user->can('delete_any_expense');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, HallOwner $hallOwner): bool
+    public function forceDelete(User $user, Expense $expense): bool
     {
-        return $user->can('force_delete_hall::owner');
+        return $user->can('force_delete_expense');
     }
 
     /**
@@ -71,15 +71,15 @@ class HallOwnerPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_hall::owner');
+        return $user->can('force_delete_any_expense');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, HallOwner $hallOwner): bool
+    public function restore(User $user, Expense $expense): bool
     {
-        return $user->can('restore_hall::owner');
+        return $user->can('restore_expense');
     }
 
     /**
@@ -87,15 +87,15 @@ class HallOwnerPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_hall::owner');
+        return $user->can('restore_any_expense');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, HallOwner $hallOwner): bool
+    public function replicate(User $user, Expense $expense): bool
     {
-        return $user->can('replicate_hall::owner');
+        return $user->can('replicate_expense');
     }
 
     /**
@@ -103,6 +103,6 @@ class HallOwnerPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_hall::owner');
+        return $user->can('reorder_expense');
     }
 }

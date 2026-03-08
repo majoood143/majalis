@@ -28,7 +28,8 @@ use App\Models\CommissionSetting;
 use App\Models\ServiceFeeSetting;
 use Exception;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Facades\Mail;
+use App\Services\BookingPdfService;
 
 /**
  * Guest Booking Controller
@@ -1284,6 +1285,61 @@ class GuestBookingController extends Controller
             ]);
 
             DB::commit();
+
+            // ── 1. Generate booking confirmation PDF ─────────────────────────
+            try {
+                $pdfService = app(BookingPdfService::class);
+                $pdfService->generateConfirmation($booking->fresh());
+                Log::info('Guest booking PDF generated', ['booking_id' => $booking->id]);
+            } catch (Exception $e) {
+                Log::warning('Guest PDF generation failed (non-critical)', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+
+            // ── 2. Send guest confirmation email with PDF attachment ──────────
+            try {
+                $freshBooking = $booking->fresh(['hall.city.region', 'extraServices']);
+                Notification::route('mail', $freshBooking->customer_email)
+                    ->notifyNow(new GuestBookingConfirmationNotification($freshBooking));
+                Log::info('Guest confirmation email sent', [
+                    'booking_id' => $freshBooking->id,
+                    'email'      => $freshBooking->customer_email,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Guest confirmation email failed (non-critical)', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                    'file'       => $e->getFile() . ':' . $e->getLine(),
+                    'trace'      => substr($e->getTraceAsString(), 0, 1000),
+                ]);
+            }
+
+            // ── 3. Notify hall owner about the confirmed booking ─────────────
+            try {
+                $booking->loadMissing(['hall.owner', 'hall.city.region', 'extraServices']);
+                $ownerEmail = $booking->hall?->owner?->email;
+                if ($ownerEmail) {
+                    Mail::send(
+                        'emails.booking.new-owner',
+                        ['booking' => $booking->fresh(['hall.city.region', 'extraServices'])],
+                        function ($message) use ($ownerEmail, $booking) {
+                            $message->to($ownerEmail)
+                                ->subject('New Booking Confirmed – ' . $booking->booking_number);
+                        }
+                    );
+                    Log::info('Owner booking notification sent', [
+                        'booking_id'  => $booking->id,
+                        'owner_email' => $ownerEmail,
+                    ]);
+                }
+            } catch (Exception $e) {
+                Log::warning('Owner booking notification failed (non-critical)', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
 
             Log::info('=== GUEST PAYMENT COMPLETED ===', [
                 'booking_id' => $booking->id,

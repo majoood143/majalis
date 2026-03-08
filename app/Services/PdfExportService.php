@@ -114,10 +114,19 @@ class PdfExportService
             'mode'              => 'utf-8',
             'format'            => 'A4',
             'default_font'      => 'tajawal',
-            'default_font_size' => 12,
+            'default_font_size' => 9,   // Match body CSS font-size (9pt)
 
-            // RTL direction for Arabic layout
-            'direction' => 'rtl',
+            // Page margins — set here instead of @page CSS.
+            // Using @page in CSS while format is set here causes mPDF to generate
+            // phantom pages. Always configure margins via constructor, not CSS.
+            'margin_top'    => 15,
+            'margin_right'  => 15,
+            'margin_bottom' => 12,
+            'margin_left'   => 15,
+
+            // NOTE: Do NOT set 'direction' here — let the HTML <html dir="...">
+            // attribute control document direction. Setting it here AND in HTML
+            // causes mPDF to apply RTL processing twice, corrupting table layouts.
 
             // Font directories: mPDF built-in + our custom path
             'fontDir' => array_merge($defaultFontDirs, [
@@ -145,7 +154,7 @@ class PdfExportService
             // Temp directory for font cache and internal files
             'tempDir' => $tempDir,
 
-            // Bidirectional text support
+            // Bidirectional text support (required for mixed Arabic/Latin)
             'biDirectional' => true,
         ], $config);
 
@@ -153,14 +162,6 @@ class PdfExportService
         // Step 5: Create the mPDF instance.
         // ------------------------------------------------------------------
         $this->mpdf = new Mpdf($mpdfConfig);
-
-        // Reinforce Arabic processing flags on the instance
-        $this->mpdf->autoScriptToLang = true;
-        $this->mpdf->autoLangToFont = true;
-
-        // Enable bidirectional text algorithm
-        // This helps with mixed Arabic/English content (emails, URLs, etc.)
-        $this->mpdf->biDirectional = true;
 
         // Set document metadata
         $this->mpdf->SetTitle('Majalis Report');

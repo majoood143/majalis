@@ -84,6 +84,50 @@
             </div>
         @endif
 
+        @php
+            $thisWeekBookings = $displayBookings->filter(
+                fn($b) => !$b->booking_date->isToday() && !$b->booking_date->isTomorrow()
+            );
+        @endphp
+
+        @if ($thisWeekBookings->isNotEmpty())
+            <div class="mb-4">
+                <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {{ __('owner.widgets.this_week') }}
+                </h3>
+                <div class="space-y-2">
+                    @foreach ($thisWeekBookings as $booking)
+                        <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="text-xs font-medium text-blue-500 dark:text-blue-400 mb-0.5">
+                                        {{ $booking->booking_date->format('l, M j') }}
+                                    </div>
+                                    <div class="font-semibold text-gray-700 dark:text-gray-300">
+                                        {{ is_array($booking->hall->name) ? $booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] : $booking->hall->name }}
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                                        <span class="inline-flex items-center gap-1">
+                                            <x-heroicon-m-clock class="w-4 h-4" />
+                                            {{ __("owner.slots.{$booking->time_slot}") }}
+                                        </span>
+                                        <span class="mx-2">•</span>
+                                        <span class="inline-flex items-center gap-1">
+                                            <x-heroicon-m-user class="w-4 h-4" />
+                                            {{ $booking->user->name ?? $booking->customer_name }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <x-filament::badge color="info">
+                                    OMR {{ number_format($booking->total_amount, 3) }}
+                                </x-filament::badge>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         @if ($bookings->isEmpty())
             <div class="py-6 text-center">
                 <x-heroicon-o-calendar-days class="w-12 h-12 mx-auto mb-3 text-gray-400" />

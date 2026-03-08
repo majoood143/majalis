@@ -15,7 +15,7 @@ class HallImagePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_hall::image');
+        return $user->can('view_any_gallery');
     }
 
     /**
@@ -23,7 +23,7 @@ class HallImagePolicy
      */
     public function view(User $user, HallImage $hallImage): bool
     {
-        return $user->can('view_hall::image');
+        return $user->can('view_gallery');
     }
 
     /**
@@ -31,7 +31,7 @@ class HallImagePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_hall::image');
+        return $user->can('create_gallery');
     }
 
     /**
@@ -39,7 +39,7 @@ class HallImagePolicy
      */
     public function update(User $user, HallImage $hallImage): bool
     {
-        return $user->can('update_hall::image');
+        return $user->can('update_gallery');
     }
 
     /**
@@ -47,7 +47,7 @@ class HallImagePolicy
      */
     public function delete(User $user, HallImage $hallImage): bool
     {
-        return $user->can('delete_hall::image');
+        return $user->can('delete_gallery');
     }
 
     /**
@@ -55,7 +55,7 @@ class HallImagePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_hall::image');
+        return $user->can('delete_any_gallery');
     }
 
     /**
@@ -63,7 +63,7 @@ class HallImagePolicy
      */
     public function forceDelete(User $user, HallImage $hallImage): bool
     {
-        return $user->can('force_delete_hall::image');
+        return $user->can('force_delete_gallery');
     }
 
     /**
@@ -71,7 +71,7 @@ class HallImagePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_hall::image');
+        return $user->can('force_delete_any_gallery');
     }
 
     /**
@@ -79,7 +79,7 @@ class HallImagePolicy
      */
     public function restore(User $user, HallImage $hallImage): bool
     {
-        return $user->can('restore_hall::image');
+        return $user->can('restore_gallery');
     }
 
     /**
@@ -87,7 +87,7 @@ class HallImagePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_hall::image');
+        return $user->can('restore_any_gallery');
     }
 
     /**
@@ -95,7 +95,7 @@ class HallImagePolicy
      */
     public function replicate(User $user, HallImage $hallImage): bool
     {
-        return $user->can('replicate_hall::image');
+        return $user->can('replicate_gallery');
     }
 
     /**
@@ -103,6 +103,6 @@ class HallImagePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_hall::image');
+        return $user->can('reorder_gallery');
     }
 }

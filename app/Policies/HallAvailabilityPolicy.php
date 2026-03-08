@@ -15,7 +15,7 @@ class HallAvailabilityPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_hall::availability');
+        return $user->can('view_any_availability');
     }
 
     /**
@@ -23,7 +23,7 @@ class HallAvailabilityPolicy
      */
     public function view(User $user, HallAvailability $hallAvailability): bool
     {
-        return $user->can('view_hall::availability');
+        return $user->can('view_availability');
     }
 
     /**
@@ -31,7 +31,7 @@ class HallAvailabilityPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_hall::availability');
+        return $user->can('create_availability');
     }
 
     /**
@@ -39,7 +39,7 @@ class HallAvailabilityPolicy
      */
     public function update(User $user, HallAvailability $hallAvailability): bool
     {
-        return $user->can('update_hall::availability');
+        return $user->can('update_availability');
     }
 
     /**
@@ -47,7 +47,7 @@ class HallAvailabilityPolicy
      */
     public function delete(User $user, HallAvailability $hallAvailability): bool
     {
-        return $user->can('delete_hall::availability');
+        return $user->can('delete_availability');
     }
 
     /**
@@ -55,7 +55,7 @@ class HallAvailabilityPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_hall::availability');
+        return $user->can('delete_any_availability');
     }
 
     /**
@@ -63,7 +63,7 @@ class HallAvailabilityPolicy
      */
     public function forceDelete(User $user, HallAvailability $hallAvailability): bool
     {
-        return $user->can('force_delete_hall::availability');
+        return $user->can('force_delete_availability');
     }
 
     /**
@@ -71,7 +71,7 @@ class HallAvailabilityPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_hall::availability');
+        return $user->can('force_delete_any_availability');
     }
 
     /**
@@ -79,7 +79,7 @@ class HallAvailabilityPolicy
      */
     public function restore(User $user, HallAvailability $hallAvailability): bool
     {
-        return $user->can('restore_hall::availability');
+        return $user->can('restore_availability');
     }
 
     /**
@@ -87,7 +87,7 @@ class HallAvailabilityPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_hall::availability');
+        return $user->can('restore_any_availability');
     }
 
     /**
@@ -95,7 +95,7 @@ class HallAvailabilityPolicy
      */
     public function replicate(User $user, HallAvailability $hallAvailability): bool
     {
-        return $user->can('replicate_hall::availability');
+        return $user->can('replicate_availability');
     }
 
     /**
@@ -103,6 +103,6 @@ class HallAvailabilityPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_hall::availability');
+        return $user->can('reorder_availability');
     }
 }

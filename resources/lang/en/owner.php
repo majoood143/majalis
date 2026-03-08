@@ -115,6 +115,7 @@ return [
         'bookings' => 'bookings',
         'today' => 'Today',
         'tomorrow' => 'Tomorrow',
+        'this_week' => 'This Week',
         'no_upcoming_bookings' => 'No upcoming bookings',
         'view_all_bookings' => 'View All Bookings',
         'hall_performance' => 'Hall Performance Overview',

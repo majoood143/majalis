@@ -31,7 +31,7 @@ class UpcomingBookingsWidget extends Widget
             $q->where('owner_id', $user->id);
         })
             ->where('status', 'confirmed')
-            ->whereBetween('booking_date', [now(), now()->addDays(7)])
+            ->whereBetween('booking_date', [today(), today()->addDays(7)])
             ->get();
 
         // For display - get limited bookings
@@ -39,7 +39,7 @@ class UpcomingBookingsWidget extends Widget
             $q->where('owner_id', $user->id);
         })
             ->where('status', 'confirmed')
-            ->whereBetween('booking_date', [now(), now()->addDays(7)])
+            ->whereBetween('booking_date', [today(), today()->addDays(7)])
             ->with(['hall', 'user'])
             ->orderBy('booking_date')
             ->orderBy('time_slot')
