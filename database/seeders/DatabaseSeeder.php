@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CommissionSettingSeeder::class,
             HallSeeder::class,
             ExtraServiceSeeder::class,
+            PageSeeder::class,
         ];
 
         foreach ($seeders as $seeder) {

@@ -43,6 +43,14 @@ return [
     'starting_from' => 'يبدأ من',
     'name_az' => 'الاسم: أ-ي',
     'halls_in_region' => 'قاعة في',
+    'payment_paid' => 'مدفوع',
+    'payment_pending' => 'في انتظار الدفع',
+    'payment_failed' => 'فشل الدفع',
+    'fully_booked' => 'محجوزة بالكامل',
+    'available' => 'متاحة',
+    'all_slots_booked' => 'جميع الفترات محجوزة لهذا التاريخ',
+    'persons' => 'شخص',
+    'person' => 'شخص',
 
     // Hall Details Page
     'hall_details' => 'تفاصيل القاعة',

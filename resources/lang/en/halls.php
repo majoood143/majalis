@@ -43,6 +43,14 @@ return [
     'starting_from' => 'Starting from',
     'name_az' => 'Name: A-Z',
     'halls_in_region' => 'halls in',
+    'payment_paid' => 'Paid',
+    'payment_pending' => 'Payment Pending',
+    'payment_failed' => 'Payment Failed',
+    'fully_booked' => 'Fully Booked',
+    'available' => 'Available',
+    'all_slots_booked' => 'All slots booked for this date',
+    'persons' => 'persons',
+    'person' => 'person',
 
     // Hall Details Page
     'hall_details' => 'Hall Details',
