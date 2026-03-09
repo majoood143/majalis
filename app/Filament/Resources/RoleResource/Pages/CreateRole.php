@@ -7,6 +7,7 @@ use BezhanSalleh\FilamentShield\Support\Utils;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Spatie\Permission\PermissionRegistrar;
 
 class CreateRole extends CreateRecord
 {
@@ -43,5 +44,7 @@ class CreateRole extends CreateRecord
         });
 
         $this->record->syncPermissions($permissionModels);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

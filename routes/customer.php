@@ -6,7 +6,6 @@ use App\Http\Controllers\Customer\BookingController as CustomerBookingController
 use App\Http\Controllers\Customer\HallController;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\ProfileController;
-use App\Http\Controllers\PageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,27 +63,3 @@ Route::middleware(['auth:web'])->name('customer.')->group(function () {
     Route::get('/booking/{booking}/download-pdf', [BookingController::class, 'downloadPdf'])->name('booking.download-pdf');
 });
 
-// Static Pages Routes
-// These routes support both English and Arabic with automatic locale detection
-Route::prefix('{locale?}')->where(['locale' => 'en|ar'])->group(function () {
-
-    // About Us Page
-    Route::get('/about-us', [PageController::class, 'aboutUs'])
-        ->name('pages.about-us');
-
-    // Contact Us Page
-    Route::get('/contact-us', [PageController::class, 'contactUs'])
-        ->name('pages.contact-us');
-
-    // Terms and Conditions Page
-    Route::get('/terms-and-conditions', [PageController::class, 'terms'])
-        ->name('pages.terms');
-
-    // Privacy Policy Page
-    Route::get('/privacy-policy', [PageController::class, 'privacy'])
-        ->name('pages.privacy');
-
-    // Dynamic Page Route (for any custom pages)
-    Route::get('/page/{slug}', [PageController::class, 'show'])
-        ->name('pages.show');
-});

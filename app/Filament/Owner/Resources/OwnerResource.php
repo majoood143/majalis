@@ -102,7 +102,7 @@ abstract class OwnerResource extends Resource
         }
 
         // Check if user is an owner
-        return $user->user_type === 'owner'
+        return $user->isHallOwner()
             || $user->hasRole('hall_owner')
             || $user->halls()->exists();
     }

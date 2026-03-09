@@ -8,6 +8,7 @@ use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Spatie\Permission\PermissionRegistrar;
 
 class EditRole extends EditRecord
 {
@@ -50,5 +51,7 @@ class EditRole extends EditRecord
         });
 
         $this->record->syncPermissions($permissionModels);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }
