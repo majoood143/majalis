@@ -33,6 +33,6 @@ class CreateUser extends CreateRecord
             ->causedBy(Auth::user())
             ->log('User created');
 
-        Cache::tags(['users'])->flush();
+        //Cache::tags(['users'])->flush();
     }
 }

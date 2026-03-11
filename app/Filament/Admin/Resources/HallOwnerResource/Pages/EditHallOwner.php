@@ -73,7 +73,7 @@ class EditHallOwner extends EditRecord
                         ->title('Status Updated')
                         ->send();
 
-                    Cache::tags(['hall_owners'])->flush();
+                    //Cache::tags(['hall_owners'])->flush();
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
@@ -122,7 +122,7 @@ class EditHallOwner extends EditRecord
                 })
                 ->after(function () {
                     $this->deleteDocuments();
-                    Cache::tags(['hall_owners'])->flush();
+                    //Cache::tags(['hall_owners'])->flush();
                 })
                 ->successNotification(
                     Notification::make()
@@ -166,7 +166,7 @@ class EditHallOwner extends EditRecord
 
     protected function afterSave(): void
     {
-        Cache::tags(['hall_owners'])->flush();
+        //Cache::tags(['hall_owners'])->flush();
 
         Log::info('Hall owner updated', [
             'owner_id' => $this->record->id,
@@ -364,7 +364,7 @@ class EditHallOwner extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),

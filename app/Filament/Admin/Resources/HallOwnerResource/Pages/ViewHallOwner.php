@@ -194,36 +194,45 @@ class ViewHallOwner extends ViewRecord
             $stats = [
                 'total_bookings' => $bookings->count(),
                 'confirmed_bookings' => $bookings->filter(function ($b) {
-                    return $b->status->value === 'confirmed';
+                    return (is_string($b->status) ? $b->status : $b->status->value) === 'confirmed';
                 })->count(),
                 'completed_bookings' => $bookings->filter(function ($b) {
-                    return $b->status->value === 'completed';
+                    return (is_string($b->status) ? $b->status : $b->status->value) === 'completed';
                 })->count(),
                 'cancelled_bookings' => $bookings->filter(function ($b) {
-                    return $b->status->value === 'cancelled';
+                    return (is_string($b->status) ? $b->status : $b->status->value) === 'cancelled';
                 })->count(),
                 'pending_bookings' => $bookings->filter(function ($b) {
-                    return $b->status->value === 'pending';
+                    return (is_string($b->status) ? $b->status : $b->status->value) === 'pending';
                 })->count(),
 
                 'total_revenue' => $bookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->sum('total_amount'),
 
                 'total_commission' => $bookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->sum('commission_amount'),
 
                 'owner_payout' => $bookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->sum('owner_payout'),
 
                 'total_guests' => $bookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']);
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    return in_array($status, ['confirmed', 'completed']);
                 })->sum('number_of_guests'),
 
                 'average_booking_value' => $bookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->avg('total_amount') ?? 0,
             ];
 
@@ -231,7 +240,9 @@ class ViewHallOwner extends ViewRecord
             $hallPerformance = $halls->map(function ($hall) use ($bookings) {
                 $hallBookings = $bookings->where('hall_id', $hall->id);
                 $paidBookings = $hallBookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 });
 
                 $hallName = $hall->name;
@@ -252,7 +263,9 @@ class ViewHallOwner extends ViewRecord
                 return $booking->booking_date->format('Y-m');
             })->map(function ($monthBookings) {
                 $paid = $monthBookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 });
 
                 return [

@@ -5,7 +5,7 @@ return [
     'singular' => 'مالك القاعة',
     'plural' => 'مالكو القاعات',
     'navigation_label' => 'مالكو القاعات',
-    
+
     // Actions
     'actions' => [
         'export' => 'تصدير المالكين',
@@ -132,6 +132,8 @@ return [
         'active_halls' => 'القاعات النشطة',
         'total_bookings' => 'إجمالي الحجوزات',
         'total_revenue' => 'إجمالي الإيرادات',
+        'business_name_ar' => 'اسم العمل (عربي)',
+        'business_address_ar' => 'عنوان العمل (عربي)',
     ],
 
     // Notifications

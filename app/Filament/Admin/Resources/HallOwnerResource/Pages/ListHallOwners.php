@@ -365,13 +365,19 @@ class ListHallOwners extends ListRecords
                 'active_halls' => $allHalls->where('is_active', true)->count(),
                 'total_bookings' => $allBookings->count(),
                 'total_revenue' => $allBookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->sum('total_amount'),
                 'total_commission' => $allBookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->sum('commission_amount'),
                 'total_payout' => $allBookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 })->sum('owner_payout'),
             ];
 
@@ -382,7 +388,9 @@ class ListHallOwners extends ListRecords
                 $ownerBookings = $allBookings->whereIn('hall_id', $ownerHallIds);
 
                 $paidBookings = $ownerBookings->filter(function ($b) {
-                    return in_array($b->status->value, ['confirmed', 'completed']) && $b->payment_status->value === 'paid';
+                    $status = is_string($b->status) ? $b->status : $b->status->value;
+                    $paymentStatus = is_string($b->payment_status) ? $b->payment_status : $b->payment_status->value;
+                    return in_array($status, ['confirmed', 'completed']) && $paymentStatus === 'paid';
                 });
 
                 return [

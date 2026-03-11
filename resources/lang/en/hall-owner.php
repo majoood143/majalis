@@ -6,7 +6,7 @@ return [
     'singular' => 'Hall Owner',
     'plural' => 'Hall Owners',
     'navigation_label' => 'Hall Owners',
-    
+
     // Actions
     'actions' => [
         'export' => 'Export Owners',
@@ -133,6 +133,8 @@ return [
         'active_halls' => 'Active Halls',
         'total_bookings' => 'Total Bookings',
         'total_revenue' => 'Total Revenue',
+        'business_name_ar' => 'Business Name (Arabic)',
+        'business_address_ar' => 'Business Address (Arabic)',
     ],
 
     // Notifications

@@ -50,6 +50,6 @@ class EditUser extends EditRecord
 
     protected function afterSave(): void
     {
-        Cache::tags(['users'])->flush();
+        //Cache::tags(['users'])->flush();
     }
 }

@@ -82,7 +82,7 @@ class HallOwnerResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('business_phone')
                                     ->label(__('hall-owner.fields.business_phone'))
-                                    ->tel()
+                                    ->numeric()
                                     ->required()
                                     ->maxLength(20),
 
@@ -116,11 +116,22 @@ class HallOwnerResource extends Resource
 
                                 Forms\Components\TextInput::make('bank_account_number')
                                     ->label(__('hall-owner.fields.bank_account_number'))
-                                    ->maxLength(255),
+                                    ->maxLength(17)
+                                    ->rules([
+                                        'required',
+
+                                        'regex:/^\d+$/', // ensures only digits
+                                    ])
+                                    ->numeric(),
+
+
+
+
 
                                 Forms\Components\TextInput::make('iban')
                                     ->label(__('hall-owner.fields.iban'))
                                     ->maxLength(255),
+
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.documents'))
