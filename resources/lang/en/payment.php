@@ -332,4 +332,5 @@ return [
     'services' => 'Services',
     'platform_fee' => 'Platform Fee',
     'total' => 'Total',
+    'cancelled' => 'Payment was cancelled. You can try again when ready.',
 ];

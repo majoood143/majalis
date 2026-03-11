@@ -1433,7 +1433,7 @@ class GuestBookingController extends Controller
                 ])
                 ->with('warning', __('payment.cancelled') !== 'payment.cancelled'
                     ? __('payment.cancelled')
-                    : 'Payment was cancelled. You can try again when ready.');
+                    : __('Payment was cancelled. You can try again or choose a different payment method.'));
         } catch (Exception $e) {
             Log::error('Guest payment cancel callback error', [
                 'guest_token' => substr($guest_token, 0, 16) . '...',
@@ -1515,7 +1515,8 @@ class GuestBookingController extends Controller
 
         if ($validator->fails()) {
             return back()
-                ->withErrors($validator);
+                ->withErrors($validator)
+                ->withInput();
         }
 
         try {

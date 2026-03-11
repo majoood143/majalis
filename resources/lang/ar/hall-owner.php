@@ -64,6 +64,8 @@ return [
         'fixed' => 'مبلغ ثابت',
         'verify' => 'تحقق',
         'reject' => 'رفض',
+        'verify' => 'تحقق',
+        'reject' => 'رفض',
     ],
 
     // Tabs
@@ -81,6 +83,16 @@ return [
         'contact' => 'جهات الاتصال',
         'bank_details' => 'تفاصيل البنك',
         'documents' => 'الوثائق',
+        'verification' => 'التحقق',
+        'commission' => 'العمولة',
+        'custom_commission' => 'عمولة مخصصة',
+        'with_halls' => 'يملك قاعات',
+        'without_halls' => 'لا يملك قاعات',
+        'incomplete_documents' => 'مستندات غير مكتملة',
+        'business_info' => 'معلومات العمل',
+        'contact' => 'جهات الاتصال',
+        'bank_details' => 'تفاصيل البنك',
+        'documents' => 'المستندات',
         'verification' => 'التحقق',
         'commission' => 'العمولة',
     ],
@@ -115,6 +127,9 @@ return [
         'verified_at' => 'تاريخ التحقق',
         'total_halls' => 'إجمالي القاعات',
         'created_at' => 'تاريخ الإنشاء',
+        'verified_at' => 'تاريخ التحقق',
+        'total_halls' => 'إجمالي القاعات',
+        'created_at' => 'تاريخ الإنشاء',
     ],
 
     // Info List
@@ -123,6 +138,7 @@ return [
         'owner' => 'المالك',
         'contact_information' => 'معلومات الاتصال',
         'bank_details' => 'تفاصيل البنك',
+        'business_name' => 'اسم العمل',
         'verification_status' => 'حالة التحقق',
         'verified' => 'موثق',
         'pending' => 'قيد الانتظار',
@@ -134,6 +150,7 @@ return [
         'total_revenue' => 'إجمالي الإيرادات',
         'business_name_ar' => 'اسم العمل (عربي)',
         'business_address_ar' => 'عنوان العمل (عربي)',
+
     ],
 
     // Notifications
@@ -153,12 +170,28 @@ return [
         'owner_updated' => 'تم تحديث المالك',
         'owner_deleted' => 'تم حذف المالك',
         'update_error' => 'فشلت العملية',
+        'export_success' => 'تم التصدير بنجاح', // Add this if missing
+        'export_success_body' => 'تم تصدير مالكي القاعات بنجاح.', // Add this if missing
+        'export_error' => 'فشل التصدير', // Add this if missing
+        'bulk_verify_success' => 'تم التحقق بالجملة', // Add this if missing
+        'bulk_verify_success_body' => 'تم التحقق من :count مالك.', // Add this if missing
+        'notification_sent' => 'تم إرسال الإشعارات', // Add this if missing
+        'notification_sent_body' => 'تم إرسال :count إشعار.', // Add this if missing
+        'report_generated' => 'تم إنشاء التقرير بنجاح', // Add this if missing
+        'report_generated_body' => 'تم إنشاء تقرير جميع مالكي القاعات.', // Add this if missing
+        'report_failed' => 'فشل إنشاء التقرير', // Add this if missing
+        'owner_verified' => 'تم التحقق من المالك', // Add this if missing
+        'owner_rejected' => 'تم رفض المالك', // Add this if missing
+        'owner_updated' => 'تم تحديث المالك', // Add this if missing
+        'owner_deleted' => 'تم حذف المالك', // Add this if missing
+        'update_error' => 'فشلت العملية', // Add this if missing
     ],
 
     // Filters
     'filters' => [
         'verified' => 'موثق',
         'active' => 'نشط',
+
     ],
 
     // Common
@@ -167,4 +200,5 @@ return [
     'note' => 'اتركه فارغاً لاستخدام إعدادات العمولة العامة',
     'n_a' => 'غير متوفر',
     'not_verified' => 'غير موثق',
+
 ];

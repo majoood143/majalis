@@ -138,18 +138,24 @@ class HallOwnerResource extends Resource
                             ->icon('heroicon-o-document-text')
                             ->schema([
                                 Forms\Components\FileUpload::make('commercial_registration_document')
+                                    ->disk('public')
                                     ->directory('documents/cr')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
+                                    ->downloadable()
                                     ->columnSpanFull(),
 
                                 Forms\Components\FileUpload::make('tax_certificate')
+                                    ->disk('public')
                                     ->directory('documents/tax')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
+                                    ->downloadable()
                                     ->columnSpanFull(),
 
                                 Forms\Components\FileUpload::make('identity_document')
+                                    ->disk('public')
                                     ->directory('documents/identity')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
+                                    ->downloadable()
                                     ->columnSpanFull(),
                             ]),
 
@@ -294,7 +300,9 @@ class HallOwnerResource extends Resource
                     ->schema([
                         Infolists\Components\TextEntry::make('user.name')
                             ->label(__('hall-owner.infolist.owner')),
-                        Infolists\Components\TextEntry::make('business_name'),
+                        Infolists\Components\TextEntry::make('business_name')
+                            ->label(__('hall-owner.infolist.business_name')),
+
                         Infolists\Components\TextEntry::make('business_name_ar')
                             ->label(__('hall-owner.infolist.business_name_ar')),
                         Infolists\Components\TextEntry::make('commercial_registration')

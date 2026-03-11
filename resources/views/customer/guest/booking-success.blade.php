@@ -181,7 +181,8 @@
                     <form
                         method="POST"
                         action="{{ route('guest.create-account', ['guest_token' => $booking->guest_token]) }}"
-                        x-data="{ showForm: false, isSubmitting: false }"
+                        x-data="{ showForm: {{ $errors->any() ? 'true' : 'false' }}, isSubmitting: false }"
+                        @submit="isSubmitting = true"
                     >
                         @csrf
 
@@ -240,7 +241,6 @@
                                 <button
                                     type="submit"
                                     :disabled="isSubmitting"
-                                    @click="isSubmitting = true"
                                     class="flex-1 px-4 py-3 font-semibold text-white transition rounded-lg bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-400"
                                 >
                                     <span x-show="!isSubmitting">{{ __('guest.btn_create_account') }}</span>

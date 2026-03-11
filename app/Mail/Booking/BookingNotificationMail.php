@@ -16,10 +16,10 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * BookingNotificationMail
- * 
+ *
  * Mailable class for all booking-related email notifications.
  * Supports bilingual (EN/AR) email templates with RTL support.
- * 
+ *
  * @package App\Mail\Booking
  */
 class BookingNotificationMail extends Mailable
@@ -143,11 +143,11 @@ class BookingNotificationMail extends Mailable
             'hallPrice' => 'OMR ' . number_format((float) $this->booking->hall_price, 3),
             'servicesPrice' => 'OMR ' . number_format((float) $this->booking->services_price, 3),
             'totalAmount' => 'OMR ' . number_format((float) $this->booking->total_amount, 3),
-            'advanceAmount' => $this->booking->advance_amount 
-                ? 'OMR ' . number_format((float) $this->booking->advance_amount, 3) 
+            'advanceAmount' => $this->booking->advance_amount
+                ? 'OMR ' . number_format((float) $this->booking->advance_amount, 3)
                 : null,
-            'balanceDue' => $this->booking->balance_due 
-                ? 'OMR ' . number_format((float) $this->booking->balance_due, 3) 
+            'balanceDue' => $this->booking->balance_due
+                ? 'OMR ' . number_format((float) $this->booking->balance_due, 3)
                 : null,
 
             // Status
@@ -166,7 +166,7 @@ class BookingNotificationMail extends Mailable
             // Links
             'viewBookingUrl' => $this->getViewBookingUrl(),
             'supportUrl' => config('app.url') . '/contact',
-            'logoUrl' => config('app.url') . '/images/logo.png',
+            'logoUrl' => config('app.url') . '/images/logo.webp',
 
             // Branding
             'appName' => config('app.name', 'Majalis'),

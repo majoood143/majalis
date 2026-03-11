@@ -37,5 +37,7 @@ return [
     'email' => 'Email',
     'phone' => 'Phone',
     'not_set' => 'Not set',
+    'nav_dashboard' => 'Dashboard',
+    'logout' => 'Logout',
 ];
 

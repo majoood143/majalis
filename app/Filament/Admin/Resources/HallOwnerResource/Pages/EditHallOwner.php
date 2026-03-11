@@ -184,11 +184,67 @@ class EditHallOwner extends EditRecord
 
     protected function downloadAllDocuments(): void
     {
-        Notification::make()
-            ->success()
-            ->title('Documents Ready')
-            ->body('All documents are being prepared for download.')
-            ->send();
+        $documents = [
+            'commercial_registration' => $this->record->commercial_registration_document,
+            'tax_certificate'         => $this->record->tax_certificate,
+            'identity_document'       => $this->record->identity_document,
+        ];
+
+        $documents = array_filter($documents);
+
+        if (empty($documents)) {
+            Notification::make()
+                ->warning()
+                ->title('No Documents Found')
+                ->body('This owner has no documents to download.')
+                ->send();
+            return;
+        }
+
+        try {
+            if (!Storage::disk('public')->exists('temp')) {
+                Storage::disk('public')->makeDirectory('temp');
+            }
+
+            $zipFilename = 'documents-owner-' . $this->record->id . '-' . now()->format('Y-m-d-His') . '.zip';
+            $zipPath = storage_path('app/public/temp/' . $zipFilename);
+
+            $zip = new \ZipArchive();
+            $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+            foreach ($documents as $label => $filePath) {
+                $fullPath = storage_path('app/public/' . $filePath);
+                if (file_exists($fullPath)) {
+                    $zip->addFile($fullPath, $label . '.' . pathinfo($filePath, PATHINFO_EXTENSION));
+                }
+            }
+
+            $zip->close();
+
+            Notification::make()
+                ->success()
+                ->title('Documents Ready')
+                ->body('All documents have been zipped and are ready for download.')
+                ->persistent()
+                ->actions([
+                    \Filament\Notifications\Actions\Action::make('download')
+                        ->label('Download ZIP')
+                        ->url(asset('storage/temp/' . $zipFilename))
+                        ->openUrlInNewTab(),
+                ])
+                ->send();
+        } catch (\Exception $e) {
+            Log::error('Failed to zip owner documents', [
+                'owner_id' => $this->record->id,
+                'error'    => $e->getMessage(),
+            ]);
+
+            Notification::make()
+                ->danger()
+                ->title('Download Failed')
+                ->body('An error occurred while preparing the documents.')
+                ->send();
+        }
     }
 
     protected function deleteDocuments(): void

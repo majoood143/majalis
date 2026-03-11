@@ -65,63 +65,6 @@
                     {{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: support@majalis.om<br>
                     {{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: +968 1234 5678
                 </p>
-
-                <!-- Payment Methods Section -->
-                <div class="mt-6">
-                    <h4 class="mb-3 text-sm font-semibold text-gray-300">
-                        {{ app()->getLocale() === 'ar' ? 'طرق الدفع المقبولة' : 'We Accept' }}
-                    </h4>
-                    <div class="flex flex-wrap gap-3">
-                        <!-- Visa -->
-                        <div class="p-2 transition bg-gray-700 rounded-lg hover:bg-gray-600">
-                            <svg class="w-10 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.445 8.511c-1.5 0-2.775.75-3.6 1.95l-1.425 2.325-1.35-2.25c-.525-.825-1.425-1.35-2.4-1.35-1.65 0-3 1.35-3 3v3.75c0 .45.375.825.825.825h1.575c.45 0 .825-.375.825-.825v-3.75c0-.6.525-1.125 1.125-1.125.6 0 1.125.525 1.125 1.125v3.75c0 .45.375.825.825.825h1.575c.45 0 .825-.375.825-.825v-3.75c0-.6.525-1.125 1.125-1.125.6 0 1.125.525 1.125 1.125v3.75c0 .45.375.825.825.825h1.575c.45 0 .825-.375.825-.825v-3.75c0-2.175-1.65-3.975-3.825-3.975z" fill="currentColor"/>
-                            </svg>
-                        </div>
-
-                        <!-- Mastercard -->
-                        <div class="p-2 transition bg-gray-700 rounded-lg hover:bg-gray-600">
-                            <svg class="w-10 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="8" cy="12" r="4.5" fill="currentColor" fill-opacity="0.7"/>
-                                <circle cx="16" cy="12" r="4.5" fill="currentColor" fill-opacity="0.7"/>
-                                <path d="M12 8.5c1.5 1.5 1.5 4.5 0 6" stroke="currentColor" stroke-width="1.5"/>
-                            </svg>
-                        </div>
-
-                        <!-- PayPal -->
-                        <div class="p-2 transition bg-gray-700 rounded-lg hover:bg-gray-600">
-                            <svg class="w-10 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M16.5 7.5c0-2.25-1.5-4.5-4.5-4.5H7.5c-.75 0-1.5.75-1.5 1.5L4.5 18c0 .75.75 1.5 1.5 1.5h3l.75-4.5h3c3 0 4.5-1.5 4.5-4.5 0-1.5-.75-3-2.25-3z" fill="currentColor"/>
-                                <path d="M15 7.5c.75 0 1.5.75 1.5 1.5 0 2.25-1.5 3.75-3.75 3.75h-2.25l.75-4.5h3.75z" fill="currentColor" fill-opacity="0.7"/>
-                            </svg>
-                        </div>
-
-                        <!-- Apple Pay -->
-                        <div class="p-2 transition bg-gray-700 rounded-lg hover:bg-gray-600">
-                            <svg class="w-10 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.5 7.5c.5 0 1 .25 1.5.75.5-.5 1-.75 1.5-.75 1 0 1.5.75 1.5 1.5 0 .25-.25 1-1 1.5-.5.5-1 .75-2 .75s-1.5-.25-2-.75c-.5-.5-1-1.25-1-1.5 0-.75.5-1.5 1.5-1.5zM6 18c.5 0 1-.5 1.5-1.5.5 1 1 1.5 1.5 1.5.5 0 1-.5 1.5-1.5.5 1 1 1.5 1.5 1.5.5 0 1-.5 1.5-1.5.5 1 1 1.5 1.5 1.5.5 0 1-.5 1.5-1.5.5 1 1 1.5 1.5 1.5.5 0 1-.5 1.5-1.5" stroke="currentColor" stroke-width="0.5"/>
-                            </svg>
-                        </div>
-
-                        <!-- Google Pay -->
-                        <div class="p-2 transition bg-gray-700 rounded-lg hover:bg-gray-600">
-                            <svg class="w-10 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 12c0-1.5.75-3 2.25-3.75L9 7.5C7.5 6.75 6 6.75 4.5 7.5 2.25 9 1.5 12 3 14.25c.75 1.5 2.25 2.25 3.75 2.25 1.5 0 3-.75 3.75-2.25.75-1.5.75-3 0-4.5" stroke="currentColor" stroke-width="1.5"/>
-                                <circle cx="15" cy="12" r="2.5" fill="currentColor"/>
-                                <circle cx="21" cy="12" r="2.5" fill="currentColor"/>
-                            </svg>
-                        </div>
-
-                        <!-- Cash on Delivery / COD -->
-                        <div class="p-2 transition bg-gray-700 rounded-lg hover:bg-gray-600">
-                            <svg class="w-10 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="4" y="8" width="16" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                                <circle cx="12" cy="13" r="2" fill="currentColor"/>
-                                <path d="M8 6L16 6" stroke="currentColor" stroke-width="1.5"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
