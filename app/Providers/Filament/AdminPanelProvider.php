@@ -32,6 +32,8 @@ use Vormkracht10\FilamentMails\Facades\FilamentMails;
 use Vormkracht10\FilamentMails\FilamentMailsPlugin;
 use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Illuminate\Support\Facades\Blade;
+use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -91,6 +93,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentMailsPlugin::make(),
                 FilamentJobsMonitorPlugin::make()
                     ->enableNavigation(),
+            GtagPlugin::make(),
 
             ])
             ->authMiddleware([

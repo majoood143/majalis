@@ -1278,10 +1278,15 @@ class GuestBookingController extends Controller
 
             $newPaymentStatus = $booking->payment_type === 'advance' ? 'partial' : 'paid';
 
+            // If hall requires approval, keep status as 'pending' until owner confirms.
+            $requiresApproval = $booking->hall?->requires_approval ?? false;
+            $newStatus = $requiresApproval ? 'pending' : 'confirmed';
+            $confirmedAt = $requiresApproval ? null : now();
+
             $booking->update([
                 'payment_status' => $newPaymentStatus,
-                'status' => 'confirmed',
-                'confirmed_at' => now(),
+                'status' => $newStatus,
+                'confirmed_at' => $confirmedAt,
             ]);
 
             DB::commit();
@@ -1600,6 +1605,14 @@ class GuestBookingController extends Controller
             // Get which slots are already booked
             $bookedSlots = $this->getBookedSlots($hall, $date);
 
+            // Get the overridden price for this specific slot if one exists.
+            // Priority: HallAvailability.custom_price (date+slot specific) > Hall.pricing_override (slot type) > Hall.price_per_slot
+            $availabilityRecord = \App\Models\HallAvailability::where('hall_id', $hall->id)
+                ->where('date', $date)
+                ->where('time_slot', $timeSlot)
+                ->first();
+            $slotPrice = $availabilityRecord?->custom_price ?? $this->getSlotPrice($hall, $timeSlot);
+
             return response()->json([
                 'available' => $isAvailable,
                 'message' => $isAvailable
@@ -1607,6 +1620,7 @@ class GuestBookingController extends Controller
                     : (__('halls.slot_not_available') !== 'halls.slot_not_available' ? __('halls.slot_not_available') : 'This slot is not available.'),
                 'slots' => $allSlotsAvailability,
                 'booked_slots' => $bookedSlots,
+                'slot_price' => $slotPrice,
             ]);
         } catch (Exception $e) {
             Log::error('Availability check failed', [

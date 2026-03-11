@@ -433,31 +433,40 @@ class PaymentService
                     ),
                 ]);
 
+                // Determine booking status after payment:
+                // If hall requires approval, keep as 'pending' until owner confirms.
+                // Otherwise, auto-confirm.
+                $requiresApproval = $booking->hall?->requires_approval ?? false;
+                $newStatus = $requiresApproval ? 'pending' : 'confirmed';
+                $confirmedAt = $requiresApproval ? null : now();
+
                 // ✅ NEW: Handle advance vs full payment
                 if ($booking->isAdvancePayment()) {
                     // Customer paid advance only
                     $booking->update([
                         'payment_status' => 'partial', // ✅ NEW STATUS
-                        'status' => 'confirmed',
-                        'confirmed_at' => now(),
+                        'status' => $newStatus,
+                        'confirmed_at' => $confirmedAt,
                     ]);
 
                     Log::info('Advance payment successful', [
                         'booking_id' => $booking->id,
                         'advance_paid' => $booking->advance_amount,
                         'balance_due' => $booking->balance_due,
+                        'requires_approval' => $requiresApproval,
                     ]);
                 } else {
                     // Customer paid full amount
                     $booking->update([
                         'payment_status' => 'paid',
-                        'status' => 'confirmed',
-                        'confirmed_at' => now(),
+                        'status' => $newStatus,
+                        'confirmed_at' => $confirmedAt,
                     ]);
 
                     Log::info('Full payment successful', [
                         'booking_id' => $booking->id,
                         'amount_paid' => $booking->total_amount,
+                        'requires_approval' => $requiresApproval,
                     ]);
                 }
 

@@ -351,4 +351,9 @@ return [
     'service_fee'       => 'Service Fee',
     'platform_fee_info' => 'A small fee to cover platform services and support',
     'subtotal'          => 'Subtotal',
+
+    'hall_rental'       => 'Hall Rental',
+    'event'              => 'Event',
+    
+
 ];

@@ -317,7 +317,7 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">{{ __('guest.price_hall_rental') }}</span>
-                                    <span class="font-medium">{{ number_format($hall->price_per_slot, 3) }}</span>
+                                    <span class="font-medium" x-text="hallPrice.toFixed(3)">{{ number_format($hall->price_per_slot, 3) }}</span>
                                     <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                         class="inline w-6 h-6 -mt-1">
                                 </div>
@@ -349,7 +349,7 @@
                                     <p class="text-sm text-blue-800">
                                         <strong>{{ __('guest.form_note_label') }}:</strong>
                                         {{ __('guest.form_advance_payment_note') }}
-                                        {{ $hall->advance_amount_percentage ?? 0 }}%.
+                                        {{ $hall->advance_payment_percentage ?? 0 }}%.
                                     </p>
                                 </div>
                             @endif
@@ -419,6 +419,9 @@
                             const data = await response.json();
                             this.isAvailable = data.available;
                             this.availabilityMessage = data.message;
+                            if (data.slot_price !== undefined) {
+                                this.hallPrice = parseFloat(data.slot_price);
+                            }
                         } catch (error) {
                             this.isAvailable = false;
                             this.availabilityMessage = '{{ __('guest.form_availability_error') }}' + ': ' + error.message;
