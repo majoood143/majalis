@@ -1,19 +1,19 @@
 @extends('customer.layout')
 
-@section('title', 'Booking #' . $booking->booking_number . ' - majalis')
+@section('title', __('booking.booking_number', ['number' => $booking->booking_number]) . ' - majalis')
 
 @section('content')
     <div class="max-w-5xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center mb-4 text-sm text-gray-600">
-                <a href="{{ route('customer.bookings') }}" class="hover:text-indigo-600">My Bookings</a>
+                <a href="{{ route('customer.bookings') }}" class="hover:text-indigo-600">{{ __('booking.my_bookings') }}</a>
                 <span class="mx-2">/</span>
-                <span>Booking #{{ $booking->booking_number }}</span>
+                <span>{{ __('booking.booking_number', ['number' => $booking->booking_number]) }}</span>
             </div>
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="mb-2 text-3xl font-bold text-gray-900">Booking Details</h1>
+                    <h1 class="mb-2 text-3xl font-bold text-gray-900">{{ __('booking.booking_details') }}</h1>
                     <p class="text-gray-600">{{ $booking->booking_date->format('F d, Y') }} •
                         {{ ucfirst($booking->time_slot) }}</p>
                 </div>
@@ -23,7 +23,15 @@
                 @elseif($booking->status === 'pending') bg-yellow-100 text-yellow-800
                 @elseif($booking->status === 'completed') bg-blue-100 text-blue-800
                 @else bg-red-100 text-red-800 @endif">
-                    {{ ucfirst($booking->status) }}
+                    @if($booking->status === 'confirmed')
+                        {{ __('booking.status_confirmed') }}
+                    @elseif($booking->status === 'pending')
+                        {{ __('booking.status_pending') }}
+                    @elseif($booking->status === 'completed')
+                        {{ __('booking.status_completed') }}
+                    @else
+                        {{ __('booking.status_cancelled') }}
+                    @endif
                 </span>
             </div>
         </div>
@@ -37,7 +45,7 @@
                         <div class="flex-shrink-0 mr-6">
                             @if ($booking->hall->featured_image ?? false)
                                 <img src="{{ Storage::url($booking->hall->featured_image) }}"
-                                    alt="{{ $booking->hall->name ?? 'Hall Image' }}"
+                                    alt="{{ $booking->hall->name ?? __('booking.hall_name_not_available') }}"
                                     class="object-cover w-32 h-32 rounded-lg">
                             @else
                                 <div class="w-32 h-32 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500"></div>
@@ -45,15 +53,15 @@
                         </div>
                         <div class="flex-1">
                             <h2 class="mb-2 text-2xl font-bold text-gray-900">
-                                {{ $booking->hall->name ?? 'Hall Name Not Available' }}</h2>
+                                {{ $booking->hall->name ?? __('booking.hall_name_not_available') }}</h2>
                             <div class="space-y-2 text-sm text-gray-600">
                                 <div class="flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     </svg>
-                                    {{ $booking->hall->city->name ?? 'City Not Available' }},
-                                    {{ $booking->hall->address ?? 'Address Not Available' }}
+                                    {{ $booking->hall->city->name ?? __('booking.city_not_available') }},
+                                    {{ $booking->hall->address ?? __('booking.address_not_available') }}
                                 </div>
                                 <div class="flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +73,7 @@
                             </div>
                             <a href="{{ route('customer.halls.show', $booking->hall->slug ?? 'default-slug') }}"
                                 class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                                View Hall Details →
+                                {{ __('booking.view_hall_details') }}
                             </a>
                         </div>
                     </div>
@@ -73,39 +81,39 @@
 
                 <!-- Booking Information -->
                 <div class="p-6 bg-white rounded-lg shadow-md">
-                    <h3 class="mb-4 text-lg font-semibold">Booking Information</h3>
+                    <h3 class="mb-4 text-lg font-semibold">{{ __('booking.booking_information') }}</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <span class="text-sm text-gray-600">Booking Number</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.booking_number_label') }}</span>
                             <div class="font-mono font-medium">{{ $booking->booking_number }}</div>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-600">Event Date</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.event_date') }}</span>
                             <div class="font-medium">{{ $booking->booking_date->format('F d, Y') }}</div>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-600">Time Slot</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.time_slot') }}</span>
                             <div class="font-medium">{{ ucfirst(str_replace('_', ' ', $booking->time_slot)) }}</div>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-600">Number of Guests</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.number_of_guests') }}</span>
                             <div class="font-medium">{{ $booking->number_of_guests }}</div>
                         </div>
                         @if ($booking->event_type)
                             <div>
-                                <span class="text-sm text-gray-600">Event Type</span>
+                                <span class="text-sm text-gray-600">{{ __('booking.event_type') }}</span>
                                 <div class="font-medium">{{ ucfirst($booking->event_type) }}</div>
                             </div>
                         @endif
                         <div>
-                            <span class="text-sm text-gray-600">Booked On</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.booked_on') }}</span>
                             <div class="font-medium">{{ $booking->created_at->format('M d, Y') }}</div>
                         </div>
                     </div>
 
                     @if ($booking->customer_notes)
                         <div class="pt-4 mt-4 border-t">
-                            <span class="text-sm text-gray-600">Special Notes</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.special_notes') }}</span>
                             <div class="mt-1 text-gray-900">{{ $booking->customer_notes }}</div>
                         </div>
                     @endif
@@ -113,18 +121,18 @@
 
                 <!-- Customer Information -->
                 <div class="p-6 bg-white rounded-lg shadow-md">
-                    <h3 class="mb-4 text-lg font-semibold">Customer Information</h3>
+                    <h3 class="mb-4 text-lg font-semibold">{{ __('booking.customer_information') }}</h3>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                            <span class="text-sm text-gray-600">Name</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.name') }}</span>
                             <div class="font-medium">{{ $booking->customer_name }}</div>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-600">Email</span>
+                            <span class="text-sm text-gray-600">{{ __('booking._email') }}</span>
                             <div class="font-medium">{{ $booking->customer_email }}</div>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-600">Phone</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.phone') }}</span>
                             <div class="font-medium">{{ $booking->customer_phone }}</div>
                         </div>
                     </div>
@@ -133,7 +141,7 @@
                 <!-- Extra Services -->
                 @if ($booking->extraServices && $booking->extraServices->count() > 0)
                     <div class="p-6 bg-white rounded-lg shadow-md">
-                        <h3 class="mb-4 text-lg font-semibold">Extra Services</h3>
+                        <h3 class="mb-4 text-lg font-semibold">{{ __('booking.extra_services') }}</h3>
                         <div class="space-y-3">
                             @foreach ($booking->extraServices as $service)
                                 <div class="flex items-center justify-between py-2 border-b last:border-0">
@@ -141,11 +149,11 @@
                                         <div class="font-medium">{{ $service->pivot->service_name }}</div>
                                         <div class="text-sm text-gray-600">
                                             {{ $service->pivot->quantity }} ×
-                                            {{ number_format($service->pivot->unit_price, 3) }} OMR
+                                            {{ number_format($service->pivot->unit_price, 3) }} {{ __('booking.currency') }}
                                         </div>
                                     </div>
                                     <div class="font-semibold text-indigo-600">
-                                        {{ number_format($service->pivot->total_price, 3) }} OMR
+                                        {{ number_format($service->pivot->total_price, 3) }} {{ __('booking.currency') }}
                                     </div>
                                 </div>
                             @endforeach
@@ -158,54 +166,53 @@
             <div class="lg:col-span-1">
                 <!-- Payment Summary -->
                 <div class="p-6 mb-6 bg-white rounded-lg shadow-md">
-                    <h3 class="mb-4 text-lg font-semibold">Payment Summary</h3>
+                    <h3 class="mb-4 text-lg font-semibold">{{ __('booking.payment_summary') }}</h3>
 
                     <div class="space-y-3">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Hall Price</span>
-                            <span class="font-medium">{{ number_format($booking->hall_price, 3) }} OMR</span>
+                            <span class="text-gray-600">{{ __('booking.hall_price') }}</span>
+                            <span class="font-medium">{{ number_format($booking->hall_price, 3) }} {{ __('booking.currency') }}</span>
                         </div>
 
                         @if ($booking->services_price > 0)
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Extra Services</span>
-                                <span class="font-medium">{{ number_format($booking->services_price, 3) }} OMR</span>
+                                <span class="text-gray-600">{{ __('booking.extra_services_price') }}</span>
+                                <span class="font-medium">{{ number_format($booking->services_price, 3) }} {{ __('booking.currency') }}</span>
                             </div>
                         @endif
 
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Subtotal</span>
-                            <span class="font-medium">{{ number_format($booking->subtotal, 3) }} OMR</span>
+                            <span class="text-gray-600">{{ __('booking.subtotal') }}</span>
+                            <span class="font-medium">{{ number_format($booking->subtotal, 3) }} {{ __('booking.currency') }}</span>
                         </div>
 
-                        @if ($booking->commission_amount > 0)
+                        {{-- @if ($booking->commission_amount > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Commission</span>
                                 <span class="font-medium">{{ number_format($booking->commission_amount, 3) }} OMR</span>
                             </div>
-                        @endif
+                        @endif --}}
 
-                        <!-- FIX: Platform Fee Display -->
+                        <!-- Platform Fee Display -->
                         @if ($booking->platform_fee > 0)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">
-                                    {{ __('halls.platform_fee') }}
+                                    {{ __('booking.platform_fee') }}
                                     @if ($booking->service_fee_type === 'percentage' && $booking->service_fee_value)
                                         <span
                                             class="text-xs text-gray-400">({{ number_format($booking->service_fee_value, 0) }}%)</span>
                                     @endif
                                 </span>
-                                <span class="font-medium">{{ number_format($booking->platform_fee, 3) }} OMR</span>
+                                <span class="font-medium">{{ number_format($booking->platform_fee, 3) }} {{ __('booking.currency') }}</span>
                             </div>
                         @endif
 
-
                         <div class="pt-3 border-t">
                             <div class="flex items-center justify-between">
-                                <span class="font-semibold">Total Amount</span>
+                                <span class="font-semibold">{{ __('booking.total_amount') }}</span>
                                 <span
                                     class="text-2xl font-bold text-indigo-600">{{ number_format($booking->total_amount, 3) }}
-                                    OMR</span>
+                                    {{ __('booking.currency') }}</span>
                             </div>
                         </div>
                     </div>
@@ -213,13 +220,19 @@
                     <!-- Payment Status -->
                     <div class="pt-6 mt-6 border-t">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">Payment Status</span>
+                            <span class="text-sm text-gray-600">{{ __('booking.payment_status') }}</span>
                             <span
                                 class="inline-flex px-3 py-1 text-xs font-semibold rounded-full
                             @if ($booking->payment_status === 'paid') bg-green-100 text-green-800
                             @elseif($booking->payment_status === 'pending') bg-yellow-100 text-yellow-800
                             @else bg-red-100 text-red-800 @endif">
-                                {{ ucfirst($booking->payment_status) }}
+                                @if($booking->payment_status === 'paid')
+                                    {{ __('booking.payment_status_paid') }}
+                                @elseif($booking->payment_status === 'pending')
+                                    {{ __('booking.payment_status_pending') }}
+                                @else
+                                    {{ __('booking.payment_status_failed') }}
+                                @endif
                             </span>
                         </div>
                     </div>
@@ -227,30 +240,30 @@
                     @if ($booking->payment_status === 'pending')
                         <a href="{{ route('customer.booking.payment', $booking) }}"
                             class="block w-full px-6 py-3 mt-4 font-semibold text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                            Complete Payment
+                            {{ __('booking.complete_payment') }}
                         </a>
                     @endif
                 </div>
 
                 <!-- Actions -->
                 <div class="p-6 bg-white rounded-lg shadow-md">
-                    <h3 class="mb-4 text-lg font-semibold">Actions</h3>
+                    <h3 class="mb-4 text-lg font-semibold">{{ __('booking._actions') }}</h3>
                     <div class="space-y-3">
                         @if (in_array($booking->status, ['pending', 'confirmed']))
                             <button onclick="confirmCancel()"
                                 class="w-full px-4 py-2 text-sm font-medium text-red-500 transition border border-red-500 rounded-lg hover:bg-red-50">
-                                Cancel Booking
+                                {{ __('booking.cancel_booking') }}
                             </button>
                         @endif
 
                         <a href="{{ route('customer.halls.show', $booking->hall->slug ?? '404') }}"
                             class="block px-4 py-2 text-sm font-medium text-center text-gray-700 transition border border-gray-300 rounded-lg hover:bg-gray-50">
-                            View Hall Details
+                            {{ __('booking.view_hall_details_btn') }}
                         </a>
 
                         <a href="{{ route('customer.bookings') }}"
                             class="block px-4 py-2 text-sm font-medium text-center text-gray-700 transition border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Back to All Bookings
+                            {{ __('booking.back_to_all_bookings') }}
                         </a>
                     </div>
                 </div>
@@ -264,20 +277,19 @@
             <div class="flex items-center justify-center min-h-screen px-4">
                 <div x-show="showModal" @click="showModal = false" class="fixed inset-0 bg-gray-500 bg-opacity-75"></div>
                 <div x-show="showModal" class="relative w-full max-w-md p-6 bg-white rounded-lg">
-                    <h3 class="mb-4 text-lg font-semibold">Cancel Booking</h3>
-                    <p class="mb-6 text-gray-600">Are you sure you want to cancel this booking? This action cannot be
-                        undone.</p>
+                    <h3 class="mb-4 text-lg font-semibold">{{ __('booking.cancel_booking_title') }}</h3>
+                    <p class="mb-6 text-gray-600">{{ __('booking.cancel_booking_confirmation') }}</p>
                     <div class="flex space-x-3">
                         <form action="{{ route('customer.booking.cancel', $booking) }}" method="POST" class="flex-1">
                             @csrf
                             <button type="submit"
                                 class="w-full px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700">
-                                Yes, Cancel
+                                {{ __('booking.confirm_cancel') }}
                             </button>
                         </form>
                         <button @click="showModal = false"
                             class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                            No, Keep It
+                            {{ __('booking.keep_booking') }}
                         </button>
                     </div>
                 </div>

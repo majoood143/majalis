@@ -1066,4 +1066,88 @@ return [
     'afternoon' => 'Afternoon',
     'evening' => 'Evening',
     'full_day' => 'Full Day',
+    // Header
+    'my_bookings' => 'My Bookings',
+    'booking_number' => 'Booking #:number',
+    'booking_details' => 'Booking Details',
+    'booking_date' => ':date • :time',
+
+    // Status
+    'status_confirmed' => 'Confirmed',
+    'status_pending' => 'Pending',
+    'status_completed' => 'Completed',
+    'status_cancelled' => 'Cancelled',
+
+    // Hall Information
+    'hall_information' => 'Hall Information',
+    'hall_name_not_available' => 'Hall Name Not Available',
+    'city_not_available' => 'City Not Available',
+    'address_not_available' => 'Address Not Available',
+    'view_hall_details' => 'View Hall Details →',
+
+    // Booking Information
+    'booking_information' => 'Booking Information',
+    'booking_number_label' => 'Booking Number',
+    'event_date' => 'Event Date',
+    'time_slot' => 'Time Slot',
+    'number_of_guests' => 'Number of Guests',
+    'event_type' => 'Event Type',
+    'booked_on' => 'Booked On',
+    'special_notes' => 'Special Notes',
+
+    // Customer Information
+    'customer_information' => 'Customer Information',
+    'name' => 'Name',
+    'email' => 'Email',
+    'phone' => 'Phone',
+
+    // Extra Services
+    'extra_services' => 'Extra Services',
+    'currency' => 'OMR',
+
+    // Payment Summary
+    'payment_summary' => 'Payment Summary',
+    'hall_price' => 'Hall Price',
+    'extra_services_price' => 'Extra Services',
+    'subtotal' => 'Subtotal',
+    'platform_fee' => 'Platform Fee',
+    'total_amount' => 'Total Amount',
+    'payment_status' => 'Payment Status',
+    'payment_status_paid' => 'Paid',
+    'payment_status_pending' => 'Pending',
+    'payment_status_failed' => 'Failed',
+    'complete_payment' => 'Complete Payment',
+
+    // Actions
+    'actions' => 'Actions',
+    'cancel_booking' => 'Cancel Booking',
+    'view_hall_details_btn' => 'View Hall Details',
+    'back_to_all_bookings' => 'Back to All Bookings',
+
+    // Cancel Modal
+    'cancel_booking_title' => 'Cancel Booking',
+    'cancel_booking_confirmation' => 'Are you sure you want to cancel this booking? This action cannot be undone.',
+    'confirm_cancel' => 'Yes, Cancel',
+    'keep_booking' => 'No, Keep It',
+
+    // Bookings List Page
+    'view_and_manage' => 'View and manage all your hall bookings',
+    'book_new_hall' => 'Book New Hall',
+    'status' => 'Status',
+    'all_statuses' => 'All Statuses',
+    'from_date' => 'From Date',
+    'to_date' => 'To Date',
+    'apply_filters' => 'Apply Filters',
+    'unnamed_hall' => 'Unnamed Hall',
+    'unknown_city' => 'Unknown City',
+    'hall_image' => 'Hall Image',
+    'booking_date' => 'Booking Date',
+    'guests' => 'Guests',
+    'total' => 'Total',
+    'view_details' => 'View Details',
+
+    // Empty State
+    'no_bookings_found' => 'No Bookings Found',
+    'no_bookings_message' => 'You haven\'t made any bookings yet. Start exploring our halls!',
+    'browse_halls' => 'Browse Halls',
 ];

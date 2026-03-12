@@ -39,5 +39,35 @@ return [
     'not_set' => 'Not set',
     'nav_dashboard' => 'Dashboard',
     'logout' => 'Logout',
+    'login' => 'Login',
+    'register' => 'Register',
+
+    // Login page
+    'sign_in_title' => 'Sign in to your account',
+    'or' => 'Or',
+    'create_new_account' => 'create a new account',
+    'email_address' => 'Email address',
+    'password' => 'Password',
+    'remember_me' => 'Remember me',
+    'sign_in' => 'Sign in',
+    'back_to_halls' => 'Back to halls',
+    'forgot_password_link' => 'Forgot your password?',
+
+    // Register page
+    'create_account_title' => 'Create your account',
+    'sign_in_existing' => 'sign in to existing account',
+    'full_name' => 'Full Name',
+    'full_name_placeholder' => 'John Doe',
+    'confirm_password' => 'Confirm Password',
+    'password_min' => 'Min. 8 characters',
+    'create_account' => 'Create Account',
+
+    // Forgot password page
+    'forgot_password_title' => 'Forgot your password?',
+    'forgot_password_description' => 'No problem. Just enter your email address and we will send you a password reset link.',
+    'send_reset_link' => 'Send Reset Link',
+    'back_to_login' => 'Back to login',
+    'don\'t_have_account' => 'Don\'t have an account?',
+    'all_rights_reserved' => 'All rights reserved',
 ];
 

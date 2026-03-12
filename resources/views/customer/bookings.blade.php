@@ -1,18 +1,18 @@
 @extends('customer.layout')
 
-@section('title', 'My Bookings - Majalis')
+@section('title', __('booking.my_bookings') . ' - Majalis')
 
 @section('content')
 <div class="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="flex flex-col mb-8 md:flex-row md:items-center md:justify-between">
         <div>
-            <h1 class="mb-2 text-3xl font-bold text-gray-900">My Bookings</h1>
-            <p class="text-gray-600">View and manage all your hall bookings</p>
+            <h1 class="mb-2 text-3xl font-bold text-gray-900">{{ __('booking.my_bookings') }}</h1>
+            <p class="text-gray-600">{{ __('booking.view_and_manage') }}</p>
         </div>
         <a href="{{ route('customer.halls.index') }}"
             class="px-6 py-3 mt-4 font-medium text-white transition bg-indigo-600 rounded-lg md:mt-0 hover:bg-indigo-700">
-            Book New Hall
+            {{ __('booking.book_new_hall') }}
         </a>
     </div>
 
@@ -21,26 +21,26 @@
         <form action="{{ route('customer.bookings') }}" method="GET" class="grid grid-cols-1 gap-4 md:grid-cols-4">
             <!-- Status Filter -->
             <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">Status</label>
+                <label class="block mb-2 text-sm font-medium text-gray-700">{{ __('booking.status') }}</label>
                 <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                    <option value="">All Statuses</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    <option value="">{{ __('booking.all_statuses') }}</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>{{ __('booking.status_pending') }}</option>
+                    <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>{{ __('booking.status_confirmed') }}</option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>{{ __('booking.status_completed') }}</option>
+                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>{{ __('booking.status_cancelled') }}</option>
                 </select>
             </div>
 
             <!-- From Date -->
             <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">From Date</label>
+                <label class="block mb-2 text-sm font-medium text-gray-700">{{ __('booking.from_date') }}</label>
                 <input type="date" name="from_date" value="{{ request('from_date') }}"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
             </div>
 
             <!-- To Date -->
             <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">To Date</label>
+                <label class="block mb-2 text-sm font-medium text-gray-700">{{ __('booking.to_date') }}</label>
                 <input type="date" name="to_date" value="{{ request('to_date') }}"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
             </div>
@@ -48,7 +48,7 @@
             <!-- Submit -->
             <div class="flex items-end">
                 <button type="submit" class="w-full px-6 py-2 text-white transition bg-gray-900 rounded-lg hover:bg-gray-800">
-                    Apply Filters
+                    {{ __('booking.apply_filters') }}
                 </button>
             </div>
         </form>
@@ -68,7 +68,7 @@
                                     <div class="flex-shrink-0">
                                         @if($booking->hall->featured_image ?? false)
                                             <img src="{{ Storage::url($booking->hall->featured_image) }}"
-                                                alt="{{ $booking->hall->name ?? 'Hall Image' }}"
+                                                alt="{{ $booking->hall->name ?? __('booking.hall_image') }}"
                                                 class="object-cover w-24 h-24 rounded-lg">
                                         @else
                                             <div class="w-24 h-24 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500"></div>
@@ -80,13 +80,13 @@
                                         <div class="flex items-start justify-between mb-2">
                                             <div>
                                                 <h3 class="mb-1 text-lg font-semibold text-gray-900">
-                                                    {{ $booking->hall->name ?? 'Unnamed Hall' }}
+                                                    {{ $booking->hall->name ?? __('booking.unnamed_hall') }}
                                                 </h3>
                                                 <div class="flex items-center text-sm text-gray-600">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                     </svg>
-                                                    {{ $booking->hall->city->name ?? 'Unknown City' }}
+                                                    {{ $booking->hall->city->name ?? __('booking.unknown_city') }}
                                                 </div>
                                             </div>
                                             <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full
@@ -95,33 +95,41 @@
                                                 @elseif($booking->status === 'completed') bg-blue-100 text-blue-800
                                                 @else bg-red-100 text-red-800
                                                 @endif">
-                                                {{ ucfirst($booking->status) }}
+                                                @if($booking->status === 'confirmed')
+                                                    {{ __('booking.status_confirmed') }}
+                                                @elseif($booking->status === 'pending')
+                                                    {{ __('booking.status_pending') }}
+                                                @elseif($booking->status === 'completed')
+                                                    {{ __('booking.status_completed') }}
+                                                @else
+                                                    {{ __('booking.status_cancelled') }}
+                                                @endif
                                             </span>
                                         </div>
 
                                         <div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
                                             <div>
-                                                <span class="text-gray-600">Booking Date:</span>
+                                                <span class="text-gray-600">{{ __('booking.booking_date') }}:</span>
                                                 <div class="font-medium">{{ $booking->booking_date->format('M d, Y') }}</div>
                                             </div>
                                             <div>
-                                                <span class="text-gray-600">Time Slot:</span>
+                                                <span class="text-gray-600">{{ __('booking.time_slot') }}:</span>
                                                 <div class="font-medium">{{ ucfirst($booking->time_slot) }}</div>
                                             </div>
                                             <div>
-                                                <span class="text-gray-600">Guests:</span>
+                                                <span class="text-gray-600">{{ __('booking.guests') }}:</span>
                                                 <div class="font-medium">{{ $booking->number_of_guests }}</div>
                                             </div>
                                         </div>
 
                                         <div class="flex items-center mt-3 space-x-4">
                                             <div class="text-sm">
-                                                <span class="text-gray-600">Booking #:</span>
+                                                <span class="text-gray-600">{{ __('booking.booking_number_label') }}:</span>
                                                 <span class="font-mono font-medium">{{ $booking->booking_number }}</span>
                                             </div>
                                             <div class="text-sm">
-                                                <span class="text-gray-600">Total:</span>
-                                                <span class="font-bold text-indigo-600">{{ number_format($booking->total_amount, 3) }} OMR</span>
+                                                <span class="text-gray-600">{{ __('booking.total') }}:</span>
+                                                <span class="font-bold text-indigo-600">{{ number_format($booking->total_amount, 3) }} {{ __('booking.currency') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -132,13 +140,13 @@
                             <div class="flex flex-col mt-4 space-y-2 md:mt-0 md:ml-6">
                                 <a href="{{ route('customer.booking.details', $booking) }}"
                                     class="px-4 py-2 text-sm font-medium text-center text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                                    View Details
+                                    {{ __('booking.view_details') }}
                                 </a>
 
                                 @if(in_array($booking->status, ['pending', 'confirmed']))
                                     <button onclick="confirmCancel({{ $booking->id }})"
                                         class="px-4 py-2 text-sm font-medium text-center text-red-500 transition border border-red-500 rounded-lg hover:bg-red-50">
-                                        Cancel Booking
+                                        {{ __('booking.cancel_booking') }}
                                     </button>
                                 @endif
                             </div>
@@ -158,11 +166,11 @@
             <svg class="w-24 h-24 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 class="mb-2 text-xl font-semibold text-gray-900">No Bookings Found</h3>
-            <p class="mb-6 text-gray-600">You haven't made any bookings yet. Start exploring our halls!</p>
+            <h3 class="mb-2 text-xl font-semibold text-gray-900">{{ __('booking.no_bookings_found') }}</h3>
+            <p class="mb-6 text-gray-600">{{ __('booking.no_bookings_message') }}</p>
             <a href="{{ route('customer.halls.index') }}"
                 class="inline-block px-6 py-3 font-medium text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                Browse Halls
+                {{ __('booking.browse_halls') }}
             </a>
         </div>
     @endif
@@ -193,10 +201,10 @@
                         </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                        <h3 class="text-lg font-medium leading-6 text-gray-900">Cancel Booking</h3>
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">{{ __('booking.cancel_booking_title') }}</h3>
                         <div class="mt-2">
                             <p class="text-sm text-gray-500">
-                                Are you sure you want to cancel this booking? This action cannot be undone.
+                                {{ __('booking.cancel_booking_confirmation') }}
                             </p>
                         </div>
                     </div>
@@ -206,12 +214,12 @@
                         @csrf
                         <button type="submit"
                             class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                            Yes, Cancel Booking
+                            {{ __('booking.confirm_cancel') }}
                         </button>
                     </form>
                     <button type="button" @click="showModal = false"
                         class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
-                        No, Keep It
+                        {{ __('booking.keep_booking') }}
                     </button>
                 </div>
             </div>

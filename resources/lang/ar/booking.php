@@ -938,4 +938,88 @@ return [
     'afternoon' => 'بعد الظهر',
     'evening' => 'مسائي',
     'full_day' => 'يوم كامل',
+    // Header
+    'my_bookings' => 'حجوزاتي',
+    'booking_number' => 'رقم الحجز :number',
+    'booking_details' => 'تفاصيل الحجز',
+    'booking_date' => ':date • :time',
+
+    // Status
+    'status_confirmed' => 'مؤكد',
+    'status_pending' => 'قيد الانتظار',
+    'status_completed' => 'مكتمل',
+    'status_cancelled' => 'ملغي',
+
+    // Hall Information
+    'hall_information' => 'معلومات القاعة',
+    'hall_name_not_available' => 'اسم القاعة غير متاح',
+    'city_not_available' => 'المدينة غير متاحة',
+    'address_not_available' => 'العنوان غير متاح',
+    'view_hall_details' => 'عرض تفاصيل القاعة ←',
+
+    // Booking Information
+    'booking_information' => 'معلومات الحجز',
+    'booking_number_label' => 'رقم الحجز',
+    'event_date' => 'تاريخ المناسبة',
+    'time_slot' => 'الفترة الزمنية',
+    'number_of_guests' => 'عدد الضيوف',
+    'event_type' => 'نوع المناسبة',
+    'booked_on' => 'تاريخ الحجز',
+    'special_notes' => 'ملاحظات خاصة',
+
+    // Customer Information
+    'customer_information' => 'معلومات العميل',
+    'name' => 'الاسم',
+    '_email' => 'البريد الإلكتروني',
+    'phone' => 'رقم الهاتف',
+
+    // Extra Services
+    'extra_services' => 'خدمات إضافية',
+    'currency' => 'ريال عماني',
+
+    // Payment Summary
+    'payment_summary' => 'ملخص الدفع',
+    'hall_price' => 'سعر القاعة',
+    'extra_services_price' => 'خدمات إضافية',
+    'subtotal' => 'المجموع الفرعي',
+    'platform_fee' => 'رسوم المنصة',
+    'total_amount' => 'المبلغ الإجمالي',
+    'payment_status' => 'حالة الدفع',
+    'payment_status_paid' => 'مدفوع',
+    'payment_status_pending' => 'قيد الانتظار',
+    'payment_status_failed' => 'فشل',
+    'complete_payment' => 'إتمام الدفع',
+
+    // Actions
+    '_actions' => 'الإجراءات',
+    'cancel_booking' => 'إلغاء الحجز',
+    'view_hall_details_btn' => 'عرض تفاصيل القاعة',
+    'back_to_all_bookings' => 'العودة إلى جميع الحجوزات',
+
+    // Cancel Modal
+    'cancel_booking_title' => 'إلغاء الحجز',
+    'cancel_booking_confirmation' => 'هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.',
+    'confirm_cancel' => 'نعم، إلغاء',
+    'keep_booking' => 'لا، الاحتفاظ به',
+
+    // Bookings List Page
+    'view_and_manage' => 'عرض وإدارة جميع حجوزات القاعات الخاصة بك',
+    'book_new_hall' => 'حجز قاعة جديدة',
+    'status' => 'الحالة',
+    'all_statuses' => 'جميع الحالات',
+    'from_date' => 'من تاريخ',
+    'to_date' => 'إلى تاريخ',
+    'apply_filters' => 'تطبيق التصفية',
+    'unnamed_hall' => 'قاعة بدون اسم',
+    'unknown_city' => 'مدينة غير معروفة',
+    'hall_image' => 'صورة القاعة',
+    'booking_date' => 'تاريخ الحجز',
+    'guests' => 'عدد الضيوف',
+    'total' => 'الإجمالي',
+    'view_details' => 'عرض التفاصيل',
+
+    // Empty State
+    'no_bookings_found' => 'لا توجد حجوزات',
+    'no_bookings_message' => 'لم تقم بأي حجوزات بعد. ابدأ باستكشاف قاعاتنا!',
+    'browse_halls' => 'تصفح القاعات',
 ];
