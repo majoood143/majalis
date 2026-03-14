@@ -84,7 +84,7 @@
                         @if(session('can_resend'))
                             <form
                                 method="POST"
-                                action="{{ route('guest.resend-otp', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
+                                action="{{ route('guest.resend-otp', ['hall' => $hall->slug]) }}"
                                 class="mt-3"
                             >
                                 @csrf
@@ -108,7 +108,7 @@
                 {{-- OTP Form --}}
                 <form
                     method="POST"
-                    action="{{ route('guest.verify-otp.submit', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
+                    action="{{ route('guest.verify-otp.submit', ['hall' => $hall->slug]) }}"
                     x-data="{ otp: '' }"
                 >
                     @csrf
@@ -161,7 +161,7 @@
                     <p class="mb-2 text-sm text-gray-500">{{ __('guest.receive_the_code') }}</p>
                     <form
                         method="POST"
-                        action="{{ route('guest.resend-otp', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
+                        action="{{ route('guest.resend-otp', ['hall' => $hall->slug]) }}"
                         id="resend-form"
                     >
                         @csrf

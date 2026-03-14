@@ -118,7 +118,7 @@
                 <form
                     id="guest-form"
                     method="POST"
-                    action="{{ route('guest.initiate', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
+                    action="{{ route('guest.initiate', ['hall' => $hall->slug]) }}"
                     class="{{ session('show_login_modal') ? 'hidden' : '' }}"
                 >
                     @csrf

@@ -97,7 +97,7 @@
 
                             {{-- Booking Form --}}
                             <form method="POST"
-                                action="{{ route('guest.booking.store', ['hall' => $hall->slug, 'lang' => app()->getLocale()]) }}"
+                                action="{{ route('guest.booking.store', ['hall' => $hall->slug]) }}"
                                 @submit="handleSubmit">
                                 @csrf
 
