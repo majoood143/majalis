@@ -901,8 +901,7 @@ class GuestBookingController extends Controller
 
             // Calculate based on payment type
             if ($paymentType === 'advance' && $booking->hall && $booking->hall->allows_advance_payment) {
-                $advancePercentage = (float) ($booking->hall->advance_percentage ?? 50);
-                $paymentAmount = round($totalAmount * ($advancePercentage / 100), 3);
+                $paymentAmount = $booking->hall->calculateAdvanceAmount($totalAmount);
                 $balanceDue = round($totalAmount - $paymentAmount, 3);
             } else {
                 $paymentType = 'full';

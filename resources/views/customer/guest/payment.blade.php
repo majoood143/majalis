@@ -99,9 +99,14 @@
 
                                 @php
                                     $allowsAdvance = $booking->hall && $booking->hall->allows_advance_payment;
-                                    $advancePercentage = $booking->hall->advance_percentage ?? 50;
-                                    $advanceAmount = $booking->total_amount * ($advancePercentage / 100);
+                                    $advanceAmount = $allowsAdvance
+                                        ? $booking->hall->calculateAdvanceAmount((float) $booking->total_amount)
+                                        : 0;
                                     $balanceDue = $booking->total_amount - $advanceAmount;
+                                    // For display only: derive effective percentage
+                                    $advancePercentage = $booking->hall->advance_payment_type === 'percentage'
+                                        ? ($booking->hall->advance_payment_percentage ?? 0)
+                                        : ($booking->total_amount > 0 ? round(($advanceAmount / $booking->total_amount) * 100, 2) : 0);
                                 @endphp
 
                                 {{-- Payment Type Selection (if hall allows advance payment) --}}

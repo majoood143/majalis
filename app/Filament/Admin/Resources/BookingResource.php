@@ -971,6 +971,7 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('payment_status')
                     ->label(static::columnLabel('payment_status'))
                     ->badge()
+                    ->searchable()
                     ->colors([
                         'warning' => 'pending',
                         'success' => 'paid',
@@ -1020,9 +1021,34 @@ class BookingResource extends Resource
                 GuestBookingComponents::guestTokenColumn(),
             ])
             ->filters([
-                //
                 // Add booking type filter
                 GuestBookingComponents::bookingTypeFilter(),
+
+                // Booking status filter
+                Tables\Filters\SelectFilter::make('status')
+                    ->label(__('booking.fields.status'))
+                    ->options(\App\Enums\BookingStatus::options())
+                    ->multiple(),
+
+                // Payment status filter
+                Tables\Filters\SelectFilter::make('payment_status')
+                    ->label(__('booking.fields.payment_status'))
+                    ->options(
+                        collect(\App\Enums\PaymentStatus::cases())
+                            ->mapWithKeys(fn($s) => [$s->value => $s->label()])
+                            ->toArray()
+                    )
+                    ->multiple(),
+
+                // Time slot filter
+                Tables\Filters\SelectFilter::make('time_slot')
+                    ->label(__('booking.fields.time_slot'))
+                    ->options([
+                        'morning' => __('Morning'),
+                        'evening' => __('Evening'),
+                        'night'   => __('Night'),
+                    ])
+                    ->multiple(),
             ])
             ->actions([
                 ActionGroup::make([

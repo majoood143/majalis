@@ -421,6 +421,7 @@ return [
         'edit' => 'Edit Booking',
         'view' => 'View Booking',
         'delete' => 'Delete Booking',
+        'confirm' => 'Confirm Booking',
         'confirm' => [
             'label' => 'Confirm',
             'modal_heading' => 'Confirm Booking',
@@ -1119,7 +1120,7 @@ return [
     'complete_payment' => 'Complete Payment',
 
     // Actions
-    'actions' => 'Actions',
+    //'actions' => 'Actions',
     'cancel_booking' => 'Cancel Booking',
     'view_hall_details_btn' => 'View Hall Details',
     'back_to_all_bookings' => 'Back to All Bookings',
