@@ -1134,7 +1134,7 @@ return [
     // Bookings List Page
     'view_and_manage' => 'View and manage all your hall bookings',
     'book_new_hall' => 'Book New Hall',
-    'status' => 'Status',
+    //'status' => 'Status',
     'all_statuses' => 'All Statuses',
     'from_date' => 'From Date',
     'to_date' => 'To Date',

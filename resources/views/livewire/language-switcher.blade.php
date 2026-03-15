@@ -1,4 +1,4 @@
-<div class="relative">
+<div class="relative z-30">
     <x-filament::dropdown placement="bottom-end">
         <x-slot name="trigger">
             <button

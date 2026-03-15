@@ -1005,7 +1005,7 @@ return [
     // Bookings List Page
     'view_and_manage' => 'عرض وإدارة جميع حجوزات القاعات الخاصة بك',
     'book_new_hall' => 'حجز قاعة جديدة',
-    'status' => 'الحالة',
+    //'status' => 'الحالة',
     'all_statuses' => 'جميع الحالات',
     'from_date' => 'من تاريخ',
     'to_date' => 'إلى تاريخ',

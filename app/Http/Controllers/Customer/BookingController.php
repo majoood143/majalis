@@ -1063,11 +1063,15 @@ class BookingController extends BaseController
                 $request->time_slot
             );
 
+            $hall = Hall::find($request->hall_id);
+            $effectivePrice = $hall ? $hall->getPriceForDate($request->booking_date, $request->time_slot) : null;
+
             return response()->json([
                 'available' => $available,
                 'message' => $available
                     ? __('halls.date_available')
-                    : __('halls.date_not_available')
+                    : __('halls.date_not_available'),
+                'price' => $effectivePrice,
             ]);
         } catch (Exception $e) {
             Log::error('Availability check failed: ' . $e->getMessage());

@@ -817,6 +817,14 @@
     </div>
 
     @include('layouts.footer')
+    @php
+        $slotPrices = [
+            'morning'   => $hall->getPriceForSlot('morning'),
+            'afternoon' => $hall->getPriceForSlot('afternoon'),
+            'evening'   => $hall->getPriceForSlot('evening'),
+            'full_day'  => $hall->getPriceForSlot('full_day'),
+        ];
+    @endphp
     <script>
         function bookingWizard() {
             return {
@@ -835,7 +843,9 @@
                 },
                 selectedServices: [],
                 servicesTotal: 0,
-                hallPrice: {{ $hall->price_per_slot }},
+                hallPrice: 0,
+                slotPrices: @json($slotPrices),
+                defaultPrice: {{ $hall->price_per_slot }},
 
                 // FIX: Platform fee properties
                 serviceFee: @json($serviceFeeData ?? null),
@@ -851,6 +861,13 @@
                 init() {
                     console.log('Booking wizard initialized');
 
+                    // Set initial hall price based on selected slot (or default)
+                    if (this.formData.time_slot && this.slotPrices[this.formData.time_slot] !== undefined) {
+                        this.hallPrice = this.slotPrices[this.formData.time_slot];
+                    } else {
+                        this.hallPrice = this.defaultPrice;
+                    }
+
                     // Calculate initial totals including platform fee
                     this.calculateTotal();
 
@@ -863,6 +880,13 @@
                     if (!this.formData.booking_date || !this.formData.time_slot) {
                         this.availabilityMessage = '';
                         return;
+                    }
+
+                    // Immediately update price based on slot type (pricing_override)
+                    // This will be refined once the API responds with the date-specific price
+                    if (this.slotPrices[this.formData.time_slot] !== undefined) {
+                        this.hallPrice = this.slotPrices[this.formData.time_slot];
+                        this.calculateTotal();
                     }
 
                     this.availabilityChecking = true;
@@ -886,6 +910,13 @@
                         const data = await response.json();
                         this.isAvailable = data.available;
                         this.availabilityMessage = data.message;
+
+                        // Update hall price with the effective price for this date+slot
+                        // (covers custom_price overrides set per date in HallAvailability)
+                        if (data.price !== null && data.price !== undefined) {
+                            this.hallPrice = parseFloat(data.price);
+                            this.calculateTotal();
+                        }
 
                         console.log('Availability:', data);
                     } catch (error) {

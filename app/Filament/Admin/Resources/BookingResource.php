@@ -1026,13 +1026,13 @@ class BookingResource extends Resource
 
                 // Booking status filter
                 Tables\Filters\SelectFilter::make('status')
-                    ->label(__('booking.fields.status'))
+                    ->label(__('booking.fields.status.label'))
                     ->options(\App\Enums\BookingStatus::options())
                     ->multiple(),
 
                 // Payment status filter
                 Tables\Filters\SelectFilter::make('payment_status')
-                    ->label(__('booking.fields.payment_status'))
+                    ->label(__('booking.fields.payment_status.label'))
                     ->options(
                         collect(\App\Enums\PaymentStatus::cases())
                             ->mapWithKeys(fn($s) => [$s->value => $s->label()])
@@ -1042,7 +1042,7 @@ class BookingResource extends Resource
 
                 // Time slot filter
                 Tables\Filters\SelectFilter::make('time_slot')
-                    ->label(__('booking.fields.time_slot'))
+                    ->label(__('booking.fields.time_slot.label'))
                     ->options([
                         'morning' => __('Morning'),
                         'evening' => __('Evening'),

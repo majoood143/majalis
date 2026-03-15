@@ -1,4 +1,4 @@
-<div class="fi-user-menu-language-switcher">
+<div class="fi-user-menu-language-switcher relative z-50">
     @livewire(\App\Livewire\LanguageSwitcher::class)
 </div>
 

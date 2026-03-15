@@ -512,8 +512,8 @@
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                @if(file_exists(public_path('images/logo.png')))
-                    <img src="{{ public_path('images/logo.png') }}" alt="Majalis" class="logo">
+                @if(file_exists(public_path('images/logo.webp')))
+                    <img src="{{ public_path('images/logo.webp') }}" alt="Majalis" class="logo">
                 @else
                     <div style="font-size: 22px; font-weight: bold; color: #0d9488;">مجالس</div>
                 @endif
