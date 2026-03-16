@@ -181,7 +181,7 @@ class CommissionSettingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('scope')
+                Tables\Columns\TextColumn::make('name')
                     ->label(__('commission-setting.scope'))
                     ->badge()
                     ->color(fn($record): string => match (true) {

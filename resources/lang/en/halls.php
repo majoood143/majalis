@@ -354,6 +354,10 @@ return [
 
     'hall_rental'       => 'Hall Rental',
     'event'              => 'Event',
-    
+    'balance_due'        => 'Balance Due',
+    'platform_fee_included_in_advance_payment' => 'Platform fee included in advance payment',
+    'payment_partial' => 'Partial Payment',
+    'advance_paid' => 'Advance Paid',
+
 
 ];

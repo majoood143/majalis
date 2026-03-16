@@ -99,10 +99,17 @@
 
                                 @php
                                     $allowsAdvance = $booking->hall && $booking->hall->allows_advance_payment;
+                                    // Advance is calculated on subtotal (hall + services, before platform fee).
+                                    // The platform fee is added in full so it is collected upfront.
+                                    $subtotalForAdvance = (float) ($booking->subtotal ?? 0);
+                                    $platformFeeForAdvance = (float) ($booking->platform_fee ?? 0);
                                     $advanceAmount = $allowsAdvance
-                                        ? $booking->hall->calculateAdvanceAmount((float) $booking->total_amount)
+                                        ? min(
+                                            $booking->hall->calculateAdvanceAmount($subtotalForAdvance) + $platformFeeForAdvance,
+                                            (float) $booking->total_amount
+                                          )
                                         : 0;
-                                    $balanceDue = $booking->total_amount - $advanceAmount;
+                                    $balanceDue = (float) $booking->total_amount - $advanceAmount;
                                     // For display only: derive effective percentage
                                     $advancePercentage = $booking->hall->advance_payment_type === 'percentage'
                                         ? ($booking->hall->advance_payment_percentage ?? 0)
@@ -370,9 +377,9 @@
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">
                                             {{ __('halls.platform_fee') }}
-                                            @if ($booking->commission_type === 'percentage')
+                                            @if ($booking->service_fee_type === 'percentage' && $booking->service_fee_value)
                                                 <span
-                                                    class="text-xs text-gray-400">({{ $booking->commission_value }}%)</span>
+                                                    class="text-xs text-gray-400">({{ $booking->service_fee_value }}%)</span>
                                             @endif
                                         </span>
                                         <span>{{ number_format((float) $booking->platform_fee, 3) }}
@@ -391,30 +398,30 @@
                                             class="inline w-6 h-6 -mt-1"></span>
                                 </div>
 
-                                {{-- ✅ FIX: Advance Payment Details (if applicable) --}}
-                                @if ($booking->isAdvancePayment())
-                                    <hr class="my-2">
-                                    <div class="flex justify-between font-medium text-green-700">
-                                        <span>{{ __('halls.pay_now') }}</span>
-                                        <span>{{ number_format((float) $booking->advance_amount, 3) }}
-                                            <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                                class="inline w-6 h-6 -mt-1"></span>
-                                    </div>
-                                    @if ((float) $booking->balance_due > 0)
-                                        <div class="flex justify-between text-orange-600">
-                                            <span>{{ __('halls.balance_due') }}</span>
-                                            <span>{{ number_format((float) $booking->balance_due, 3) }}
+                                {{-- Advance Payment Breakdown (shown when user selects advance) --}}
+                                @if ($allowsAdvance)
+                                    <div id="advance-summary" style="display:none">
+                                        <hr class="my-2">
+                                        <div class="flex justify-between font-medium text-green-700">
+                                            <span>{{ __('halls.pay_now') }}</span>
+                                            <span>{{ number_format($advanceAmount, 3) }}
                                                 <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                                     class="inline w-6 h-6 -mt-1"></span>
                                         </div>
-                                    @endif
-
-                                    {{-- Info: platform fee included in advance --}}
-                                    @if ((float) $booking->platform_fee > 0)
-                                        <p class="mt-2 text-xs text-gray-500">
-                                            {{ __('halls.platform_fee_included_in_advance') }}
-                                        </p>
-                                    @endif
+                                        @if ($balanceDue > 0)
+                                            <div class="flex justify-between text-orange-600">
+                                                <span>{{ __('halls.balance_due') }}</span>
+                                                <span>{{ number_format($balanceDue, 3) }}
+                                                    <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                                        class="inline w-6 h-6 -mt-1"></span>
+                                            </div>
+                                        @endif
+                                        @if ((float) $booking->platform_fee > 0)
+                                            <p class="mt-2 text-xs text-gray-500">
+                                                {{ __('halls.platform_fee_included_in_advance') }}
+                                            </p>
+                                        @endif
+                                    </div>
                                 @endif
                             </div>
 
@@ -473,17 +480,23 @@
                 return true;
             });
 
-            // Update displayed amount based on payment type selection
+            // Update displayed amount and summary based on payment type selection
             const paymentTypeInputs = document.querySelectorAll('input[name="payment_type"]');
+            const advanceSummary = document.getElementById('advance-summary');
+
             paymentTypeInputs.forEach(function(input) {
                 input.addEventListener('change', function() {
                     const isAdvance = this.value === 'advance';
                     const amount = isAdvance ?
-                        '{{ number_format($advanceAmount ?? $booking->total_amount, 3) }}' :
+                        '{{ number_format($advanceAmount, 3) }}' :
                         '{{ number_format($booking->total_amount, 3) }}';
 
                     payText.innerHTML = '{{ __('payment.pay_now') }} - ' + amount +
                         ' {{ __('currency.omr') }}';
+
+                    if (advanceSummary) {
+                        advanceSummary.style.display = isAdvance ? 'block' : 'none';
+                    }
                 });
             });
         });

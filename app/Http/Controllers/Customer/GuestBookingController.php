@@ -485,17 +485,16 @@ class GuestBookingController extends Controller
             // Calculate subtotal (hall + services, before platform fee)
             $subtotal = $hallPrice + $servicesPrice;
 
-            // ✅ FIX: Calculate platform fee from CommissionSetting
-            // Previously: $platformFee = 0.00 (hardcoded)
-            // Now: resolves from commission_settings table (Hall > Owner > Global)
+            // Resolve commission (owner-side only — not added to customer total)
+            // Priority: Hall-specific > Owner-specific > Global
             $commissionService = app(\App\Services\CommissionService::class);
             $feeData = $commissionService->calculateFees($hall, $subtotal);
 
-            $platformFee      = (float) $feeData['platform_fee'];
+            $platformFee      = 0.00; // Commission is NOT a customer-facing fee
             $commissionAmount = (float) $feeData['commission_amount'];
             $commissionType   = $feeData['commission_type'];
             $commissionValue  = $feeData['commission_value'];
-            $totalAmount      = (float) $feeData['total_amount'];
+            $totalAmount      = $subtotal; // Will be updated after service fee is resolved
             $ownerPayout      = (float) $feeData['owner_payout'];
 
 
@@ -510,7 +509,6 @@ class GuestBookingController extends Controller
             // Service fees are OPTIONAL. If no active setting exists,
             // platform_fee remains 0 (no charge to customer).
             // ==========================================================
-            //$platformFee = 0.00;
             $serviceFeeType = null;
             $serviceFeeValue = null;
 
@@ -901,7 +899,13 @@ class GuestBookingController extends Controller
 
             // Calculate based on payment type
             if ($paymentType === 'advance' && $booking->hall && $booking->hall->allows_advance_payment) {
-                $paymentAmount = $booking->hall->calculateAdvanceAmount($totalAmount);
+                // Calculate advance on subtotal (hall + services, before platform fee),
+                // then add the full platform fee so it is collected upfront.
+                $subtotal    = (float) ($booking->subtotal ?? ($totalAmount - (float) $booking->platform_fee));
+                $platformFee = (float) ($booking->platform_fee ?? 0);
+                $paymentAmount = $booking->hall->calculateAdvanceAmount($subtotal) + $platformFee;
+                // Safety: advance must not exceed total
+                $paymentAmount = min($paymentAmount, $totalAmount);
                 $balanceDue = round($totalAmount - $paymentAmount, 3);
             } else {
                 $paymentType = 'full';
@@ -944,12 +948,33 @@ class GuestBookingController extends Controller
                 'user_agent' => $request->userAgent(),
             ]);
 
-            // Update booking with payment type
-            $booking->update([
-                'payment_type' => $paymentType,
+            // For advance payments, recalculate commission and owner payout on the
+            // advance base only (advance_amount minus platform_fee). The balance_due
+            // is collected directly by the hall owner (cash/bank), so no platform
+            // commission applies to that portion.
+            $advanceUpdateData = [
+                'payment_type'   => $paymentType,
                 'advance_amount' => $paymentType === 'advance' ? round($paymentAmount, 3) : null,
-                'balance_due' => $paymentType === 'advance' ? round($balanceDue, 3) : null,
-            ]);
+                'balance_due'    => $paymentType === 'advance' ? round($balanceDue, 3) : null,
+            ];
+
+            if ($paymentType === 'advance') {
+                $advanceBase     = $paymentAmount - (float) ($booking->platform_fee ?? 0);
+                $commType        = (string) ($booking->commission_type ?? '');
+                $commValue       = (float) ($booking->commission_value ?? 0);
+                $commOnAdvance   = 0.0;
+
+                if ($commType === 'percentage' && $commValue > 0) {
+                    $commOnAdvance = round(($advanceBase * $commValue) / 100, 3);
+                } elseif ($commType === 'fixed' && $commValue > 0) {
+                    $commOnAdvance = round(min($commValue, $advanceBase), 3);
+                }
+
+                $advanceUpdateData['commission_amount'] = $commOnAdvance;
+                $advanceUpdateData['owner_payout']      = round(max(0.0, $advanceBase - $commOnAdvance), 3);
+            }
+
+            $booking->update($advanceUpdateData);
 
             DB::commit();
 

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('halls.payment') }} - {{ $booking->booking_number }}</title>
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -278,7 +279,7 @@
                                 </label>
 
                                 <!-- Bank Transfer -->
-                                <label class="block cursor-pointer payment-option">
+                                {{-- <label class="block cursor-pointer payment-option">
                                     <input type="radio" name="payment_method" value="bank_transfer"
                                         class="sr-only peer">
                                     <div
@@ -301,10 +302,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                </label>
+                                </label> --}}
 
                                 <!-- Cash on Venue -->
-                                <label class="block cursor-pointer payment-option">
+                                {{-- <label class="block cursor-pointer payment-option">
                                     <input type="radio" name="payment_method" value="cash" class="sr-only peer">
                                     <div
                                         class="p-6 transition border-2 border-gray-200 rounded-xl peer-checked:border-primary-500 peer-checked:bg-primary-50">
@@ -327,7 +328,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </label>
+                                </label> --}}
                             </div>
 
                             <!-- Security Notice -->

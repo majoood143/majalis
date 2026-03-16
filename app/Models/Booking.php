@@ -645,9 +645,27 @@ class Booking extends Model
         // Ensure balance is not negative
         $balanceDue = max(0.0, $balanceDue);
 
+        // ✅ FIX: Recalculate commission and owner_payout based on advance base only.
+        // The platform only processes the advance payment online; the balance_due is
+        // paid directly (cash/bank) to the hall owner with no platform commission.
+        // base_advance = advance without the platform service fee
+        $commissionType  = (string) ($this->commission_type ?? '');
+        $commissionValue = (float) ($this->commission_value ?? 0);
+
+        $commissionOnAdvance = 0.0;
+        if ($commissionType === 'percentage' && $commissionValue > 0) {
+            $commissionOnAdvance = round(($baseAdvance * $commissionValue) / 100, 3);
+        } elseif ($commissionType === 'fixed' && $commissionValue > 0) {
+            $commissionOnAdvance = round(min($commissionValue, $baseAdvance), 3);
+        }
+
+        $ownerPayoutFromAdvance = round(max(0.0, $baseAdvance - $commissionOnAdvance), 3);
+
         // Assign to model properties (single round-trip through cast system)
-        $this->advance_amount = round($advanceAmount, 3);
-        $this->balance_due    = round($balanceDue, 3);
+        $this->advance_amount    = round($advanceAmount, 3);
+        $this->balance_due       = round($balanceDue, 3);
+        $this->commission_amount = $commissionOnAdvance;
+        $this->owner_payout      = $ownerPayoutFromAdvance;
     }
 
 

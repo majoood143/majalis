@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('halls.book_hall') }} -
         {{ is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name }}</title>
-
+    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -628,7 +628,13 @@
                                     class="w-5 h-5 mt-1 border-gray-300 rounded text-primary-600 focus:ring-primary-500">
                                 <div class="flex-1">
                                     <span class="font-semibold text-gray-900">{{ __('halls.agree_terms') }}</span>
-                                    <p class="mt-1 text-sm text-gray-600">{{ __('halls.terms_description') }}</p>
+                                    <p class="mt-1 text-sm text-gray-600">{{ __('halls.terms_description') }} <a
+                                            href="/terms-and-conditions" class="text-primary-600 hover:underline"
+                                            target="_blank">{{ __('guest.form_terms_conditions') }}</a>
+                                        {{ __('guest.form_and') }}
+                                        <a href="/cancellation-policy" class="text-primary-600 hover:underline"
+                                            target="_blank">{{ __('guest.form_cancellation_policy') }}</a>
+                                    </p>
                                 </div>
                             </label>
                         </div>
@@ -758,8 +764,8 @@
                                         <div class="flex justify-between">
                                             <span
                                                 class="text-blue-700">{{ __('advance_payment.customer_pays_advance') }}:</span>
-                                            <span
-                                                class="font-bold text-blue-900">{{ number_format($hall->advance_payment_amount, 3) }}
+                                            <span class="font-bold text-blue-900"
+                                                x-text="({{ $hall->advance_payment_amount }} + platformFee).toFixed(3)">
                                             </span>
                                             <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                                 class="inline w-5 h-5 -mt-1">
@@ -768,8 +774,7 @@
                                             <span
                                                 class="text-blue-700">{{ __('advance_payment.balance_due') }}:</span>
                                             <span class="font-semibold text-blue-800"
-                                                x-text="(total - {{ $hall->advance_payment_amount }}).toFixed(3)">
-
+                                                x-text="(subtotal - {{ $hall->advance_payment_amount }}).toFixed(3)">
                                             </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                                 class="inline w-5 h-5 -mt-1">
                                         </div>
@@ -781,7 +786,7 @@
                                                 class="text-blue-700">{{ __('advance_payment.customer_pays_advance') }}
                                                 ({{ $hall->advance_payment_percentage }}%):</span>
                                             <span class="font-bold text-blue-900"
-                                                x-text="(total * {{ $hall->advance_payment_percentage }} / 100).toFixed(3)">
+                                                x-text="(subtotal * {{ $hall->advance_payment_percentage }} / 100 + platformFee).toFixed(3)">
                                             </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                                 class="inline w-5 h-5 -mt-1">
                                         </div>
@@ -789,8 +794,7 @@
                                             <span
                                                 class="text-blue-700">{{ __('advance_payment.balance_due') }}:</span>
                                             <span class="font-semibold text-blue-800"
-                                                x-text="(total - (total * {{ $hall->advance_payment_percentage }} / 100)).toFixed(3)">
-
+                                                x-text="(subtotal - subtotal * {{ $hall->advance_payment_percentage }} / 100).toFixed(3)">
                                             </span> <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                                 class="inline w-5 h-5 -mt-1">
                                         </div>
@@ -808,6 +812,14 @@
                                         clip-rule="evenodd"></path>
                                 </svg>
                                 {{ __('halls.terms_agree') }}
+                                {{-- <span class="text-sm text-gray-200 ms-2"> --}}
+                                {{-- {{ __('guest.form_agree_to') }} --}}
+                                <a href="/terms-and-conditions" class="text-primary-600 hover:underline"
+                                    target="_blank">{{ __('guest.form_terms_conditions') }}</a>
+                                {{ __('guest.form_and') }}
+                                <a href="/cancellation-policy" class="text-primary-600 hover:underline"
+                                    target="_blank">{{ __('guest.form_cancellation_policy') }}</a>
+                                {{-- </span> --}}
                             </p>
                         </div>
                     </div>
@@ -819,10 +831,10 @@
     @include('layouts.footer')
     @php
         $slotPrices = [
-            'morning'   => $hall->getPriceForSlot('morning'),
+            'morning' => $hall->getPriceForSlot('morning'),
             'afternoon' => $hall->getPriceForSlot('afternoon'),
-            'evening'   => $hall->getPriceForSlot('evening'),
-            'full_day'  => $hall->getPriceForSlot('full_day'),
+            'evening' => $hall->getPriceForSlot('evening'),
+            'full_day' => $hall->getPriceForSlot('full_day'),
         ];
     @endphp
     <script>

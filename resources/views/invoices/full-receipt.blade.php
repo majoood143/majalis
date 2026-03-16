@@ -335,8 +335,8 @@
                 <span>{{ $formattedSubtotal }} OMR</span>
             </div>
             <div class="amount-row">
-                <span>{{ __('Platform Fee') }} ({{ $booking->commission_type === 'percentage' ? $booking->commission_value . '%' : 'Fixed' }})</span>
-                <span>{{ $formattedCommission }} OMR</span>
+                <span>{{ __('Platform Fee') }}{{ $booking->service_fee_type === 'percentage' && $booking->service_fee_value ? ' (' . $booking->service_fee_value . '%)' : '' }}</span>
+                <span>{{ number_format((float) $booking->platform_fee, 3) }} OMR</span>
             </div>
             <div class="amount-row total">
                 <span>{{ __('Total Amount Paid') }}</span>

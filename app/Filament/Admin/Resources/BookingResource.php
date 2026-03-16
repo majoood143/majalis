@@ -9,6 +9,7 @@ use App\Models\HallAvailability;
 use App\Models\Region;
 use App\Models\City;
 use App\Models\ExtraService;
+use App\Services\CommissionService;
 use App\Services\InvoiceService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -786,25 +787,35 @@ class BookingResource extends Resource
             ->where('time_slot', $timeSlot)
             ->first();
 
+        $hall = Hall::find($hallId);
+
         if ($availability && $availability->custom_price !== null) {
             // Use custom price from HallAvailability
             $hallPrice = (float) $availability->custom_price;
         } else {
             // Use default Hall price for this time slot
-            $hall = Hall::find($hallId);
-            if ($hall) {
-                $hallPrice = $hall->getPriceForSlot($timeSlot);
-            } else {
-                $hallPrice = 0;
-            }
+            $hallPrice = $hall ? $hall->getPriceForSlot($timeSlot) : 0;
+        }
+
+        // Resolve commission (Hall-specific > Owner-specific > Global)
+        $commissionAmount = 0;
+        $commissionType   = null;
+        $commissionValue  = null;
+        if ($hall) {
+            $feeData = app(CommissionService::class)->calculateFees($hall, $hallPrice);
+            $commissionAmount = (float) $feeData['commission_amount'];
+            $commissionType   = $feeData['commission_type'];
+            $commissionValue  = $feeData['commission_value'];
         }
 
         $set('hall_price', $hallPrice);
         $set('services_price', 0);
         $set('subtotal', $hallPrice);
-        $set('commission_amount', 0);
-        $set('total_amount', $hallPrice);
-        $set('owner_payout', $hallPrice);
+        $set('commission_amount', $commissionAmount);
+        $set('commission_type', $commissionType);
+        $set('commission_value', $commissionValue);
+        $set('total_amount', $hallPrice); // service fee not yet applied here
+        $set('owner_payout', max(0, $hallPrice - $commissionAmount));
     }
 
     /**
@@ -839,8 +850,7 @@ class BookingResource extends Resource
         }
 
         $subtotal = $hallPrice + $servicesPrice;
-        //$totalAmount = $subtotal + $commissionAmount;
-        $totalAmount = $subtotal + $commissionAmount;
+        $totalAmount = $subtotal; // Commission is owner-side; customer pays subtotal only
         $ownerPayout = $subtotal - $commissionAmount;
 
         $set('services_price', $servicesPrice);

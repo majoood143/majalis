@@ -352,4 +352,8 @@ return [
     'booking_created_proceed_payment' => 'تم إنشاء الحجز بنجاح! يرجى المتابعة لإتمام الدفع',
     'hall_rental'       => 'تأجير القاعة',
     'event'              => 'الفعالية',
+    'balance_due'        => 'المبلغ المتبقي',
+    'platform_fee_included_in_advance' => 'رسوم المنصة مشمولة في الدفعة المقدمة',
+    'payment_partial' => 'دفع جزئي',
+    'advance_paid' => 'الدفعة المقدمة المدفوعة',
 ];
