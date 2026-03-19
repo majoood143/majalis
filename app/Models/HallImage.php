@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Translatable\HasTranslations;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class HallImage extends Model
 {
-    use HasFactory, HasTranslations,HasRoles;
+    use HasFactory, HasTranslations,HasRoles, LogsActivity;
 
     protected $fillable = [
         'hall_id',
@@ -31,8 +33,6 @@ class HallImage extends Model
     ];
 
     protected $casts = [
-        'title' => 'array',
-        'caption' => 'array',
         'file_size' => 'integer',
         'width' => 'integer',
         'height' => 'integer',
@@ -42,6 +42,11 @@ class HallImage extends Model
     ];
 
     public $translatable = ['title', 'caption'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // Relationships
     public function hall(): BelongsTo
@@ -115,17 +120,6 @@ class HallImage extends Model
         }
 
         return 'Unknown';
-    }
-
-    public function getTitleAttribute($value)
-    {
-        if (empty($value)) {
-            return '';
-        }
-
-        $decoded = json_decode($value, true);
-        $locale = app()->getLocale();
-        return $decoded[$locale] ?? $decoded['en'] ?? '';
     }
 
     // Mutators

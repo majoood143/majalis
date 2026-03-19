@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * HallFeature Model
@@ -22,7 +24,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class HallFeature extends Model
 {
-    use HasFactory, HasTranslations, HasRoles;
+    use HasFactory, HasTranslations, HasRoles , LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -56,6 +58,11 @@ class HallFeature extends Model
      * @var array<string>
      */
     public array $translatable = ['name', 'description'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // ==================== RELATIONSHIPS ====================
     // NOTE: Features are stored as JSON in halls.features column,

@@ -8,16 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * Ticket Message Model
- * 
+ *
  * Represents a single message/response in a ticket conversation thread.
  * Supports file attachments, read tracking, and visibility control.
- * 
+ *
  * @package App\Models
  * @version 1.0.0
- * 
+ *
  * @property int $id
  * @property int $ticket_id
  * @property int $user_id
@@ -36,7 +38,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class TicketMessage extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -74,9 +76,14 @@ class TicketMessage extends Model
         'deleted_at' => 'datetime',
     ];
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
+
     /**
      * Bootstrap the model and its traits.
-     * 
+     *
      * @return void
      */
     protected static function boot(): void
@@ -101,7 +108,7 @@ class TicketMessage extends Model
 
     /**
      * Get the ticket this message belongs to.
-     * 
+     *
      * @return BelongsTo<Ticket, TicketMessage>
      */
     public function ticket(): BelongsTo
@@ -111,7 +118,7 @@ class TicketMessage extends Model
 
     /**
      * Get the user who created this message.
-     * 
+     *
      * @return BelongsTo<User, TicketMessage>
      */
     public function user(): BelongsTo
@@ -125,7 +132,7 @@ class TicketMessage extends Model
 
     /**
      * Scope to filter visible messages (exclude internal notes for customers).
-     * 
+     *
      * @param Builder $query
      * @param bool $isStaff
      * @return Builder
@@ -143,7 +150,7 @@ class TicketMessage extends Model
 
     /**
      * Scope to filter unread messages.
-     * 
+     *
      * @param Builder $query
      * @return Builder
      */
@@ -154,7 +161,7 @@ class TicketMessage extends Model
 
     /**
      * Scope to filter messages by type.
-     * 
+     *
      * @param Builder $query
      * @param TicketMessageType|string $type
      * @return Builder
@@ -167,7 +174,7 @@ class TicketMessage extends Model
 
     /**
      * Scope to filter customer-visible messages only.
-     * 
+     *
      * @param Builder $query
      * @return Builder
      */
@@ -187,7 +194,7 @@ class TicketMessage extends Model
 
     /**
      * Get formatted message content with line breaks.
-     * 
+     *
      * @return string
      */
     public function getFormattedMessageAttribute(): string
@@ -197,7 +204,7 @@ class TicketMessage extends Model
 
     /**
      * Check if message has attachments.
-     * 
+     *
      * @return bool
      */
     public function getHasAttachmentsAttribute(): bool
@@ -207,7 +214,7 @@ class TicketMessage extends Model
 
     /**
      * Get count of attachments.
-     * 
+     *
      * @return int
      */
     public function getAttachmentsCountAttribute(): int
@@ -217,7 +224,7 @@ class TicketMessage extends Model
 
     /**
      * Check if message is from a staff member.
-     * 
+     *
      * @return bool
      */
     public function getIsFromStaffAttribute(): bool
@@ -230,7 +237,7 @@ class TicketMessage extends Model
 
     /**
      * Check if message is visible to customers.
-     * 
+     *
      * @return bool
      */
     public function getIsVisibleToCustomerAttribute(): bool
@@ -244,7 +251,7 @@ class TicketMessage extends Model
 
     /**
      * Mark message as read.
-     * 
+     *
      * @return bool
      */
     public function markAsRead(): bool
@@ -261,7 +268,7 @@ class TicketMessage extends Model
 
     /**
      * Mark message as unread.
-     * 
+     *
      * @return bool
      */
     public function markAsUnread(): bool
@@ -274,7 +281,7 @@ class TicketMessage extends Model
 
     /**
      * Add attachment to the message.
-     * 
+     *
      * @param string $path File path in storage
      * @param string $originalName Original filename
      * @param string $mimeType File MIME type
@@ -284,7 +291,7 @@ class TicketMessage extends Model
     public function addAttachment(string $path, string $originalName, string $mimeType, int $size): bool
     {
         $attachments = $this->attachments ?? [];
-        
+
         $attachments[] = [
             'path' => $path,
             'original_name' => $originalName,
@@ -298,7 +305,7 @@ class TicketMessage extends Model
 
     /**
      * Remove an attachment from the message.
-     * 
+     *
      * @param int $index Attachment array index
      * @return bool
      */
@@ -324,7 +331,7 @@ class TicketMessage extends Model
 
     /**
      * Get download URL for an attachment.
-     * 
+     *
      * @param int $index Attachment array index
      * @return string|null
      */
@@ -336,7 +343,7 @@ class TicketMessage extends Model
 
         // Generate a temporary signed URL for secure downloads
         $attachment = $this->attachments[$index];
-        
+
         if (!isset($attachment['path'])) {
             return null;
         }
@@ -350,7 +357,7 @@ class TicketMessage extends Model
 
     /**
      * Check if user can see this message.
-     * 
+     *
      * @param User $user
      * @return bool
      */
@@ -371,14 +378,14 @@ class TicketMessage extends Model
 
     /**
      * Get human-readable file size.
-     * 
+     *
      * @param int $bytes
      * @return string
      */
     public static function formatFileSize(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }

@@ -7,13 +7,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * BookingExtraService Model
- * 
+ *
  * Represents an extra service added to a booking.
  * Stores a snapshot of the service details at the time of booking.
- * 
+ *
  * @property int $id
  * @property int $booking_id
  * @property int $extra_service_id
@@ -23,13 +25,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property float $total_price
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
- * 
+ *
  * @property-read Booking $booking
  * @property-read ExtraService $extraService
  */
 class BookingExtraService extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
     /**
      * The table associated with the model.
@@ -63,6 +66,11 @@ class BookingExtraService extends Model
         'total_price' => 'decimal:2',
         'quantity' => 'integer',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // =========================================================
     // RELATIONSHIPS
@@ -100,7 +108,7 @@ class BookingExtraService extends Model
     public function getLocalizedNameAttribute(): string
     {
         $name = $this->service_name;
-        
+
         // Handle JSON string
         if (is_string($name)) {
             $decoded = json_decode($name, true);
@@ -110,12 +118,12 @@ class BookingExtraService extends Model
             // Remove surrounding quotes if present
             return trim($name, '"');
         }
-        
+
         // Handle array
         if (is_array($name)) {
             return $name[app()->getLocale()] ?? $name['en'] ?? (string) array_values($name)[0];
         }
-        
+
         return (string) $name;
     }
 }

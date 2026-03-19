@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * Page Model
@@ -35,7 +37,7 @@ use Illuminate\Support\Str;
  */
 class Page extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -69,6 +71,11 @@ class Page extends Model
         'show_in_header' => 'boolean',
         'order' => 'integer',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Boot the model and add event listeners.

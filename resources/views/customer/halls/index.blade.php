@@ -79,13 +79,13 @@
                     colors: {
                         brand: {
                             50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
+                            100: '#8A8A8C',
+                            200: '#F8F5F2',
+                            300: '#e5e7eb',
+                            400: '#E8D5C4',
+                            500: '#B9916D',
+                            600: '#B9916D',
+                            700: '#E8D5C4',
                             800: '#065f46',
                             900: '#064e3b',
                         }
@@ -982,7 +982,7 @@
                             <strong style="font-size:14px;">${name}</strong><br>
                             <span style="color:#059669;font-weight:bold;font-size:13px;">${parseFloat(h.price).toFixed(3)} <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                         class="inline w-5 h-5 -mt-1"></span><br>
-                            <a href="${viewUrl}/${h.slug}" style="display:block;text-align:center;background:#059669;color:white;padding:8px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;font-size:13px;">
+                            <a href="${viewUrl}/${h.slug}" style="display:block;text-align:center;background:#B9916D;color:white;padding:8px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;font-size:13px;">
                                 {{ __('halls.view_details') }}
                             </a>
                         </div>`;

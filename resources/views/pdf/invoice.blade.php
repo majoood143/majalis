@@ -41,7 +41,7 @@
 
 <body>
     <div class="header">
-        <img src="{{ public_path('images/logo.webp') }}" alt="Majalis Logo">
+        <img src="{{ public_path(config('app.logo_path')) }}" alt="Majalis Logo">
         <h1>MAJALIS</h1>
         <h2>Booking Invoice</h2>
     </div>

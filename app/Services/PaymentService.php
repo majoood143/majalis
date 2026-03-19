@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationService;
 
 /**
  * Payment Service for Thawani Gateway Integration
@@ -146,6 +147,108 @@ class PaymentService
                 'payment_method' => $paymentMethod,
                 'message' => 'Payment processing error: ' . $e->getMessage(),
             ];
+        }
+    }
+
+    /**
+     * Create a Thawani payment link for admin-created bookings.
+     *
+     * Uses public callback routes (no customer auth required) so the link
+     * can be emailed to a customer who may not have an account.
+     *
+     * @param Booking $booking
+     * @return array ['success', 'payment_url', 'payment_id']
+     */
+    public function createAdminPaymentLink(Booking $booking): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $payment = $this->createPaymentRecord($booking, 'online');
+
+            $paymentAmount = $booking->isAdvancePayment() && $booking->advance_amount
+                ? (float) $booking->advance_amount
+                : (float) $booking->total_amount;
+
+            $amountInBaisa = (int) round($paymentAmount * 1000);
+
+            if ($amountInBaisa <= 0) {
+                throw new Exception('Invalid payment amount: ' . $paymentAmount);
+            }
+
+            $productName = $booking->isAdvancePayment()
+                ? substr($booking->booking_number . ' Advance', 0, 40)
+                : substr('Booking ' . $booking->booking_number, 0, 40);
+
+            $successUrl = route('payment.callback.success', ['booking' => $booking->id]);
+            $cancelUrl  = route('payment.callback.cancel',  ['booking' => $booking->id]);
+
+            $paymentData = [
+                'client_reference_id' => $payment->payment_reference,
+                'mode'        => 'payment',
+                'products'    => [['name' => $productName, 'quantity' => 1, 'unit_amount' => $amountInBaisa]],
+                'success_url' => $successUrl,
+                'cancel_url'  => $cancelUrl,
+            ];
+
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL            => $this->baseUrl . '/checkout/session',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode($paymentData),
+                CURLOPT_HTTPHEADER     => [
+                    'thawani-api-key: ' . $this->apiKey,
+                    'Content-Type: application/json',
+                ],
+                CURLOPT_TIMEOUT        => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+            ]);
+
+            $responseBody = curl_exec($ch);
+            $statusCode   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError    = curl_error($ch);
+            curl_close($ch);
+
+            if ($curlError) {
+                throw new Exception('Thawani connection error: ' . $curlError);
+            }
+
+            $result = json_decode($responseBody, true);
+
+            if ($statusCode === 200 && ($result['success'] ?? false) === true) {
+                $sessionId  = $result['data']['session_id'];
+                $paymentUrl = "https://uatcheckout.thawani.om/pay/{$sessionId}?key={$this->publishableKey}";
+
+                $payment->update([
+                    'transaction_id'   => $sessionId,
+                    'payment_url'      => $paymentUrl,
+                    'gateway_response' => $result,
+                    'status'           => Payment::STATUS_PROCESSING,
+                ]);
+
+                DB::commit();
+
+                Log::info('Admin payment link created', [
+                    'booking_id' => $booking->id,
+                    'session_id' => $sessionId,
+                ]);
+
+                return ['success' => true, 'payment_url' => $paymentUrl, 'payment_id' => $payment->id];
+            }
+
+            $errorMessage = $result['description'] ?? $result['message'] ?? 'Failed to create payment session';
+            throw new Exception($errorMessage);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            Log::error('Admin payment link creation failed', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 
@@ -407,9 +510,30 @@ class PaymentService
         DB::beginTransaction();
 
         try {
+            // Try exact match first; fall back to latest processing payment for this booking
             $payment = Payment::where('booking_id', $booking->id)
                 ->where('transaction_id', $sessionId)
-                ->firstOrFail();
+                ->first();
+
+            if (!$payment) {
+                Log::warning('handlePaymentSuccess: no exact transaction_id match, falling back to latest payment', [
+                    'booking_id' => $booking->id,
+                    'session_id' => $sessionId,
+                ]);
+
+                $payment = Payment::where('booking_id', $booking->id)
+                    ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_PROCESSING])
+                    ->latest()
+                    ->first();
+
+                if (!$payment) {
+                    DB::rollBack();
+                    return ['success' => false, 'message' => 'No pending payment found for this booking'];
+                }
+
+                // Update the stored session_id so future lookups succeed
+                $payment->update(['transaction_id' => $sessionId]);
+            }
 
             $sessionStatus = $this->getSessionStatus($sessionId);
 
@@ -471,6 +595,17 @@ class PaymentService
                 }
 
                 DB::commit();
+
+                // Send confirmation email after successful payment
+                try {
+                    $booking->refresh();
+                    app(NotificationService::class)->sendBookingConfirmedNotification($booking);
+                } catch (Exception $notifEx) {
+                    Log::error('Failed to send confirmation email after payment', [
+                        'booking_id' => $booking->id,
+                        'error' => $notifEx->getMessage(),
+                    ]);
+                }
 
                 return [
                     'success' => true,

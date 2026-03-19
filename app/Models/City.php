@@ -8,10 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class City extends Model
 {
-    use HasFactory, HasTranslations, HasRoles;
+    use HasFactory, HasTranslations, HasRoles , LogsActivity;
+
+     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
 
     protected $fillable = [
         'region_id',
@@ -32,6 +40,11 @@ class City extends Model
         'is_active' => 'boolean',
         'order' => 'integer',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     public $translatable = ['name', 'description'];
 

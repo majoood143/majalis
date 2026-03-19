@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * HallAvailability Model
@@ -41,6 +43,9 @@ class HallAvailability extends Model
 {
     use HasFactory;
     use HasRoles;
+    use LogsActivity;
+
+
 
     /**
      * The attributes that are mass assignable.
@@ -67,6 +72,11 @@ class HallAvailability extends Model
         'is_available' => 'boolean',
         'custom_price' => 'decimal:2',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // =========================================================================
     // RELATIONSHIPS

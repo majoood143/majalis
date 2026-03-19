@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Review extends Model
 {
-    use HasFactory,HasRoles;
+    use HasFactory,HasRoles, LogsActivity;
 
     protected $fillable = [
         'hall_id',
@@ -40,6 +42,11 @@ class Review extends Model
         'is_featured' => 'boolean',
         'owner_response_at' => 'datetime',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // Relationships
     public function hall(): BelongsTo

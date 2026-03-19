@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * Payment Model
@@ -54,7 +56,7 @@ use Illuminate\Support\Facades\Log;
  */
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -105,6 +107,11 @@ class Payment extends Model
         'customer_ip',
         'user_agent',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Payment status constants

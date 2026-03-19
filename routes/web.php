@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\HallController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentController;
 
 // Home page — Hall listings (served at / without redirect)
 Route::get('/', [HallController::class, 'index'])->name('home');
@@ -109,6 +110,10 @@ Route::get('/api/halls/suggest-dates', [HallController::class, 'suggestDates'])
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/customer-tickets.php';
 });
+
+// Public payment callback routes — no auth required (for admin-sent payment links)
+Route::get('/payment/callback/{booking}', [PaymentController::class, 'success'])->name('payment.callback.success');
+Route::get('/payment/callback/{booking}/cancel', [PaymentController::class, 'cancel'])->name('payment.callback.cancel');
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/customer.php';

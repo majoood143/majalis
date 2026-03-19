@@ -2,377 +2,334 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>{{ __('admin.reports.pdf.title') }} - {{ config('app.name') }}</title>
     <style>
-        /* Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; }
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #1f2937;
+            font-size: 8pt;
+            color: #000000;
+            line-height: 1.4;
+            background: #ffffff;
             direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
 
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        .header-title {
-            font-size: 24px;
+        /* Section titles */
+        .section-title {
+            font-size: 9pt;
             font-weight: bold;
-            margin-bottom: 10px;
+            color: #000000;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000000;
+            margin-bottom: 6px;
         }
 
-        .header-subtitle {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .header-meta {
-            margin-top: 15px;
-            font-size: 11px;
-            opacity: 0.8;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: table;
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .stats-row {
-            display: table-row;
-        }
-
+        /* Stat boxes */
         .stat-box {
-            display: table-cell;
-            width: 25%;
-            padding: 15px;
+            padding: 6px 8px;
             text-align: center;
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
+            border: 1px solid #cccccc;
+            background: #f9f9f9;
         }
 
         .stat-value {
-            font-size: 20px;
+            font-size: 13pt;
             font-weight: bold;
-            color: #1f2937;
+            color: #000000;
         }
-
-        .stat-value.success { color: #059669; }
-        .stat-value.primary { color: #4f46e5; }
-        .stat-value.warning { color: #d97706; }
-        .stat-value.danger { color: #dc2626; }
 
         .stat-label {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        /* Section */
-        .section {
-            margin-bottom: 30px;
-            page-break-inside: avoid;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #1f2937;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #4f46e5;
-            margin-bottom: 15px;
+            font-size: 6.5pt;
+            color: #444444;
+            margin-top: 2px;
         }
 
         /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
+        table { border-collapse: collapse; }
 
-        th, td {
-            padding: 10px 12px;
-            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
-            border-bottom: 1px solid #e5e7eb;
-        }
+        .data-table { width: 100%; font-size: 7.5pt; }
 
-        th {
-            background: #f3f4f6;
-            font-weight: 600;
-            color: #374151;
-            font-size: 11px;
+        .data-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #000000;
+            font-size: 7pt;
             text-transform: uppercase;
+            padding: 5px 6px;
+            border-bottom: 1px solid #999999;
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
 
-        tr:hover {
-            background: #f9fafb;
+        .data-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e5e5e5;
+            color: #000000;
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
 
         .text-right { text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }}; }
         .text-center { text-align: center; }
 
-        .currency {
-            font-family: monospace;
-            font-weight: 600;
-        }
-
-        .currency.success { color: #059669; }
-        .currency.danger { color: #dc2626; }
-        .currency.primary { color: #4f46e5; }
-
-        /* Summary Box */
-        .summary-box {
-            background: #f3f4f6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .summary-row:last-child {
-            border-bottom: none;
-        }
-
-        .summary-label {
-            color: #6b7280;
-        }
-
-        .summary-value {
-            font-weight: 600;
-        }
+        /* Commission table rows */
+        .summary-label { color: #444444; }
+        .summary-value { font-weight: bold; color: #000000; }
 
         /* Footer */
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            font-size: 10px;
-            color: #9ca3af;
-        }
-
-        /* Page Break */
-        .page-break {
-            page-break-before: always;
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 10px;
-            font-weight: 500;
-        }
-
-        .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-        .badge-primary { background: #e0e7ff; color: #3730a3; }
+        .footer-text { font-size: 6.5pt; color: #555555; }
     </style>
 </head>
 <body>
-    {{-- Header --}}
-    <div class="header">
-        <div class="header-title">{{ __('admin.reports.pdf.title') }}</div>
-        <div class="header-subtitle">{{ config('app.name') }} - {{ __('admin.reports.pdf.platform_report') }}</div>
-        <div class="header-meta">
-            {{ __('admin.reports.pdf.period') }}: {{ $startDate }} → {{ $endDate }} |
-            {{ __('admin.reports.pdf.generated') }}: {{ $generatedAt }} |
-            {{ __('admin.reports.pdf.by') }}: {{ $generatedBy }}
-        </div>
-    </div>
 
-    {{-- Overview Stats --}}
-    <div class="section">
-        <div class="section-title">📊 {{ __('admin.reports.pdf.overview') }}</div>
-        <div class="stats-grid">
-            <div class="stats-row">
-                <div class="stat-box">
-                    <div class="stat-value success">{{ number_format($stats['total_revenue'], 3) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.total_revenue') }} (OMR)</div>
+    {{-- ========================================================================
+        Header — Logo centered + title + period
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 2px solid #000000; margin-bottom: 10px;">
+        <tr>
+            <td style="text-align: center; padding-bottom: 8px;">
+                <img src="{{ public_path(config('app.logo_path')) }}"
+                     alt="{{ config('app.name') }}"
+                     style="height: 40px; display: block; margin: 0 auto 4px auto;">
+                <div style="font-size: 13pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('admin.reports.pdf.title') }}
                 </div>
-                <div class="stat-box">
-                    <div class="stat-value primary">{{ number_format($stats['total_commission'], 3) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.platform_commission') }} (OMR)</div>
+                <div style="font-size: 7.5pt; color: #444444;">
+                    {{ __('admin.reports.pdf.period') }}: {{ $startDate }} &mdash; {{ $endDate }}
+                    &nbsp;|&nbsp; {{ __('admin.reports.pdf.generated') }}: {{ $generatedAt }}
+                    &nbsp;|&nbsp; {{ __('admin.reports.pdf.by') }}: {{ $generatedBy }}
                 </div>
-                <div class="stat-box">
-                    <div class="stat-value">{{ number_format($stats['total_owner_payout'], 3) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.owner_payouts') }} (OMR)</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value warning">{{ number_format($stats['pending_payout_amount'], 3) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.pending_payouts') }} (OMR)</div>
-                </div>
-            </div>
-        </div>
-    </div>
+            </td>
+        </tr>
+    </table>
 
-    {{-- Booking Stats --}}
-    <div class="section">
-        <div class="section-title">📅 {{ __('admin.reports.pdf.booking_stats') }}</div>
-        <div class="stats-grid">
-            <div class="stats-row">
-                <div class="stat-box">
-                    <div class="stat-value">{{ number_format($stats['total_bookings']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.total_bookings') }}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value success">{{ number_format($stats['confirmed_bookings']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.confirmed') }}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value primary">{{ number_format($stats['completed_bookings']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.completed') }}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value danger">{{ number_format($stats['cancelled_bookings']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.cancelled') }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- ========================================================================
+        Row 1: Overview Stats + Booking Stats (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            {{-- Overview Stats --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('admin.reports.pdf.overview') }}</div>
+                <table width="100%" cellpadding="0" cellspacing="2">
+                    <tr>
+                        <td width="50%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ number_format($stats['total_revenue'], 3) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.total_revenue') }} (OMR)</div>
+                            </div>
+                        </td>
+                        <td width="50%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ number_format($stats['total_commission'], 3) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.platform_commission') }} (OMR)</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ number_format($stats['total_owner_payout'], 3) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.owner_payouts') }} (OMR)</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ number_format($stats['pending_payout_amount'], 3) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.pending_payouts') }} (OMR)</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
 
-    {{-- Commission Report --}}
-    <div class="section">
-        <div class="section-title">💰 {{ __('admin.reports.pdf.commission_summary') }}</div>
-        <div class="summary-box">
-            <table>
-                <tr>
-                    <td>{{ __('admin.reports.pdf.gross_revenue') }}</td>
-                    <td class="text-right currency">{{ number_format($commissionReport['total_revenue'], 3) }} OMR</td>
-                </tr>
-                <tr>
-                    <td>{{ __('admin.reports.pdf.total_commission') }}</td>
-                    <td class="text-right currency primary">{{ number_format($commissionReport['total_commission'], 3) }} OMR</td>
-                </tr>
-                <tr>
-                    <td>{{ __('admin.reports.pdf.avg_commission_rate') }}</td>
-                    <td class="text-right"><strong>{{ $commissionReport['commission_rate'] }}%</strong></td>
-                </tr>
-                <tr>
-                    <td>{{ __('admin.reports.pdf.bookings_processed') }}</td>
-                    <td class="text-right"><strong>{{ $commissionReport['bookings_count'] }}</strong></td>
-                </tr>
-            </table>
-        </div>
-    </div>
+            <td width="2%"></td>
 
-    {{-- Top Performing Halls --}}
+            {{-- Booking Stats --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('admin.reports.pdf.booking_stats') }}</div>
+                <table width="100%" cellpadding="0" cellspacing="2">
+                    <tr>
+                        <td width="50%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ number_format($stats['total_bookings']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.total_bookings') }}</div>
+                            </div>
+                        </td>
+                        <td width="50%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ number_format($stats['confirmed_bookings']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.confirmed') }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ number_format($stats['completed_bookings']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.completed') }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ number_format($stats['cancelled_bookings']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.cancelled') }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 2: Commission Summary + Platform Stats (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            {{-- Commission Summary --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('admin.reports.pdf.commission_summary') }}</div>
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="summary-label">{{ __('admin.reports.pdf.gross_revenue') }}</td>
+                        <td class="text-right summary-value">{{ number_format($commissionReport['total_revenue'], 3) }} OMR</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">{{ __('admin.reports.pdf.total_commission') }}</td>
+                        <td class="text-right summary-value">{{ number_format($commissionReport['total_commission'], 3) }} OMR</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">{{ __('admin.reports.pdf.avg_commission_rate') }}</td>
+                        <td class="text-right summary-value">{{ $commissionReport['commission_rate'] }}%</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">{{ __('admin.reports.pdf.bookings_processed') }}</td>
+                        <td class="text-right summary-value">{{ $commissionReport['bookings_count'] }}</td>
+                    </tr>
+                </table>
+            </td>
+
+            <td width="2%"></td>
+
+            {{-- Platform Stats --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('admin.reports.pdf.platform_stats') }}</div>
+                <table width="100%" cellpadding="0" cellspacing="2">
+                    <tr>
+                        <td width="50%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ number_format($stats['total_halls']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.active_halls') }}</div>
+                            </div>
+                        </td>
+                        <td width="50%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ number_format($stats['total_owners']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.verified_owners') }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ number_format($stats['total_customers']) }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.total_customers') }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ $stats['pending_payouts'] }}</div>
+                                <div class="stat-label">{{ __('admin.reports.pdf.pending_payout_count') }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Top Performing Halls
+        ======================================================================== --}}
     @if($topHalls->isNotEmpty())
-        <div class="section page-break">
-            <div class="section-title">🏆 {{ __('admin.reports.pdf.top_halls') }}</div>
-            <table>
-                <thead>
+        <div class="section-title" style="margin-bottom: 6px;">{{ __('admin.reports.pdf.top_halls') }}</div>
+        <table class="data-table" width="100%" style="margin-bottom: 10px;">
+            <thead>
+                <tr>
+                    <th width="5%">#</th>
+                    <th>{{ __('admin.reports.pdf.hall_name') }}</th>
+                    <th class="text-center" width="15%">{{ __('admin.reports.pdf.bookings') }}</th>
+                    <th class="text-right" width="22%">{{ __('admin.reports.pdf.revenue') }}</th>
+                    <th class="text-right" width="22%">{{ __('admin.reports.pdf.avg_booking') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($topHalls as $index => $hall)
+                    @php
+                        $hallName = is_array($hall->name)
+                            ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? '')
+                            : $hall->name;
+                    @endphp
                     <tr>
-                        <th>#</th>
-                        <th>{{ __('admin.reports.pdf.hall_name') }}</th>
-                        <th class="text-center">{{ __('admin.reports.pdf.bookings') }}</th>
-                        <th class="text-right">{{ __('admin.reports.pdf.revenue') }}</th>
-                        <th class="text-right">{{ __('admin.reports.pdf.avg_booking') }}</th>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>{{ $hallName }}</td>
+                        <td class="text-center">{{ $hall->bookings_count }}</td>
+                        <td class="text-right">{{ number_format((float) $hall->total_revenue, 3) }} OMR</td>
+                        <td class="text-right">{{ number_format((float) $hall->avg_booking_value, 3) }} OMR</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach($topHalls as $index => $hall)
-                        @php
-                            $hallName = is_array($hall->name) ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? '') : $hall->name;
-                        @endphp
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $hallName }}</td>
-                            <td class="text-center">{{ $hall->bookings_count }}</td>
-                            <td class="text-right currency success">{{ number_format((float) $hall->total_revenue, 3) }} OMR</td>
-                            <td class="text-right currency">{{ number_format((float) $hall->avg_booking_value, 3) }} OMR</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                @endforeach
+            </tbody>
+        </table>
     @endif
 
-    {{-- Top Performing Owners --}}
+    {{-- ========================================================================
+        Top Performing Owners
+        ======================================================================== --}}
     @if($topOwners->isNotEmpty())
-        <div class="section">
-            <div class="section-title">👥 {{ __('admin.reports.pdf.top_owners') }}</div>
-            <table>
-                <thead>
+        <div class="section-title" style="margin-bottom: 6px;">{{ __('admin.reports.pdf.top_owners') }}</div>
+        <table class="data-table" width="100%" style="margin-bottom: 10px;">
+            <thead>
+                <tr>
+                    <th width="5%">#</th>
+                    <th>{{ __('admin.reports.pdf.owner_name') }}</th>
+                    <th>{{ __('admin.reports.pdf.business') }}</th>
+                    <th class="text-center" width="10%">{{ __('admin.reports.pdf.halls') }}</th>
+                    <th class="text-center" width="12%">{{ __('admin.reports.pdf.bookings') }}</th>
+                    <th class="text-right" width="18%">{{ __('admin.reports.pdf.revenue') }}</th>
+                    <th class="text-right" width="18%">{{ __('admin.reports.pdf.commission') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($topOwners as $index => $owner)
                     <tr>
-                        <th>#</th>
-                        <th>{{ __('admin.reports.pdf.owner_name') }}</th>
-                        <th>{{ __('admin.reports.pdf.business') }}</th>
-                        <th class="text-center">{{ __('admin.reports.pdf.halls') }}</th>
-                        <th class="text-center">{{ __('admin.reports.pdf.bookings') }}</th>
-                        <th class="text-right">{{ __('admin.reports.pdf.revenue') }}</th>
-                        <th class="text-right">{{ __('admin.reports.pdf.commission') }}</th>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>{{ $owner->name }}</td>
+                        <td>{{ $owner->business_name ?? '—' }}</td>
+                        <td class="text-center">{{ $owner->halls_count }}</td>
+                        <td class="text-center">{{ $owner->bookings_count }}</td>
+                        <td class="text-right">{{ number_format((float) $owner->total_revenue, 3) }} OMR</td>
+                        <td class="text-right">{{ number_format((float) $owner->total_commission, 3) }} OMR</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach($topOwners as $index => $owner)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $owner->name }}</td>
-                            <td>{{ $owner->business_name ?? '—' }}</td>
-                            <td class="text-center">{{ $owner->halls_count }}</td>
-                            <td class="text-center">{{ $owner->bookings_count }}</td>
-                            <td class="text-right currency success">{{ number_format((float) $owner->total_revenue, 3) }} OMR</td>
-                            <td class="text-right currency primary">{{ number_format((float) $owner->total_commission, 3) }} OMR</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                @endforeach
+            </tbody>
+        </table>
     @endif
 
-    {{-- Platform Stats --}}
-    <div class="section">
-        <div class="section-title">🏢 {{ __('admin.reports.pdf.platform_stats') }}</div>
-        <div class="stats-grid">
-            <div class="stats-row">
-                <div class="stat-box">
-                    <div class="stat-value primary">{{ number_format($stats['total_halls']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.active_halls') }}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">{{ number_format($stats['total_owners']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.verified_owners') }}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">{{ number_format($stats['total_customers']) }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.total_customers') }}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">{{ $stats['pending_payouts'] }}</div>
-                    <div class="stat-label">{{ __('admin.reports.pdf.pending_payout_count') }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 8px; border-top: 1px solid #cccccc; padding-top: 6px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle;" class="footer-text">
+                {{ __('admin.reports.pdf.footer', ['app' => config('app.name')]) }}
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};" class="footer-text">
+                {{ __('admin.reports.pdf.confidential') }}
+            </td>
+        </tr>
+    </table>
 
-    {{-- Footer --}}
-    <div class="footer">
-        <p>{{ __('admin.reports.pdf.footer', ['app' => config('app.name')]) }}</p>
-        <p>{{ __('admin.reports.pdf.confidential') }}</p>
-    </div>
 </body>
 </html>

@@ -25,7 +25,7 @@ class EditHallImage extends EditRecord
                 ->color('info')
                 //->url(fn () => Storage::disk('public')->url($this->record->image_path))
                 ->openUrlInNewTab(),
-            
+
             Actions\Action::make('toggleActive')
                 ->label(fn () => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn () => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
@@ -34,16 +34,16 @@ class EditHallImage extends EditRecord
                 ->action(function () {
                     $this->record->is_active = !$this->record->is_active;
                     $this->record->save();
-                    
+
                     Notification::make()
                         ->success()
                         ->title('Status Updated')
                         ->send();
-                    
+
                     Cache::tags(['hall_images', 'hall_' . $this->record->hall_id])->flush();
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
-            
+
             Actions\Action::make('toggleFeatured')
                 ->label(fn () => $this->record->is_featured ? 'Unmark Featured' : 'Mark as Featured')
                 ->icon(fn () => $this->record->is_featured ? 'heroicon-o-star' : 'heroicon-o-star')
@@ -52,16 +52,16 @@ class EditHallImage extends EditRecord
                 ->action(function () {
                     $this->record->is_featured = !$this->record->is_featured;
                     $this->record->save();
-                    
+
                     Notification::make()
                         ->success()
                         ->title('Featured Status Updated')
                         ->send();
-                    
+
                     Cache::tags(['hall_images', 'hall_' . $this->record->hall_id])->flush();
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
-            
+
             Actions\Action::make('optimizeImage')
                 ->label('Optimize Image')
                 ->icon('heroicon-o-sparkles')
@@ -72,7 +72,7 @@ class EditHallImage extends EditRecord
                 ->action(function () {
                     $this->optimizeImage();
                 }),
-            
+
             Actions\Action::make('regenerateThumbnail')
                 ->label('Regenerate Thumbnail')
                 ->icon('heroicon-o-photo')
@@ -93,7 +93,7 @@ class EditHallImage extends EditRecord
                         ->title('Image Deleted')
                         ->body('The image and its files have been deleted.')
                 ),
-            
+
             Actions\Action::make('viewHistory')
                 ->label('View History')
                 ->icon('heroicon-o-clock')
@@ -134,64 +134,64 @@ class EditHallImage extends EditRecord
         if (empty($data['alt_text']) && isset($data['title']['en'])) {
             $data['alt_text'] = $data['title']['en'];
         }
-        
+
         // Ensure featured images are marked as featured
         if ($data['type'] === 'featured' && !$data['is_featured']) {
             $data['is_featured'] = true;
         }
-        
+
         // Check for new image upload
         if (isset($data['image_path']) && $data['image_path'] !== $this->record->image_path) {
             // New image uploaded, delete old one
             if ($this->record->image_path) {
                 Storage::disk('public')->delete($this->record->image_path);
             }
-            
+
             if ($this->record->thumbnail_path) {
                 Storage::disk('public')->delete($this->record->thumbnail_path);
                 $data['thumbnail_path'] = null;
             }
         }
-        
+
         return $data;
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         $oldValues = $record->toArray();
-        
+
         $record->update($data);
-        
+
         // Extract metadata if image changed
         if (isset($data['image_path']) && $data['image_path'] !== $oldValues['image_path']) {
             $this->extractImageMetadata($record);
-            
+
             // Generate new thumbnail
             if (empty($data['thumbnail_path'])) {
                 $this->generateThumbnail($record);
             }
         }
-        
-        $changes = array_diff_assoc($data, $oldValues);
-        
-        // Log the update
-        activity()
-            ->performedOn($record)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'old' => $oldValues,
-                'changes' => $changes,
-            ])
-            ->log('Hall image updated');
-        
+
+        // $changes = array_diff_assoc($data, $oldValues);
+
+        // // Log the update
+        // activity()
+        //     ->performedOn($record)
+        //     ->causedBy(Auth::user())
+        //     ->withProperties([
+        //         'old' => $oldValues,
+        //         'changes' => $changes,
+        //     ])
+        //     ->log('Hall image updated');
+
         return $record;
     }
 
     protected function afterSave(): void
     {
         // Clear cache
-        Cache::tags(['hall_images', 'hall_' . $this->record->hall_id])->flush();
-        
+        //Cache::tags(['hall_images', 'hall_' . $this->record->hall_id])->flush();
+
         // Log the update
         Log::info('Hall image updated', [
             'image_id' => $this->record->id,
@@ -205,24 +205,24 @@ class EditHallImage extends EditRecord
         try {
             // Implement image optimization
             // Example using Intervention Image or similar package
-            
+
             $originalSize = Storage::disk('public')->size($this->record->image_path);
-            
+
             // Optimization logic here
-            
+
             $newSize = Storage::disk('public')->size($this->record->image_path);
             $savedBytes = $originalSize - $newSize;
             $savedPercentage = round(($savedBytes / $originalSize) * 100, 1);
-            
+
             // Update file size in database
             $this->extractImageMetadata($this->record);
-            
+
             Notification::make()
                 ->success()
                 ->title('Image Optimized')
                 ->body("Saved {$savedPercentage}% ({$this->formatBytes($savedBytes)})")
                 ->send();
-            
+
             Cache::tags(['hall_images', 'hall_' . $this->record->hall_id])->flush();
         } catch (\Exception $e) {
             Notification::make()
@@ -247,17 +247,18 @@ class EditHallImage extends EditRecord
     {
         try {
             $path = Storage::disk('public')->path($image->image_path);
-            
+
             if (file_exists($path)) {
                 $imageInfo = getimagesize($path);
-                
+
                 if ($imageInfo) {
                     $width = $imageInfo[0];
                     $height = $imageInfo[1];
                     $fileSize = Storage::disk('public')->size($image->image_path);
-                    
+
                     $image->update([
-                        'dimensions' => "{$width}x{$height}",
+                        'width' => $width,
+                        'height' => $height,
                         'file_size' => $fileSize,
                     ]);
                 }
@@ -274,7 +275,7 @@ class EditHallImage extends EditRecord
         $width = (int) ($dimensions[0] ?? 0);
         $height = (int) ($dimensions[1] ?? 0);
         $aspectRatio = $width > 0 && $height > 0 ? round($width / $height, 2) : 0;
-        
+
         return [
             'file_size' => $this->formatBytes($fileSize),
             'dimensions' => $this->record->dimensions ?? 'Unknown',
@@ -292,7 +293,7 @@ class EditHallImage extends EditRecord
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
         $bytes /= pow(1024, $pow);
-        
+
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
@@ -300,9 +301,9 @@ class EditHallImage extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
-            
+
             $this->getCancelFormAction(),
         ];
     }
@@ -318,7 +319,7 @@ class EditHallImage extends EditRecord
         $type = $this->record->type_label ?? $this->record->type;
         $status = $this->record->is_active ? 'Active' : 'Inactive';
         $featured = $this->record->is_featured ? '• Featured' : '';
-        
+
         return "{$hall} • {$type} • {$status} {$featured}";
     }
 

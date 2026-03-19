@@ -10,13 +10,15 @@ use App\Enums\NotificationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * BookingNotification Model
- * 
+ *
  * Logs all notifications sent for bookings.
  * Tracks delivery status, retries, and provides audit trail.
- * 
+ *
  * @property int $id
  * @property int $booking_id
  * @property int|null $user_id
@@ -35,7 +37,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Carbon\Carbon|null $clicked_at
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
- * 
+ *
  * @property-read Booking $booking
  * @property-read User|null $user
  * @property-read NotificationType $typeEnum
@@ -45,6 +47,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BookingNotification extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
     /**
      * The table associated with the model.
@@ -93,6 +96,12 @@ class BookingNotification extends Model
         'read_at' => 'datetime',
         'clicked_at' => 'datetime',
     ];
+
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * The attributes that should have default values.

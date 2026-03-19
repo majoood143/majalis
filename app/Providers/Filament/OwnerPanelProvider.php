@@ -35,7 +35,7 @@ class OwnerPanelProvider extends PanelProvider
             ->path('owner')
             ->login()  // This enables the login page
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#B9916D'),
                 'danger' => Color::Rose,
                 'warning' => Color::Amber,
                 'success' => Color::Green,

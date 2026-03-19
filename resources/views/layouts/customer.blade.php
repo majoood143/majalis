@@ -9,7 +9,7 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
 
     <!-- Alpine.js -->
@@ -67,8 +67,8 @@
                             300: '#7dd3fc',
                             400: '#38bdf8',
                             500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
+                            600: '#B9916D',
+                            700: '#E8D5C4',
                             800: '#075985',
                             900: '#0c4a6e',
                         }

@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class HallOwner extends Model
 {
-    use HasFactory, SoftDeletes,HasRoles;
+    use HasFactory, SoftDeletes,HasRoles, LogsActivity;
 
     protected $fillable = [
         'user_id',
@@ -48,6 +50,11 @@ class HallOwner extends Model
         'commission_value' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // Relationships
     public function user(): BelongsTo

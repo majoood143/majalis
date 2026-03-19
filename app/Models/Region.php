@@ -8,10 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Region extends Model
 {
-    use HasFactory, HasTranslations,HasRoles;
+    use HasFactory, HasTranslations,HasRoles, LogsActivity;
+
+
 
     protected $fillable = [
         'name',
@@ -33,6 +37,11 @@ class Region extends Model
     ];
 
     public $translatable = ['name', 'description'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // Relationships
     public function cities(): HasMany

@@ -154,7 +154,8 @@ class CreateHallImage extends CreateRecord
                     $fileSize = Storage::disk('public')->size($image->image_path);
 
                     $image->update([
-                        'dimensions' => "{$width}x{$height}",
+                        'width' => $width,
+                        'height' => $height,
                         'file_size' => $fileSize,
                     ]);
                 }

@@ -2,455 +2,396 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ __('Payment Receipt') }} - {{ $booking->booking_number }}</title>
     <style>
-        /* Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 5; padding: 0; }
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 11pt;
-            line-height: 1.6;
-            color: #333;
+            font-size: 8pt;
+            color: #000000;
+            line-height: 1.4;
+            background: #ffffff;
             direction: {{ app()->isLocale('ar') ? 'rtl' : 'ltr' }};
-        }
-
-        /* Container */
-        .invoice-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .invoice-header {
-            border-bottom: 3px solid #10b981;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .invoice-header h1 {
-            color: #10b981;
-            font-size: 24pt;
-            margin-bottom: 10px;
-        }
-
-        .invoice-header .invoice-type {
-            background-color: #10b981;
-            color: white;
-            padding: 5px 15px;
-            display: inline-block;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 12pt;
-        }
-
-        /* Success Badge */
-        .success-badge {
-            background-color: #d1fae5;
-            border: 2px solid #10b981;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 25px 0;
-        }
-
-        .success-badge .icon {
-            font-size: 48pt;
-            color: #10b981;
-        }
-
-        .success-badge h2 {
-            color: #065f46;
-            font-size: 18pt;
-            margin: 10px 0;
-        }
-
-        /* Two Column Layout */
-        .row {
-            display: table;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .col-50 {
-            display: table-cell;
-            width: 50%;
-            padding: 10px;
-            vertical-align: top;
-        }
-
-        /* Info Boxes */
-        .info-box {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .info-box h3 {
-            color: #10b981;
-            font-size: 12pt;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 5px;
-        }
-
-        .info-box p {
-            margin: 5px 0;
-            font-size: 10pt;
-        }
-
-        .info-box .label {
-            font-weight: bold;
-            color: #6b7280;
-        }
-
-        /* Amount Summary */
-        .amount-summary {
-            background-color: #ecfdf5;
-            border: 2px solid #10b981;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 30px 0;
-        }
-
-        .amount-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 11pt;
-        }
-
-        .amount-row.total {
-            border-top: 2px solid #10b981;
-            padding-top: 15px;
-            margin-top: 10px;
-            font-size: 14pt;
-            font-weight: bold;
-            color: #10b981;
-        }
-
-        /* Payment Details */
-        .payment-details {
-            background-color: #f0fdf4;
-            border-left: 4px solid #10b981;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 11pt;
-            font-weight: bold;
-        }
-
-        .status-badge.paid {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-
-        /* Table Styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table thead {
-            background-color: #10b981;
-            color: white;
-        }
-
-        table th {
-            padding: 12px;
             text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
-            font-weight: bold;
-            font-size: 10pt;
         }
 
-        table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 10pt;
-        }
-
-        table tbody tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-
-        /* Footer */
-        .invoice-footer {
-            border-top: 2px solid #e5e7eb;
-            padding-top: 20px;
-            margin-top: 40px;
-            text-align: center;
+        .section-title {
             font-size: 9pt;
-            color: #6b7280;
+            font-weight: bold;
+            color: #000000;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000000;
+            margin-bottom: 8px;
         }
 
-        .invoice-footer p {
-            margin: 5px 0;
+        .data-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+
+        .data-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #000000;
+            font-size: 7pt;
+            text-transform: uppercase;
+            padding: 5px 8px;
+            border-bottom: 1px solid #999999;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        /* Highlight Box */
-        .highlight-box {
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
+        .data-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #e5e5e5;
+            color: #000000;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        /* Print Styles */
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            .invoice-container {
-                max-width: 100%;
-            }
+        .data-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+        .text-right  { text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }}; }
+        .text-center { text-align: center; }
+
+        .info-label { color: #444444; font-size: 7pt; }
+        .info-value { font-weight: 500; color: #000000; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1.5px solid #000000;
+            color: #000000;
         }
+
+        .footer-text { font-size: 6.5pt; color: #555555; }
     </style>
 </head>
 <body>
-    <div class="invoice-container">
-        {{-- Invoice Header --}}
-        <div class="invoice-header">
-            <h1>{{ $platformName }}</h1>
-            <span class="invoice-type">{{ __('PAYMENT RECEIPT - FULLY PAID') }}</span>
-            <div style="margin-top: 15px; font-size: 10pt;">
-                <p><strong>{{ __('Receipt Number') }}:</strong> {{ $booking->booking_number }}</p>
-                <p><strong>{{ __('Receipt Date') }}:</strong> {{ $generatedDate->format('d/m/Y H:i') }}</p>
-                <p><strong>{{ __('Booking Date') }}:</strong> {{ $booking->created_at->format('d/m/Y') }}</p>
-            </div>
-        </div>
 
-        {{-- Success Badge --}}
-        <div class="success-badge">
-            <div class="icon"></div>
-            <h2>{{ __('PAYMENT COMPLETED SUCCESSFULLY') }}</h2>
-            <p style="font-size: 12pt; color: #065f46; margin-top: 10px;">
-                {{ __('Thank you! Your booking is fully confirmed and paid.') }}
-            </p>
-            <div style="margin-top: 15px;">
-                <span class="status-badge paid">{{ __('FULLY PAID') }}</span>
-            </div>
-        </div>
-
-        {{-- Company and Customer Info --}}
-        <div class="row">
-            <div class="col-50">
-                <div class="info-box">
-                    <h3>{{ __('From') }}</h3>
-                    <p><strong>{{ $platformName }}</strong></p>
-                    <p>{{ $platformAddress }}</p>
-                    <p>{{ __('Phone') }}: {{ $platformPhone }}</p>
-                    <p>{{ __('Email') }}: {{ $platformEmail }}</p>
+    {{-- ========================================================================
+        Header — Logo (left) + Receipt title / ref (right)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-bottom: 2px solid #000000; margin-bottom: 12px; padding-bottom: 8px;">
+        <tr>
+            <td width="50%" style="vertical-align: top;">
+                <img src="{{ public_path(config('app.logo_path')) }}"
+                     alt="{{ $platformName }}"
+                     style="height: 40px; display: block; margin-bottom: 6px;">
+                <div style="font-size: 7pt; color: #444444; line-height: 1.6;">
+                    {{ $platformAddress }}<br>
+                    {{ __('Phone') }}: {{ $platformPhone }}<br>
+                    {{ __('Email') }}: {{ $platformEmail }}
                 </div>
-            </div>
-            <div class="col-50">
-                <div class="info-box">
-                    <h3>{{ __('Receipt To') }}</h3>
-                    <p><strong>{{ $customerName }}</strong></p>
-                    <p>{{ __('Phone') }}: {{ $customerPhone }}</p>
-                    <p>{{ __('Email') }}: {{ $customerEmail }}</p>
+            </td>
+            <td width="50%" style="vertical-align: top; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">
+                <div style="font-size: 16pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('Payment Receipt') }}
+                </div>
+                <div style="font-size: 7.5pt; color: #444444; margin-bottom: 4px;">
+                    {{ __('PAYMENT RECEIPT - FULLY PAID') }}
+                </div>
+                <div style="font-size: 8pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('Receipt Number') }}: {{ $booking->booking_number }}
+                </div>
+                <div style="font-size: 7pt; color: #444444; margin-bottom: 6px;">
+                    {{ __('Receipt Date') }}: {{ $generatedDate->format('d/m/Y H:i') }}
+                    &nbsp;|&nbsp; {{ __('Booking Date') }}: {{ $booking->created_at->format('d/m/Y') }}
+                </div>
+                <span class="badge">{{ __('FULLY PAID') }}</span>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Payment Confirmed Banner
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td style="border: 1.5px solid #000000; background: #f9f9f9;
+                text-align: center; padding: 10px;">
+                <div style="font-size: 11pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('PAYMENT COMPLETED SUCCESSFULLY') }}
+                </div>
+                <div style="font-size: 7.5pt; color: #444444;">
+                    {{ __('Thank you! Your booking is fully confirmed and paid.') }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 1: From + Receipt To (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('From') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8;">
+                    <strong>{{ $platformName }}</strong><br>
+                    {{ $platformAddress }}<br>
+                    {{ __('Phone') }}: {{ $platformPhone }}<br>
+                    {{ __('Email') }}: {{ $platformEmail }}
+                </div>
+            </td>
+            <td width="2%"></td>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Receipt To') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8;">
+                    <strong>{{ $customerName }}</strong><br>
+                    {{ __('Phone') }}: {{ $customerPhone }}<br>
+                    {{ __('Email') }}: {{ $customerEmail }}
                     @if($userName)
-                        <p>{{ __('Account') }}: {{ $userName }}</p>
+                        <br>{{ __('Account') }}: {{ $userName }}
                     @endif
                 </div>
-            </div>
-        </div>
+            </td>
+        </tr>
+    </table>
 
-        {{-- Booking Details --}}
-        <div class="info-box">
-            <h3>{{ __('Booking Details') }}</h3>
-            <div class="row">
-                <div class="col-50">
-                    <p><span class="label">{{ __('Hall Name') }}:</span> {{ $hallName }}</p>
-                    <p><span class="label">{{ __('Location') }}:</span> {{ $cityName }}, {{ $regionName }}</p>
-                    <p><span class="label">{{ __('Event Date') }}:</span> {{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</p>
-                </div>
-                <div class="col-50">
-                    <p><span class="label">{{ __('Time Slot') }}:</span> {{ $booking->time_slot }}</p>
-                    <p><span class="label">{{ __('Number of Guests') }}:</span> {{ $booking->number_of_guests }}</p>
-                    <p><span class="label">{{ __('Event Type') }}:</span> {{ $eventType }}</p>
-                </div>
-            </div>
-        </div>
+    {{-- ========================================================================
+        Row 2: Booking Details (two sub-columns)
+        ======================================================================== --}}
+    <div class="section-title">{{ __('Booking Details') }}</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td width="49%" style="vertical-align: top; font-size: 8pt; line-height: 1.8;">
+                <span class="info-label">{{ __('Hall Name') }}:</span>
+                <span class="info-value"> {{ $hallName }}</span><br>
+                <span class="info-label">{{ __('Location') }}:</span>
+                <span class="info-value"> {{ $cityName }}, {{ $regionName }}</span><br>
+                <span class="info-label">{{ __('Event Date') }}:</span>
+                <span class="info-value"> {{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</span>
+            </td>
+            <td width="2%"></td>
+            <td width="49%" style="vertical-align: top; font-size: 8pt; line-height: 1.8;">
+                <span class="info-label">{{ __('Time Slot') }}:</span>
+                <span class="info-value"> {{ $booking->time_slot }}</span><br>
+                <span class="info-label">{{ __('Number of Guests') }}:</span>
+                <span class="info-value"> {{ $booking->number_of_guests }}</span><br>
+                <span class="info-label">{{ __('Event Type') }}:</span>
+                <span class="info-value"> {{ $eventType }}</span>
+            </td>
+        </tr>
+    </table>
 
-        {{-- Service Breakdown --}}
-        <h3 style="color: #10b981; margin: 25px 0 15px;">{{ __('Service Breakdown') }}</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>{{ __('Description') }}</th>
-                    <th style="text-align: center;">{{ __('Quantity') }}</th>
-                    <th style="text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">{{ __('Amount (OMR)') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{-- Hall Rental --}}
-                <tr>
-                    <td><strong>{{ __('Hall Rental') }}</strong></td>
-                    <td style="text-align: center;">1</td>
-                    <td style="text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">{{ $formattedHallPrice }}</td>
-                </tr>
-
-                {{-- Extra Services --}}
-                @foreach($extraServices as $service)
+    {{-- ========================================================================
+        Service Breakdown table
+        ======================================================================== --}}
+    <div class="section-title" style="margin-bottom: 6px;">{{ __('Service Breakdown') }}</div>
+    <table class="data-table" width="100%" style="margin-bottom: 12px;">
+        <thead>
+            <tr>
+                <th>{{ __('Description') }}</th>
+                <th class="text-center" width="15%">{{ __('Quantity') }}</th>
+                <th class="text-right" width="25%">{{ __('Amount (OMR)') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>{{ __('Hall Rental') }}</strong></td>
+                <td class="text-center">1</td>
+                <td class="text-right">{{ $formattedHallPrice }}</td>
+            </tr>
+            @foreach($extraServices as $service)
                 <tr>
                     <td>{{ $service['name'] }}</td>
-                    <td style="text-align: center;">{{ $service['quantity'] }}</td>
-                    <td style="text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">{{ $service['total_price'] }}</td>
+                    <td class="text-center">{{ $service['quantity'] }}</td>
+                    <td class="text-right">{{ $service['total_price'] }}</td>
                 </tr>
-                @endforeach
-            </tbody>
-        </table>
+            @endforeach
+        </tbody>
+    </table>
 
-        {{-- Payment Summary --}}
-        <div class="amount-summary">
-            <div class="amount-row">
-                <span>{{ __('Hall Price') }}</span>
-                <span>{{ $formattedHallPrice }} OMR</span>
-            </div>
-            <div class="amount-row">
-                <span>{{ __('Services Total') }}</span>
-                <span>{{ $formattedServicesPrice }} OMR</span>
-            </div>
-            <div class="amount-row">
-                <span>{{ __('Subtotal') }}</span>
-                <span>{{ $formattedSubtotal }} OMR</span>
-            </div>
-            <div class="amount-row">
-                <span>{{ __('Platform Fee') }}{{ $booking->service_fee_type === 'percentage' && $booking->service_fee_value ? ' (' . $booking->service_fee_value . '%)' : '' }}</span>
-                <span>{{ number_format((float) $booking->platform_fee, 3) }} OMR</span>
-            </div>
-            <div class="amount-row total">
-                <span>{{ __('Total Amount Paid') }}</span>
-                <span>{{ $formattedTotal }} OMR</span>
-            </div>
-        </div>
+    {{-- ========================================================================
+        Row 3: Amount Summary + Payment Details (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            {{-- Amount Summary --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Amount Summary') }}</div>
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Hall Price') }}</td>
+                        <td class="text-right">{{ $formattedHallPrice }} OMR</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Services Total') }}</td>
+                        <td class="text-right">{{ $formattedServicesPrice }} OMR</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Subtotal') }}</td>
+                        <td class="text-right">{{ $formattedSubtotal }} OMR</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">
+                            {{ __('Platform Fee') }}{{ $booking->service_fee_type === 'percentage' && $booking->service_fee_value ? ' (' . $booking->service_fee_value . '%)' : '' }}
+                        </td>
+                        <td class="text-right">{{ number_format((float) $booking->platform_fee, 3) }} OMR</td>
+                    </tr>
+                    <tr style="border-top: 1.5px solid #000000;">
+                        <td style="font-weight: bold; padding: 6px 8px; font-size: 9pt;">
+                            {{ __('Total Amount Paid') }}
+                        </td>
+                        <td class="text-right" style="font-weight: bold; padding: 6px 8px; font-size: 9pt;">
+                            {{ $formattedTotal }} OMR
+                        </td>
+                    </tr>
+                </table>
+            </td>
 
-        {{-- Payment Details --}}
-        <h3 style="color: #10b981; margin: 25px 0 15px;">{{ __('Payment Details') }}</h3>
+            <td width="2%"></td>
 
-        @if($booking->payment_type === 'advance')
-            {{-- Advance Payment Breakdown --}}
-            <div class="payment-details">
-                <h4 style="color: #065f46; margin-bottom: 10px;">{{ __('Payment History') }}</h4>
+            {{-- Payment Details --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Payment Details') }}</div>
+                @if($booking->payment_type === 'advance')
+                    {{-- Advance payment history --}}
+                    <table class="data-table" width="100%" style="margin-bottom: 4px;">
+                        <tr style="background: #f9f9f9;">
+                            <td colspan="2" style="font-weight: bold; padding: 4px 8px; font-size: 7.5pt;">
+                                {{ __('Initial Advance Payment') }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Amount') }}</td>
+                            <td class="text-right">{{ $formattedAdvance }} OMR</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Paid on') }}</td>
+                            <td class="text-right">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Method') }}</td>
+                            <td class="text-right">{{ __('Online Payment (Thawani)') }}</td>
+                        </tr>
+                    </table>
+                    <table class="data-table" width="100%">
+                        <tr style="background: #f9f9f9;">
+                            <td colspan="2" style="font-weight: bold; padding: 4px 8px; font-size: 7.5pt;">
+                                {{ __('Balance Payment') }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Amount') }}</td>
+                            <td class="text-right">{{ $formattedBalance }} OMR</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Paid on') }}</td>
+                            <td class="text-right">
+                                {{ $booking->balance_paid_at ? $booking->balance_paid_at->format('d/m/Y H:i') : 'N/A' }}
+                            </td>
+                        </tr>
+                        @if($booking->balance_payment_method)
+                            <tr>
+                                <td class="info-label">{{ __('Method') }}</td>
+                                <td class="text-right">
+                                    {{ __(ucfirst(str_replace('_', ' ', $booking->balance_payment_method))) }}
+                                </td>
+                            </tr>
+                        @endif
+                        @if($booking->balance_payment_reference)
+                            <tr>
+                                <td class="info-label">{{ __('Reference') }}</td>
+                                <td class="text-right">{{ $booking->balance_payment_reference }}</td>
+                            </tr>
+                        @endif
+                    </table>
+                @else
+                    {{-- Full payment --}}
+                    <table class="data-table" width="100%">
+                        <tr>
+                            <td class="info-label">{{ __('Payment Type') }}</td>
+                            <td class="text-right">{{ __('Full Payment') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Payment Date') }}</td>
+                            <td class="text-right">{{ $booking->created_at->format('d/m/Y H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">{{ __('Payment Method') }}</td>
+                            <td class="text-right">{{ __('Online Payment (Thawani)') }}</td>
+                        </tr>
+                        <tr style="border-top: 1.5px solid #000000;">
+                            <td style="font-weight: bold; padding: 6px 8px;">{{ __('Amount Paid') }}</td>
+                            <td class="text-right" style="font-weight: bold; padding: 6px 8px; font-size: 9pt;">
+                                {{ $formattedTotal }} OMR
+                            </td>
+                        </tr>
+                    </table>
+                @endif
+            </td>
+        </tr>
+    </table>
 
-                <div style="background-color: white; padding: 12px; border-radius: 5px; margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>{{ __('Initial Advance Payment') }}</strong></span>
-                        <span><strong>{{ $formattedAdvance }} OMR</strong></span>
-                    </div>
-                    <div style="font-size: 9pt; color: #6b7280;">
-                        {{ __('Paid on') }}: {{ $booking->created_at->format('d/m/Y H:i') }}
-                    </div>
-                    <div style="font-size: 9pt; color: #6b7280;">
-                        {{ __('Payment Method') }}: {{ __('Online Payment (Thawani)') }}
-                    </div>
+    {{-- ========================================================================
+        Row 4: Booking Confirmed reminders + Hall Owner + Terms (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            {{-- Booking Confirmed reminders --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Booking Confirmed') }}</div>
+                <table width="100%" cellpadding="0" cellspacing="0"
+                       style="border: 1px solid #cccccc; background: #f9f9f9; margin-bottom: 8px;">
+                    <tr>
+                        <td style="padding: 8px; font-size: 7.5pt; line-height: 1.8;">
+                            {{ __('Your booking is confirmed and fully paid. Please keep this receipt for your records.') }}
+                        </td>
+                    </tr>
+                </table>
+                <div style="font-size: 7.5pt; line-height: 1.8;">
+                    <strong>{{ __('Important Reminders') }}:</strong><br>
+                    &bull; {{ __('Arrive at the hall 30 minutes before your event time') }}<br>
+                    &bull; {{ __('Contact the hall owner if you have special requirements') }}<br>
+                    &bull; {{ __('Keep this receipt as proof of payment') }}<br>
+                    &bull; {{ __('For any changes or cancellations, contact us immediately') }}
+                </div>
+            </td>
+
+            <td width="2%"></td>
+
+            {{-- Hall Owner + Terms --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Hall Owner Contact') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8; margin-bottom: 10px;">
+                    <strong>{{ __('Name') }}:</strong> {{ $ownerName }}<br>
+                    <strong>{{ __('Phone') }}:</strong> {{ $ownerPhone }}<br>
+                    <span style="font-size: 7pt; color: #444444;">
+                        {{ __('For any hall-specific questions or special arrangements, please contact the hall owner directly.') }}
+                    </span>
                 </div>
 
-                <div style="background-color: white; padding: 12px; border-radius: 5px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>{{ __('Balance Payment') }}</strong></span>
-                        <span><strong>{{ $formattedBalance }} OMR</strong></span>
-                    </div>
-                    <div style="font-size: 9pt; color: #6b7280;">
-                        {{ __('Paid on') }}: {{ $booking->balance_paid_at ? $booking->balance_paid_at->format('d/m/Y H:i') : 'N/A' }}
-                    </div>
-                    @if($booking->balance_payment_method)
-                    <div style="font-size: 9pt; color: #6b7280;">
-                        {{ __('Payment Method') }}: {{ __(ucfirst(str_replace('_', ' ', $booking->balance_payment_method))) }}
-                    </div>
-                    @endif
-                    @if($booking->balance_payment_reference)
-                    <div style="font-size: 9pt; color: #6b7280;">
-                        {{ __('Reference') }}: {{ $booking->balance_payment_reference }}
-                    </div>
-                    @endif
+                <div class="section-title">{{ __('Terms & Conditions') }}</div>
+                <div style="font-size: 7pt; line-height: 1.8; color: #333333;">
+                    &bull; {{ __('Cancellation policy applies as per terms of service') }}<br>
+                    &bull; {{ __('Full payment has been received and confirmed') }}<br>
+                    &bull; {{ __('All prices are in Omani Rial (OMR)') }}<br>
+                    &bull; {{ __('This receipt is valid proof of payment') }}<br>
+                    &bull; {{ __('For refund requests, contact customer support') }}
                 </div>
-            </div>
-        @else
-            {{-- Full Payment --}}
-            <div class="payment-details">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span><strong>{{ __('Payment Type') }}</strong></span>
-                    <span>{{ __('Full Payment') }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span><strong>{{ __('Payment Date') }}</strong></span>
-                    <span>{{ $booking->created_at->format('d/m/Y H:i') }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span><strong>{{ __('Payment Method') }}</strong></span>
-                    <span>{{ __('Online Payment (Thawani)') }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span><strong>{{ __('Amount Paid') }}</strong></span>
-                    <span><strong style="color: #10b981; font-size: 13pt;">{{ $formattedTotal }} OMR</strong></span>
-                </div>
-            </div>
-        @endif
+            </td>
+        </tr>
+    </table>
 
-        {{-- Confirmation Message --}}
-        <div class="highlight-box" style="background-color: #ecfdf5; border-left-color: #10b981;">
-            <h3 style="color: #065f46; margin-bottom: 10px;">{{ __('Booking Confirmed') }}</h3>
-            <p>{{ __('Your booking is confirmed and fully paid. Please keep this receipt for your records.') }}</p>
-            <p style="margin-top: 10px;">
-                <strong>{{ __('Important Reminders') }}:</strong>
-            </p>
-            <ul style="margin-{{ app()->isLocale('ar') ? 'right' : 'left' }}: 20px; margin-top: 8px; font-size: 10pt;">
-                <li>{{ __('Arrive at the hall 30 minutes before your event time') }}</li>
-                <li>{{ __('Contact the hall owner if you have special requirements') }}</li>
-                <li>{{ __('Keep this receipt as proof of payment') }}</li>
-                <li>{{ __('For any changes or cancellations, contact us immediately') }}</li>
-            </ul>
-        </div>
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-top: 1px solid #cccccc; padding-top: 6px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle;" class="footer-text">
+                <strong>{{ $platformName }}</strong> &mdash;
+                {{ $platformAddress }} &nbsp;|&nbsp; {{ $platformPhone }} &nbsp;|&nbsp; {{ $platformEmail }}
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};" class="footer-text">
+                {{ __('Thank you for your business!') }}<br>
+                {{ __('This is an automated receipt. Generated on') }}: {{ $generatedDate->format('d/m/Y H:i:s') }}
+            </td>
+        </tr>
+    </table>
 
-        {{-- Hall Owner Contact --}}
-        <div class="info-box">
-            <h3>{{ __('Hall Owner Contact') }}</h3>
-            <p><strong>{{ __('Name') }}:</strong> {{ $ownerName }}</p>
-            <p><strong>{{ __('Phone') }}:</strong> {{ $ownerPhone }}</p>
-            <p style="margin-top: 10px; font-size: 9pt; color: #6b7280;">
-                {{ __('For any hall-specific questions or special arrangements, please contact the hall owner directly.') }}
-            </p>
-        </div>
-
-        {{-- Terms and Conditions --}}
-        <div class="highlight-box">
-            <strong>{{ __('Terms & Conditions') }}:</strong>
-            <ul style="margin-{{ app()->isLocale('ar') ? 'right' : 'left' }}: 20px; margin-top: 8px; font-size: 9pt;">
-                <li>{{ __('Cancellation policy applies as per terms of service') }}</li>
-                <li>{{ __('Full payment has been received and confirmed') }}</li>
-                <li>{{ __('All prices are in Omani Rial (OMR)') }}</li>
-                <li>{{ __('This receipt is valid proof of payment') }}</li>
-                <li>{{ __('For refund requests, contact customer support') }}</li>
-            </ul>
-        </div>
-
-        {{-- Footer --}}
-        <div class="invoice-footer">
-            <p><strong>{{ $platformName }}</strong></p>
-            <p>{{ $platformAddress }} | {{ __('Phone') }}: {{ $platformPhone }} | {{ __('Email') }}: {{ $platformEmail }}</p>
-            <p style="margin-top: 10px; color: #10b981; font-weight: bold;">{{ __('Thank you for your business!') }}</p>
-            <p style="font-size: 8pt; margin-top: 5px;">{{ __('This is an automated receipt. Generated on') }}: {{ $generatedDate->format('d/m/Y H:i:s') }}</p>
-        </div>
-    </div>
 </body>
 </html>

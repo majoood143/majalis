@@ -118,6 +118,24 @@ class CreateBooking extends CreateRecord
             // Generate unique booking number
             $data['booking_number'] = $this->generateUniqueBookingNumber();
 
+            // ✅ Recalculate commission server-side before saving to ensure it's always applied.
+            // This overrides any stale/zero form state that may not have been updated live.
+            $hall = \App\Models\Hall::find($data['hall_id'] ?? null);
+            if ($hall) {
+                $hallPrice     = (float) ($data['hall_price'] ?? 0);
+                $servicesPrice = (float) ($data['services_price'] ?? 0);
+                $subtotal      = $hallPrice + $servicesPrice;
+
+                $feeData = app(\App\Services\CommissionService::class)->calculateFees($hall, $subtotal);
+
+                $data['commission_amount'] = $feeData['commission_amount'];
+                $data['commission_type']   = $feeData['commission_type'];
+                $data['commission_value']  = $feeData['commission_value'];
+                $data['subtotal']          = $subtotal;
+                $data['total_amount']      = $subtotal; // customer pays subtotal; commission is deducted from owner
+                $data['owner_payout']      = max(0, $subtotal - $feeData['commission_amount']);
+            }
+
             return $data;
         } catch (Exception $e) {
             //Log the error (you can add logging here if needed)

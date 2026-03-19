@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Translatable\HasTranslations;
 use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * SeasonalPricing Model
@@ -46,7 +48,9 @@ use Carbon\Carbon;
  */
 class SeasonalPricing extends Model
 {
-    use HasFactory, HasTranslations, SoftDeletes;
+    use HasFactory, HasTranslations, SoftDeletes, LogsActivity;
+
+
 
     /**
      * The table associated with the model.
@@ -96,6 +100,11 @@ class SeasonalPricing extends Model
      * Translatable attributes.
      */
     public array $translatable = ['name'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Pricing rule types.

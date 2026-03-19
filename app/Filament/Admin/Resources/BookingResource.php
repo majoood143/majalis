@@ -359,7 +359,6 @@ class BookingResource extends Resource
                             ->maxLength(20),
 
                         Forms\Components\Textarea::make('customer_notes')
-
                             ->label(__('booking.fields.customer_notes.label'))
                             ->rows(3)
                             ->columnSpanFull()
@@ -512,6 +511,10 @@ class BookingResource extends Resource
                             ->default(0)
                             ->readOnly()
                             ->extraAttributes(['class' => 'text-lg']),
+
+                        // Hidden fields to persist commission meta-data
+                        Forms\Components\Hidden::make('commission_type'),
+                        Forms\Components\Hidden::make('commission_value'),
                     ])->columns(3)
                     ->collapsible(),
 
@@ -836,8 +839,8 @@ class BookingResource extends Resource
         };
 
         $hallPrice = (float) ($getValue('hall_price') ?? 0);
+        $hallId    = $getValue('hall_id');
         $extraServices = $getValue('extra_services') ?? [];
-        $commissionAmount = (float) ($getValue('commission_amount') ?? 0);
 
         // Calculate services total from repeater
         $servicesPrice = 0;
@@ -850,6 +853,20 @@ class BookingResource extends Resource
         }
 
         $subtotal = $hallPrice + $servicesPrice;
+
+        // Recalculate commission on the full subtotal (hall + services)
+        $commissionAmount = (float) ($getValue('commission_amount') ?? 0);
+        if ($hallId) {
+            $hall = Hall::find($hallId);
+            if ($hall) {
+                $feeData = app(CommissionService::class)->calculateFees($hall, $subtotal);
+                $commissionAmount = $feeData['commission_amount'];
+                $set('commission_amount', $commissionAmount);
+                $set('commission_type', $feeData['commission_type']);
+                $set('commission_value', $feeData['commission_value']);
+            }
+        }
+
         $totalAmount = $subtotal; // Commission is owner-side; customer pays subtotal only
         $ownerPayout = $subtotal - $commissionAmount;
 

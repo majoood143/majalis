@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * OwnerPayout Model
@@ -60,6 +62,9 @@ class OwnerPayout extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use LogsActivity;
+
+
 
     /**
      * The table associated with the model.
@@ -126,6 +131,11 @@ class OwnerPayout extends Model
     protected $hidden = [
         'bank_details', // Sensitive financial data
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // ==================== BOOT METHODS ====================
 

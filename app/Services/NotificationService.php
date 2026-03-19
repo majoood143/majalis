@@ -314,6 +314,35 @@ class NotificationService
     }
 
     /**
+     * Send payment link email to customer
+     *
+     * @param Booking $booking
+     * @param string $paymentUrl Thawani checkout URL
+     * @return void
+     */
+    public function sendPaymentLinkNotification(Booking $booking, string $paymentUrl): void
+    {
+        try {
+            $this->sendEmail(
+                $booking->customer_email,
+                'Complete Your Payment - ' . $booking->booking_number,
+                'emails.booking.payment-link',
+                ['booking' => $booking, 'paymentUrl' => $paymentUrl]
+            );
+
+            Log::info('Payment link email sent', [
+                'booking_id' => $booking->id,
+                'email'      => $booking->customer_email,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Failed to send payment link email', [
+                'booking_id' => $booking->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Send payment successful notification
      *
      * @param Booking $booking The booking with successful payment

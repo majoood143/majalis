@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Filament\Admin\Resources\BookingResource;
 use App\Services\NotificationService;
+use App\Services\PaymentService;
 use Exception;
 use Filament\Actions;
 use Filament\Forms;
@@ -153,7 +154,7 @@ class ViewBooking extends ViewRecord
                     if ($this->record->invoice_path) {
                         // Return download response from private storage
                         return response()->download(
-                            storage_path('app/private/' . $this->record->invoice_path)
+                            storage_path('app/public/' . $this->record->invoice_path)
                         );
                     } else {
                         // Show warning if invoice not available
@@ -215,6 +216,76 @@ class ViewBooking extends ViewRecord
                 })
                 ->visible(fn() => empty($this->record->invoice_path) &&
                     $this->record->status === 'confirmed'),
+
+            /**
+             * Send Payment Link Action
+             *
+             * Creates a Thawani checkout session and emails the payment URL to the customer.
+             * Only visible for pending bookings with a pending payment status and an email address.
+             */
+            Actions\Action::make('sendPaymentLink')
+                ->label(__('booking.actions.send_payment_link'))
+                ->icon('heroicon-o-credit-card')
+                ->color('primary')
+                ->requiresConfirmation()
+                ->modalHeading(__('booking.actions.send_payment_link_modal_heading'))
+                ->modalDescription(fn() => __('booking.actions.send_payment_link_modal_description', [
+                    'email' => $this->record->customer_email,
+                    'amount' => number_format(
+                        $this->record->isAdvancePayment() && $this->record->advance_amount
+                            ? (float) $this->record->advance_amount
+                            : (float) $this->record->total_amount,
+                        3
+                    ),
+                ]))
+                ->action(function () {
+                    try {
+                        $this->record->load(['hall']);
+
+                        $paymentService = app(PaymentService::class);
+                        $result = $paymentService->createAdminPaymentLink($this->record);
+
+                        if (!$result['success']) {
+                            Notification::make()
+                                ->danger()
+                                ->title(__('booking.notifications.payment_link_failed_title'))
+                                ->body($result['message'] ?? __('booking.notifications.payment_link_failed_body'))
+                                ->persistent()
+                                ->send();
+                            return;
+                        }
+
+                        $notificationService = app(NotificationService::class);
+                        $notificationService->sendPaymentLinkNotification($this->record, $result['payment_url']);
+
+                        $this->record->refresh();
+
+                        Notification::make()
+                            ->success()
+                            ->title(__('booking.notifications.payment_link_sent_title'))
+                            ->body(__('booking.notifications.payment_link_sent_body', [
+                                'email' => $this->record->customer_email,
+                            ]))
+                            ->send();
+                    } catch (Exception $e) {
+                        Log::error('Send payment link failed', [
+                            'booking_id' => $this->record->id,
+                            'error' => $e->getMessage(),
+                        ]);
+
+                        Notification::make()
+                            ->danger()
+                            ->title(__('booking.notifications.payment_link_failed_title'))
+                            ->body($e->getMessage())
+                            ->persistent()
+                            ->send();
+                    }
+                })
+                ->visible(fn() =>
+                    $this->record->status === 'pending' &&
+                    $this->record->payment_status === 'pending' &&
+                    !empty($this->record->customer_email)
+                ),
 
             /**
              * Send Reminder Action
@@ -493,7 +564,7 @@ class ViewBooking extends ViewRecord
                                     // )
                                     ->color('primary'),
 
-                                Infolists\Components\TextEntry::make('special_requests')
+                                Infolists\Components\TextEntry::make('customer_notes')
                                     ->label(__('booking.labels.customer_notes'))
                                     ->placeholder(__('booking.labels.customer_notes_placeholder'))
                                     ->columnSpan(2),

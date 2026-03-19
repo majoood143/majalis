@@ -8,10 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Translatable\HasTranslations;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class ExtraService extends Model
 {
-    use HasFactory, HasTranslations,HasRoles;
+    use HasFactory, HasTranslations,HasRoles, LogsActivity;
+
+     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
 
     protected $fillable = [
         'hall_id',
@@ -40,6 +48,11 @@ class ExtraService extends Model
 
     public $translatable = ['name', 'description'];
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
+    
     // Relationships
     public function hall(): BelongsTo
     {

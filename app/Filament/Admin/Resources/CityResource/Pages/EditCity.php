@@ -155,16 +155,16 @@ class EditCity extends EditRecord
         $record->update($data);
 
         // Log the update with changes
-        $changes = array_diff_assoc($data, $oldValues);
+        //$changes = array_diff_assoc($data, $oldValues);
 
-        activity()
-            ->performedOn($record)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'old' => $oldValues,
-                'changes' => $changes,
-            ])
-            ->log('City updated');
+        // activity()
+        //     ->performedOn($record)
+        //     ->causedBy(Auth::user())
+        //     ->withProperties([
+        //         'old' => $oldValues,
+        //         'changes' => $changes,
+        //     ])
+        //     ->log('City updated');
 
         return $record;
     }
@@ -172,7 +172,7 @@ class EditCity extends EditRecord
     protected function afterSave(): void
     {
         // Clear cache if you're using caching
-        Cache::tags(['cities'])->flush();
+        //Cache::tags(['cities'])->flush();
 
         // Log the update
         Log::info('City updated', [
@@ -186,7 +186,7 @@ class EditCity extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->submit(null)
+                //->submit(null)
                 ->keyBindings(['mod+s']),
 
             $this->getCancelFormAction(),
@@ -202,7 +202,7 @@ class EditCity extends EditRecord
     {
         $hallsCount = $this->record->halls()->count();
         $status = $this->record->is_active ? 'Active' : 'Inactive';
-    
+
         return "{$status} • {$hallsCount} Hall(s) • Code: {$this->record->code}";
     }
 

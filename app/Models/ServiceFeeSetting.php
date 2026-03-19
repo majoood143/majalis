@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Translatable\HasTranslations;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * Service Fee Setting Model
@@ -48,6 +50,7 @@ class ServiceFeeSetting extends Model
 {
     use HasFactory;
     use HasTranslations;
+    use LogsActivity;
 
     /**
      * The table associated with the model.
@@ -85,6 +88,11 @@ class ServiceFeeSetting extends Model
         'effective_from' => 'date',
         'effective_to'   => 'date',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Translatable attributes (Spatie).

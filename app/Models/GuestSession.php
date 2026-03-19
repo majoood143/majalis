@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * GuestSession Model
@@ -60,6 +62,9 @@ use Carbon\Carbon;
 class GuestSession extends Model
 {
     use HasFactory;
+    use LogsActivity;
+
+
 
     /**
      * The table associated with the model.
@@ -146,6 +151,11 @@ class GuestSession extends Model
         'ip_address',
         'user_agent',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // =========================================================================
     // BOOT METHODS

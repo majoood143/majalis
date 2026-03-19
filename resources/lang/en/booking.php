@@ -475,6 +475,9 @@ return [
         'complete_modal_description' => 'Mark this booking as completed? This will finalize the booking.',
         'download_invoice' => 'Download Invoice',
         'generate_invoice' => 'Generate Invoice',
+        'send_payment_link' => 'Send Payment Link',
+        'send_payment_link_modal_heading' => 'Send Payment Link',
+        'send_payment_link_modal_description' => 'This will create a Thawani payment session and email the link to :email for :amount OMR. The booking will be confirmed automatically once payment is complete.',
         'send_reminder' => 'Send Reminder',
         'send_reminder_modal_heading' => 'Send Reminder',
         'send_reminder_modal_description' => 'Send a reminder notification to the customer about their upcoming booking?',
@@ -611,6 +614,10 @@ return [
         'email_sent_body' => 'Booking confirmation sent to :email',
         'email_failed_title' => 'Email Failed',
         'email_failed_body' => 'Could not send email: :error',
+        'payment_link_sent_title' => 'Payment Link Sent',
+        'payment_link_sent_body' => 'A payment link has been emailed to :email',
+        'payment_link_failed_title' => 'Payment Link Failed',
+        'payment_link_failed_body' => 'Could not create the payment link. Please try again.',
     ],
 
     /*
@@ -854,12 +861,7 @@ return [
     'email' => [
         'invoice_subject' => 'Invoice for Booking #:number',
         'invoice_default_message' => 'Please find attached the invoice for your booking. Thank you for choosing us!',
-        // =========================================================
-        // INVOICE EMAIL
-        // =========================================================
-        'invoice_subject' => 'Invoice for Booking #:number',
-        'invoice_default_message' => 'Please find attached the invoice for your booking. Thank you for choosing us!',
-
+       
         // =========================================================
         // REVIEW REQUEST EMAIL
         // =========================================================

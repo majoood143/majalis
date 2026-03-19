@@ -548,8 +548,8 @@
         {{-- Header --}}
         <div class="invoice-header">
             <div class="company-info">
-                @if(config('app.logo'))
-                    <img src="{{ config('app.logo') }}" alt="{{ config('app.name') }}" class="company-logo">
+                @if(config('app.logo_path'))
+                    <img src="{{ public_path(config('app.logo_path')) }}" alt="{{ config('app.name') }}" class="company-logo">
                 @endif
                 <div class="company-name">{{ config('app.name', 'Majalis') }}</div>
                 <div class="company-details">

@@ -1,444 +1,343 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>All Hall Owners Report</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 5; padding: 0; }
 
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 10px;
-            line-height: 1.5;
-            color: #333;
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 8pt;
+            color: #000000;
+            line-height: 1.4;
+            background: #ffffff;
         }
 
-        .header {
-            background-color: #1e40af;
-            color: white;
-            padding: 25px 20px;
-            margin-bottom: 25px;
-        }
-
-        .header h1 {
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 11px;
-            opacity: 0.9;
-        }
-
-        .container {
-            padding: 0 15px;
-        }
-
-        .section {
-            margin-bottom: 20px;
-            page-break-inside: avoid;
-        }
-
+        /* Section titles */
         .section-title {
-            background-color: #f3f4f6;
-            color: #1e40af;
-            padding: 8px 12px;
-            font-size: 13px;
+            font-size: 9pt;
             font-weight: bold;
-            margin-bottom: 12px;
-            border-left: 4px solid #1e40af;
+            color: #000000;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000000;
+            margin-bottom: 6px;
         }
 
-        .stats-grid {
-            display: table;
-            width: 100%;
-            margin-bottom: 15px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .stats-row {
-            display: table-row;
-        }
-
+        /* Stat boxes */
         .stat-box {
-            display: table-cell;
-            width: 16.66%;
-            padding: 12px;
+            padding: 6px 8px;
             text-align: center;
-            border-right: 1px solid #e5e7eb;
-            vertical-align: top;
-        }
-
-        .stat-box:last-child {
-            border-right: none;
+            border: 1px solid #cccccc;
+            background: #f9f9f9;
         }
 
         .stat-value {
-            font-size: 18px;
+            font-size: 12pt;
             font-weight: bold;
-            color: #1e40af;
-            margin-bottom: 3px;
+            color: #000000;
         }
 
         .stat-label {
-            font-size: 9px;
-            color: #6b7280;
+            font-size: 6.5pt;
+            color: #444444;
+            margin-top: 2px;
             text-transform: uppercase;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
+        /* Data tables */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
 
-        table thead {
-            background-color: #1e40af;
-            color: white;
-        }
-
-        table th {
-            padding: 8px 6px;
+        .data-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #000000;
+            font-size: 7pt;
+            text-transform: uppercase;
+            padding: 5px 6px;
+            border-bottom: 1px solid #999999;
             text-align: left;
-            font-size: 10px;
-            font-weight: 600;
         }
 
-        table td {
-            padding: 6px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 9px;
+        .data-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e5e5e5;
+            color: #000000;
+            text-align: left;
         }
 
-        .text-right {
-            text-align: right;
+        .data-table tfoot td {
+            font-weight: bold;
+            background: #f0f0f0;
+            border-top: 1px solid #999999;
+            border-bottom: none;
         }
 
-        .text-center {
-            text-align: center;
+        .data-table tbody tr:nth-child(even) td {
+            background: #fafafa;
         }
 
+        .text-right  { text-align: right; }
+        .text-center { text-align: center; }
+
+        .summary-label { color: #444444; }
+        .summary-value { font-weight: bold; color: #000000; }
+
+        /* Badge — border only */
         .badge {
             display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 8px;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-danger {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-info {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-
-        .highlight {
-            background-color: #fef3c7;
-            padding: 12px;
-            border-left: 4px solid #f59e0b;
-            margin-bottom: 15px;
-        }
-
-        .highlight-title {
+            padding: 2px 5px;
+            font-size: 6.5pt;
             font-weight: bold;
-            color: #92400e;
-            margin-bottom: 5px;
-            font-size: 11px;
+            text-transform: uppercase;
+            border: 1px solid #000000;
+            color: #000000;
         }
 
-        .highlight-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #059669;
-        }
-
-        .currency {
-            font-family: 'DejaVu Sans', monospace;
-        }
-
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 2px solid #e5e7eb;
-            text-align: center;
-            font-size: 9px;
-            color: #6b7280;
-        }
-
-        .info-box {
-            background-color: #f9fafb;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .info-row {
-            display: table;
-            width: 100%;
-            margin-bottom: 5px;
-        }
-
-        .info-label {
-            display: table-cell;
-            width: 30%;
-            font-weight: bold;
-            font-size: 9px;
-        }
-
-        .info-value {
-            display: table-cell;
-            font-size: 9px;
-        }
-
-        .page-break {
-            page-break-after: always;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 20px;
-            color: #9ca3af;
-            font-style: italic;
-        }
+        .footer-text { font-size: 6.5pt; color: #555555; }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <h1>📊 All Hall Owners Performance Report</h1>
-        <p>Comprehensive Overview | Generated on {{ $generatedAt->format('F d, Y') }} by {{ $generatedBy }}</p>
-    </div>
 
-    <div class="container">
-        <!-- Report Information -->
-        <div class="info-box">
-            <div class="info-row">
-                <div class="info-label">Report Period:</div>
-                <div class="info-value">{{ \Carbon\Carbon::parse($fromDate)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($toDate)->format('M d, Y') }}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Generated At:</div>
-                <div class="info-value">{{ $generatedAt->format('M d, Y h:i A') }}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Generated By:</div>
-                <div class="info-value">{{ $generatedBy }}</div>
-            </div>
-        </div>
-
-        <!-- Overall Statistics -->
-        <div class="section">
-            <div class="section-title">📈 Overall Statistics</div>
-            <div class="stats-grid">
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-value">{{ $overallStats['total_owners'] }}</div>
-                        <div class="stat-label">Total Owners</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">{{ $overallStats['verified_owners'] }}</div>
-                        <div class="stat-label">Verified</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">{{ $overallStats['active_owners'] }}</div>
-                        <div class="stat-label">Active</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">{{ $overallStats['total_halls'] }}</div>
-                        <div class="stat-label">Total Halls</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">{{ $overallStats['active_halls'] }}</div>
-                        <div class="stat-label">Active Halls</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value">{{ $overallStats['total_bookings'] }}</div>
-                        <div class="stat-label">Total Bookings</div>
-                    </div>
+    {{-- ========================================================================
+        Header — Logo centered + title + period
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 2px solid #000000; margin-bottom: 10px;">
+        <tr>
+            <td style="text-align: center; padding-bottom: 8px;">
+                <img src="{{ public_path(config('app.logo_path')) }}"
+                     alt="{{ config('app.name') }}"
+                     style="height: 40px; display: block; margin: 0 auto 4px auto;">
+                <div style="font-size: 13pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    All Hall Owners Performance Report
                 </div>
-            </div>
-        </div>
-
-        <!-- Financial Summary -->
-        <div class="section">
-            <div class="section-title">💰 Financial Summary</div>
-            <div class="highlight">
-                <div class="highlight-title">Total Platform Revenue (Period)</div>
-                <div class="highlight-value currency">
-                    {{ number_format($overallStats['total_revenue'], 3) }} OMR
+                <div style="font-size: 7.5pt; color: #444444;">
+                    {{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }} &mdash; {{ \Carbon\Carbon::parse($toDate)->format('d M Y') }}
+                    &nbsp;|&nbsp; Generated: {{ $generatedAt->format('d M Y, H:i') }}
+                    &nbsp;|&nbsp; By: {{ $generatedBy }}
                 </div>
-            </div>
+            </td>
+        </tr>
+    </table>
 
-            <div class="stats-grid">
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-value currency">{{ number_format($overallStats['total_revenue'], 3) }} OMR</div>
-                        <div class="stat-label">Total Revenue</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value currency">{{ number_format($overallStats['total_commission'], 3) }} OMR</div>
-                        <div class="stat-label">Platform Commission</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value currency">{{ number_format($overallStats['total_payout'], 3) }} OMR</div>
-                        <div class="stat-label">Owner Payouts</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Performers -->
-        @if($topOwners->count() > 0)
-        <div class="section">
-            <div class="section-title">🏆 Top 10 Performing Owners (By Revenue)</div>
-            <table>
-                <thead>
+    {{-- ========================================================================
+        Row 1: Overall Statistics + Financial Summary (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            {{-- Overall Statistics --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">Overall Statistics</div>
+                <table width="100%" cellpadding="0" cellspacing="2">
                     <tr>
-                        <th>Rank</th>
-                        <th>Business Name</th>
-                        <th>Owner</th>
-                        <th class="text-center">Halls</th>
-                        <th class="text-center">Bookings</th>
-                        <th class="text-right">Revenue</th>
-                        <th class="text-right">Commission</th>
-                        <th class="text-right">Payout</th>
-                        <th class="text-center">Status</th>
+                        <td width="33%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ $overallStats['total_owners'] }}</div>
+                                <div class="stat-label">Total Owners</div>
+                            </div>
+                        </td>
+                        <td width="33%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ $overallStats['verified_owners'] }}</div>
+                                <div class="stat-label">Verified</div>
+                            </div>
+                        </td>
+                        <td width="33%">
+                            <div class="stat-box">
+                                <div class="stat-value">{{ $overallStats['active_owners'] }}</div>
+                                <div class="stat-label">Active</div>
+                            </div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach($topOwners as $index => $owner)
+                    <tr>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ $overallStats['total_halls'] }}</div>
+                                <div class="stat-label">Total Halls</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ $overallStats['active_halls'] }}</div>
+                                <div class="stat-label">Active Halls</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="stat-box" style="margin-top: 2px;">
+                                <div class="stat-value">{{ $overallStats['total_bookings'] }}</div>
+                                <div class="stat-label">Total Bookings</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <td width="2%"></td>
+
+            {{-- Financial Summary --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">Financial Summary</div>
+                <table width="100%" cellpadding="0" cellspacing="2" style="margin-bottom: 4px;">
+                    <tr>
+                        <td width="33%">
+                            <div class="stat-box">
+                                <div class="stat-value" style="font-size: 10pt;">{{ number_format($overallStats['total_revenue'], 3) }}</div>
+                                <div class="stat-label">Total Revenue (OMR)</div>
+                            </div>
+                        </td>
+                        <td width="33%">
+                            <div class="stat-box">
+                                <div class="stat-value" style="font-size: 10pt;">{{ number_format($overallStats['total_commission'], 3) }}</div>
+                                <div class="stat-label">Commission (OMR)</div>
+                            </div>
+                        </td>
+                        <td width="33%">
+                            <div class="stat-box">
+                                <div class="stat-value" style="font-size: 10pt;">{{ number_format($overallStats['total_payout'], 3) }}</div>
+                                <div class="stat-label">Owner Payouts (OMR)</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                {{-- Key Insights inline --}}
+                <table class="data-table" width="100%" style="margin-top: 4px;">
+                    <tr>
+                        <td class="summary-label">Verification Rate</td>
+                        <td class="text-right summary-value">{{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['verified_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}%</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">Active Rate</td>
+                        <td class="text-right summary-value">{{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['active_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}%</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">Avg. Halls per Owner</td>
+                        <td class="text-right summary-value">{{ $overallStats['total_owners'] > 0 ? number_format($overallStats['total_halls'] / $overallStats['total_owners'], 1) : 0 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">Avg. Bookings per Hall</td>
+                        <td class="text-right summary-value">{{ $overallStats['total_halls'] > 0 ? number_format($overallStats['total_bookings'] / $overallStats['total_halls'], 1) : 0 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="summary-label">Commission Rate</td>
+                        <td class="text-right summary-value">{{ $overallStats['total_revenue'] > 0 ? number_format(($overallStats['total_commission'] / $overallStats['total_revenue']) * 100, 1) : 0 }}%</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Top 10 Performing Owners
+        ======================================================================== --}}
+    @if($topOwners->count() > 0)
+        <div class="section-title" style="margin-bottom: 6px;">Top 10 Performing Owners (By Revenue)</div>
+        <table class="data-table" width="100%" style="margin-bottom: 10px;">
+            <thead>
+                <tr>
+                    <th width="5%">#</th>
+                    <th>Business Name</th>
+                    <th>Owner</th>
+                    <th class="text-center" width="8%">Halls</th>
+                    <th class="text-center" width="10%">Bookings</th>
+                    <th class="text-right" width="14%">Revenue (OMR)</th>
+                    <th class="text-right" width="14%">Commission (OMR)</th>
+                    <th class="text-right" width="14%">Payout (OMR)</th>
+                    <th class="text-center" width="10%">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($topOwners as $index => $owner)
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $owner['business_name'] }}</td>
                         <td>{{ $owner['owner_name'] }}</td>
                         <td class="text-center">{{ $owner['halls_count'] }}</td>
                         <td class="text-center">{{ $owner['bookings_count'] }}</td>
-                        <td class="text-right currency">{{ number_format($owner['revenue'], 3) }}</td>
-                        <td class="text-right currency">{{ number_format($owner['commission'], 3) }}</td>
-                        <td class="text-right currency">{{ number_format($owner['payout'], 3) }}</td>
+                        <td class="text-right">{{ number_format($owner['revenue'], 3) }}</td>
+                        <td class="text-right">{{ number_format($owner['commission'], 3) }}</td>
+                        <td class="text-right">{{ number_format($owner['payout'], 3) }}</td>
                         <td class="text-center">
-                            @if($owner['is_verified'] && $owner['is_active'])
-                                <span class="badge badge-success">Active</span>
-                            @elseif($owner['is_verified'])
-                                <span class="badge badge-warning">Verified</span>
-                            @else
-                                <span class="badge badge-danger">Pending</span>
-                            @endif
+                            <span class="badge">
+                                @if($owner['is_verified'] && $owner['is_active']) Active
+                                @elseif($owner['is_verified']) Verified
+                                @else Pending
+                                @endif
+                            </span>
                         </td>
                     </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
-        <!-- All Owners Performance -->
-        <div class="section page-break">
-            <div class="section-title">📋 All Owners Performance Details</div>
-            @if($ownerPerformance->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Business Name</th>
-                        <th>Owner Name</th>
-                        <th class="text-center">Halls</th>
-                        <th class="text-center">Bookings</th>
-                        <th class="text-right">Revenue (OMR)</th>
-                        <th class="text-right">Commission (OMR)</th>
-                        <th class="text-right">Payout (OMR)</th>
-                        <th class="text-center">Verified</th>
-                        <th class="text-center">Active</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($ownerPerformance as $index => $owner)
+    {{-- ========================================================================
+        All Owners Performance Details
+        ======================================================================== --}}
+    <div class="section-title" style="margin-bottom: 6px;">All Owners Performance Details</div>
+    @if($ownerPerformance->count() > 0)
+        <table class="data-table" width="100%" style="margin-bottom: 10px;">
+            <thead>
+                <tr>
+                    <th width="4%">#</th>
+                    <th>Business Name</th>
+                    <th>Owner Name</th>
+                    <th class="text-center" width="7%">Halls</th>
+                    <th class="text-center" width="9%">Bookings</th>
+                    <th class="text-right" width="14%">Revenue (OMR)</th>
+                    <th class="text-right" width="14%">Commission (OMR)</th>
+                    <th class="text-right" width="14%">Payout (OMR)</th>
+                    <th class="text-center" width="9%">Verified</th>
+                    <th class="text-center" width="8%">Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($ownerPerformance as $index => $owner)
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $owner['business_name'] }}</td>
                         <td>{{ $owner['owner_name'] }}</td>
                         <td class="text-center">{{ $owner['halls_count'] }}</td>
                         <td class="text-center">{{ $owner['bookings_count'] }}</td>
-                        <td class="text-right currency">{{ number_format($owner['revenue'], 3) }}</td>
-                        <td class="text-right currency">{{ number_format($owner['commission'], 3) }}</td>
-                        <td class="text-right currency">{{ number_format($owner['payout'], 3) }}</td>
-                        <td class="text-center">
-                            <span class="badge {{ $owner['is_verified'] ? 'badge-success' : 'badge-warning' }}">
-                                {{ $owner['is_verified'] ? 'Yes' : 'No' }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge {{ $owner['is_active'] ? 'badge-success' : 'badge-danger' }}">
-                                {{ $owner['is_active'] ? 'Yes' : 'No' }}
-                            </span>
-                        </td>
+                        <td class="text-right">{{ number_format($owner['revenue'], 3) }}</td>
+                        <td class="text-right">{{ number_format($owner['commission'], 3) }}</td>
+                        <td class="text-right">{{ number_format($owner['payout'], 3) }}</td>
+                        <td class="text-center"><span class="badge">{{ $owner['is_verified'] ? 'Yes' : 'No' }}</span></td>
+                        <td class="text-center"><span class="badge">{{ $owner['is_active'] ? 'Yes' : 'No' }}</span></td>
                     </tr>
-                    @endforeach>
-                    <tr style="background: #f8f9fa; font-weight: bold;">
-                        <td colspan="4">TOTAL</td>
-                        <td class="text-center">{{ $ownerPerformance->sum('bookings_count') }}</td>
-                        <td class="text-right currency">{{ number_format($ownerPerformance->sum('revenue'), 3) }}</td>
-                        <td class="text-right currency">{{ number_format($ownerPerformance->sum('commission'), 3) }}</td>
-                        <td class="text-right currency">{{ number_format($ownerPerformance->sum('payout'), 3) }}</td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-            @else
-            <div class="no-data">No owner performance data available for the selected period</div>
-            @endif
-        </div>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4">TOTAL</td>
+                    <td class="text-center">{{ $ownerPerformance->sum('bookings_count') }}</td>
+                    <td class="text-right">{{ number_format($ownerPerformance->sum('revenue'), 3) }}</td>
+                    <td class="text-right">{{ number_format($ownerPerformance->sum('commission'), 3) }}</td>
+                    <td class="text-right">{{ number_format($ownerPerformance->sum('payout'), 3) }}</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    @else
+        <p style="text-align: center; font-size: 7.5pt; color: #555555; font-style: italic; margin-bottom: 10px;">
+            No owner performance data available for the selected period.
+        </p>
+    @endif
 
-        <!-- Summary Insights -->
-        <div class="section">
-            <div class="section-title">💡 Key Insights</div>
-            <div style="padding: 10px; background: #f9fafb; border-radius: 4px;">
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Verification Rate:</strong>
-                    {{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['verified_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}%
-                    of owners are verified
-                </p>
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Active Rate:</strong>
-                    {{ $overallStats['total_owners'] > 0 ? number_format(($overallStats['active_owners'] / $overallStats['total_owners']) * 100, 1) : 0 }}%
-                    of owners are active
-                </p>
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Average Halls per Owner:</strong>
-                    {{ $overallStats['total_owners'] > 0 ? number_format($overallStats['total_halls'] / $overallStats['total_owners'], 1) : 0 }} halls
-                </p>
-                <p style="margin-bottom: 8px; font-size: 10px;"><strong>Average Bookings per Hall:</strong>
-                    {{ $overallStats['total_halls'] > 0 ? number_format($overallStats['total_bookings'] / $overallStats['total_halls'], 1) : 0 }} bookings
-                </p>
-                <p style="font-size: 10px;"><strong>Commission Rate:</strong>
-                    {{ $overallStats['total_revenue'] > 0 ? number_format(($overallStats['total_commission'] / $overallStats['total_revenue']) * 100, 1) : 0 }}%
-                    of total revenue
-                </p>
-            </div>
-        </div>
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 8px; border-top: 1px solid #cccccc; padding-top: 6px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle;" class="footer-text">
+                This report was automatically generated by {{ config('app.name') }}.
+                Confidential &mdash; For Internal Use Only.
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: right;" class="footer-text">
+                Report ID: ALL-{{ now()->format('YmdHis') }} &nbsp;|&nbsp; &copy; {{ date('Y') }} All Rights Reserved.
+            </td>
+        </tr>
+    </table>
 
-        <!-- Footer -->
-        <div class="footer">
-            <p>This report was automatically generated by the Hall Booking Management System</p>
-            <p>Report ID: ALL-{{ now()->format('YmdHis') }} | Confidential - For Internal Use Only</p>
-        </div>
-    </div>
 </body>
 </html>

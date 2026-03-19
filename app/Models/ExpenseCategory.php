@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * ExpenseCategory Model
- * 
+ *
  * Represents expense categories for organizing and classifying expenses.
  * Supports bilingual content (Arabic/English) using Spatie Translatable.
- * 
+ *
  * @package App\Models
  * @author  Majalis Development Team
  * @version 1.0.0
@@ -21,10 +21,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * ExpenseCategory Model
- * 
+ *
  * @property int $id
  * @property int|null $owner_id
  * @property array $name
@@ -38,7 +40,7 @@ use Spatie\Translatable\HasTranslations;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- * 
+ *
  * @property-read User|null $owner
  * @property-read \Illuminate\Database\Eloquent\Collection|Expense[] $expenses
  * @property-read int|null $expenses_count
@@ -48,6 +50,13 @@ class ExpenseCategory extends Model
     use HasFactory;
     use HasTranslations;
     use SoftDeletes;
+    use LogsActivity;
+
+     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
 
     /**
      * The table associated with the model.
@@ -93,6 +102,11 @@ class ExpenseCategory extends Model
         'name',
         'description',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Default attribute values.
@@ -226,8 +240,8 @@ class ExpenseCategory extends Model
      */
     public function getLocalizedNameAttribute(): string
     {
-        return $this->getTranslation('name', app()->getLocale()) 
-            ?? $this->getTranslation('name', 'en') 
+        return $this->getTranslation('name', app()->getLocale())
+            ?? $this->getTranslation('name', 'en')
             ?? '';
     }
 
@@ -240,7 +254,7 @@ class ExpenseCategory extends Model
     {
         $name = e($this->localized_name);
         $color = e($this->color);
-        
+
         return sprintf(
             '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background-color: %s20; color: %s;">%s</span>',
             $color,

@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 
 /**
@@ -45,7 +47,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class Hall extends Model
 {
-    use HasFactory, HasTranslations, SoftDeletes, HasRoles;
+    use HasFactory, HasTranslations, SoftDeletes, HasRoles , LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -150,6 +152,11 @@ class Hall extends Model
         'meta_title',
         'meta_description',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     // ==================== RELATIONSHIPS ====================
 

@@ -2,433 +2,337 @@
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ __('Balance Due Invoice') }} - {{ $booking->booking_number }}</title>
     <style>
-        /* Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 5; padding: 0; }
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 11pt;
-            line-height: 1.6;
-            color: #333;
+            font-size: 8pt;
+            color: #333333;
+            line-height: 1.4;
+            background: #ffffff;
             direction: {{ app()->isLocale('ar') ? 'rtl' : 'ltr' }};
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        /* Container */
-        .invoice-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .invoice-header {
-            border-bottom: 3px solid #dc2626;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .invoice-header h1 {
-            color: #dc2626;
-            font-size: 24pt;
-            margin-bottom: 10px;
-        }
-
-        .invoice-header .invoice-type {
-            background-color: #dc2626;
-            color: white;
-            padding: 5px 15px;
-            display: inline-block;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 12pt;
-        }
-
-        /* Two Column Layout */
-        .row {
-            display: table;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .col-50 {
-            display: table-cell;
-            width: 50%;
-            padding: 10px;
-            vertical-align: top;
-        }
-
-        /* Info Boxes */
-        .info-box {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .info-box h3 {
-            color: #dc2626;
-            font-size: 12pt;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 5px;
-        }
-
-        .info-box p {
-            margin: 5px 0;
-            font-size: 10pt;
-        }
-
-        .info-box .label {
-            font-weight: bold;
-            color: #6b7280;
-        }
-
-        /* Urgent Alert Box */
-        .urgent-alert {
-            background-color: #fef2f2;
-            border: 3px solid #dc2626;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: center;
-        }
-
-        .urgent-alert h2 {
-            color: #dc2626;
-            font-size: 18pt;
-            margin-bottom: 15px;
-        }
-
-        .urgent-alert .amount {
-            font-size: 28pt;
-            font-weight: bold;
-            color: #991b1b;
-            margin: 20px 0;
-        }
-
-        .urgent-alert .deadline {
-            background-color: #fee2e2;
-            border: 2px solid #dc2626;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            font-size: 13pt;
-        }
-
-        /* Payment Summary */
-        .payment-summary {
-            background-color: #eff6ff;
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 30px 0;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            font-size: 11pt;
-            border-bottom: 1px solid #dbeafe;
-        }
-
-        .summary-row:last-child {
-            border-bottom: none;
-        }
-
-        .summary-row.highlight {
-            background-color: #dbeafe;
-            margin: 10px -15px;
-            padding: 12px 15px;
-            font-weight: bold;
-        }
-
-        /* Highlight Box */
-        .highlight-box {
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .highlight-box.alert {
-            background-color: #fee2e2;
-            border-left-color: #dc2626;
-        }
-
-        /* Footer */
-        .invoice-footer {
-            border-top: 2px solid #e5e7eb;
-            padding-top: 20px;
-            margin-top: 40px;
-            text-align: center;
-            font-size: 9pt;
-            color: #6b7280;
-        }
-
-        .invoice-footer p {
-            margin: 5px 0;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 15px;
+        /* Section titles */
+        .section-title {
             font-size: 9pt;
             font-weight: bold;
+            color: #dc2626;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #dc2626;
+            margin-bottom: 8px;
         }
 
-        .status-badge.pending {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
+        /* Data tables */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
 
-        /* Payment Methods */
-        .payment-methods {
-            display: table;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .payment-method {
-            display: table-cell;
-            width: 33.33%;
-            padding: 15px;
-            text-align: center;
-            background-color: #f9fafb;
-            border: 2px solid #e5e7eb;
-            margin: 0 5px;
-        }
-
-        .payment-method .icon {
-            font-size: 24pt;
-            margin-bottom: 10px;
-        }
-
-        /* Days Remaining */
-        .days-remaining {
-            background-color: #fef2f2;
-            border: 2px dashed #dc2626;
-            padding: 15px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .days-remaining .number {
-            font-size: 36pt;
+        .data-table th {
+            background: #fef2f2;
             font-weight: bold;
+            color: #991b1b;
+            font-size: 7pt;
+            text-transform: uppercase;
+            padding: 5px 8px;
+            border-bottom: 1px solid #fca5a5;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
+        }
+
+        .data-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #fee2e2;
+            color: #333333;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
+        }
+
+        .data-table tbody tr:nth-child(even) td { background: #fff8f8; }
+
+        .text-right  { text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }}; }
+        .text-center { text-align: center; }
+
+        .info-label { color: #6b7280; font-size: 7pt; }
+        .info-value { font-weight: 500; color: #333333; }
+
+        /* Status badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1.5px solid #dc2626;
             color: #dc2626;
         }
 
-        /* Print Styles */
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            .invoice-container {
-                max-width: 100%;
-            }
-        }
+        .footer-text { font-size: 6.5pt; color: #6b7280; }
     </style>
 </head>
 <body>
-    <div class="invoice-container">
-        {{-- Invoice Header --}}
-        <div class="invoice-header">
-            <h1>{{ $platformName }}</h1>
-            <span class="invoice-type">{{ __('PAYMENT REMINDER - BALANCE DUE') }}</span>
-            <div style="margin-top: 15px; font-size: 10pt;">
-                <p><strong>{{ __('Booking Number') }}:</strong> {{ $booking->booking_number }}</p>
-                <p><strong>{{ __('Invoice Date') }}:</strong> {{ $generatedDate->format('d/m/Y H:i') }}</p>
-                <p><strong>{{ __('Original Booking Date') }}:</strong> {{ $booking->created_at->format('d/m/Y') }}</p>
-            </div>
-        </div>
 
-        {{-- Urgent Payment Alert --}}
-        <div class="urgent-alert">
-            <h2> {{ __('URGENT: BALANCE PAYMENT REQUIRED') }}</h2>
-            <p style="font-size: 12pt;">{{ __('Your event is approaching. Please settle the balance immediately.') }}</p>
+    {{-- ========================================================================
+        Header — Logo (left) + Invoice title / ref (right)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-bottom: 2px solid #dc2626; margin-bottom: 12px; padding-bottom: 8px;">
+        <tr>
+            {{-- Left: logo + platform info --}}
+            <td width="50%" style="vertical-align: top;">
+                <img src="{{ public_path(config('app.logo_path')) }}"
+                     alt="{{ $platformName }}"
+                     style="height: 40px; display: block; margin-bottom: 6px;">
+                <div style="font-size: 7pt; color: #6b7280; line-height: 1.6;">
+                    {{ $platformAddress }}<br>
+                    {{ __('Phone') }}: {{ $platformPhone }}<br>
+                    {{ __('Email') }}: {{ $platformEmail }}
+                </div>
+            </td>
 
-            <div class="amount">
-                {{ $formattedBalance }} OMR
-            </div>
+            {{-- Right: invoice type + ref + date + badge --}}
+            <td width="50%" style="vertical-align: top; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">
+                <div style="font-size: 13pt; font-weight: bold; color: #dc2626; margin-bottom: 2px;">
+                    {{ __('Balance Due Invoice') }}
+                </div>
+                <div style="font-size: 7.5pt; color: #666666; margin-bottom: 4px;">
+                    {{ __('Payment Reminder') }}
+                </div>
+                <div style="font-size: 8pt; font-weight: bold; color: #333333; margin-bottom: 2px;">
+                    {{ __('Booking Number') }}: {{ $booking->booking_number }}
+                </div>
+                <div style="font-size: 7pt; color: #6b7280; margin-bottom: 6px;">
+                    {{ __('Invoice Date') }}: {{ $generatedDate->format('d/m/Y H:i') }}
+                    &nbsp;|&nbsp; {{ __('Booked') }}: {{ $booking->created_at->format('d/m/Y') }}
+                </div>
+                <span class="badge">{{ __('BALANCE PENDING') }}</span>
+            </td>
+        </tr>
+    </table>
 
-            <div class="deadline">
-                <strong>{{ __('Payment Deadline') }}:</strong> {{ $paymentDeadline->format('d/m/Y') }}
-                <br>
-                <span style="font-size: 11pt; color: #991b1b;">
+    {{-- ========================================================================
+        Urgent Balance Box — full width
+        ======================================================================== --}}
+    @php $daysRemaining = now()->diffInDays($paymentDeadline, false); @endphp
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            {{-- Balance due amount --}}
+            <td width="49%" style="vertical-align: middle; border: 2px solid #dc2626;
+                background: #fef2f2; text-align: center; padding: 12px;">
+                <div style="font-size: 7.5pt; color: #991b1b; text-transform: uppercase;
+                    letter-spacing: 1px; margin-bottom: 4px;">
+                    {{ __('Balance Due') }}
+                </div>
+                <div style="font-size: 22pt; font-weight: bold; color: #991b1b; margin-bottom: 2px;">
+                    {{ $formattedBalance }} OMR
+                </div>
+                <div style="font-size: 7.5pt; color: #dc2626;">
+                    {{ __('Payment Deadline') }}: <strong>{{ $paymentDeadline->format('d/m/Y') }}</strong>
+                </div>
+            </td>
+
+            <td width="2%"></td>
+
+            {{-- Days remaining --}}
+            <td width="49%" style="vertical-align: middle; border: 2px dashed #dc2626;
+                background: #fff8f8; text-align: center; padding: 12px;">
+                @if($daysRemaining > 0)
+                    <div style="font-size: 28pt; font-weight: bold; color: #dc2626; line-height: 1;">
+                        {{ $daysRemaining }}
+                    </div>
+                    <div style="font-size: 8pt; font-weight: bold; color: #991b1b; margin-top: 4px;">
+                        {{ __('Days Remaining Until Deadline') }}
+                    </div>
+                @elseif($daysRemaining == 0)
+                    <div style="font-size: 13pt; font-weight: bold; color: #991b1b;">
+                        {{ __('PAYMENT DUE TODAY!') }}
+                    </div>
+                @else
+                    <div style="font-size: 13pt; font-weight: bold; color: #7f1d1d;">
+                        {{ __('OVERDUE BY') }} {{ abs($daysRemaining) }} {{ __('DAYS') }}
+                    </div>
+                @endif
+                <div style="font-size: 7pt; color: #991b1b; margin-top: 6px;">
                     {{ __('Failure to pay may result in booking cancellation') }}
-                </span>
-            </div>
-        </div>
+                </div>
+            </td>
+        </tr>
+    </table>
 
-        {{-- Days Remaining --}}
-        @php
-            $daysRemaining = now()->diffInDays($paymentDeadline, false);
-        @endphp
-        @if($daysRemaining > 0)
-        <div class="days-remaining">
-            <div class="number">{{ $daysRemaining }}</div>
-            <p style="font-size: 13pt; font-weight: bold; color: #991b1b;">
-                {{ __('Days Remaining Until Deadline') }}
-            </p>
-        </div>
-        @elseif($daysRemaining === 0)
-        <div class="days-remaining">
-            <p style="font-size: 16pt; font-weight: bold; color: #991b1b;">
-                 {{ __('PAYMENT DUE TODAY!') }}
-            </p>
-        </div>
-        @else
-        <div class="days-remaining" style="background-color: #fee2e2; border-color: #991b1b;">
-            <p style="font-size: 16pt; font-weight: bold; color: #7f1d1d;">
-                 {{ __('OVERDUE BY') }} {{ abs($daysRemaining) }} {{ __('DAYS') }}
-            </p>
-        </div>
-        @endif
-
-        {{-- Customer Info --}}
-        <div class="row">
-            <div class="col-50">
-                <div class="info-box">
-                    <h3>{{ __('Bill To') }}</h3>
-                    <p><strong>{{ $customerName }}</strong></p>
-                    <p>{{ __('Phone') }}: {{ $customerPhone }}</p>
-                    <p>{{ __('Email') }}: {{ $customerEmail }}</p>
+    {{-- ========================================================================
+        Row 1: Bill To + Event Details (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Bill To') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8;">
+                    <strong>{{ $customerName }}</strong><br>
+                    {{ __('Phone') }}: {{ $customerPhone }}<br>
+                    {{ __('Email') }}: {{ $customerEmail }}
                     @if($userName)
-                        <p>{{ __('Account') }}: {{ $userName }}</p>
+                        <br>{{ __('Account') }}: {{ $userName }}
                     @endif
                 </div>
-            </div>
-            <div class="col-50">
-                <div class="info-box">
-                    <h3>{{ __('Event Details') }}</h3>
-                    <p><span class="label">{{ __('Hall') }}:</span> {{ $hallName }}</p>
-                    <p><span class="label">{{ __('Location') }}:</span> {{ $cityName }}, {{ $regionName }}</p>
-                    <p><span class="label">{{ __('Event Date') }}:</span> {{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</p>
-                    <p><span class="label">{{ __('Time') }}:</span> {{ $booking->time_slot }}</p>
+            </td>
+            <td width="2%"></td>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Event Details') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8;">
+                    <span class="info-label">{{ __('Hall') }}:</span>
+                    <span class="info-value"> {{ $hallName }}</span><br>
+                    <span class="info-label">{{ __('Location') }}:</span>
+                    <span class="info-value"> {{ $cityName }}, {{ $regionName }}</span><br>
+                    <span class="info-label">{{ __('Event Date') }}:</span>
+                    <span class="info-value"> {{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</span><br>
+                    <span class="info-label">{{ __('Time') }}:</span>
+                    <span class="info-value"> {{ $booking->time_slot }}</span>
                 </div>
-            </div>
-        </div>
+            </td>
+        </tr>
+    </table>
 
-        {{-- Payment Summary --}}
-        <h3 style="color: #dc2626; margin: 25px 0 15px;">{{ __('Payment Summary') }}</h3>
-        <div class="payment-summary">
-            <div class="summary-row">
-                <span>{{ __('Original Total Amount') }}</span>
-                <span><strong>{{ $formattedTotal }} OMR</strong></span>
-            </div>
-            <div class="summary-row highlight" style="color: #059669;">
-                <span> {{ __('Advance Already Paid') }}</span>
-                <span>{{ $formattedAdvance }} OMR</span>
-            </div>
-            <div class="summary-row" style="font-size: 14pt; font-weight: bold; color: #dc2626; padding-top: 15px; border-top: 2px solid #dc2626;">
-                <span>{{ __('Balance Due') }}</span>
-                <span>{{ $formattedBalance }} OMR</span>
-            </div>
-        </div>
+    {{-- ========================================================================
+        Row 2: Payment Summary + Original Breakdown (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            {{-- Payment Summary --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Payment Summary') }}</div>
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Original Total Amount') }}</td>
+                        <td class="text-right"><strong>{{ $formattedTotal }} OMR</strong></td>
+                    </tr>
+                    <tr style="background: #f0fdf4;">
+                        <td style="color: #059669; padding: 5px 8px;">{{ __('Advance Already Paid') }}</td>
+                        <td class="text-right" style="color: #059669; font-weight: bold; padding: 5px 8px;">
+                            {{ $formattedAdvance }} OMR
+                        </td>
+                    </tr>
+                    <tr style="border-top: 1.5px solid #dc2626;">
+                        <td style="font-weight: bold; color: #dc2626; padding: 6px 8px; font-size: 9pt;">
+                            {{ __('Balance Due') }}
+                        </td>
+                        <td class="text-right" style="font-weight: bold; color: #dc2626; padding: 6px 8px; font-size: 9pt;">
+                            {{ $formattedBalance }} OMR
+                        </td>
+                    </tr>
+                </table>
+            </td>
 
-        {{-- Booking Breakdown --}}
-        <div class="info-box">
-            <h3>{{ __('Original Booking Breakdown') }}</h3>
-            <div class="summary-row">
-                <span>{{ __('Hall Rental') }}</span>
-                <span>{{ $formattedHallPrice }} OMR</span>
-            </div>
-            @if($extraServices->count() > 0)
-                <div class="summary-row">
-                    <span>{{ __('Extra Services') }}</span>
-                    <span>{{ $formattedServicesPrice }} OMR</span>
+            <td width="2%"></td>
+
+            {{-- Original Booking Breakdown --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Original Booking Breakdown') }}</div>
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Hall Rental') }}</td>
+                        <td class="text-right">{{ $formattedHallPrice }} OMR</td>
+                    </tr>
+                    @if($extraServices->count() > 0)
+                        <tr>
+                            <td class="info-label">{{ __('Extra Services') }}</td>
+                            <td class="text-right">{{ $formattedServicesPrice }} OMR</td>
+                        </tr>
+                        @foreach($extraServices as $service)
+                            <tr>
+                                <td style="padding: 3px 8px 3px 16px; color: #9ca3af; font-size: 7pt;">
+                                    &bull; {{ $service['name'] }} (x{{ $service['quantity'] }})
+                                </td>
+                                <td class="text-right" style="padding: 3px 8px; color: #9ca3af; font-size: 7pt;">
+                                    {{ $service['total_price'] }} OMR
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                    <tr>
+                        <td class="info-label">{{ __('Platform Fee') }}</td>
+                        <td class="text-right">{{ $formattedCommission }} OMR</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 3: How to Pay + Important Information (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            {{-- How to Pay --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('How to Pay the Balance') }}</div>
+                <div style="font-size: 7.5pt; line-height: 1.8;">
+                    <span class="info-label">{{ __('Amount to Pay') }}:</span>
+                    <strong style="color: #dc2626;"> {{ $formattedBalance }} OMR</strong><br>
+                    <span class="info-label">{{ __('Payment Deadline') }}:</span>
+                    <strong> {{ $paymentDeadline->format('d/m/Y') }}</strong>
                 </div>
-                @foreach($extraServices as $service)
-                <div style="margin-{{ app()->isLocale('ar') ? 'right' : 'left' }}: 20px; padding: 5px 0; font-size: 9pt; color: #6b7280;">
-                    <span>• {{ $service['name'] }} (x{{ $service['quantity'] }})</span>
-                    <span style="float: {{ app()->isLocale('ar') ? 'left' : 'right' }};">{{ $service['total_price'] }} OMR</span>
+                <div style="font-size: 7.5pt; margin-top: 6px; line-height: 1.8;">
+                    <strong>{{ __('Accepted Payment Methods') }}:</strong><br>
+                    &bull; <strong>{{ __('Bank Transfer') }}:</strong> {{ __('Contact hall owner for bank details') }}<br>
+                    &bull; <strong>{{ __('Cash Payment') }}:</strong> {{ __('Arrange with hall owner') }}<br>
+                    &bull; <strong>{{ __('Mobile Payment') }}:</strong> {{ __('As agreed with hall owner') }}
                 </div>
-                @endforeach
-            @endif
-            <div class="summary-row">
-                <span>{{ __('Platform Fee') }}</span>
-                <span>{{ $formattedCommission }} OMR</span>
-            </div>
-        </div>
+                <div style="margin-top: 8px; padding: 6px 8px; background: #fef2f2;
+                    border: 1px solid #fca5a5; font-size: 7.5pt; line-height: 1.8;">
+                    <strong style="color: #dc2626;">{{ __('Hall Owner Contact') }}</strong><br>
+                    {{ __('Name') }}: {{ $ownerName }}<br>
+                    {{ __('Phone') }}: {{ $ownerPhone }}
+                </div>
+            </td>
 
-        {{-- Payment Instructions --}}
-        <div class="highlight-box alert">
-            <h3 style="color: #dc2626; margin-bottom: 10px;">{{ __('How to Pay the Balance') }}</h3>
-            <p style="margin-bottom: 10px;">
-                <strong>{{ __('Amount to Pay') }}:</strong> {{ $formattedBalance }} OMR
-            </p>
-            <p style="margin-bottom: 10px;">
-                <strong>{{ __('Payment Deadline') }}:</strong> {{ $paymentDeadline->format('l, d F Y') }}
-            </p>
+            <td width="2%"></td>
 
-            <h4 style="margin-top: 15px; margin-bottom: 8px;">{{ __('Accepted Payment Methods') }}:</h4>
-            <ul style="margin-{{ app()->isLocale('ar') ? 'right' : 'left' }}: 20px;">
-                <li><strong>{{ __('Bank Transfer') }}:</strong> {{ __('Contact hall owner for bank details') }}</li>
-                <li><strong>{{ __('Cash Payment') }}:</strong> {{ __('Arrange with hall owner') }}</li>
-                <li><strong>{{ __('Mobile Payment') }}:</strong> {{ __('As agreed with hall owner') }}</li>
-            </ul>
+            {{-- Important Information --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Important Information') }}</div>
+                <table width="100%" cellpadding="0" cellspacing="0"
+                       style="border: 1px solid #fbbf24; background: #fffbeb; margin-bottom: 8px;">
+                    <tr>
+                        <td style="padding: 8px; font-size: 7.5pt; line-height: 1.8; color: #333333;">
+                            &bull; {{ __('Your advance payment of') }}
+                            <strong>{{ $formattedAdvance }} OMR</strong> {{ __('has been received') }}<br>
+                            &bull; {{ __('The balance must be paid before') }}
+                            <strong>{{ $paymentDeadline->format('d/m/Y') }}</strong><br>
+                            &bull; {{ __('Failure to pay may result in automatic booking cancellation') }}<br>
+                            &bull; {{ __('After payment, please inform the hall owner and platform') }}<br>
+                            &bull; {{ __('Keep proof of payment for your records') }}
+                        </td>
+                    </tr>
+                </table>
 
-            <div style="margin-top: 15px; padding: 12px; background-color: #fff; border-radius: 5px;">
-                <h4 style="color: #dc2626;">{{ __('Hall Owner Contact Information') }}</h4>
-                <p style="margin-top: 8px;"><strong>{{ __('Name') }}:</strong> {{ $ownerName }}</p>
-                <p><strong>{{ __('Phone') }}:</strong> {{ $ownerPhone }}</p>
-                <p style="margin-top: 8px; font-size: 10pt; color: #6b7280;">
-                    {{ __('Please contact the hall owner directly to arrange payment') }}
-                </p>
-            </div>
-        </div>
+                <div class="section-title" style="margin-top: 8px;">{{ __('Need Help?') }}</div>
+                <div style="font-size: 7.5pt; line-height: 1.8;">
+                    <strong>{{ $platformName }} {{ __('Support') }}</strong><br>
+                    {{ __('Phone') }}: {{ $platformPhone }}<br>
+                    {{ __('Email') }}: {{ $platformEmail }}
+                </div>
+            </td>
+        </tr>
+    </table>
 
-        {{-- Important Notice --}}
-        <div class="highlight-box">
-            <h3 style="color: #f59e0b; margin-bottom: 10px;">{{ __('Important Information') }}</h3>
-            <ul style="margin-{{ app()->isLocale('ar') ? 'right' : 'left' }}: 20px; font-size: 10pt;">
-                <li>{{ __('Your advance payment of') }} <strong>{{ $formattedAdvance }} OMR</strong> {{ __('has been received') }}</li>
-                <li>{{ __('The balance must be paid before') }} <strong>{{ $paymentDeadline->format('d/m/Y') }}</strong></li>
-                <li>{{ __('Failure to pay may result in automatic booking cancellation') }}</li>
-                <li>{{ __('After payment, please inform the hall owner and platform') }}</li>
-                <li>{{ __('Keep proof of payment for your records') }}</li>
-            </ul>
-        </div>
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-top: 1px solid #fca5a5; padding-top: 6px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle;" class="footer-text">
+                <strong>{{ $platformName }}</strong> &mdash;
+                {{ $platformAddress }} &nbsp;|&nbsp; {{ $platformPhone }} &nbsp;|&nbsp; {{ $platformEmail }}
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};" class="footer-text">
+                <span style="color: #dc2626; font-weight: bold;">
+                    {{ __('Please pay before the deadline to avoid cancellation') }}
+                </span><br>
+                {{ __('Generated on') }}: {{ $generatedDate->format('d/m/Y H:i:s') }}
+            </td>
+        </tr>
+    </table>
 
-        {{-- Payment Status --}}
-        <div style="text-align: center; margin: 30px 0;">
-            <p style="font-size: 11pt;">{{ __('Current Payment Status') }}:</p>
-            <span class="status-badge pending">{{ __('BALANCE PENDING') }}</span>
-        </div>
-
-        {{-- Contact Support --}}
-        <div class="info-box">
-            <h3>{{ __('Need Help?') }}</h3>
-            <p>{{ __('If you have any questions or need assistance with payment, please contact us:') }}</p>
-            <p style="margin-top: 10px;">
-                <strong>{{ $platformName }} {{ __('Support') }}</strong><br>
-                {{ __('Phone') }}: {{ $platformPhone }}<br>
-                {{ __('Email') }}: {{ $platformEmail }}
-            </p>
-        </div>
-
-        {{-- Footer --}}
-        <div class="invoice-footer">
-            <p><strong>{{ $platformName }}</strong></p>
-            <p>{{ $platformAddress }} | {{ __('Phone') }}: {{ $platformPhone }} | {{ __('Email') }}: {{ $platformEmail }}</p>
-            <p style="margin-top: 10px; color: #dc2626; font-weight: bold;">{{ __('Please pay the balance before the deadline to avoid cancellation') }}</p>
-            <p style="font-size: 8pt; margin-top: 5px;">{{ __('Generated on') }}: {{ $generatedDate->format('d/m/Y H:i:s') }}</p>
-        </div>
-    </div>
 </body>
 </html>

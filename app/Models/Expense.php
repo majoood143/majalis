@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Expense Model
- * 
+ *
  * Represents expenses recorded by hall owners in the Majalis platform.
  * Supports booking-linked expenses, recurring expenses, and detailed tracking.
- * 
+ *
  * @package App\Models
  * @author  Majalis Development Team
  * @version 1.0.0
@@ -27,10 +27,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
 use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 /**
  * Expense Model
- * 
+ *
  * @property int $id
  * @property string $expense_number
  * @property int $owner_id
@@ -69,7 +71,7 @@ use Carbon\Carbon;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- * 
+ *
  * @property-read User $owner
  * @property-read Hall|null $hall
  * @property-read Booking|null $booking
@@ -84,6 +86,13 @@ class Expense extends Model
     use HasFactory;
     use HasTranslations;
     use SoftDeletes;
+    use LogsActivity;
+
+     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
 
     /**
      * The table associated with the model.
@@ -167,6 +176,11 @@ class Expense extends Model
         'title',
         'description',
     ];
+    
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
+    }
 
     /**
      * Default attribute values.
@@ -212,14 +226,14 @@ class Expense extends Model
         // Auto-approve and set paid_at for paid expenses
         static::saving(function (Expense $expense): void {
             // If payment status changed to paid, set paid_at
-            if ($expense->isDirty('payment_status') && 
+            if ($expense->isDirty('payment_status') &&
                 $expense->payment_status === ExpensePaymentStatus::Paid &&
                 empty($expense->paid_at)) {
                 $expense->paid_at = now();
             }
 
             // If status changed to approved, set approved_at
-            if ($expense->isDirty('status') && 
+            if ($expense->isDirty('status') &&
                 $expense->status === ExpenseStatus::Approved &&
                 empty($expense->approved_at)) {
                 $expense->approved_at = now();
@@ -439,7 +453,7 @@ class Expense extends Model
     public function scopeInDateRange($query, $startDate, $endDate = null)
     {
         $query->where('expense_date', '>=', $startDate);
-        
+
         if ($endDate) {
             $query->where('expense_date', '<=', $endDate);
         }
@@ -495,8 +509,8 @@ class Expense extends Model
      */
     public function getLocalizedTitleAttribute(): string
     {
-        return $this->getTranslation('title', app()->getLocale()) 
-            ?? $this->getTranslation('title', 'en') 
+        return $this->getTranslation('title', app()->getLocale())
+            ?? $this->getTranslation('title', 'en')
             ?? '';
     }
 
@@ -577,7 +591,7 @@ class Expense extends Model
     {
         $year = date('Y');
         $prefix = 'EXP';
-        
+
         // Get the last expense number for this year
         $lastExpense = self::withTrashed()
             ->where('expense_number', 'like', "{$prefix}-{$year}-%")
@@ -606,11 +620,11 @@ class Expense extends Model
     {
         $this->payment_status = ExpensePaymentStatus::Paid;
         $this->paid_at = now();
-        
+
         if ($reference) {
             $this->payment_reference = $reference;
         }
-        
+
         if ($method) {
             $this->payment_method = $method;
         }
@@ -708,7 +722,7 @@ class Expense extends Model
 
     /**
      * Calculate booking profitability
-     * 
+     *
      * @return array{revenue: float, expenses: float, profit: float, margin: float}|null
      */
     public function getBookingProfitability(): ?array
@@ -719,11 +733,11 @@ class Expense extends Model
 
         $booking = $this->booking;
         $revenue = (float) $booking->owner_payout;
-        
+
         $expenses = self::where('booking_id', $this->booking_id)
             ->approved()
             ->sum('total_amount');
-        
+
         $expenses = (float) $expenses;
         $profit = $revenue - $expenses;
         $margin = $revenue > 0 ? ($profit / $revenue) * 100 : 0;

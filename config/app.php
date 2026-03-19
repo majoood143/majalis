@@ -101,6 +101,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Logo
+    |--------------------------------------------------------------------------
+    |
+    | Absolute path to the logo image used in PDF generation (DomPDF / mPDF).
+    | Use public_path() at runtime, but store the relative path here.
+    |
+    */
+
+    'logo_path' => env('APP_LOGO_PATH', 'images/logo.webp'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

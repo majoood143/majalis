@@ -485,6 +485,9 @@ return [
         'complete_modal_description' => 'هل تريد وضع علامة إكمال على هذا الحجز؟ سيتم إنهاء الحجز.',
         'download_invoice' => 'تحميل الفاتورة',
         'generate_invoice' => 'إنشاء فاتورة',
+        'send_payment_link' => 'إرسال رابط الدفع',
+        'send_payment_link_modal_heading' => 'إرسال رابط الدفع',
+        'send_payment_link_modal_description' => 'سيتم إنشاء جلسة دفع عبر ثعباني وإرسال الرابط إلى :email بمبلغ :amount ر.ع. سيتم تأكيد الحجز تلقائياً عند اكتمال الدفع.',
         'send_reminder' => 'إرسال تذكير',
         'send_reminder_modal_heading' => 'إرسال تذكير',
         'send_reminder_modal_description' => 'إرسال إشعار تذكير للعميل بخصوص حجزه القادم؟',
@@ -677,6 +680,10 @@ return [
         'email_sent_body' => 'تم إرسال تأكيد الحجز إلى :email',
         'email_failed_title' => 'فشل إرسال البريد الإلكتروني',
         'email_failed_body' => 'تعذر إرسال البريد الإلكتروني: :error',
+        'payment_link_sent_title' => 'تم إرسال رابط الدفع',
+        'payment_link_sent_body' => 'تم إرسال رابط الدفع إلى :email',
+        'payment_link_failed_title' => 'فشل إنشاء رابط الدفع',
+        'payment_link_failed_body' => 'تعذر إنشاء رابط الدفع. يرجى المحاولة مجدداً.',
     ],
 
 
@@ -889,6 +896,9 @@ return [
 
     'email' => [
         // ... existing keys ...
+
+        'invoice_subject' => 'فاتورتك لحجز القاعة رقم :booking_number',
+        'invoice_default_message' => 'عزيزي :name،\n\nشكراً لاختيارك حجز قاعتنا. يرجى العثور على الفاتورة المرفقة لحجزك رقم :booking_number.\n\nإذا كان لديك أي أسئلة أو تحتاج إلى مزيد من المعلومات، لا تتردد في التواصل معنا.\n\nمع تحياتنا،\nفريق حجز القاعات',
 
         // Invoice Email Template Keys
         'invoice_greeting' => 'عزيزي :name،',
