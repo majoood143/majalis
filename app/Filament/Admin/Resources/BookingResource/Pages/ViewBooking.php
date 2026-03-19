@@ -152,12 +152,26 @@ class ViewBooking extends ViewRecord
                 ->action(function () {
                     // Check if invoice exists
                     if ($this->record->invoice_path) {
-                        // Return download response from private storage
-                        return response()->download(
-                            storage_path('app/public/' . $this->record->invoice_path)
-                        );
+                        // Try local disk first (where PDFService saves invoices)
+                        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($this->record->invoice_path)) {
+                            return response()->download(
+                                \Illuminate\Support\Facades\Storage::disk('local')->path($this->record->invoice_path)
+                            );
+                        }
+
+                        // Fall back to public disk
+                        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->record->invoice_path)) {
+                            return response()->download(
+                                \Illuminate\Support\Facades\Storage::disk('public')->path($this->record->invoice_path)
+                            );
+                        }
+
+                        Notification::make()
+                            ->title(__('booking.notifications.invoice_not_available_title'))
+                            ->body('Invoice file not found. Please regenerate the invoice.')
+                            ->warning()
+                            ->send();
                     } else {
-                        // Show warning if invoice not available
                         Notification::make()
                             ->title(__('booking.notifications.invoice_not_available_title'))
                             ->warning()
@@ -214,8 +228,11 @@ class ViewBooking extends ViewRecord
                             ->send();
                     }
                 })
-                ->visible(fn() => empty($this->record->invoice_path) &&
-                    $this->record->status === 'confirmed'),
+                ->visible(fn() => $this->record->status === 'confirmed' && (
+                    empty($this->record->invoice_path) ||
+                    (!\Illuminate\Support\Facades\Storage::disk('local')->exists($this->record->invoice_path) &&
+                     !\Illuminate\Support\Facades\Storage::disk('public')->exists($this->record->invoice_path))
+                )),
 
             /**
              * Send Payment Link Action

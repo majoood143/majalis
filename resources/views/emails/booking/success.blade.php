@@ -151,7 +151,7 @@
 
     {{-- CTA Buttons --}}
     <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ route('booking.show', $booking->id) }}" class="btn btn-primary">
+        <a href="{{ route('customer.booking.details', $booking->id) }}" class="btn btn-primary">
             {{ __('emails.payment.success.view_booking') }}
         </a>
         

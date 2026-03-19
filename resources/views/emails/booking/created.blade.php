@@ -154,7 +154,7 @@
         @if($booking->hall->requires_approval)
             <p style="color: #6b7280; font-size: 14px;">{{ __('emails.booking.created.awaiting_approval') }}</p>
         @else
-            {{-- <a href="{{ route('booking.show', $booking->id) }}" class="btn btn-primary">
+            {{-- <a href="{{ route('customer.booking.details', $booking->id) }}" class="btn btn-primary">
                 {{ __('emails.booking.created.view_booking') }}
             </a> --}}
         @endif
