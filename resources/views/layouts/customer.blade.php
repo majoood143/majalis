@@ -16,9 +16,6 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Tajawal Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -79,6 +76,30 @@
     </script>
 
     @stack('styles')
+    <style>
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Regular.ttf") }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Medium.ttf") }}') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Bold.ttf") }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        *, *::before, *::after { font-family: 'Tajawal', sans-serif !important; }
+    </style>
 </head>
 
 <body class="min-h-screen bg-gray-50">

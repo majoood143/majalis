@@ -5,8 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('Payment Cancelled') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>* { font-family: 'Tajawal', sans-serif; }</style>
+    <style>
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Regular.ttf") }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Medium.ttf") }}') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Bold.ttf") }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        *, *::before, *::after { font-family: 'Tajawal', sans-serif !important; }
+    </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center">

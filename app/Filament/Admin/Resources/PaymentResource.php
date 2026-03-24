@@ -31,6 +31,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Mail\PaymentReceiptMail;
+//use Filament\Actions\ActionGroup;
+use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 /**
  * PaymentResource
@@ -224,11 +228,11 @@ class PaymentResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('transaction_id')
-                    ->label(__('payment.columns.transaction_id'))
-                    ->searchable()
-                    ->copyable()
-                    ->toggleable(),
+                // Tables\Columns\TextColumn::make('transaction_id')
+                //     ->label(__('payment.columns.transaction_id'))
+                //     ->searchable()
+                //     ->copyable()
+                //     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('amount')
                     ->label(__('payment.columns.amount'))
@@ -305,11 +309,17 @@ class PaymentResource extends Resource
                     }),
             ])
             ->actions([
+
+            ActionGroup::make([
+
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                ActivityLogTimelineTableAction::make('Activities'),
+            ]),
                 // =========================================================
                 // 📋 STANDARD CRUD ACTIONS
                 // =========================================================
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+
 
                 // =========================================================
                 // 📄 RECEIPT ACTIONS GROUP
@@ -579,15 +589,7 @@ class PaymentResource extends Resource
                             }
                         }),
 
-                ])
-                ->label(__('payment.actions.receipt'))
-                ->icon('heroicon-o-document-text')
-                ->color('gray')
-                ->dropdown(),
 
-                // =========================================================
-                // 💰 REFUND ACTION
-                // =========================================================
                 Tables\Actions\Action::make('refund')
                     ->label(__('payment.actions.refund'))
                     ->icon('heroicon-o-arrow-path')
@@ -732,7 +734,17 @@ class PaymentResource extends Resource
                             throw $e;
                         }
                     }),
+
             ])
+                ->label(__('payment.actions.receipt'))
+                ->icon('heroicon-o-document-text')
+                ->color('gray')
+                ->dropdown(),
+
+                // =========================================================
+                // 💰 REFUND ACTION
+                // =========================================================
+                ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

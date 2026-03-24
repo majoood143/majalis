@@ -114,6 +114,16 @@ class ReviewResource extends Resource
                             ->label(__('review.fields.is_featured'))
                             ->inline(false),
 
+                        Forms\Components\Toggle::make('is_late_review')
+                            ->label(__('review.columns_extra.is_late_review'))
+                            ->inline(false)
+                            ->disabled(),
+
+                        Forms\Components\Toggle::make('marketing_consent')
+                            ->label(__('review.columns_extra.marketing_consent'))
+                            ->inline(false)
+                            ->disabled(),
+
                         Forms\Components\Textarea::make('admin_notes')
                             ->label(__('review.fields.admin_notes'))
                             ->rows(3)
@@ -185,6 +195,18 @@ class ReviewResource extends Resource
                     ->toggleable()
                     ->placeholder(__('review.placeholder.no_response')),
 
+                Tables\Columns\IconColumn::make('is_late_review')
+                    ->label(__('review.columns_extra.is_late_review'))
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\IconColumn::make('marketing_consent')
+                    ->label(__('review.columns_extra.marketing_consent'))
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('review.columns.created_at'))
                     ->dateTime()
@@ -224,6 +246,16 @@ class ReviewResource extends Resource
                         true: fn($query) => $query->whereNotNull('owner_response'),
                         false: fn($query) => $query->whereNull('owner_response'),
                     )
+                    ->native(false),
+
+                Tables\Filters\TernaryFilter::make('is_late_review')
+                    ->label(__('review.filters_extra.late_review'))
+                    ->boolean()
+                    ->native(false),
+
+                Tables\Filters\TernaryFilter::make('marketing_consent')
+                    ->label(__('review.filters_extra.marketing_consent'))
+                    ->boolean()
                     ->native(false),
             ])
             ->actions([
@@ -327,6 +359,12 @@ class ReviewResource extends Resource
                             ->formatStateUsing(fn($state) => $state
                                 ? __('review.status.featured')
                                 : __('review.status.not_featured')),
+                        Infolists\Components\IconEntry::make('is_late_review')
+                            ->label(__('review.columns_extra.is_late_review'))
+                            ->boolean(),
+                        Infolists\Components\IconEntry::make('marketing_consent')
+                            ->label(__('review.columns_extra.marketing_consent'))
+                            ->boolean(),
                         Infolists\Components\TextEntry::make('admin_notes')
                             ->label(__('review.fields.admin_notes')),
                     ])->columns(3),

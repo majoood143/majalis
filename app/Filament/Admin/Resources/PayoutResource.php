@@ -16,10 +16,13 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 /**
  * PayoutResource - Admin Payout Management
@@ -152,7 +155,8 @@ class PayoutResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->live()
-                                    ->getOptionLabelFromRecordUsing(fn (User $record): string =>
+                                    ->getOptionLabelFromRecordUsing(
+                                        fn(User $record): string =>
                                         $record->name . ' (' . ($record->email) . ')'
                                     )
                                     ->options(function () {
@@ -172,7 +176,8 @@ class PayoutResource extends Resource
                                     ->displayFormat('d M Y')
                                     ->maxDate(now())
                                     ->live()
-                                    ->afterStateUpdated(fn (Forms\Set $set, $state) =>
+                                    ->afterStateUpdated(
+                                        fn(Forms\Set $set, $state) =>
                                         $set('period_end', $state)
                                     ),
 
@@ -181,7 +186,7 @@ class PayoutResource extends Resource
                                     ->required()
                                     ->native(false)
                                     ->displayFormat('d M Y')
-                                    ->minDate(fn (Forms\Get $get) => $get('period_start'))
+                                    ->minDate(fn(Forms\Get $get) => $get('period_start'))
                                     ->maxDate(now()),
                             ]),
 
@@ -192,7 +197,7 @@ class PayoutResource extends Resource
                             ->default(PayoutStatus::PENDING->value)
                             ->required()
                             ->native(false)
-                            ->visible(fn (?OwnerPayout $record) => $record !== null),
+                            ->visible(fn(?OwnerPayout $record) => $record !== null),
                     ])
                     ->columns(1),
 
@@ -210,7 +215,8 @@ class PayoutResource extends Resource
                                     ->required()
                                     ->step(0.001)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) =>
+                                    ->afterStateUpdated(
+                                        fn(Forms\Set $set, Forms\Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
@@ -222,7 +228,8 @@ class PayoutResource extends Resource
                                     ->required()
                                     ->step(0.001)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) =>
+                                    ->afterStateUpdated(
+                                        fn(Forms\Set $set, Forms\Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
@@ -245,7 +252,8 @@ class PayoutResource extends Resource
                                     ->step(0.001)
                                     ->helperText(__('admin.payout.adjustments_help'))
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) =>
+                                    ->afterStateUpdated(
+                                        fn(Forms\Set $set, Forms\Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
@@ -317,7 +325,7 @@ class PayoutResource extends Resource
                             ->label(__('admin.payout.fields.failure_reason'))
                             ->rows(2)
                             ->maxLength(500)
-                            ->visible(fn (Forms\Get $get) => $get('status') === PayoutStatus::FAILED->value)
+                            ->visible(fn(Forms\Get $get) => $get('status') === PayoutStatus::FAILED->value)
                             ->columnSpanFull(),
                     ])
                     ->collapsible()
@@ -372,14 +380,16 @@ class PayoutResource extends Resource
                     ->label(__('admin.payout.fields.owner'))
                     ->searchable()
                     ->sortable()
-                    ->description(fn (OwnerPayout $record): string =>
+                    ->description(
+                        fn(OwnerPayout $record): string =>
                         $record->owner?->email ?? ''
                     ),
 
                 // Period
                 Tables\Columns\TextColumn::make('period_start')
                     ->label(__('admin.payout.fields.period'))
-                    ->formatStateUsing(fn (OwnerPayout $record): string =>
+                    ->formatStateUsing(
+                        fn(OwnerPayout $record): string =>
                         $record->period_start->format('d M') . ' - ' . $record->period_end->format('d M Y')
                     )
                     ->sortable(),
@@ -419,9 +429,9 @@ class PayoutResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label(__('admin.payout.fields.status'))
                     ->badge()
-                    ->formatStateUsing(fn (PayoutStatus $state): string => $state->getLabel())
-                    ->color(fn (PayoutStatus $state): string => $state->getColor())
-                    ->icon(fn (PayoutStatus $state): string => $state->getIcon()),
+                    ->formatStateUsing(fn(PayoutStatus $state): string => $state->getLabel())
+                    ->color(fn(PayoutStatus $state): string => $state->getColor())
+                    ->icon(fn(PayoutStatus $state): string => $state->getIcon()),
 
                 // Processed Date
                 Tables\Columns\TextColumn::make('completed_at')
@@ -464,10 +474,14 @@ class PayoutResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'], fn ($q, $date) =>
+                            ->when(
+                                $data['from'],
+                                fn($q, $date) =>
                                 $q->where('period_start', '>=', $date)
                             )
-                            ->when($data['to'], fn ($q, $date) =>
+                            ->when(
+                                $data['to'],
+                                fn($q, $date) =>
                                 $q->where('period_end', '<=', $date)
                             );
                     }),
@@ -476,11 +490,12 @@ class PayoutResource extends Resource
                 Tables\Filters\TernaryFilter::make('pending_only')
                     ->label(__('admin.payout.filters.pending_only'))
                     ->queries(
-                        true: fn (Builder $query) => $query->where('status', PayoutStatus::PENDING),
-                        false: fn (Builder $query) => $query->whereNot('status', PayoutStatus::PENDING),
+                        true: fn(Builder $query) => $query->where('status', PayoutStatus::PENDING),
+                        false: fn(Builder $query) => $query->whereNot('status', PayoutStatus::PENDING),
                     ),
             ])
             ->actions([
+
                 // View Action
                 Tables\Actions\ViewAction::make()
                     ->iconButton(),
@@ -488,141 +503,152 @@ class PayoutResource extends Resource
                 // Edit Action
                 Tables\Actions\EditAction::make()
                     ->iconButton()
-                    ->visible(fn (OwnerPayout $record): bool =>
+                    ->visible(
+                        fn(OwnerPayout $record): bool =>
                         !$record->status->isTerminal()
                     ),
 
-                // Process Action
-                Tables\Actions\Action::make('process')
-                    ->label(__('admin.payout.actions.process'))
-                    ->icon('heroicon-o-play')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading(__('admin.payout.modal.process_title'))
-                    ->modalDescription(__('admin.payout.modal.process_desc'))
-                    ->modalSubmitActionLabel(__('admin.payout.modal.process_confirm'))
-                    ->visible(fn (OwnerPayout $record): bool => $record->canProcess())
-                    ->action(function (OwnerPayout $record): void {
-                        if ($record->markAsProcessing(Auth::id())) {
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.processing'))
-                                ->success()
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.process_failed'))
-                                ->danger()
-                                ->send();
-                        }
-                    }),
+                ActionGroup::make([
 
-                // Complete Action
-                Tables\Actions\Action::make('complete')
-                    ->label(__('admin.payout.actions.complete'))
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->form([
-                        Forms\Components\Select::make('payment_method')
-                            ->label(__('admin.payout.fields.payment_method'))
-                            ->options([
-                                'bank_transfer' => __('admin.payout.methods.bank_transfer'),
-                                'cash' => __('admin.payout.methods.cash'),
-                                'cheque' => __('admin.payout.methods.cheque'),
-                                'other' => __('admin.payout.methods.other'),
-                            ])
-                            ->required()
-                            ->native(false),
 
-                        Forms\Components\TextInput::make('transaction_reference')
-                            ->label(__('admin.payout.fields.transaction_reference'))
-                            ->required()
-                            ->maxLength(100),
-                    ])
-                    ->visible(fn (OwnerPayout $record): bool =>
-                        $record->status === PayoutStatus::PROCESSING
-                    )
-                    ->action(function (OwnerPayout $record, array $data): void {
-                        if ($record->markAsCompleted(
-                            $data['transaction_reference'],
-                            $data['payment_method']
-                        )) {
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.completed'))
-                                ->body(__('admin.payout.notifications.completed_body', [
-                                    'amount' => number_format((float) $record->net_payout, 3),
-                                    'owner' => $record->owner->name,
-                                ]))
-                                ->success()
-                                ->send();
-                        }
-                    }),
 
-                // Mark Failed Action
-                Tables\Actions\Action::make('fail')
-                    ->label(__('admin.payout.actions.fail'))
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->form([
-                        Forms\Components\Textarea::make('failure_reason')
-                            ->label(__('admin.payout.fields.failure_reason'))
-                            ->required()
-                            ->rows(3)
-                            ->maxLength(500),
-                    ])
-                    ->visible(fn (OwnerPayout $record): bool =>
-                        $record->status === PayoutStatus::PROCESSING
-                    )
-                    ->action(function (OwnerPayout $record, array $data): void {
-                        if ($record->markAsFailed($data['failure_reason'])) {
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.failed'))
-                                ->warning()
-                                ->send();
-                        }
-                    }),
 
-                // Hold Action
-                Tables\Actions\Action::make('hold')
-                    ->label(__('admin.payout.actions.hold'))
-                    ->icon('heroicon-o-pause-circle')
-                    ->color('warning')
-                    ->form([
-                        Forms\Components\Textarea::make('reason')
-                            ->label(__('admin.payout.fields.hold_reason'))
-                            ->rows(2)
-                            ->maxLength(500),
-                    ])
-                    ->visible(fn (OwnerPayout $record): bool => $record->canCancel())
-                    ->action(function (OwnerPayout $record, array $data): void {
-                        if ($record->putOnHold($data['reason'] ?? null)) {
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.on_hold'))
-                                ->warning()
-                                ->send();
-                        }
-                    }),
 
-                // Cancel Action
-                Tables\Actions\Action::make('cancel')
-                    ->label(__('admin.payout.actions.cancel'))
-                    ->icon('heroicon-o-no-symbol')
-                    ->color('gray')
-                    ->requiresConfirmation()
-                    ->modalHeading(__('admin.payout.modal.cancel_title'))
-                    ->form([
-                        Forms\Components\Textarea::make('reason')
-                            ->label(__('admin.payout.fields.cancel_reason'))
-                            ->rows(2)
-                            ->maxLength(500),
-                    ])
-                    ->visible(fn (OwnerPayout $record): bool => $record->canCancel())
-                    ->action(function (OwnerPayout $record, array $data): void {
-                        if ($record->cancel($data['reason'] ?? null)) {
-                            Notification::make()
-                                ->title(__('admin.payout.notifications.cancelled'))
-                                ->send();
-                        }
-                    }),
+                    // Process Action
+                    Tables\Actions\Action::make('process')
+                        ->label(__('admin.payout.actions.process'))
+                        ->icon('heroicon-o-play')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->modalHeading(__('admin.payout.modal.process_title'))
+                        ->modalDescription(__('admin.payout.modal.process_desc'))
+                        ->modalSubmitActionLabel(__('admin.payout.modal.process_confirm'))
+                        ->visible(fn(OwnerPayout $record): bool => $record->canProcess())
+                        ->action(function (OwnerPayout $record): void {
+                            if ($record->markAsProcessing(Auth::id())) {
+                                Notification::make()
+                                    ->title(__('admin.payout.notifications.processing'))
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title(__('admin.payout.notifications.process_failed'))
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
+
+                    // Complete Action
+                    Tables\Actions\Action::make('complete')
+                        ->label(__('admin.payout.actions.complete'))
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\Select::make('payment_method')
+                                ->label(__('admin.payout.fields.payment_method'))
+                                ->options([
+                                    'bank_transfer' => __('admin.payout.methods.bank_transfer'),
+                                    'cash' => __('admin.payout.methods.cash'),
+                                    'cheque' => __('admin.payout.methods.cheque'),
+                                    'other' => __('admin.payout.methods.other'),
+                                ])
+                                ->required()
+                                ->native(false),
+
+                            Forms\Components\TextInput::make('transaction_reference')
+                                ->label(__('admin.payout.fields.transaction_reference'))
+                                ->required()
+                                ->maxLength(100),
+                        ])
+                        ->visible(
+                            fn(OwnerPayout $record): bool =>
+                            $record->status === PayoutStatus::PROCESSING
+                        )
+                        ->action(function (OwnerPayout $record, array $data): void {
+                            if ($record->markAsCompleted(
+                                $data['transaction_reference'],
+                                $data['payment_method']
+                            )) {
+                                Notification::make()
+                                    ->title(__('admin.payout.notifications.completed'))
+                                    ->body(__('admin.payout.notifications.completed_body', [
+                                        'amount' => number_format((float) $record->net_payout, 3),
+                                        'owner' => $record->owner->name,
+                                    ]))
+                                    ->success()
+                                    ->send();
+                            }
+                        }),
+
+                    // Mark Failed Action
+                    Tables\Actions\Action::make('fail')
+                        ->label(__('admin.payout.actions.fail'))
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->form([
+                            Forms\Components\Textarea::make('failure_reason')
+                                ->label(__('admin.payout.fields.failure_reason'))
+                                ->required()
+                                ->rows(3)
+                                ->maxLength(500),
+                        ])
+                        ->visible(
+                            fn(OwnerPayout $record): bool =>
+                            $record->status === PayoutStatus::PROCESSING
+                        )
+                        ->action(function (OwnerPayout $record, array $data): void {
+                            if ($record->markAsFailed($data['failure_reason'])) {
+                                Notification::make()
+                                    ->title(__('admin.payout.notifications.failed'))
+                                    ->warning()
+                                    ->send();
+                            }
+                        }),
+
+                    // Hold Action
+                    Tables\Actions\Action::make('hold')
+                        ->label(__('admin.payout.actions.hold'))
+                        ->icon('heroicon-o-pause-circle')
+                        ->color('warning')
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label(__('admin.payout.fields.hold_reason'))
+                                ->rows(2)
+                                ->maxLength(500),
+                        ])
+                        ->visible(fn(OwnerPayout $record): bool => $record->canCancel())
+                        ->action(function (OwnerPayout $record, array $data): void {
+                            if ($record->putOnHold($data['reason'] ?? null)) {
+                                Notification::make()
+                                    ->title(__('admin.payout.notifications.on_hold'))
+                                    ->warning()
+                                    ->send();
+                            }
+                        }),
+
+                    // Cancel Action
+                    Tables\Actions\Action::make('cancel')
+                        ->label(__('admin.payout.actions.cancel'))
+                        ->icon('heroicon-o-no-symbol')
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalHeading(__('admin.payout.modal.cancel_title'))
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label(__('admin.payout.fields.cancel_reason'))
+                                ->rows(2)
+                                ->maxLength(500),
+                        ])
+                        ->visible(fn(OwnerPayout $record): bool => $record->canCancel())
+                        ->action(function (OwnerPayout $record, array $data): void {
+                            if ($record->cancel($data['reason'] ?? null)) {
+                                Notification::make()
+                                    ->title(__('admin.payout.notifications.cancelled'))
+                                    ->send();
+                            }
+                        }),
+                    ActivityLogTimelineTableAction::make('Activities'),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -708,8 +734,8 @@ class PayoutResource extends Resource
                                 Infolists\Components\TextEntry::make('status')
                                     ->label(__('admin.payout.fields.status'))
                                     ->badge()
-                                    ->formatStateUsing(fn (PayoutStatus $state): string => $state->getLabel())
-                                    ->color(fn (PayoutStatus $state): string => $state->getColor()),
+                                    ->formatStateUsing(fn(PayoutStatus $state): string => $state->getLabel())
+                                    ->color(fn(PayoutStatus $state): string => $state->getColor()),
 
                                 Infolists\Components\TextEntry::make('created_at')
                                     ->label(__('admin.payout.fields.created_at'))
@@ -767,7 +793,8 @@ class PayoutResource extends Resource
                                 Infolists\Components\TextEntry::make('adjustments')
                                     ->label(__('admin.payout.fields.adjustments'))
                                     ->money('OMR')
-                                    ->color(fn ($state): string =>
+                                    ->color(
+                                        fn($state): string =>
                                         $state > 0 ? 'success' : ($state < 0 ? 'danger' : 'gray')
                                     ),
 
@@ -781,7 +808,8 @@ class PayoutResource extends Resource
 
                         Infolists\Components\TextEntry::make('commission_rate')
                             ->label(__('admin.payout.fields.commission_rate'))
-                            ->formatStateUsing(fn ($state): string =>
+                            ->formatStateUsing(
+                                fn($state): string =>
                                 number_format((float) $state, 2) . '%'
                             ),
                     ]),
@@ -804,7 +832,7 @@ class PayoutResource extends Resource
 
                         Infolists\Components\KeyValueEntry::make('bank_details')
                             ->label(__('admin.payout.fields.bank_details'))
-                            ->visible(fn ($record) => !empty($record->bank_details)),
+                            ->visible(fn($record) => !empty($record->bank_details)),
                     ])
                     ->collapsible(),
 
@@ -847,7 +875,7 @@ class PayoutResource extends Resource
                         Infolists\Components\TextEntry::make('failure_reason')
                             ->label(__('admin.payout.fields.failure_reason'))
                             ->color('danger')
-                            ->visible(fn ($record) => $record->status === PayoutStatus::FAILED)
+                            ->visible(fn($record) => $record->status === PayoutStatus::FAILED)
                             ->columnSpanFull(),
                     ])
                     ->collapsible()

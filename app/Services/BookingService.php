@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\ExtraService;
 use App\Models\ServiceFeeSetting;
+use App\Jobs\SendReviewRequest;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -374,5 +375,46 @@ class BookingService
             'total_amount'      => $totalAmount,
             'owner_payout'      => $ownerPayout,
         ];
+    }
+
+    /**
+     * Mark past confirmed bookings as completed and dispatch review-request emails.
+     *
+     * Called nightly by AutoCompleteBookings job.
+     * The review email is delayed 2 hours from now (the moment the job runs),
+     * ensuring it arrives after the event has finished.
+     *
+     * @return int Number of bookings completed
+     */
+    public function autoCompletePastBookings(): int
+    {
+        $bookings = Booking::query()
+            ->where('status', 'confirmed')
+            ->where('booking_date', '<', now()->toDateString())
+            ->with(['hall', 'user'])
+            ->get();
+
+        $count = 0;
+
+        foreach ($bookings as $booking) {
+            try {
+                DB::transaction(function () use ($booking) {
+                    $booking->complete();
+                });
+
+                // Dispatch review request 2 hours after completion
+                SendReviewRequest::dispatch($booking)
+                    ->delay(now()->addHours(2));
+
+                $count++;
+            } catch (Exception $e) {
+                Log::error('autoCompletePastBookings: Failed to complete booking', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $count;
     }
 }

@@ -690,5 +690,8 @@ return [
         'average_price_desc' => 'لكل فترة',
     ],
 
-    'hall_navigation_group'=>'ادارة المجالس'
+    'hall_types' => 'أنواع القاعة',
+    'hall_navigation_group'=>'ادارة المجالس',
+    'terms_and_conditions_arabic' => 'الشروط والأحكام',
+    'terms_and_conditions_english' => 'الشروط والأحكام (انجليزي)'
 ];

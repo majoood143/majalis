@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\PayoutStatus;
+use App\Notifications\PayoutStatusNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -158,15 +159,30 @@ class OwnerPayout extends Model
             }
         });
 
-        // Log status changes
+        // Log status changes and notify owner
         static::updated(function (self $payout): void {
-            if ($payout->isDirty('status')) {
-                Log::info('Payout status changed', [
-                    'payout_id' => $payout->id,
-                    'payout_number' => $payout->payout_number,
-                    'old_status' => $payout->getOriginal('status'),
-                    'new_status' => $payout->status,
-                ]);
+            if (!$payout->wasChanged('status')) {
+                return;
+            }
+
+            Log::info('Payout status changed', [
+                'payout_id'     => $payout->id,
+                'payout_number' => $payout->payout_number,
+                'old_status'    => $payout->getOriginal('status'),
+                'new_status'    => $payout->status,
+            ]);
+
+            // Notify owner for every status change except PENDING (owner-initiated)
+            $notifyFor = [
+                PayoutStatus::PROCESSING,
+                PayoutStatus::COMPLETED,
+                PayoutStatus::FAILED,
+                PayoutStatus::ON_HOLD,
+                PayoutStatus::CANCELLED,
+            ];
+
+            if (in_array($payout->status, $notifyFor) && $payout->owner) {
+                $payout->owner->notify(new PayoutStatusNotification($payout));
             }
         });
     }

@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 class HallFeatureResource extends Resource
 {
@@ -142,6 +143,7 @@ class HallFeatureResource extends Resource
                         ->label(__('hall-feature.edit')),
                     Tables\Actions\DeleteAction::make()
                         ->label(__('hall-feature.delete')),
+                ActivityLogTimelineTableAction::make('Activities'),
                 ]),
             ])
             ->bulkActions([

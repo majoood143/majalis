@@ -6,6 +6,7 @@ namespace App\Filament\Owner\Resources;
 
 use App\Enums\PayoutStatus;
 use App\Filament\Owner\Resources\PayoutResource\Pages;
+use App\Models\Booking;
 use App\Models\OwnerPayout;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -143,7 +144,7 @@ class PayoutResource extends Resource
     }
 
     /**
-     * Define the form schema (read-only for payouts).
+     * Define the form schema for creating a payout request.
      *
      * @param Form $form
      * @return Form
@@ -152,8 +153,136 @@ class PayoutResource extends Resource
     {
         return $form
             ->schema([
-                // Payouts are read-only for owners
+                // Period Selection
+                Forms\Components\Section::make(__('owner.payouts.form_period_section'))
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\DatePicker::make('period_start')
+                                    ->label(__('owner.payouts.period_start'))
+                                    ->required()
+                                    ->native(false)
+                                    ->displayFormat('d M Y')
+                                    ->maxDate(now())
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state): void {
+                                        if ($state && $get('period_end')) {
+                                            static::recalculateFinancials($set, $get);
+                                        }
+                                    }),
+
+                                Forms\Components\DatePicker::make('period_end')
+                                    ->label(__('owner.payouts.period_end'))
+                                    ->required()
+                                    ->native(false)
+                                    ->displayFormat('d M Y')
+                                    ->minDate(fn(Forms\Get $get) => $get('period_start'))
+                                    ->maxDate(now())
+                                    ->live()
+                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state): void {
+                                        if ($get('period_start') && $state) {
+                                            static::recalculateFinancials($set, $get);
+                                        }
+                                    }),
+                            ]),
+                    ]),
+
+                // Financial Summary (read-only, auto-calculated)
+                Forms\Components\Section::make(__('owner.payouts.form_financial_section'))
+                    ->description(__('owner.payouts.form_financial_desc'))
+                    ->schema([
+                        Forms\Components\Placeholder::make('no_bookings_notice')
+                            ->label('')
+                            ->content(__('owner.payouts.no_bookings_warning'))
+                            ->visible(fn(Forms\Get $get): bool =>
+                                (int) ($get('bookings_count') ?? 0) === 0
+                                && !empty($get('period_start'))
+                                && !empty($get('period_end'))
+                            ),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('bookings_count')
+                                    ->label(__('owner.payouts.bookings_count'))
+                                    ->readOnly()
+                                    ->default(0),
+
+                                Forms\Components\TextInput::make('gross_revenue')
+                                    ->label(__('owner.payouts.gross_revenue'))
+                                    ->readOnly()
+                                    ->prefix('OMR')
+                                    ->default('0.000'),
+                            ]),
+
+                        Forms\Components\Grid::make(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('commission_amount')
+                                    ->label(__('owner.payouts.commission_amount'))
+                                    ->readOnly()
+                                    ->prefix('OMR')
+                                    ->default('0.000'),
+
+                                Forms\Components\TextInput::make('commission_rate')
+                                    ->label(__('owner.payouts.commission_rate'))
+                                    ->readOnly()
+                                    ->suffix('%')
+                                    ->default('0.00'),
+
+                                Forms\Components\TextInput::make('net_payout')
+                                    ->label(__('owner.payouts.net_payout'))
+                                    ->readOnly()
+                                    ->prefix('OMR')
+                                    ->default('0.000')
+                                    ->extraAttributes(['class' => 'font-bold text-green-600']),
+                            ]),
+                    ]),
+
+                // Notes (optional)
+                Forms\Components\Section::make(__('owner.payouts.notes'))
+                    ->schema([
+                        Forms\Components\Textarea::make('notes')
+                            ->label(__('owner.payouts.notes'))
+                            ->rows(3)
+                            ->maxLength(1000)
+                            ->placeholder(__('owner.payouts.notes_placeholder'))
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
+    }
+
+    /**
+     * Auto-calculate financial details from bookings in the selected period.
+     */
+    protected static function recalculateFinancials(Forms\Set $set, Forms\Get $get): void
+    {
+        $user = Auth::user();
+        $periodStart = $get('period_start');
+        $periodEnd   = $get('period_end');
+
+        if (!$user || !$periodStart || !$periodEnd) {
+            return;
+        }
+
+        $bookings = Booking::whereHas('hall', function ($q) use ($user): void {
+            $q->where('owner_id', $user->id);
+        })
+            ->whereBetween('booking_date', [$periodStart, $periodEnd])
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->where('payment_status', 'paid')
+            ->get();
+
+        $gross      = (float) $bookings->sum('total_amount');
+        $commission = (float) $bookings->sum('commission_amount');
+        $net        = (float) $bookings->sum('owner_payout');
+        $rate       = $gross > 0 ? ($commission / $gross) * 100 : 0;
+
+        $set('bookings_count',    $bookings->count());
+        $set('gross_revenue',     number_format($gross, 3, '.', ''));
+        $set('commission_amount', number_format($commission, 3, '.', ''));
+        $set('commission_rate',   number_format($rate, 2, '.', ''));
+        $set('net_payout',        number_format($net, 3, '.', ''));
     }
 
     /**
@@ -526,19 +655,30 @@ class PayoutResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPayouts::route('/'),
-            'view' => Pages\ViewPayout::route('/{record}'),
+            'index'  => Pages\ListPayouts::route('/'),
+            'create' => Pages\CreatePayout::route('/create'),
+            'view'   => Pages\ViewPayout::route('/{record}'),
         ];
     }
 
     /**
-     * Disable creating payouts (admin only).
+     * Allow any authenticated owner to view their payouts.
+     *
+     * @return bool
+     */
+    public static function canViewAny(): bool
+    {
+        return Auth::check();
+    }
+
+    /**
+     * Allow owners to create payout requests.
      *
      * @return bool
      */
     public static function canCreate(): bool
     {
-        return false;
+        return Auth::check();
     }
 
     /**

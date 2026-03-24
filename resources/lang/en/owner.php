@@ -484,6 +484,7 @@ return [
             'activate' => 'Activate',
             'deactivate' => 'Deactivate',
             'view_public' => 'View on Website',
+            'download' => 'Download',
         ],
 
         // Bulk Actions
@@ -1768,6 +1769,73 @@ return [
         'all_halls' => 'All Halls',
         'include_columns' => 'Include Columns',
 
+        'stat_total' => 'Total Earnings',
+        'stat_total_desc' => 'From :count confirmed bookings',
+        'stat_month' => 'This Month',
+        'stat_increase' => ':percent% increase from last month',
+        'stat_decrease' => ':percent% decrease from last month',
+        'stat_week' => 'This Week',
+        'stat_week_desc' => 'Earnings in the last 7 days',
+        'stat_average' => 'Average Per Booking',
+        'stat_average_desc' => 'Average net earnings per booking',
+        'stat_gross' => 'Gross Revenue',
+        'stat_gross_desc' => 'Total before commission',
+        'stat_commission' => 'Commission Paid',
+        'stat_commission_desc' => ':percent% of gross revenue',
+
+
+        // Navigation & Labels
+        'navigation_group' => 'Financial',
+        'navigation' => 'Earnings',
+        'singular' => 'Earning',
+        'plural' => 'Earnings',
+
+        // Table Columns
+        'booking_number' => 'Booking #',
+        'hall' => 'Hall',
+        'date' => 'Date',
+        'slot' => 'Time Slot',
+        'customer' => 'Customer',
+        'hall_price' => 'Hall Price',
+        'services' => 'Services',
+        'gross' => 'Gross',
+        'commission' => 'Commission',
+        'net' => 'Net Earnings',
+        'status' => 'Status',
+        'completed_at' => 'Completed Date',
+        'total' => 'Total',
+
+        // Filters
+        'from_date' => 'From Date',
+        'to_date' => 'To Date',
+        'from' => 'From',
+        'to' => 'To',
+        'this_month' => 'This Month',
+        'last_month' => 'Last Month',
+
+        // Empty State
+        'no_earnings' => 'No earnings found',
+        'no_earnings_desc' => 'You haven\'t received any earnings yet. Earnings appear here once bookings are confirmed and paid.',
+
+        // Export
+        'export' => 'Export Earnings',
+
+        // Infolist Sections
+        'booking_info' => 'Booking Information',
+        'financial_breakdown' => 'Financial Breakdown',
+        'your_earnings' => 'Your Earnings',
+        'commission_type' => 'Commission Type',
+        'commission_rate' => 'Commission Rate',
+        'extra_services' => 'Extra Services',
+        'service_name' => 'Service Name',
+        'quantity' => 'Quantity',
+        'unit_price' => 'Unit Price',
+        'payment_details' => 'Payment Details',
+        'payment_status' => 'Payment Status',
+        'confirmed_at' => 'Confirmed At',
+
+       
+
         // Export Column Labels
         'columns' => [
             'booking_number' => 'Booking Number',
@@ -1815,6 +1883,7 @@ return [
     // Payouts Resource
     'payouts' => [
         'label' => 'Payout',
+        'title' => 'Payouts',
         'plural' => 'Payouts',
         'navigation_group' => 'Financial',
 
@@ -1902,6 +1971,43 @@ return [
         'no_payouts_desc' => 'Once your earnings are paid out, they will appear here.',
         'heading' => 'Payouts',
         'navigation'=>'Payouts',
+
+        // Status notifications (in-app + email)
+        'notif_processing_subject' => 'Payout :number — Processing Started',
+        'notif_completed_subject'  => 'Payout :number — Payment Completed',
+        'notif_failed_subject'     => 'Payout :number — Failed',
+        'notif_on_hold_subject'    => 'Payout :number — On Hold',
+        'notif_cancelled_subject'  => 'Payout :number — Cancelled',
+        'notif_updated_subject'    => 'Payout :number — Status Updated',
+
+        'notif_processing_title'   => 'Payout Being Processed',
+        'notif_completed_title'    => 'Payout Completed 🎉',
+        'notif_failed_title'       => 'Payout Failed',
+        'notif_on_hold_title'      => 'Payout On Hold',
+        'notif_cancelled_title'    => 'Payout Cancelled',
+        'notif_updated_title'      => 'Payout Status Updated',
+
+        'notif_processing_body'    => 'Your payout request :number is now being processed. You will be notified once the transfer is complete.',
+        'notif_completed_body'     => 'Your payout :number of :amount has been successfully transferred to your account.',
+        'notif_failed_body'        => 'Your payout :number could not be completed. Reason: :reason. Please contact support.',
+        'notif_on_hold_body'       => 'Your payout :number has been placed on hold. Please contact support for more information.',
+        'notif_cancelled_body'     => 'Your payout request :number has been cancelled.',
+        'notif_updated_body'       => 'The status of your payout :number has been updated.',
+
+        // Create form
+        'create_request'       => 'Request Payout',
+        'create_title'         => 'Request Payout',
+        'form_period_section'  => 'Payout Period',
+        'form_financial_section' => 'Financial Summary',
+        'form_financial_desc'  => 'Automatically calculated from your paid bookings in the selected period. These values cannot be modified.',
+        'duplicate_period'     => 'A payout request already exists that overlaps with this period.',
+        'no_bookings_warning'  => 'No paid bookings found in the selected period.',
+        'create_success'       => 'Payout request submitted successfully. The admin will review and process it.',
+        'notes_placeholder'    => 'Any additional notes or comments for the admin...',
+        'from_date'            => 'From Date',
+        'to_date'              => 'To Date',
+        'rate'                 => 'Rate',
+        'singular'             => 'Payout',
 
         'methods' => [
             'bank_transfer' => 'Bank Transfer',

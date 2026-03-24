@@ -11,6 +11,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\App;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class RegionResource extends Resource
 {
@@ -165,6 +167,7 @@ class RegionResource extends Resource
                         ->label(__('region.table_actions.edit')),
                     Tables\Actions\DeleteAction::make()
                         ->label(__('region.table_actions.delete')),
+                        ActivityLogTimelineTableAction::make('Activities'),
                 ]),
             ])
             ->bulkActions([

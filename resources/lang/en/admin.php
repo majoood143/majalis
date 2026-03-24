@@ -688,6 +688,9 @@ return [
         'average_price_desc' => 'Per slot',
     ],
 
+    'hall_types' => 'Hall Types',
     'hall_navigation_group' => 'Majalis Management',
+    'terms_and_conditions_arabic' => 'Terms and Conditions (Arabic)',
+    'terms_and_conditions_english' => 'Terms and Conditions (English)',
 
 ];

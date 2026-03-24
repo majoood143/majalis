@@ -54,6 +54,11 @@
                     <li><a href="{{ url('/privacy-policy') }}" class="text-gray-400 transition hover:text-white">
                             {{ app()->getLocale() === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy' }}
                         </a></li>
+                    <li>
+                        <a href="{{ route('hall-owner.register') }}" style="color: rgb(185 145 109)" class="font-medium transition hover:text-gray-300">
+                            {{ app()->getLocale() === 'ar' ? 'سجّل قاعتك معنا' : 'Register Your Hall' }}
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -62,8 +67,10 @@
                     {{ app()->getLocale() === 'ar' ? 'اتصل بنا' : 'Contact' }}
                 </h3>
                 <p class="text-gray-400">
-                    {{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: support@majalis.om<br>
-                    {{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: +968 1234 5678
+                    @php $contactEmail = \App\Models\Setting::get('contact', 'email'); $contactPhone = \App\Models\Setting::get('contact', 'phone'); @endphp
+                    @if($contactEmail){{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: {{ $contactEmail }}<br>@endif
+                    @if($contactPhone){{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: {{ $contactPhone }}@endif
+                    
                 </p>
 
                 <!-- Payment Methods Section -->

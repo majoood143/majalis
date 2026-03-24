@@ -62,6 +62,7 @@ class Hall extends Model
         'slug',
         'area',
         'description',
+        'terms_and_conditions',
         'address',
         'address_localized',
         'latitude',
@@ -73,6 +74,7 @@ class Hall extends Model
         'pricing_override',
         'phone',
         'whatsapp',
+        'instagram',
         'email',
         'featured_image',
         'gallery',
@@ -96,6 +98,10 @@ class Hall extends Model
         'advance_payment_amount',
         'advance_payment_percentage',
         'minimum_advance_payment',
+
+        'function_hours',
+        'is_24_hours',
+        'special_hours_note',
     ];
 
     /**
@@ -113,6 +119,7 @@ class Hall extends Model
 
         'name' => 'array',
         'description' => 'array',
+        'terms_and_conditions' => 'array',
         'address_localized' => 'array',
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
@@ -138,6 +145,10 @@ class Hall extends Model
         'advance_payment_amount' => 'decimal:3',
         'advance_payment_percentage' => 'decimal:2',
         'minimum_advance_payment' => 'decimal:3',
+
+        'function_hours' => 'array',
+        'is_24_hours' => 'boolean',
+        'special_hours_note' => 'string',
     ];
 
     /**
@@ -774,8 +785,48 @@ class Hall extends Model
         return $avg ? round($avg, 1) : null;
     }
 
+    public function hallTypes(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(HallType::class, 'hall_hall_type')->withTimestamps();
+    }
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
+    }
+
+    // Helper method to get formatted hours
+    public function getFormattedHoursAttribute(): array
+    {
+        if ($this->is_24_hours) {
+            return [
+                'monday' => '24 Hours',
+                'tuesday' => '24 Hours',
+                // ... all days
+            ];
+        }
+
+        return $this->function_hours ?? [];
+    }
+
+    // Helper method to check if open on a specific day/time
+    public function isOpenOn($day, $time = null): bool
+    {
+        if ($this->is_24_hours) {
+            return true;
+        }
+
+        $hours = collect($this->function_hours ?? [])
+            ->firstWhere('day', strtolower($day));
+
+        if (!$hours || $hours['is_closed']) {
+            return false;
+        }
+
+        if (!$time) {
+            return true;
+        }
+
+        return $time >= $hours['open_time'] && $time <= $hours['close_time'];
     }
 }

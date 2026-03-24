@@ -471,6 +471,7 @@ return [
             'activate' => 'تفعيل',
             'deactivate' => 'تعطيل',
             'view_public' => 'عرض على الموقع',
+            'download' => 'تنزيل',
         ],
 
         // الإجراءات المجمعة
@@ -1755,6 +1756,20 @@ return [
         'all_halls' => 'جميع القاعات',
         'include_columns' => 'تضمين الأعمدة',
 
+        'stat_total' => 'إجمالي الأرباح',
+        'stat_total_desc' => 'من :count حجز مؤكد',
+        'stat_month' => 'هذا الشهر',
+        'stat_increase' => 'زيادة :percent% عن الشهر الماضي',
+        'stat_decrease' => 'انخفاض :percent% عن الشهر الماضي',
+        'stat_week' => 'هذا الأسبوع',
+        'stat_week_desc' => 'الأرباح خلال الأيام السبعة الماضية',
+        'stat_average' => 'متوسط الحجز',
+        'stat_average_desc' => 'متوسط صافي الأرباح لكل حجز',
+        'stat_gross' => 'إجمالي الإيرادات',
+        'stat_gross_desc' => 'الإجمالي قبل العمولة',
+        'stat_commission' => 'العمولة المدفوعة',
+        'stat_commission_desc' => ':percent% من إجمالي الإيرادات',
+
         // تسميات أعمدة التصدير
         'columns' => [
             'booking_number' => 'رقم الحجز',
@@ -1802,6 +1817,7 @@ return [
     // مورد المدفوعات
     'payouts' => [
         'label' => 'دفعة',
+        'title' => 'المدفوعات',
         'plural' => 'المدفوعات',
         'navigation_group' => 'المالية',
         'view_subheading' => 'تفاصيل الدفعة لـ ',
@@ -1893,6 +1909,43 @@ return [
         'no_payouts_desc' => 'بمجرد دفع أرباحك، ستظهر هنا.',
         'heading' => 'المدفوعات',
         'navigation' => 'المدفوعات',
+        // إشعارات الحالة (داخل التطبيق + بريد إلكتروني)
+        'notif_processing_subject' => 'الدفعة :number — بدأت المعالجة',
+        'notif_completed_subject'  => 'الدفعة :number — تم الدفع',
+        'notif_failed_subject'     => 'الدفعة :number — فشلت',
+        'notif_on_hold_subject'    => 'الدفعة :number — معلقة',
+        'notif_cancelled_subject'  => 'الدفعة :number — ملغاة',
+        'notif_updated_subject'    => 'الدفعة :number — تم تحديث الحالة',
+
+        'notif_processing_title'   => 'جاري معالجة الدفعة',
+        'notif_completed_title'    => 'تم صرف الدفعة 🎉',
+        'notif_failed_title'       => 'فشلت الدفعة',
+        'notif_on_hold_title'      => 'الدفعة معلقة',
+        'notif_cancelled_title'    => 'تم إلغاء الدفعة',
+        'notif_updated_title'      => 'تم تحديث حالة الدفعة',
+
+        'notif_processing_body'    => 'طلب الدفعة :number قيد المعالجة الآن. سيتم إشعارك فور اكتمال التحويل.',
+        'notif_completed_body'     => 'تم تحويل دفعتك :number بمبلغ :amount إلى حسابك بنجاح.',
+        'notif_failed_body'        => 'تعذّر إتمام الدفعة :number. السبب: :reason. يرجى التواصل مع الدعم.',
+        'notif_on_hold_body'       => 'تم تعليق الدفعة :number. يرجى التواصل مع الدعم للمزيد من المعلومات.',
+        'notif_cancelled_body'     => 'تم إلغاء طلب الدفعة :number.',
+        'notif_updated_body'       => 'تم تحديث حالة الدفعة :number.',
+
+        // نموذج الإنشاء
+        'create_request'         => 'طلب دفعة',
+        'create_title'           => 'طلب دفعة',
+        'form_period_section'    => 'فترة الدفعة',
+        'form_financial_section' => 'الملخص المالي',
+        'form_financial_desc'    => 'يتم الحساب تلقائيًا من حجوزاتك المدفوعة في الفترة المحددة. لا يمكن تعديل هذه القيم.',
+        'duplicate_period'       => 'يوجد طلب دفعة بالفعل يتداخل مع هذه الفترة.',
+        'no_bookings_warning'    => 'لا توجد حجوزات مدفوعة في الفترة المحددة.',
+        'create_success'         => 'تم إرسال طلب الدفعة بنجاح. سيقوم المشرف بمراجعته ومعالجته.',
+        'notes_placeholder'      => 'أي ملاحظات أو تعليقات إضافية للمشرف...',
+        'from_date'              => 'من تاريخ',
+        'to_date'                => 'إلى تاريخ',
+        'rate'                   => 'المعدل',
+        'singular'               => 'دفعة',
+
         'methods' => [
             'bank_transfer' => 'التحويل البنكي',
             'paypal' => 'باي بال',

@@ -261,6 +261,7 @@ class HallController extends Controller
                 'city.region',
                 'owner',
                 'activeExtraServices',
+                'hallTypes' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
                 'reviews' => function ($query) {
                     $query->where('is_approved', true)->latest()->limit(5);
                 },

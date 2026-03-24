@@ -11,6 +11,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
+
 
 class HallAvailabilityResource extends Resource
 {
@@ -243,6 +246,8 @@ class HallAvailabilityResource extends Resource
                                 'notes' => !$record->is_available ? $record->notes : null,
                             ]);
                         }),
+
+                ActivityLogTimelineTableAction::make('Activities'),
                 ])
             ])
             ->bulkActions([

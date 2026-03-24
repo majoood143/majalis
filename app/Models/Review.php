@@ -29,6 +29,8 @@ class Review extends Model
         'admin_notes',
         'owner_response',
         'owner_response_at',
+        'is_late_review',
+        'marketing_consent',
     ];
 
     protected $casts = [
@@ -40,6 +42,8 @@ class Review extends Model
         'photos' => 'array',
         'is_approved' => 'boolean',
         'is_featured' => 'boolean',
+        'is_late_review' => 'boolean',
+        'marketing_consent' => 'boolean',
         'owner_response_at' => 'datetime',
     ];
 
@@ -168,6 +172,24 @@ class Review extends Model
     public function unmarkAsFeatured(): void
     {
         $this->update(['is_featured' => false]);
+    }
+
+    // =========================================================
+    // REVIEW WINDOW HELPERS (called on Booking, not Review)
+    // =========================================================
+
+    /**
+     * Generate the deterministic secure token for this review's booking.
+     * Matches the token generated in SendReviewRequest.
+     */
+    public static function generateToken(Booking $booking): string
+    {
+        return hash('sha256', implode('|', [
+            $booking->id,
+            $booking->booking_number,
+            $booking->customer_email,
+            config('app.key'),
+        ]));
     }
 
     // Helper Methods

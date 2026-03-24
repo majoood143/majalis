@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 
 /**
@@ -512,6 +514,7 @@ class TicketResource extends Resource
 
                 // Delete action
                 Tables\Actions\DeleteAction::make(),
+                ActivityLogTimelineTableAction::make('Activities'),
                 ])
             ])
             ->bulkActions([

@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class HallImageResource extends Resource
 {
@@ -222,6 +224,7 @@ class HallImageResource extends Resource
                         ->label(__('hall-image.edit')),
                     Tables\Actions\DeleteAction::make()
                         ->label(__('hall-image.delete')),
+                ActivityLogTimelineTableAction::make('Activities'),
                 ])
             ])
             ->bulkActions([

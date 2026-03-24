@@ -224,6 +224,29 @@ return [
     'payment_retry_failed' => 'فشل في إعادة محاولة الدفع',
     'total_amount' => 'الإجمالي',
 
+    'terms_and_conditions' => 'الشروط والأحكام',
+    'perfect_for'          => 'مناسب لـ',
+
+    // Hall Info Card: Contact, Map, Hours
+    'contact_details'  => 'تفاصيل التواصل',
+    'address'          => 'العنوان',
+    'get_directions'   => 'الاتجاهات',
+    'copy'             => 'نسخ',
+    'copied'           => 'تم النسخ!',
+    'location_info'    => 'الموقع',
+    'loading_map'      => 'جاري تحميل الخريطة…',
+    'opening_hours'    => 'ساعات العمل',
+    'open_24_hours'    => 'مفتوح 24 ساعة',
+    'closed'           => 'مغلق',
+    'today'            => 'اليوم',
+    'day_monday'       => 'الاثنين',
+    'day_tuesday'      => 'الثلاثاء',
+    'day_wednesday'    => 'الأربعاء',
+    'day_thursday'     => 'الخميس',
+    'day_friday'       => 'الجمعة',
+    'day_saturday'     => 'السبت',
+    'day_sunday'       => 'الأحد',
+
     // Image Gallery Translations
     'view_fullscreen' => 'عرض بالحجم الكامل',
     'close' => 'إغلاق',

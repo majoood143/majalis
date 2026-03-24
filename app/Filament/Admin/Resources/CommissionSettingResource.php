@@ -12,6 +12,10 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Get;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class CommissionSettingResource extends Resource
 {
@@ -278,11 +282,16 @@ class CommissionSettingResource extends Resource
                     }),
             ])
             ->actions([
+                ActionGroup::make([
+
                 Tables\Actions\EditAction::make()
                     ->label(__('commission-setting.edit')),
                 Tables\Actions\DeleteAction::make()
                     ->label(__('commission-setting.delete')),
-                Tables\Actions\ViewAction::make()
+                Tables\Actions\ViewAction::make(),
+                ActivityLogTimelineTableAction::make('Activities'),
+                ])
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -14,6 +14,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Get;
+use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 /**
  * Filament Resource: Service Fee Settings
@@ -308,10 +310,13 @@ class ServiceFeeSettingResource extends Resource
 
             // ── Row Actions ──
             ->actions([
+                ActionGroup::make([
                 Tables\Actions\EditAction::make()
                     ->label(__('service-fee.edit')),
                 Tables\Actions\DeleteAction::make()
                     ->label(__('service-fee.delete')),
+                ActivityLogTimelineTableAction::make('Activities'),
+                ])
             ])
 
             // ── Bulk Actions ──

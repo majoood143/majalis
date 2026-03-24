@@ -245,6 +245,7 @@
                     <p class="text-gray-400">
                         {{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: support@majalis.om<br>
                         {{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: +968 1234 5678
+                        
                     </p>
                 </div>
             </div>

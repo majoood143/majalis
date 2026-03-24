@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 class HallOwnerResource extends Resource
 {
@@ -283,6 +284,7 @@ class HallOwnerResource extends Resource
                         ->visible(fn(HallOwner $record) => $record->is_verified),
 
                     Tables\Actions\DeleteAction::make(),
+                ActivityLogTimelineTableAction::make('Activities'),
                 ]),
             ])
             ->bulkActions([

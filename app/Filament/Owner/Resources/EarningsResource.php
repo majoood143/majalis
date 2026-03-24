@@ -573,6 +573,27 @@ class EarningsResource extends Resource
     }
 
     /**
+     * Allow any authenticated owner to access this resource.
+     * Data is already scoped to the owner's halls via modifyQueryUsing.
+     *
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        return Auth::check();
+    }
+
+    /**
+     * Allow any authenticated owner to view the list.
+     *
+     * @return bool
+     */
+    public static function canViewAny(): bool
+    {
+        return Auth::check();
+    }
+
+    /**
      * Disable creating earnings (read-only resource).
      *
      * @return bool

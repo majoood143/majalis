@@ -226,6 +226,29 @@ return [
     'payment_retry_failed' => 'Failed to retry payment',
     'total_amount' => 'Total Amount',
 
+    'terms_and_conditions' => 'Terms & Conditions',
+    'perfect_for'          => 'Perfect For',
+
+    // Hall Info Card: Contact, Map, Hours
+    'contact_details'  => 'Contact Details',
+    'address'          => 'Address',
+    'get_directions'   => 'Get Directions',
+    'copy'             => 'Copy',
+    'copied'           => 'Copied!',
+    'location_info'    => 'Location',
+    'loading_map'      => 'Loading map…',
+    'opening_hours'    => 'Opening Hours',
+    'open_24_hours'    => 'Open 24 Hours',
+    'closed'           => 'Closed',
+    'today'            => 'Today',
+    'day_monday'       => 'Monday',
+    'day_tuesday'      => 'Tuesday',
+    'day_wednesday'    => 'Wednesday',
+    'day_thursday'     => 'Thursday',
+    'day_friday'       => 'Friday',
+    'day_saturday'     => 'Saturday',
+    'day_sunday'       => 'Sunday',
+
     // Image Gallery Translations
     'view_fullscreen' => 'View Fullscreen',
     'close' => 'Close',

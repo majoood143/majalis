@@ -123,6 +123,62 @@ return [
         'update_error' => 'فشلت العملية',
     ],
 
+    // Columns (additional)
+    'columns_extra' => [
+        'is_late_review'    => 'تقييم متأخر',
+        'marketing_consent' => 'الموافقة التسويقية',
+    ],
+
+    // Filters (additional)
+    'filters_extra' => [
+        'late_review'       => 'تقييم متأخر',
+        'marketing_consent' => 'الموافقة التسويقية',
+    ],
+
+    // Messages shown on review submission pages
+    'messages' => [
+        'invalid_link'          => 'رابط التقييم غير صالح. يرجى استخدام الرابط الموجود في بريدك الإلكتروني.',
+        'booking_not_found'     => 'الحجز غير موجود.',
+        'invalid_token'         => 'تم التلاعب برابط التقييم أو أنه غير صالح.',
+        'booking_not_completed' => 'يمكن تقديم التقييمات فقط للحجوزات المكتملة.',
+        'window_expired'        => 'انتهت فترة التقييم لهذا الحجز (14 يومًا بعد الحدث).',
+        'already_submitted'     => 'لقد قدمت تقييمًا لهذا الحجز بالفعل. شكرًا لك!',
+        'rating_required'       => 'يرجى اختيار تقييم النجوم قبل الإرسال.',
+        'late_review_notice'    => 'أنت تقدم هذا التقييم خلال فترة السماح (8-14 يومًا بعد حدثك). شكرًا لمشاركة ملاحظاتك!',
+    ],
+
+    // Review submission page labels
+    'page' => [
+        'submit_title'            => 'اترك تقييمًا',
+        'submit_heading'          => 'كيف كانت تجربتك؟',
+        'submit_subheading'       => 'ملاحظاتك تساعد الآخرين على اختيار المكان المثالي.',
+        'booking_summary'         => 'بيانات حجزك',
+        'event_date'              => 'تاريخ الحدث',
+        'time_slot'               => 'الفترة الزمنية',
+        'overall_rating'          => 'التقييم الإجمالي',
+        'star_label_1'            => '1 – ضعيف',
+        'star_label_2'            => '2 – مقبول',
+        'star_label_3'            => '3 – جيد',
+        'star_label_4'            => '4 – جيد جدًا',
+        'star_label_5'            => '5 – ممتاز',
+        'comment_placeholder'     => 'أخبرنا عن تجربتك…',
+        'comment_hint'            => 'اختياري. شاركنا ما أعجبك أو ما يمكن تحسينه.',
+        'comment_required_hint'   => 'يرجى تزويدنا بمزيد من التفاصيل حتى نتمكن من التحسين (10 أحرف على الأقل).',
+        'photos_label'            => 'أضف صورًا (اختياري)',
+        'photos_choose'           => 'انقر للاختيار',
+        'photos_or_drag'          => 'أو اسحب الصور هنا',
+        'photos_hint'             => 'حتى 5 صور · JPEG، PNG، WebP · بحد أقصى 4 ميجابايت لكل صورة',
+        'marketing_consent_label' => 'أود تلقي العروض الخاصة والعروض الترويجية.',
+        'submit_button'           => 'إرسال التقييم',
+        'link_invalid_title'      => 'الرابط غير صالح أو منتهي الصلاحية',
+        'thankyou_title'          => 'شكرًا لك!',
+        'thankyou_heading'        => 'شكرًا على تقييمك!',
+        'thankyou_body'           => 'تم استلام ملاحظاتك وستساعد الضيوف القادمين في اتخاذ أفضل قرار.',
+        'thankyou_late_badge'     => 'تقييم في فترة السماح',
+        'thankyou_cta'            => 'استكشف المزيد من القاعات',
+        'powered_by'              => 'مدعوم من :app',
+    ],
+
     // Common
     'yes' => 'نعم',
     'no' => 'لا',

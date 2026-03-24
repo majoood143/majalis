@@ -733,6 +733,45 @@ class Booking extends Model
         ]);
     }
 
+    // =========================================================
+    // REVIEW WINDOW HELPERS
+    // =========================================================
+
+    /**
+     * Days elapsed since the event date (booking_date).
+     */
+    public function daysSinceEvent(): int
+    {
+        return (int) $this->booking_date->startOfDay()->diffInDays(now()->startOfDay());
+    }
+
+    /**
+     * True when the customer is in the primary 7-day review window
+     * (event day + 2 hours through event day + 7 days).
+     */
+    public function isInPrimaryReviewWindow(): bool
+    {
+        $days = $this->daysSinceEvent();
+        return $days >= 0 && $days <= 7;
+    }
+
+    /**
+     * True when the customer is in the grace period (days 8–14 post-event).
+     */
+    public function isInGracePeriodReviewWindow(): bool
+    {
+        $days = $this->daysSinceEvent();
+        return $days > 7 && $days <= 14;
+    }
+
+    /**
+     * True when a review can still be submitted (within 14 days post-event).
+     */
+    public function canReceiveReview(): bool
+    {
+        return $this->isCompleted() && $this->daysSinceEvent() <= 14;
+    }
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);

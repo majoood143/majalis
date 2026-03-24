@@ -17,138 +17,99 @@ use Illuminate\Support\Facades\Log;
 /**
  * SendReviewRequest Job
  *
- * Sends a review request email to the customer after a completed booking.
- * Includes a unique link for the customer to submit their review.
+ * Dispatched with a 2-hour delay after the booking event date.
+ * Sends a personalised review-request email containing a secure
+ * tokenised link valid for 14 days post-event.
  *
- * Features:
- * - Queued for async processing
- * - Automatic retry on failure
- * - Generates secure review token
- * - Logs email dispatch for tracking
- *
- * @package App\Jobs
+ * Review windows (relative to booking_date):
+ *   Primary  : days  0–7   → standard review
+ *   Grace    : days  8–14  → is_late_review flagged in analytics
+ *   Expired  : day  >14   → link rejected at controller level
  */
 class SendReviewRequest implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The number of times the job may be attempted.
-     *
-     * @var int
-     */
     public int $tries = 3;
 
-    /**
-     * The number of seconds to wait before retrying the job.
-     *
-     * @var array<int, int>
-     */
     public array $backoff = [60, 120, 300];
 
-    /**
-     * Delete the job if its models no longer exist.
-     *
-     * @var bool
-     */
     public bool $deleteWhenMissingModels = true;
 
-    /**
-     * Create a new job instance.
-     *
-     * @param Booking $booking The completed booking
-     */
     public function __construct(
         public Booking $booking
     ) {}
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle(): void
     {
-        // Ensure booking is loaded with required relationships
         $this->booking->load(['hall', 'user']);
 
-        // Skip if no customer email
+        // Guard: must have an email to send to
         if (empty($this->booking->customer_email)) {
-            Log::warning('SendReviewRequest: No customer email for booking', [
+            Log::warning('SendReviewRequest: No customer email', [
                 'booking_id' => $this->booking->id,
-                'booking_number' => $this->booking->booking_number,
             ]);
             return;
         }
 
-        // Skip if review already exists
-        if ($this->booking->review()->exists()) {
-            Log::info('SendReviewRequest: Review already exists for booking', [
-                'booking_id' => $this->booking->id,
-                'booking_number' => $this->booking->booking_number,
-            ]);
-            return;
-        }
-
-        // Skip if booking is not completed
+        // Guard: booking must still be completed
         if ($this->booking->status !== 'completed') {
-            Log::warning('SendReviewRequest: Booking is not completed', [
+            Log::warning('SendReviewRequest: Booking not completed', [
                 'booking_id' => $this->booking->id,
-                'booking_number' => $this->booking->booking_number,
-                'status' => $this->booking->status,
+                'status'     => $this->booking->status,
             ]);
             return;
         }
 
-        // Generate review token (for secure review submission)
+        // Guard: review already submitted — no need to send
+        if ($this->booking->review()->exists()) {
+            Log::info('SendReviewRequest: Review already exists', [
+                'booking_id' => $this->booking->id,
+            ]);
+            return;
+        }
+
+        // Guard: outside the 14-day review window
+        if (!$this->booking->canReceiveReview()) {
+            Log::info('SendReviewRequest: Outside review window', [
+                'booking_id'       => $this->booking->id,
+                'days_since_event' => $this->booking->daysSinceEvent(),
+            ]);
+            return;
+        }
+
         $reviewToken = $this->generateReviewToken();
 
-        // Send the review request email
         Mail::to($this->booking->customer_email)
             ->send(new ReviewRequestMail($this->booking, $reviewToken));
 
-        // Log successful dispatch
-        Log::info('SendReviewRequest: Email sent successfully', [
-            'booking_id' => $this->booking->id,
+        Log::info('SendReviewRequest: Email sent', [
+            'booking_id'     => $this->booking->id,
             'booking_number' => $this->booking->booking_number,
             'customer_email' => $this->booking->customer_email,
+            'days_since_event' => $this->booking->daysSinceEvent(),
         ]);
     }
 
     /**
-     * Generate a secure review token for the booking.
-     *
-     * This token is used to verify the review submission
-     * and prevent unauthorized reviews.
-     *
-     * @return string
+     * Deterministic SHA-256 token — reproducible from booking data + app key.
+     * No DB storage needed; verified at submission by regenerating and comparing.
      */
     protected function generateReviewToken(): string
     {
-        // Create a hash based on booking details
-        $tokenData = implode('|', [
+        return hash('sha256', implode('|', [
             $this->booking->id,
             $this->booking->booking_number,
             $this->booking->customer_email,
             config('app.key'),
-        ]);
-
-        return hash('sha256', $tokenData);
+        ]));
     }
 
-    /**
-     * Handle a job failure.
-     *
-     * @param \Throwable $exception
-     * @return void
-     */
     public function failed(\Throwable $exception): void
     {
         Log::error('SendReviewRequest: Job failed', [
             'booking_id' => $this->booking->id,
-            'booking_number' => $this->booking->booking_number,
-            'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString(),
+            'error'      => $exception->getMessage(),
         ]);
     }
 }

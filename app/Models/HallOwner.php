@@ -120,8 +120,7 @@ class HallOwner extends Model
             'verification_notes' => null,
         ]);
 
-        // Optionally revert user role to 'user' or handle as needed
-        //$this->user->update(['role' => 'user']);
+        $this->user->removeRole('hall_owner');
 
     }
 
@@ -149,6 +148,7 @@ class HallOwner extends Model
 
         // Update user role
         $this->user->update(['role' => 'hall_owner']);
+        $this->user->assignRole('hall_owner');
     }
 
 

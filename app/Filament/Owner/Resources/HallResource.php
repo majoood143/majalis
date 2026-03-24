@@ -581,7 +581,68 @@ class HallResource extends OwnerResource
                                             ->maxLength(255)
                                             ->columnSpanFull(),
                                     ]),
+
+                    Forms\Components\Section::make('Function Hours')
+                        ->description('Set the operating hours for functions and events')
+                        ->schema([
+                            Forms\Components\Toggle::make('is_24_hours')
+                                ->label('24 Hours Operation')
+                                ->helperText('Enable if the hall operates 24/7')
+                                ->live()
+                                ->columnSpanFull(),
+
+                            Forms\Components\Repeater::make('function_hours')
+                                ->label('Weekly Schedule')
+                                ->schema([
+                                    Forms\Components\Select::make('day')
+                                        ->label('Day')
+                                        ->options([
+                                            'monday' => 'Monday',
+                                            'tuesday' => 'Tuesday',
+                                            'wednesday' => 'Wednesday',
+                                            'thursday' => 'Thursday',
+                                            'friday' => 'Friday',
+                                            'saturday' => 'Saturday',
+                                            'sunday' => 'Sunday',
+                                        ])
+                                        ->required()
+                                        ->distinct()
+                                        ->columnSpan(2),
+
+                                    Forms\Components\Toggle::make('is_closed')
+                                        ->label('Closed')
+                                        ->live()
+                                        ->columnSpan(1),
+
+                                    Forms\Components\TimePicker::make('open_time')
+                                        ->label('Opening Time')
+                                        ->disabled(fn(Forms\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
+                                        ->required(fn(Forms\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
+                                        ->format('H:i')
+                                        ->columnSpan(2),
+
+                                    Forms\Components\TimePicker::make('close_time')
+                                        ->label('Closing Time')
+                                        ->disabled(fn(Forms\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
+                                        ->required(fn(Forms\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
+                                        ->format('H:i')
+                                        ->after('open_time')
+                                        ->columnSpan(2),
+                                ])
+                                ->columns(7)
+                                ->defaultItems(7)
+                                ->visible(fn(Forms\Get $get) => !$get('is_24_hours'))
+                                ->columnSpanFull(),
+
+                            Forms\Components\Textarea::make('special_hours_note')
+                                ->label('Special Hours Note')
+                                ->placeholder('e.g., "Closed on public holidays", "Extended hours during wedding season"')
+                                ->rows(2)
+                                ->columnSpanFull(),
+                        ])
+                        ->collapsible(),
                             ]),
+                            
 
                         // ==================== TAB 7: Settings ====================
                         // ==================== TAB 7: Settings ====================

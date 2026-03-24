@@ -36,6 +36,8 @@ use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Support\Facades\Log;
 use App\Models\Region;
 use Illuminate\Support\Collection;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class HallResource extends Resource
 {
@@ -217,6 +219,14 @@ class HallResource extends Resource
                                     ->suffix(__('admin.sqm'))
                                     ->placeholder(__('admin.enter_capacity_example')),
 
+                                Forms\Components\Select::make('hallTypes')
+                                    ->label(__('admin.hall_types'))
+                                    ->relationship('hallTypes', 'name')
+                                    ->getOptionLabelFromRecordUsing(fn(\App\Models\HallType $record) => $record->getTranslation('name', app()->getLocale()))
+                                    ->multiple()
+                                    ->preload()
+                                    ->searchable(),
+
                                 // Rich text descriptions (bilingual)
                                 Forms\Components\RichEditor::make('description.en')
                                     ->label(__('admin.description_english'))
@@ -253,6 +263,42 @@ class HallResource extends Resource
                                         'redo',
                                         'undo',
                                     ]),
+
+                    Forms\Components\RichEditor::make('terms_and_conditions.ar')
+                        ->label(__('admin.terms_and_conditions_arabic'))
+                        ->required()
+                        ->columnSpanFull()
+                        ->toolbarButtons([
+                            'bold',
+                            'italic',
+                            'underline',
+                            'strike',
+                            'bulletList',
+                            'orderedList',
+                            'h2',
+                            'h3',
+                            'blockquote',
+                            'redo',
+                            'undo',
+                        ]),
+
+                    Forms\Components\RichEditor::make('terms_and_conditions.en')
+                        ->label(__('admin.terms_and_conditions_english'))
+                        ->required()
+                        ->columnSpanFull()
+                        ->toolbarButtons([
+                            'bold',
+                            'italic',
+                            'underline',
+                            'strike',
+                            'bulletList',
+                            'orderedList',
+                            'h2',
+                            'h3',
+                            'blockquote',
+                            'redo',
+                            'undo',
+                        ]),
                             ])->columns(2),
 
 
@@ -583,6 +629,71 @@ class HallResource extends Resource
                                     ->maxLength(255)
                                     ->placeholder(__('admin.email_placeholder'))
                                     ->prefix('✉️'),
+                                    Forms\Components\TextInput::make('instagram')
+                                            ->label('Instagram')
+                                            ->url()
+                                            ->placeholder('https://instagram.com/majalis')
+                                            ->prefixIcon('heroicon-o-globe-alt'),
+
+                                    Forms\Components\Section::make('Function Hours')
+                ->description('Set the operating hours for functions and events')
+                ->schema([
+                    Forms\Components\Toggle::make('is_24_hours')
+                        ->label('24 Hours Operation')
+                        ->helperText('Enable if the hall operates 24/7')
+                        ->live()
+                        ->columnSpanFull(),
+
+                    Forms\Components\Repeater::make('function_hours')
+                        ->label('Weekly Schedule')
+                        ->schema([
+                            Forms\Components\Select::make('day')
+                                ->label('Day')
+                                ->options([
+                                    'monday' => 'Monday',
+                                    'tuesday' => 'Tuesday',
+                                    'wednesday' => 'Wednesday',
+                                    'thursday' => 'Thursday',
+                                    'friday' => 'Friday',
+                                    'saturday' => 'Saturday',
+                                    'sunday' => 'Sunday',
+                                ])
+                                ->required()
+                                ->distinct()
+                                ->columnSpan(2),
+
+                            Forms\Components\Toggle::make('is_closed')
+                                ->label('Closed')
+                                ->live()
+                                ->columnSpan(1),
+
+                            Forms\Components\TimePicker::make('open_time')
+                                ->label('Opening Time')
+                                ->disabled(fn (Forms\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
+                                ->required(fn (Forms\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
+                                ->format('H:i')
+                                ->columnSpan(2),
+
+                            Forms\Components\TimePicker::make('close_time')
+                                ->label('Closing Time')
+                                ->disabled(fn (Forms\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
+                                ->required(fn (Forms\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
+                                ->format('H:i')
+                                ->after('open_time')
+                                ->columnSpan(2),
+                        ])
+                        ->columns(7)
+                        ->defaultItems(7)
+                        ->visible(fn (Forms\Get $get) => !$get('is_24_hours'))
+                        ->columnSpanFull(),
+
+                    Forms\Components\Textarea::make('special_hours_note')
+                        ->label('Special Hours Note')
+                        ->placeholder('e.g., "Closed on public holidays", "Extended hours during wedding season"')
+                        ->rows(2)
+                        ->columnSpanFull(),
+                ])
+                ->collapsible(),
                             ])->columns(3),
 
                         // =============================================
@@ -825,6 +936,7 @@ class HallResource extends Resource
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
+                    ActivityLogTimelineTableAction::make('Activities'),
                 ]),
             ])
             ->bulkActions([

@@ -110,7 +110,9 @@ class ListEarnings extends ListRecords
                                 ->options(fn (): array => Hall::where('owner_id', Auth::id())
                                     ->get()
                                     ->mapWithKeys(fn ($hall): array => [
-                                        $hall->id => $hall->name[app()->getLocale()] ?? $hall->name['en'],
+                                        $hall->id => is_array($hall->name)
+                                            ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? '')
+                                            : $hall->name,
                                     ])
                                     ->toArray())
                                 ->placeholder(__('owner.earnings.all_halls')),
@@ -159,7 +161,9 @@ class ListEarnings extends ListRecords
                                 ->options(fn (): array => Hall::where('owner_id', Auth::id())
                                     ->get()
                                     ->mapWithKeys(fn ($hall): array => [
-                                        $hall->id => $hall->name[app()->getLocale()] ?? $hall->name['en'],
+                                        $hall->id => is_array($hall->name)
+                                            ? ($hall->name[app()->getLocale()] ?? $hall->name['en'] ?? '')
+                                            : $hall->name,
                                     ])
                                     ->toArray())
                                 ->placeholder(__('owner.earnings.all_halls')),

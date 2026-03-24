@@ -55,14 +55,27 @@ class ReviewRequestMail extends Mailable
      */
     public function content(): Content
     {
+        $daysElapsed   = max(0, (int) $this->booking->booking_date->startOfDay()->diffInDays(now()->startOfDay()));
+        $daysRemaining = max(0, 7 - $daysElapsed);
+
+        $timeSlot = match ($this->booking->time_slot) {
+            'morning'   => __('booking.time_slots.morning'),
+            'afternoon' => __('booking.time_slots.afternoon'),
+            'evening'   => __('booking.time_slots.evening'),
+            'full_day'  => __('booking.time_slots.full_day'),
+            default     => ucfirst(str_replace('_', ' ', $this->booking->time_slot)),
+        };
+
         return new Content(
             markdown: 'emails.booking.review-request',
             with: [
-                'booking' => $this->booking,
-                'hallName' => $this->getHallName(),
-                'reviewUrl' => $this->getReviewUrl(),
-                'customerName' => $this->booking->customer_name,
-                'bookingDate' => $this->booking->booking_date->format('l, d M Y'),
+                'booking'       => $this->booking,
+                'hallName'      => $this->getHallName(),
+                'reviewUrl'     => $this->getReviewUrl(),
+                'customerName'  => $this->booking->customer_name,
+                'bookingDate'   => $this->booking->booking_date->format('l, d M Y'),
+                'timeSlot'      => $timeSlot,
+                'daysRemaining' => $daysRemaining,
             ],
         );
     }

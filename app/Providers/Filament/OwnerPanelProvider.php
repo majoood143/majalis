@@ -24,6 +24,7 @@ use App\Filament\Owner\Resources\ExpenseResource;
 use Filament\View\PanelsRenderHook;
 use Filament\SpatieLaravelTranslatablePlugin;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
 class OwnerPanelProvider extends PanelProvider
@@ -115,6 +116,7 @@ class OwnerPanelProvider extends PanelProvider
             |
             */
             ->plugins([
+                FilamentShieldPlugin::make(),
                 FilamentFullCalendarPlugin::make()
                     // Allow clicking/dragging to select dates
                     ->selectable(true)

@@ -11,6 +11,7 @@ use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\HallController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReviewController;
 
 // Home page — Hall listings (served at / without redirect)
 Route::get('/', [HallController::class, 'index'])->name('home');
@@ -93,6 +94,15 @@ Route::get('/bookings/{booking}/invoice/print', function (Booking $booking) {
     return view('invoices.print', ['booking' => $booking->load(['hall', 'extraServices', 'user'])]);
 })->name('bookings.invoice.print')->middleware(['auth:web,filament']);
 
+// Hall Owner Registration (public wizard)
+Route::get('/register-as-hall-owner', function () {
+    return view('hall-owner.register');
+})->middleware('guest')->name('hall-owner.register');
+
+Route::get('/register-as-hall-owner/success', function () {
+    return view('hall-owner.success');
+})->name('hall-owner.register.success');
+
 // Static Pages
 Route::get('/about-us', [PageController::class, 'aboutUs'])->name('pages.about-us');
 Route::get('/contact-us', [PageController::class, 'contactUs'])->name('pages.contact-us');
@@ -114,6 +124,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Public payment callback routes — no auth required (for admin-sent payment links)
 Route::get('/payment/callback/{booking}', [PaymentController::class, 'success'])->name('payment.callback.success');
 Route::get('/payment/callback/{booking}/cancel', [PaymentController::class, 'cancel'])->name('payment.callback.cancel');
+
+// ── Review submission (public, token-validated, no auth required) ──────────
+// Named 'booking.review' so legacy email views using route('booking.review', $id) continue to work.
+Route::get('/reviews/submit',  [ReviewController::class, 'show'])
+    ->name('reviews.submit');
+Route::get('/booking/{booking}/review', function (\App\Models\Booking $booking) {
+    // Redirect to tokenised URL so the completed-email CTA works without a token param
+    $token = hash('sha256', implode('|', [
+        $booking->id,
+        $booking->booking_number,
+        $booking->customer_email,
+        config('app.key'),
+    ]));
+    return redirect()->route('reviews.submit', ['booking' => $booking->id, 'token' => $token]);
+})->name('booking.review');
+Route::post('/reviews/submit', [ReviewController::class, 'store'])->name('reviews.store');
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/customer.php';

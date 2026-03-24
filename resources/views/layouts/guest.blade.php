@@ -7,9 +7,30 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <style>
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Regular.ttf") }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Medium.ttf") }}') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Bold.ttf") }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        *, *::before, *::after { font-family: 'Tajawal', sans-serif !important; }
+    </style>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])

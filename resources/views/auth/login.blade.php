@@ -8,11 +8,32 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('dashboard.sign_in_title') }} - Majalis Admin</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Regular.ttf") }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Medium.ttf") }}') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Bold.ttf") }}') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        *, *::before, *::after { font-family: 'Tajawal', sans-serif !important; }
+    </style>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&amp;display=swap" rel="stylesheet" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         [x-cloak=''],
@@ -94,11 +115,11 @@
             --warning-900: 120, 53, 15;
             --warning-950: 69, 26, 3;
 
-            --font-family: 'Inter';
+            --font-family: 'Tajawal';
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
+        body, * {
+            font-family: 'Tajawal', sans-serif;
         }
 
         .fi-body {

@@ -7,6 +7,7 @@ namespace App\Filament\Owner\Resources\PayoutResource\Pages;
 use App\Enums\PayoutStatus;
 use App\Filament\Owner\Resources\PayoutResource;
 use App\Models\OwnerPayout;
+use App\Models\Setting;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Components\Tab;
@@ -82,15 +83,21 @@ class ListPayouts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // Contact support for payout issues
+            Actions\CreateAction::make()
+                ->label(__('owner.payouts.create_request'))
+                ->icon('heroicon-o-plus'),
+
             Actions\Action::make('contactSupport')
                 ->label(__('owner.payouts.contact_support'))
                 ->icon('heroicon-o-chat-bubble-left-right')
                 ->color('gray')
-                // ->url(route('filament.owner.resources.tickets.create', [
-                //     'subject' => 'Payout Inquiry',
-                // ]))
-                ->openUrlInNewTab(),
+                ->url(function (): string {
+                    $number = Setting::get('contact', 'whatsapp', '');
+                    $cleaned = preg_replace('/[^0-9]/', '', $number);
+                    return 'https://wa.me/' . $cleaned;
+                })
+                ->openUrlInNewTab()
+                ->visible(fn (): bool => (bool) Setting::get('contact', 'whatsapp')),
         ];
     }
 

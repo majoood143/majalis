@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\ActionGroup;
+use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+
 
 class ExtraServiceResource extends Resource
 {
@@ -242,6 +244,7 @@ class ExtraServiceResource extends Resource
                         ->label(__('extra-service.edit')),
                     Tables\Actions\DeleteAction::make()
                         ->label(__('extra-service.delete')),
+                ActivityLogTimelineTableAction::make('Activities'),
                 ])
             ])
             ->bulkActions([
