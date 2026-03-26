@@ -283,6 +283,10 @@
                     </tr>
 
                     <!-- Contact Section -->
+                    @php
+                        $reminderEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
+                        $reminderPhone = \App\Models\Setting::get('contact', 'phone');
+                    @endphp
                     <tr>
                         <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
@@ -293,8 +297,8 @@
                                         </h4>
                                         <p style="margin: 0; color: #1e3a8a; font-size: 13px; line-height: 1.6;">
                                             {{ __('If you have any questions or need to make changes to your booking, please contact our support team.') }}<br><br>
-                                            <strong>{{ __('Email:') }}</strong> <a href="mailto:support@majalis.om" style="color: #2563eb;">support@majalis.om</a><br>
-                                            <strong>{{ __('Phone:') }}</strong> <a href="tel:+96812345678" style="color: #2563eb;">+968 1234 5678</a>
+                                            @if($reminderEmail)<strong>{{ __('Email:') }}</strong> <a href="mailto:{{ $reminderEmail }}" style="color: #2563eb;">{{ $reminderEmail }}</a><br>@endif
+                                            @if($reminderPhone)<strong>{{ __('Phone:') }}</strong> <a href="tel:{{ $reminderPhone }}" style="color: #2563eb;">{{ $reminderPhone }}</a>@endif
                                         </p>
                                     </td>
                                 </tr>

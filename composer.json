@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "backstage/filament-mails": "^2.3",
+        "backstage/mails": "^2.3",
         "barryvdh/laravel-dompdf": "^3.1",
         "bezhansalleh/filament-shield": "^3.9",
         "blade-ui-kit/blade-heroicons": "^2.6",
@@ -17,6 +18,8 @@
         "filament/filament": "^3.3",
         "filament/spatie-laravel-translatable-plugin": "^3.2",
         "flowframe/laravel-trend": "^0.4.0",
+        "geo-sot/filament-env-editor": "*",
+        "guava/filament-knowledge-base": "^1.14",
         "guzzlehttp/guzzle": "^7.10",
         "intervention/image": "^3.11",
         "jeffersongoncalves/filament-gtag": "^1.1",

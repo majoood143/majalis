@@ -30,6 +30,7 @@
         'full_day' => __('booking.time_slots.full_day'),
     ];
     $timeSlot = $slotLabels[$booking->time_slot] ?? ucfirst(str_replace('_', ' ', $booking->time_slot));
+    $supportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email') ?? config('mail.support_email', 'support@majalis.om');
 @endphp
 
 @section('header-subtitle')
@@ -165,8 +166,8 @@
     {{-- Contact Info --}}
     <p style="font-size: 14px; color: #6b7280;">
         {{ __('emails.booking.created.questions') }}
-        <a href="mailto:{{ config('mail.support_email', 'support@majalis.om') }}" style="color: #4f46e5;">
-            {{ config('mail.support_email', 'support@majalis.om') }}
+        <a href="mailto:{{ $supportEmail }}" style="color: #4f46e5;">
+            {{ $supportEmail }}
         </a>
     </p>
 

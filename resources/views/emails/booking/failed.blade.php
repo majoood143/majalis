@@ -25,6 +25,7 @@
     // Payment info
     $payment = $booking->payments()->latest()->first();
     $errorMessage = $payment->error_message ?? null;
+    $supportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email') ?? config('mail.support_email', 'support@majalis.om');
 @endphp
 
 @section('header-subtitle')
@@ -138,7 +139,7 @@
         </a>
         
         <br>
-        <a href="mailto:{{ config('mail.support_email', 'support@majalis.om') }}" class="btn btn-outline" style="margin-top: 12px;">
+        <a href="mailto:{{ $supportEmail }}" class="btn btn-outline" style="margin-top: 12px;">
             {{ __('emails.payment.failed.contact_support') }}
         </a>
     </div>

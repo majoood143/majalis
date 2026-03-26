@@ -33,6 +33,8 @@ use Vormkracht10\FilamentMails\FilamentMailsPlugin;
 use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Illuminate\Support\Facades\Blade;
 use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
+use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
+use Guava\FilamentKnowledgeBase\KnowledgeBasePlugin;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -93,7 +95,10 @@ class AdminPanelProvider extends PanelProvider
                 FilamentMailsPlugin::make(),
                 FilamentJobsMonitorPlugin::make()
                     ->enableNavigation(),
-            GtagPlugin::make(),
+                GtagPlugin::make(),
+                FilamentEnvEditorPlugin::make()
+                    ->viewPage(\App\Filament\Admin\Pages\EnvEditor::class),
+            //KnowledgeBasePlugin::make(),
 
             ])
             ->authMiddleware([
@@ -123,7 +128,9 @@ class AdminPanelProvider extends PanelProvider
             // ADD PLUGIN CONFIGURATION
             ->plugin(
                 SpatieLaravelTranslatablePlugin::make()
-                    ->defaultLocales(['en', 'ar'])
+                    ->defaultLocales(['en', 'ar']),
+           
+
             );
     }
 }

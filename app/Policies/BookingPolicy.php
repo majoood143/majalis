@@ -15,7 +15,7 @@ class BookingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_earnings');
+        return $user->can('view_any_booking');
     }
 
     /**
@@ -23,7 +23,7 @@ class BookingPolicy
      */
     public function view(User $user, Booking $booking): bool
     {
-        return $user->can('view_earnings');
+        return $user->can('view_booking');
     }
 
     /**
@@ -31,7 +31,7 @@ class BookingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_earnings');
+        return $user->can('create_booking');
     }
 
     /**
@@ -39,7 +39,7 @@ class BookingPolicy
      */
     public function update(User $user, Booking $booking): bool
     {
-        return $user->can('update_earnings');
+        return $user->can('update_booking');
     }
 
     /**
@@ -47,7 +47,7 @@ class BookingPolicy
      */
     public function delete(User $user, Booking $booking): bool
     {
-        return $user->can('delete_earnings');
+        return $user->can('delete_booking');
     }
 
     /**
@@ -55,7 +55,7 @@ class BookingPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_earnings');
+        return $user->can('delete_any_booking');
     }
 
     /**
@@ -63,7 +63,7 @@ class BookingPolicy
      */
     public function forceDelete(User $user, Booking $booking): bool
     {
-        return $user->can('force_delete_earnings');
+        return $user->can('force_delete_booking');
     }
 
     /**
@@ -71,7 +71,7 @@ class BookingPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_earnings');
+        return $user->can('force_delete_any_booking');
     }
 
     /**
@@ -79,7 +79,7 @@ class BookingPolicy
      */
     public function restore(User $user, Booking $booking): bool
     {
-        return $user->can('restore_earnings');
+        return $user->can('restore_booking');
     }
 
     /**
@@ -87,7 +87,7 @@ class BookingPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_earnings');
+        return $user->can('restore_any_booking');
     }
 
     /**
@@ -95,7 +95,7 @@ class BookingPolicy
      */
     public function replicate(User $user, Booking $booking): bool
     {
-        return $user->can('replicate_earnings');
+        return $user->can('replicate_booking');
     }
 
     /**
@@ -103,6 +103,6 @@ class BookingPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_earnings');
+        return $user->can('reorder_booking');
     }
 }

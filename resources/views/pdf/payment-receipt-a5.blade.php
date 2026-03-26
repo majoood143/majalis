@@ -533,9 +533,12 @@
     <div class="footer">
         <p>{{ __('payment.receipt.computer_generated', ['default' => 'This is a computer-generated receipt and does not require a signature.']) }}</p>
         <p>{{ __('payment.receipt.generated_on', ['default' => 'Generated on']) }}: {{ now()->format('d M Y, H:i:s') }}</p>
+        @php
+            $receiptEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
+        @endphp
         <p class="company-info">
             <strong>{{ config('app.name', 'Majalis') }}</strong><br>
-            {{ __('payment.receipt.sultanate_oman', ['default' => 'Sultanate of Oman']) }} | {{ config('mail.from.address', 'support@majalis.om') }}
+            {{ __('payment.receipt.sultanate_oman', ['default' => 'Sultanate of Oman']) }}@if($receiptEmail) | {{ $receiptEmail }}@endif
         </p>
     </div>
 </body>

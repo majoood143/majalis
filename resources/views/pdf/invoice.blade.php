@@ -99,9 +99,19 @@
         </tbody>
     </table>
 
+    @php
+        $invoiceContactEmail = \App\Models\Setting::get('contact', 'email');
+        $invoiceContactPhone = \App\Models\Setting::get('contact', 'phone');
+    @endphp
     <div style="margin-top: 40px;">
         <p>Thank you for booking with Majalis!</p>
-        <p>For inquiries: info@majalis.om | +968 24 123456</p>
+        @if($invoiceContactEmail || $invoiceContactPhone)
+        <p>For inquiries:
+            @if($invoiceContactEmail){{ $invoiceContactEmail }}@endif
+            @if($invoiceContactEmail && $invoiceContactPhone) | @endif
+            @if($invoiceContactPhone){{ $invoiceContactPhone }}@endif
+        </p>
+        @endif
     </div>
 </body>
 

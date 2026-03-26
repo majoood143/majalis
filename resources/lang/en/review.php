@@ -186,4 +186,21 @@ return [
     'placeholder' => [
         'no_response' => 'No response',
     ],
+
+    // Customer-facing hall details page
+    'customer' => [
+        'recent_reviews'   => 'Recent Reviews',
+        'no_reviews'       => 'No reviews yet. Be the first to share your experience!',
+        'verified_guest'   => 'Verified Guest',
+        'owner_response'   => 'Owner\'s Response',
+        'featured_review'  => 'Featured',
+        'read_more'        => 'Read more',
+        'show_less'        => 'Show less',
+        'cleanliness'      => 'Cleanliness',
+        'service'          => 'Service',
+        'value'            => 'Value',
+        'location'         => 'Location',
+        'based_on'         => 'Based on :count review|Based on :count reviews',
+        'out_of'           => 'out of 5',
+    ],
 ];

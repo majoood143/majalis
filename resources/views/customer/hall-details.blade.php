@@ -472,7 +472,7 @@
 
         // WhatsApp: digits-only number → wa.me link
         $whatsappNum = preg_replace('/[^0-9]/', '', $hall->whatsapp ?? '');
-        $whatsappUrl = $whatsappNum ? 'https://wa.me/' . $whatsappNum : null;
+        $whatsappUrl = $whatsappNum ? 'https://api.whatsapp.com/send?phone=' . $whatsappNum : null;
 
         // Function hours helpers
         $todayDay = strtolower(now()->format('l'));   // e.g. 'monday'
@@ -647,6 +647,159 @@
                                 </div>
                             @endforeach
                         </div>
+                    </div>
+                @endif
+
+                <!-- Recent Reviews -->
+                @php
+                    $approvedReviews = $hall->reviews->where('is_approved', true);
+                    $reviewCount     = $approvedReviews->count();
+                @endphp
+                @if ($reviewCount > 0)
+                    <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
+
+                        {{-- Section heading --}}
+                        <h3 class="flex items-center gap-2 mb-5 text-xl font-bold text-gray-900">
+                            <svg class="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"/>
+                            </svg>
+                            {{ __('review.customer.recent_reviews') }}
+                            @if ($hall->average_rating > 0)
+                                <span class="flex items-center gap-1 text-sm font-semibold text-gray-600 ms-auto">
+                                    <span class="text-base font-bold text-amber-400">{{ number_format($hall->average_rating, 1) }}</span>
+                                    <span class="text-gray-400">/</span>
+                                    <span>{{ __('review.customer.out_of') }}</span>
+                                    <span class="text-xs font-normal text-gray-400 ms-1">
+                                        ({{ trans_choice('review.customer.based_on', $hall->total_reviews, ['count' => $hall->total_reviews]) }})
+                                    </span>
+                                </span>
+                            @endif
+                        </h3>
+
+                        {{-- Review cards --}}
+                        <div class="space-y-4">
+                            @foreach ($approvedReviews->sortByDesc('created_at') as $review)
+                                @php
+                                    $reviewerName  = $review->user->name ?? 'Guest';
+                                    $initials      = mb_strtoupper(mb_substr($reviewerName, 0, 1));
+                                    $hasSubRatings = $review->cleanliness_rating || $review->service_rating
+                                                     || $review->value_rating || $review->location_rating;
+                                    $avatarColors  = ['bg-primary-100 text-primary-700', 'bg-amber-100 text-amber-700',
+                                                      'bg-emerald-100 text-emerald-700', 'bg-purple-100 text-purple-700',
+                                                      'bg-rose-100 text-rose-700'];
+                                    $colorClass    = $avatarColors[$review->id % count($avatarColors)];
+                                @endphp
+
+                                <div class="p-4 border border-gray-100 rounded-xl bg-gray-50">
+
+                                    {{-- Header row: avatar · name · stars · date --}}
+                                    <div class="flex items-start gap-3">
+
+                                        {{-- Avatar --}}
+                                        <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold {{ $colorClass }}">
+                                            {{ $initials }}
+                                        </div>
+
+                                        <div class="flex-1 min-w-0">
+
+                                            {{-- Name + badges --}}
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="text-sm font-semibold text-gray-900">
+                                                    {{ $reviewerName }}
+                                                </span>
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    {{ __('review.customer.verified_guest') }}
+                                                </span>
+                                                @if ($review->is_featured)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"/>
+                                                        </svg>
+                                                        {{ __('review.customer.featured_review') }}
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                            {{-- Stars + date --}}
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <div class="flex items-center gap-0.5">
+                                                    @for ($s = 1; $s <= 5; $s++)
+                                                        <svg class="w-3.5 h-3.5 {{ $s <= $review->rating ? 'text-amber-400' : 'text-gray-200' }}"
+                                                             fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"/>
+                                                        </svg>
+                                                    @endfor
+                                                </div>
+                                                <span class="text-xs text-gray-400">
+                                                    {{ $review->created_at->format('d M Y') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Sub-ratings --}}
+                                    @if ($hasSubRatings)
+                                        <div class="grid grid-cols-2 gap-x-6 gap-y-1.5 mt-3 sm:grid-cols-4">
+                                            @foreach ([
+                                                'cleanliness' => $review->cleanliness_rating,
+                                                'service'     => $review->service_rating,
+                                                'value'       => $review->value_rating,
+                                                'location'    => $review->location_rating,
+                                            ] as $key => $val)
+                                                @if ($val)
+                                                    <div>
+                                                        <div class="flex items-center justify-between mb-0.5">
+                                                            <span class="text-xs text-gray-500">{{ __('review.customer.' . $key) }}</span>
+                                                            <span class="text-xs font-semibold text-gray-700">{{ $val }}/5</span>
+                                                        </div>
+                                                        <div class="h-1 overflow-hidden bg-gray-200 rounded-full">
+                                                            <div class="h-full rounded-full bg-amber-400" style="width: {{ ($val / 5) * 100 }}%"></div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    {{-- Comment --}}
+                                    @if ($review->comment)
+                                        <div x-data="{ expanded: false }" class="mt-3">
+                                            <p class="text-sm leading-relaxed text-gray-700"
+                                               :class="!expanded && '{{ mb_strlen($review->comment) > 200 ? 'line-clamp-3' : '' }}'">
+                                                {{ $review->comment }}
+                                            </p>
+                                            @if (mb_strlen($review->comment) > 200)
+                                                <button @click="expanded = !expanded"
+                                                        class="mt-1 text-xs font-medium text-primary-600 hover:underline">
+                                                    <span x-text="expanded ? '{{ __('review.customer.show_less') }}' : '{{ __('review.customer.read_more') }}'"></span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    {{-- Owner response --}}
+                                    @if ($review->owner_response)
+                                        <div class="mt-3 ms-3 ps-3 border-s-2 border-primary-200">
+                                            <div class="flex items-center gap-1.5 mb-1">
+                                                <svg class="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                                </svg>
+                                                <span class="text-xs font-semibold text-primary-700">{{ __('review.customer.owner_response') }}</span>
+                                                @if ($review->owner_response_at)
+                                                    <span class="text-xs text-gray-400">· {{ $review->owner_response_at->format('d M Y') }}</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs leading-relaxed text-gray-600">{{ $review->owner_response }}</p>
+                                        </div>
+                                    @endif
+
+                                </div>
+                            @endforeach
+                        </div>
+
                     </div>
                 @endif
 

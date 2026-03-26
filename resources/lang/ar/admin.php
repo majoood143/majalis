@@ -692,6 +692,7 @@ return [
 
     'hall_types' => 'أنواع القاعة',
     'hall_navigation_group'=>'ادارة المجالس',
+    'security_navigation_group' => 'الأمان والجلسات',
     'terms_and_conditions_arabic' => 'الشروط والأحكام',
     'terms_and_conditions_english' => 'الشروط والأحكام (انجليزي)'
 ];

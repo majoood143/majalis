@@ -68,8 +68,14 @@ Hello {{ $customerName }},
 
 {{ __('If you have any questions or need to make changes to your booking, please contact our support team.') }}
 
-Email: support@majalis.om
-Phone: +968 1234 5678
+@php
+$textEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
+$textPhone = \App\Models\Setting::get('contact', 'phone');
+@endphp
+@if($textEmail)Email: {{ $textEmail }}
+@endif
+@if($textPhone)Phone: {{ $textPhone }}
+@endif
 
 ================================
 

@@ -33,6 +33,7 @@
     
     // Check if there's a refund
     $hasRefund = $booking->refund_amount && $booking->refund_amount > 0;
+    $supportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email') ?? config('mail.support_email', 'support@majalis.om');
 @endphp
 
 @section('header-subtitle')
@@ -155,8 +156,8 @@
     {{-- Support --}}
     <p style="font-size: 14px; color: #6b7280; text-align: center;">
         {{ __('emails.booking.cancelled.questions') }}<br>
-        <a href="mailto:{{ config('mail.support_email', 'support@majalis.om') }}" style="color: #4f46e5;">
-            {{ config('mail.support_email', 'support@majalis.om') }}
+        <a href="mailto:{{ $supportEmail }}" style="color: #4f46e5;">
+            {{ $supportEmail }}
         </a>
     </p>
 

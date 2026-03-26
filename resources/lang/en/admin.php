@@ -690,6 +690,7 @@ return [
 
     'hall_types' => 'Hall Types',
     'hall_navigation_group' => 'Majalis Management',
+    'security_navigation_group' => 'Security & Sessions',
     'terms_and_conditions_arabic' => 'Terms and Conditions (Arabic)',
     'terms_and_conditions_english' => 'Terms and Conditions (English)',
 

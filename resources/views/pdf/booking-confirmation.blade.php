@@ -506,6 +506,9 @@
         $bookingDate = $booking->booking_date instanceof \Carbon\Carbon
             ? $booking->booking_date
             : \Carbon\Carbon::parse($booking->booking_date);
+
+        $pdfSupportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
+        $pdfSupportPhone = \App\Models\Setting::get('contact', 'phone');
     @endphp
 
     {{-- ========================================================================
@@ -689,7 +692,9 @@
         <tr>
             <td width="60%" style="vertical-align: middle; font-size: 7pt; color: #6b7a8d; padding-top: 10px; border-top: 1px solid #d0d7de;">
                 <strong style="color: #1a2b3c;">{{ __('halls.need_help') }}</strong>
-                {{ __('halls.email') }}: support@majalis.om &nbsp;|&nbsp; {{ __('halls.phone') }}: +968 1234 5678
+                @if($pdfSupportEmail){{ __('halls.email') }}: {{ $pdfSupportEmail }}@endif
+                @if($pdfSupportEmail && $pdfSupportPhone) &nbsp;|&nbsp; @endif
+                @if($pdfSupportPhone){{ __('halls.phone') }}: {{ $pdfSupportPhone }}@endif
             </td>
             <td width="40%" style="vertical-align: middle; text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-size: 7pt; color: #8a9cb0; padding-top: 10px; border-top: 1px solid #d0d7de;">
                 <div style="font-size: 12pt; font-weight: 500; color: #0066b3;">Majalis.om</div>

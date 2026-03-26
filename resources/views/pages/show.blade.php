@@ -242,10 +242,17 @@
                     <h3 class="mb-4 text-lg font-semibold">
                         {{ app()->getLocale() === 'ar' ? 'اتصل بنا' : 'Contact' }}
                     </h3>
+                    @php
+                        $footerEmail = \App\Models\Setting::get('contact', 'email');
+                        $footerPhone = \App\Models\Setting::get('contact', 'phone');
+                    @endphp
                     <p class="text-gray-400">
-                        {{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: support@majalis.om<br>
-                        {{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: +968 1234 5678
-                        
+                        @if($footerEmail)
+                        {{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: {{ $footerEmail }}<br>
+                        @endif
+                        @if($footerPhone)
+                        {{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: {{ $footerPhone }}
+                        @endif
                     </p>
                 </div>
             </div>

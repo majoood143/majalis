@@ -1496,7 +1496,7 @@ class BookingResource extends Resource
                         ->visible(fn(Booking $record): bool => !empty($record->customer_phone))
                         ->url(
                             fn(Booking $record): string =>
-                            "https://wa.me/{$record->customer_phone}?text=" .
+                            "https://api.whatsapp.com/send?phone={$record->customer_phone}&text=" .
                                 urlencode(__('booking.whatsapp.greeting', [
                                     'name' => $record->customer_name,
                                     'booking' => $record->booking_number

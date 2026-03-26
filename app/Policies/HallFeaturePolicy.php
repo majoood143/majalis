@@ -15,7 +15,7 @@ class HallFeaturePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_feature');
+        return $user->can('view_any_hall::feature');
     }
 
     /**
@@ -23,7 +23,7 @@ class HallFeaturePolicy
      */
     public function view(User $user, HallFeature $hallFeature): bool
     {
-        return $user->can('view_feature');
+        return $user->can('view_hall::feature');
     }
 
     /**
@@ -31,7 +31,7 @@ class HallFeaturePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_feature');
+        return $user->can('create_hall::feature');
     }
 
     /**
@@ -39,7 +39,7 @@ class HallFeaturePolicy
      */
     public function update(User $user, HallFeature $hallFeature): bool
     {
-        return $user->can('update_feature');
+        return $user->can('update_hall::feature');
     }
 
     /**
@@ -47,7 +47,7 @@ class HallFeaturePolicy
      */
     public function delete(User $user, HallFeature $hallFeature): bool
     {
-        return $user->can('delete_feature');
+        return $user->can('delete_hall::feature');
     }
 
     /**
@@ -55,7 +55,7 @@ class HallFeaturePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_feature');
+        return $user->can('delete_any_hall::feature');
     }
 
     /**
@@ -63,7 +63,7 @@ class HallFeaturePolicy
      */
     public function forceDelete(User $user, HallFeature $hallFeature): bool
     {
-        return $user->can('force_delete_feature');
+        return $user->can('force_delete_hall::feature');
     }
 
     /**
@@ -71,7 +71,7 @@ class HallFeaturePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_feature');
+        return $user->can('force_delete_any_hall::feature');
     }
 
     /**
@@ -79,7 +79,7 @@ class HallFeaturePolicy
      */
     public function restore(User $user, HallFeature $hallFeature): bool
     {
-        return $user->can('restore_feature');
+        return $user->can('restore_hall::feature');
     }
 
     /**
@@ -87,7 +87,7 @@ class HallFeaturePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_feature');
+        return $user->can('restore_any_hall::feature');
     }
 
     /**
@@ -95,7 +95,7 @@ class HallFeaturePolicy
      */
     public function replicate(User $user, HallFeature $hallFeature): bool
     {
-        return $user->can('replicate_feature');
+        return $user->can('replicate_hall::feature');
     }
 
     /**
@@ -103,6 +103,6 @@ class HallFeaturePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_feature');
+        return $user->can('reorder_hall::feature');
     }
 }

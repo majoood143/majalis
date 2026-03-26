@@ -213,15 +213,25 @@
         </div>
 
         <!-- Help Section -->
+        @php
+            $supportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
+            $supportPhone = \App\Models\Setting::get('contact', 'phone');
+        @endphp
         <div class="p-4 mt-6 text-center bg-white shadow-lg rounded-xl fade-in-up" style="animation-delay: 0.6s;">
             <p class="mb-2 text-sm text-gray-600">{{ __('halls.need_help') }}</p>
-            <a href="mailto:support@majalis.om" class="text-primary-600 hover:text-primary-700">
-                support@majalis.om
+            @if($supportEmail)
+            <a href="mailto:{{ $supportEmail }}" class="text-primary-600 hover:text-primary-700">
+                {{ $supportEmail }}
             </a>
+            @endif
+            @if($supportEmail && $supportPhone)
             <span class="mx-2 text-gray-400">|</span>
-            <a href="tel:+96812345678" class="text-primary-600 hover:text-primary-700">
-                +968 95522928
+            @endif
+            @if($supportPhone)
+            <a href="tel:{{ $supportPhone }}" class="text-primary-600 hover:text-primary-700">
+                {{ $supportPhone }}
             </a>
+            @endif
         </div>
     </div>
 

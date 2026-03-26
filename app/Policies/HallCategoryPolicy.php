@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\HallImage;
+use App\Models\HallCategory;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class HallImagePolicy
+class HallCategoryPolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class HallImagePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_hall::image');
+        return $user->can('view_any_hall::category');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, HallImage $hallImage): bool
+    public function view(User $user, HallCategory $hallCategory): bool
     {
-        return $user->can('view_hall::image');
+        return $user->can('view_hall::category');
     }
 
     /**
@@ -31,23 +31,23 @@ class HallImagePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_hall::image');
+        return $user->can('create_hall::category');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, HallImage $hallImage): bool
+    public function update(User $user, HallCategory $hallCategory): bool
     {
-        return $user->can('update_hall::image');
+        return $user->can('update_hall::category');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, HallImage $hallImage): bool
+    public function delete(User $user, HallCategory $hallCategory): bool
     {
-        return $user->can('delete_hall::image');
+        return $user->can('delete_hall::category');
     }
 
     /**
@@ -55,15 +55,15 @@ class HallImagePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_hall::image');
+        return $user->can('delete_any_hall::category');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, HallImage $hallImage): bool
+    public function forceDelete(User $user, HallCategory $hallCategory): bool
     {
-        return $user->can('force_delete_hall::image');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,15 +71,15 @@ class HallImagePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_hall::image');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, HallImage $hallImage): bool
+    public function restore(User $user, HallCategory $hallCategory): bool
     {
-        return $user->can('restore_hall::image');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,15 +87,15 @@ class HallImagePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_hall::image');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, HallImage $hallImage): bool
+    public function replicate(User $user, HallCategory $hallCategory): bool
     {
-        return $user->can('replicate_hall::image');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class HallImagePolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_hall::image');
+        return $user->can('{{ Reorder }}');
     }
 }

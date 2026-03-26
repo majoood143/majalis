@@ -551,12 +551,17 @@
                 @if(config('app.logo_path'))
                     <img src="{{ public_path(config('app.logo_path')) }}" alt="{{ config('app.name') }}" class="company-logo">
                 @endif
+                @php
+                    $invoiceEmail = \App\Models\Setting::get('contact', 'email');
+                    $invoicePhone = \App\Models\Setting::get('contact', 'phone');
+                    $invoiceAddress = \App\Models\Setting::get('contact', 'address');
+                @endphp
                 <div class="company-name">{{ config('app.name', 'Majalis') }}</div>
                 <div class="company-details">
                     {{ __('booking.invoice.company_tagline') }}<br>
-                    {{ config('app.address', 'Muscat, Oman') }}<br>
-                    {{ __('booking.invoice.phone') }}: {{ config('app.phone', '+968 XXXX XXXX') }}<br>
-                    {{ __('booking.invoice.email') }}: {{ config('app.email', 'info@majalis.om') }}
+                    {{ $invoiceAddress ?? config('app.address', 'Muscat, Oman') }}<br>
+                    @if($invoicePhone){{ __('booking.invoice.phone') }}: {{ $invoicePhone }}<br>@endif
+                    @if($invoiceEmail){{ __('booking.invoice.email') }}: {{ $invoiceEmail }}@endif
                 </div>
             </div>
             <div class="invoice-title-section">
@@ -785,7 +790,7 @@
             </div>
 
             <div class="footer-contact">
-                {{ config('app.name', 'Majalis') }} | {{ config('app.url') }} | {{ config('app.phone', '+968 XXXX XXXX') }}
+                {{ config('app.name', 'Majalis') }}@if($invoicePhone) | {{ $invoicePhone }}@endif@if($invoiceEmail) | {{ $invoiceEmail }}@endif
             </div>
         </div>
     </div>

@@ -186,4 +186,21 @@ return [
     'placeholder' => [
         'no_response' => 'لا يوجد رد',
     ],
+
+    // Customer-facing hall details page
+    'customer' => [
+        'recent_reviews'   => 'أحدث التقييمات',
+        'no_reviews'       => 'لا توجد تقييمات بعد. كن أول من يشارك تجربته!',
+        'verified_guest'   => 'ضيف موثق',
+        'owner_response'   => 'رد صاحب القاعة',
+        'featured_review'  => 'مميز',
+        'read_more'        => 'قراءة المزيد',
+        'show_less'        => 'عرض أقل',
+        'cleanliness'      => 'النظافة',
+        'service'          => 'الخدمة',
+        'value'            => 'القيمة',
+        'location'         => 'الموقع',
+        'based_on'         => 'بناءً على :count تقييم',
+        'out_of'           => 'من 5',
+    ],
 ];

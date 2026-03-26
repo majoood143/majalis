@@ -325,12 +325,13 @@
     </div>
 
     <!-- Footer -->
+    @php $receiptEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email'); @endphp
     <div class="footer">
         <p>This is a computer-generated receipt and does not require a signature.</p>
         <p>Generated on: {{ now()->format('d M Y, H:i:s') }}</p>
         <p style="margin-top: 10px;">
             <strong>Majalis</strong> - Hall Booking Management System<br>
-            Sultanate of Oman | support@majalis.om
+            Sultanate of Oman@if($receiptEmail) | {{ $receiptEmail }}@endif
         </p>
     </div>
 </body>

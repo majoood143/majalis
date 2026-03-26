@@ -16,6 +16,7 @@
 @php
     $locale = app()->getLocale();
     $isRtl = $locale === 'ar';
+    $supportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email') ?? config('mail.support_email', 'support@majalis.om');
 @endphp
 
 @section('header-subtitle')
@@ -116,8 +117,8 @@
         </p>
         <p style="margin: 0; color: #3b82f6; font-size: 14px;">
             {{ __('emails.owner.verified.support_desc') }}
-            <a href="mailto:{{ config('mail.support_email', 'support@majalis.om') }}" style="color: #4f46e5;">
-                {{ config('mail.support_email', 'support@majalis.om') }}
+            <a href="mailto:{{ $supportEmail }}" style="color: #4f46e5;">
+                {{ $supportEmail }}
             </a>
         </p>
     </div>

@@ -94,7 +94,7 @@ class ListPayouts extends ListRecords
                 ->url(function (): string {
                     $number = Setting::get('contact', 'whatsapp', '');
                     $cleaned = preg_replace('/[^0-9]/', '', $number);
-                    return 'https://wa.me/' . $cleaned;
+                    return 'https://api.whatsapp.com/send?phone=' . $cleaned;
                 })
                 ->openUrlInNewTab()
                 ->visible(fn (): bool => (bool) Setting::get('contact', 'whatsapp')),

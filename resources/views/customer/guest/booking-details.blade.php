@@ -337,17 +337,22 @@
                 </div>
 
                 {{-- Help Section --}}
+                @php
+                    $helpEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
+                @endphp
                 <div class="p-4 rounded-lg bg-blue-50">
                     <h4 class="mb-2 font-medium text-blue-900">{{ __('guest.details_need_help') }}</h4>
                     <p class="mb-3 text-sm text-blue-800">
                         {{ __('guest.details_help_message') }}
                     </p>
+                    @if($helpEmail)
                     <a
-                        href="mailto:support@majalis.om"
+                        href="mailto:{{ $helpEmail }}"
                         class="text-sm text-primary-600 hover:underline"
                     >
-                        support@majalis.om
+                        {{ $helpEmail }}
                     </a>
+                    @endif
                 </div>
 
             </div>
@@ -357,7 +362,7 @@
         <div class="p-6 mt-8 bg-white rounded-xl">
             <div class="text-center">
                 <h3 class="mb-2 text-lg font-semibold text-gray-900">{{ __('guest.details_thank_you') }}</h3>
-                <p class="text-gray-600">{{ __('guest.details_contact_info', ['support_email' => 'support@majalis.om']) }}</p>
+                <p class="text-gray-600">{{ __('guest.details_contact_info', ['support_email' => $helpEmail ?? '']) }}</p>
             </div>
         </div>
 
