@@ -1,4 +1,4 @@
-@extends('emails.Layouts.base')
+@extends('emails.layouts.base')
 
 @php
     use App\Enums\PayoutStatus;
