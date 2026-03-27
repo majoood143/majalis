@@ -164,7 +164,7 @@
             <div class="overflow-hidden bg-white rounded-lg shadow-sm">
 
                 {{-- Page Header --}}
-                <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-12 sm:px-12 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
+                <div class="bg-gradient-to-r  px-6 py-12 sm:px-12 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
                     <h1 class="text-3xl font-bold text-black sm:text-4xl">
                         {{ $title }}
                     </h1>
@@ -207,60 +207,7 @@
         </div>
     </main>
 
-    {{-- Footer --}}
-    <footer class="py-8 mt-12 text-white bg-gray-800">
-        <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-                <div>
-                    <h3 class="mb-4 text-lg font-semibold">
-                        {{ app()->getLocale() === 'ar' ? 'مجالس' : 'Majalis' }}
-                    </h3>
-                    <p class="text-gray-400">
-                        {{ app()->getLocale() === 'ar' ? 'منصة حجز القاعات الموثوقة في عمان' : 'Your trusted hall booking platform in Oman' }}
-                    </p>
-                </div>
-                <div>
-                    <h3 class="mb-4 text-lg font-semibold">
-                        {{ app()->getLocale() === 'ar' ? 'روابط سريعة' : 'Quick Links' }}
-                    </h3>
-                    <ul class="space-y-2">
-                        <li><a href="{{ url('/about-us') }}" class="text-gray-400 transition hover:text-white">
-                            {{ app()->getLocale() === 'ar' ? 'من نحن' : 'About Us' }}
-                        </a></li>
-                        <li><a href="{{ url('/contact-us') }}" class="text-gray-400 transition hover:text-white">
-                            {{ app()->getLocale() === 'ar' ? 'اتصل بنا' : 'Contact Us' }}
-                        </a></li>
-                        <li><a href="{{ url('/terms-and-conditions') }}" class="text-gray-400 transition hover:text-white">
-                            {{ app()->getLocale() === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions' }}
-                        </a></li>
-                        <li><a href="{{ url('/privacy-policy') }}" class="text-gray-400 transition hover:text-white">
-                            {{ app()->getLocale() === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy' }}
-                        </a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="mb-4 text-lg font-semibold">
-                        {{ app()->getLocale() === 'ar' ? 'اتصل بنا' : 'Contact' }}
-                    </h3>
-                    @php
-                        $footerEmail = \App\Models\Setting::get('contact', 'email');
-                        $footerPhone = \App\Models\Setting::get('contact', 'phone');
-                    @endphp
-                    <p class="text-gray-400">
-                        @if($footerEmail)
-                        {{ app()->getLocale() === 'ar' ? 'البريد الإلكتروني' : 'Email' }}: {{ $footerEmail }}<br>
-                        @endif
-                        @if($footerPhone)
-                        {{ app()->getLocale() === 'ar' ? 'الهاتف' : 'Phone' }}: {{ $footerPhone }}
-                        @endif
-                    </p>
-                </div>
-            </div>
-            <div class="pt-8 mt-8 text-center text-gray-400 border-t border-gray-700">
-                <p>&copy; {{ date('Y') }} Majalis. {{ app()->getLocale() === 'ar' ? 'جميع الحقوق محفوظة' : 'All rights reserved' }}.</p>
-            </div>
-        </div>
-    </footer>
+    @include('layouts.footer')
 
     {{-- Mobile Menu Toggle Script --}}
     <script>
