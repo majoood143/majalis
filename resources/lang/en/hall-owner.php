@@ -274,6 +274,7 @@ return [
         ],
 
         'email' => [
+            // Admin notification
             'subject'         => 'New Hall Owner Application: :business',
             'header_subtitle' => 'New Hall Owner Application',
             'title'           => 'New Hall Owner Application Received',
@@ -286,6 +287,23 @@ return [
             'submitted_at'    => 'Submitted At',
             'review_button'   => 'Review Application in Admin Panel',
             'footer_note'     => 'This notification was sent because a new hall owner application was submitted on the Majalis platform.',
+
+            // Applicant acknowledgement
+            'ack_subject'          => 'We received your application – :business',
+            'ack_header_subtitle'  => 'Application Received',
+            'ack_title'            => 'Thank you for applying!',
+            'ack_greeting'         => 'Hello :name,',
+            'ack_intro'            => 'We have received your hall owner application for <strong>:business</strong> and it is now under review by our team.',
+            'ack_details_title'    => 'Your Application Summary',
+            'ack_business_name'    => 'Business Name',
+            'ack_submitted_at'     => 'Submitted At',
+            'ack_status'           => 'Status',
+            'ack_status_value'     => 'Under Review',
+            'ack_next_title'       => 'What happens next?',
+            'ack_next_1'           => 'Our team will review your submitted documents.',
+            'ack_next_2'           => 'You will receive an email notification with our decision.',
+            'ack_next_3'           => 'Once approved, you can log in and start listing your halls.',
+            'ack_footer_note'      => 'If you have any questions, please contact our support team.',
         ],
     ],
 ];

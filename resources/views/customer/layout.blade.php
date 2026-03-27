@@ -25,7 +25,18 @@
 
     <title>@yield('title', 'Hall Booking System')</title>
     <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
+ <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9K3B5QBV5Y"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
 
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+
+        gtag('config', 'G-9K3B5QBV5Y');
+    </script>
     <style>
         @font-face {
             font-family: 'Tajawal';

@@ -22,7 +22,7 @@
                     $socialTiktok    = \App\Models\Setting::get('social', 'tiktok_url');
                     $socialLinkedin  = \App\Models\Setting::get('social', 'linkedin_url');
                 @endphp
-                <div class="flex flex-wrap mt-4 gap-3">
+                <div class="flex flex-wrap gap-3 mt-4">
                     @if($socialTwitter)
                     <a href="{{ $socialTwitter }}" target="_blank" rel="noopener noreferrer"
                        class="text-gray-400 transition hover:text-white" aria-label="X (Twitter)">
@@ -132,41 +132,25 @@
                     <div class="flex flex-wrap gap-3">
                         <!-- Visa -->
                         <div class="flex items-center justify-center px-2 py-1 transition bg-white rounded-lg hover:bg-gray-100" style="min-width:52px; height:32px;">
-                            <svg viewBox="0 0 780 500" class="h-5 w-auto" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="780" height="500" rx="40" fill="#fff"/>
-                                <path d="M316.05 361.04l37.42-229.08h59.84l-37.44 229.08h-59.82zm247.07-223.54c-11.85-4.44-30.43-9.19-53.6-9.19-59.1 0-100.77 29.6-101.11 72.04-.35 31.36 29.67 48.86 52.32 59.31 23.27 10.71 31.1 17.56 31 27.12-.15 14.64-18.6 21.33-35.8 21.33-23.96 0-36.67-3.3-56.35-11.43l-7.72-3.48-8.4 48.92c13.98 6.09 39.82 11.39 66.69 11.67 63.01 0 103.88-29.27 104.35-74.6.23-24.84-15.66-43.72-50.02-59.3-20.83-10.1-33.57-16.83-33.43-27.06 0-9.07 10.79-18.77 34.13-18.77 19.47-.3 33.57 3.92 44.55 8.32l5.33 2.5 8.06-46.38zm154.44-5.54h-46.23c-14.32 0-25.04 3.9-31.33 18.15l-88.79 200.97h62.76s10.26-26.88 12.58-32.77l76.56.09c1.79 7.63 7.28 32.68 7.28 32.68h55.46l-48.29-219.12zm-73.6 142.24c4.95-12.6 23.84-61.1 23.84-61.1-.35.58 4.91-12.63 7.93-20.82l4.05 18.8s11.46 52.29 13.86 63.12h-49.68zm-424.98-142.24l-58.6 156.28-6.25-30.32c-10.9-34.93-44.9-72.77-82.9-91.7l53.6 191.73 63.37-.07 94.27-225.92h-63.49z" fill="#1A1F71"/>
-                                <path d="M146.92 132h-96.8l-.77 4.54c75.3 18.2 125.14 62.2 145.8 115.07l-21.04-100.44c-3.63-13.88-14.15-18.76-27.19-19.17z" fill="#F9A533"/>
-                            </svg>
+                            <img src="{{ asset('images/payment/visa.svg') }}" class="w-auto h-5" alt="Visa">
                         </div>
 
                         <!-- Mastercard -->
                         <div class="flex items-center justify-center px-2 py-1 transition bg-white rounded-lg hover:bg-gray-100" style="min-width:52px; height:32px;">
-                            <svg viewBox="0 0 152 108" class="h-5 w-auto" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="152" height="108" rx="10" fill="#fff"/>
-                                <circle cx="55" cy="54" r="33" fill="#EB001B"/>
-                                <circle cx="97" cy="54" r="33" fill="#F79E1B"/>
-                                <path d="M76 28.3A33 33 0 0 1 97 54 33 33 0 0 1 76 79.7 33 33 0 0 1 55 54a33 33 0 0 1 21-25.7z" fill="#FF5F00"/>
-                            </svg>
+                            <img src="{{ asset('images/payment/mastercard.svg') }}" class="w-auto h-5" alt="Mastercard">
                         </div>
 
-                        <!-- Apple Pay -->
-                        <div class="flex items-center justify-center px-2 py-1 transition bg-black rounded-lg hover:bg-gray-900" style="min-width:52px; height:32px;">
-                            <svg viewBox="0 0 165 105" class="h-5 w-auto" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M31.5 25.6c-2.6 3.1-6.8 5.5-11 5.2-.5-4.2 1.5-8.7 3.9-11.5C27 16 31.5 13.7 35.3 13.5c.5 4.4-1.3 8.7-3.8 12.1zm3.7 5.9c-6.1-.4-11.3 3.5-14.2 3.5-3 0-7.4-3.3-12.3-3.2-6.3.1-12.2 3.7-15.4 9.4-6.6 11.4-1.7 28.3 4.7 37.6 3.1 4.6 6.9 9.6 11.8 9.4 4.7-.2 6.5-3 12.2-3 5.7 0 7.3 3 12.3 2.9 5.1-.1 8.3-4.6 11.4-9.2 3.6-5.2 5-10.3 5.1-10.5-.1-.1-9.8-3.8-9.9-15.1-.1-9.4 7.7-13.9 8-14.2-4.4-6.5-11.2-7.2-13.7-7.6z" fill="white" transform="translate(40, 10) scale(1.3)"/>
-                                <text x="82" y="72" font-family="Arial, sans-serif" font-size="28" font-weight="600" fill="white" letter-spacing="-0.5">Pay</text>
-                            </svg>
+                        <!-- Thawani -->
+                        <div class="flex items-center justify-center px-2 py-1 transition bg-white rounded-lg hover:bg-gray-100" style="min-width:52px; height:32px;">
+                            <img src="{{ asset('images/payment/thawani.svg') }}" class="w-auto h-5" alt="Thawani">
                         </div>
 
-                        <!-- Thawani Pay -->
-                        <div class="flex items-center justify-center px-2 py-1 transition rounded-lg hover:opacity-90" style="min-width:52px; height:32px; background-color:#4E2683;">
-                            <svg viewBox="0 0 120 40" class="h-5 w-auto" xmlns="http://www.w3.org/2000/svg">
-                                <!-- Thawani stylised "T" mark -->
-                                <rect x="6" y="6" width="28" height="6" rx="3" fill="#C8A84B"/>
-                                <rect x="16" y="6" width="8" height="28" rx="3" fill="#C8A84B"/>
-                                <!-- Wordmark -->
-                                <text x="42" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="white" letter-spacing="0.3">thawani</text>
-                            </svg>
+                        <!-- Maal -->
+                        <div class="flex items-center justify-center px-2 py-1 transition bg-white rounded-lg hover:bg-gray-100" style="min-width:52px; height:32px;">
+                            <img src="{{ asset('images/payment/maal.svg') }}" class="w-auto h-5" alt="Maal">
                         </div>
+
+
                     </div>
                 </div>
             </div>

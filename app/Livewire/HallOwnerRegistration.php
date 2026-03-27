@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\HallOwner;
 use App\Models\User;
+use App\Notifications\HallOwnerApplicationAcknowledgementNotification;
 use App\Notifications\HallOwnerApplicationNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -199,9 +200,14 @@ class HallOwnerRegistration extends Component
                 'is_active'                        => true,
             ]);
 
+            // Acknowledge the applicant
+            $user->notify(new HallOwnerApplicationAcknowledgementNotification($this->business_name));
+
+            // Notify every admin with a direct link to the new record
+            $hallOwnerRecord = HallOwner::where('user_id', $user->id)->first();
             $admins = User::admins()->get();
             foreach ($admins as $admin) {
-                $admin->notify(new HallOwnerApplicationNotification($user, $this->business_name));
+                $admin->notify(new HallOwnerApplicationNotification($user, $this->business_name, $hallOwnerRecord));
             }
         });
 
