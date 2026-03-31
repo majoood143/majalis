@@ -306,4 +306,40 @@ return [
             'ack_footer_note'      => 'If you have any questions, please contact our support team.',
         ],
     ],
+
+    // Hall Created Email Notifications
+    'hall' => [
+        'created' => [
+            'email' => [
+                // Owner confirmation
+                'owner_subject'          => 'Your hall ":hall" has been listed successfully',
+                'owner_header_subtitle'  => 'Hall Listed Successfully',
+                'owner_title'            => 'Your Hall Is Now Live!',
+                'owner_greeting'         => 'Hello :name,',
+                'owner_intro'            => 'Your hall <strong>:hall</strong> has been successfully added to Majalis. Here is a summary of what you submitted.',
+                'hall_details'           => 'Hall Details',
+                'hall_name'              => 'Hall Name',
+                'hall_address'           => 'Address',
+                'hall_capacity'          => 'Capacity',
+                'hall_price'             => 'Price Per Slot',
+                'hall_created_at'        => 'Listed At',
+                'capacity_range'         => ':min – :max guests',
+                'price_per_slot'         => ':price OMR',
+                'owner_view_button'      => 'View Your Hall',
+                'owner_footer_note'      => 'You can manage your hall settings, availability, and bookings from your Owner Dashboard.',
+
+                // Admin notification
+                'admin_subject'          => 'New Hall Added: :hall by :owner',
+                'admin_header_subtitle'  => 'New Hall Submitted',
+                'admin_title'            => 'A New Hall Has Been Listed',
+                'admin_greeting'         => 'Hello :name,',
+                'admin_intro'            => 'A new hall <strong>:hall</strong> has been submitted by <strong>:owner</strong> and is now active on the platform.',
+                'owner_info'             => 'Owner Details',
+                'owner_name_label'       => 'Owner Name',
+                'owner_email_label'      => 'Owner Email',
+                'admin_review_button'    => 'View Hall in Admin Panel',
+                'admin_footer_note'      => 'This notification was sent because a new hall was listed on the Majalis platform.',
+            ],
+        ],
+    ],
 ];

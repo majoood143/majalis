@@ -26,7 +26,7 @@ class HallOwnerApplicationNotification extends Notification implements ShouldQue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $adminUrl = config('app.url') . '/admin/hall-owners/' . $this->hallOwner->id . '/view';
+        $adminUrl = config('app.url') . 'admin/hall-owners/' . $this->hallOwner->id ;
 
         return (new MailMessage)
             ->subject(__('hall-owner.registration.email.subject', ['business' => $this->businessName]))

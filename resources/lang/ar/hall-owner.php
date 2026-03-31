@@ -338,4 +338,40 @@ return [
             'ack_footer_note'     => 'إذا كان لديك أي استفسار، يُرجى التواصل مع فريق الدعم.',
         ],
     ],
+
+    // إشعارات البريد الإلكتروني عند إضافة قاعة جديدة
+    'hall' => [
+        'created' => [
+            'email' => [
+                // تأكيد لصاحب القاعة
+                'owner_subject'          => 'تمت إضافة قاعتك ":hall" بنجاح',
+                'owner_header_subtitle'  => 'تمت إضافة القاعة بنجاح',
+                'owner_title'            => 'قاعتك الآن متاحة!',
+                'owner_greeting'         => 'مرحباً :name،',
+                'owner_intro'            => 'تمت إضافة قاعتك <strong>:hall</strong> بنجاح إلى منصة مجالس. فيما يلي ملخص بما أدخلته.',
+                'hall_details'           => 'تفاصيل القاعة',
+                'hall_name'              => 'اسم القاعة',
+                'hall_address'           => 'العنوان',
+                'hall_capacity'          => 'السعة',
+                'hall_price'             => 'السعر لكل وقت',
+                'hall_created_at'        => 'تاريخ الإضافة',
+                'capacity_range'         => ':min – :max ضيف',
+                'price_per_slot'         => ':price ر.ع.',
+                'owner_view_button'      => 'عرض قاعتك',
+                'owner_footer_note'      => 'يمكنك إدارة إعدادات القاعة والتوفر والحجوزات من لوحة تحكم المالك.',
+
+                // إشعار للمسؤول
+                'admin_subject'          => 'قاعة جديدة مضافة: :hall بواسطة :owner',
+                'admin_header_subtitle'  => 'قاعة جديدة مُدرجة',
+                'admin_title'            => 'تمت إضافة قاعة جديدة',
+                'admin_greeting'         => 'مرحباً :name،',
+                'admin_intro'            => 'تمت إضافة قاعة جديدة <strong>:hall</strong> بواسطة <strong>:owner</strong> وهي الآن نشطة على المنصة.',
+                'owner_info'             => 'تفاصيل المالك',
+                'owner_name_label'       => 'اسم المالك',
+                'owner_email_label'      => 'البريد الإلكتروني للمالك',
+                'admin_review_button'    => 'عرض القاعة في لوحة الإدارة',
+                'admin_footer_note'      => 'تم إرسال هذا الإشعار لأنه تمت إضافة قاعة جديدة على منصة مجالس.',
+            ],
+        ],
+    ],
 ];
