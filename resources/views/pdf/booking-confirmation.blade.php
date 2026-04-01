@@ -101,7 +101,7 @@
         .logo {
             font-size: 24pt;
             font-weight: 500;
-            color: #0066b3;
+            color: #B9916D;
         }
 
         .logo span {

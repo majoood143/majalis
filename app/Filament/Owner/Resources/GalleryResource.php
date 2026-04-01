@@ -285,14 +285,7 @@ class GalleryResource extends OwnerResource
                 Tables\Columns\TextColumn::make('type')
                     ->label(__('owner.gallery.columns.type') ?? 'Type')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'gallery' => 'Gallery',
-                        'featured' => 'Featured',
-                        'floor_plan' => 'Floor Plan',
-                        'exterior' => 'Exterior',
-                        'interior' => 'Interior',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (string $state): string => __('owner.gallery.types.' . $state, [], app()->getLocale()) ?: $state)
                     ->color(fn (string $state): string => match ($state) {
                         'featured' => 'warning',
                         'floor_plan' => 'info',
@@ -374,7 +367,9 @@ class GalleryResource extends OwnerResource
 
                 // Toggle Featured
                 Tables\Actions\Action::make('toggle_featured')
-                    ->label(fn ($record): string => $record->is_featured ? 'Unmark' : 'Mark Featured')
+                    ->label(fn ($record): string => $record->is_featured
+                        ? __('owner.gallery.actions.unmark_featured')
+                        : __('owner.gallery.actions.mark_featured'))
                     ->icon('heroicon-o-star')
                     ->color(fn ($record): string => $record->is_featured ? 'gray' : 'warning')
                     ->action(function ($record): void {
@@ -382,7 +377,9 @@ class GalleryResource extends OwnerResource
 
                         Notification::make()
                             ->success()
-                            ->title($record->is_featured ? 'Marked as Featured' : 'Removed from Featured')
+                            ->title($record->is_featured
+                                ? __('owner.gallery.notifications.marked_featured')
+                                : __('owner.gallery.notifications.unmarked_featured'))
                             ->send();
                     }),
 
@@ -404,7 +401,7 @@ class GalleryResource extends OwnerResource
                 Tables\Actions\BulkActionGroup::make([
                     // Bulk Activate
                     Tables\Actions\BulkAction::make('activate')
-                        ->label('Activate Selected')
+                        ->label(__('owner.gallery.bulk.activate'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->action(function (Collection $records): void {
@@ -412,14 +409,14 @@ class GalleryResource extends OwnerResource
 
                             Notification::make()
                                 ->success()
-                                ->title($records->count() . ' image(s) activated')
+                                ->title(__('owner.gallery.notifications.bulk_activated', ['count' => $records->count()]))
                                 ->send();
                         })
                         ->deselectRecordsAfterCompletion(),
 
                     // Bulk Deactivate
                     Tables\Actions\BulkAction::make('deactivate')
-                        ->label('Deactivate Selected')
+                        ->label(__('owner.gallery.bulk.deactivate'))
                         ->icon('heroicon-o-x-circle')
                         ->color('warning')
                         ->action(function (Collection $records): void {
@@ -427,7 +424,7 @@ class GalleryResource extends OwnerResource
 
                             Notification::make()
                                 ->success()
-                                ->title($records->count() . ' image(s) deactivated')
+                                ->title(__('owner.gallery.notifications.bulk_deactivated', ['count' => $records->count()]))
                                 ->send();
                         })
                         ->deselectRecordsAfterCompletion(),

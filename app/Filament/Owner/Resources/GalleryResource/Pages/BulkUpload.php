@@ -77,7 +77,7 @@ class BulkUpload extends Page implements HasForms
      */
     public function getTitle(): string
     {
-        return 'Bulk Upload';
+        return __('owner.gallery.bulk_upload.title');
     }
 
     /**
@@ -85,7 +85,7 @@ class BulkUpload extends Page implements HasForms
      */
     public function getHeading(): string
     {
-        return 'Bulk Image Upload';
+        return __('owner.gallery.bulk_upload.heading');
     }
 
     /**
@@ -93,7 +93,7 @@ class BulkUpload extends Page implements HasForms
      */
     public function getSubheading(): ?string
     {
-        return 'Upload multiple images at once';
+        return __('owner.gallery.bulk_upload.subheading');
     }
 
     /**
@@ -103,7 +103,7 @@ class BulkUpload extends Page implements HasForms
     {
         return [
             Actions\Action::make('back')
-                ->label('Back to Gallery')
+                ->label(__('owner.gallery.actions.back_to_gallery'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
@@ -119,10 +119,10 @@ class BulkUpload extends Page implements HasForms
 
         return $form
             ->schema([
-                Forms\Components\Section::make('Upload Settings')
+                Forms\Components\Section::make(__('owner.gallery.bulk_upload.settings'))
                     ->schema([
                         Forms\Components\Select::make('hall_id')
-                            ->label('Hall')
+                            ->label(__('owner.gallery.fields.hall'))
                             ->options(
                                 Hall::where('owner_id', $user?->id)
                                     ->where('is_active', true)
@@ -137,12 +137,12 @@ class BulkUpload extends Page implements HasForms
                             ->native(false),
 
                         Forms\Components\Select::make('type')
-                            ->label('Image Type')
+                            ->label(__('owner.gallery.fields.type'))
                             ->options([
-                                'gallery' => 'Gallery',
-                                'exterior' => 'Exterior',
-                                'interior' => 'Interior',
-                                'floor_plan' => 'Floor Plan',
+                                'gallery'    => __('owner.gallery.types.gallery'),
+                                'exterior'   => __('owner.gallery.types.exterior'),
+                                'interior'   => __('owner.gallery.types.interior'),
+                                'floor_plan' => __('owner.gallery.types.floor_plan'),
                             ])
                             ->default('gallery')
                             ->required()
@@ -150,10 +150,10 @@ class BulkUpload extends Page implements HasForms
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Images')
+                Forms\Components\Section::make(__('owner.gallery.bulk_upload.images_section'))
                     ->schema([
                         Forms\Components\FileUpload::make('images')
-                            ->label('Select Images')
+                            ->label(__('owner.gallery.bulk_upload.select_images'))
                             ->image()
                             ->multiple()
                             ->reorderable()
@@ -163,7 +163,7 @@ class BulkUpload extends Page implements HasForms
                             ->maxFiles(20)
                             ->maxSize(5120) // 5MB
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->helperText('Max 20 images, 5MB each. Formats: JPEG, PNG, WebP')
+                            ->helperText(__('owner.gallery.bulk_upload.helper'))
                             ->columnSpanFull(),
                     ]),
             ])
@@ -180,7 +180,7 @@ class BulkUpload extends Page implements HasForms
         if (empty($data['hall_id'])) {
             Notification::make()
                 ->warning()
-                ->title('Please select a hall first')
+                ->title(__('owner.gallery.notifications.select_hall_first'))
                 ->send();
             return;
         }
@@ -188,7 +188,7 @@ class BulkUpload extends Page implements HasForms
         if (empty($data['images'])) {
             Notification::make()
                 ->warning()
-                ->title('No images selected')
+                ->title(__('owner.gallery.notifications.no_files'))
                 ->send();
             return;
         }
@@ -198,7 +198,7 @@ class BulkUpload extends Page implements HasForms
         if (!$hall || $hall->owner_id !== Auth::id()) {
             Notification::make()
                 ->danger()
-                ->title('Unauthorized')
+                ->title(__('owner.errors.unauthorized'))
                 ->send();
             return;
         }
@@ -235,8 +235,8 @@ class BulkUpload extends Page implements HasForms
         if ($successCount > 0) {
             Notification::make()
                 ->success()
-                ->title('Images Uploaded')
-                ->body("{$successCount} image(s) uploaded successfully")
+                ->title(__('owner.gallery.notifications.bulk_uploaded'))
+                ->body(__('owner.gallery.notifications.bulk_uploaded_body', ['count' => $successCount]))
                 ->send();
 
             // Reset form

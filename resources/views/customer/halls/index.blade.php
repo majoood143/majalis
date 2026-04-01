@@ -39,7 +39,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{{ __('halls.browse_halls') }} - Majalis</title>
-    <link rel="icon" type="image/ico" href="{{ asset('images/favicon.ico') }}" />
+
+    {{-- Favicon --}}
+    @php
+        $favicon = \App\Models\Setting::get('seo', 'favicon');
+    @endphp
+    <link rel="icon" type="image/ico" href="{{ $favicon ? Storage::url($favicon) : asset('images/favicon.ico') }}" />
+
+    {{-- Open Graph --}}
+    @php
+        $locale        = app()->getLocale();
+        $ogTitle       = \App\Models\Setting::get('seo', 'og_title_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'og_title_en', config('app.name'));
+        $ogDescription = \App\Models\Setting::get('seo', 'og_description_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'og_description_en', '');
+        $ogImage       = \App\Models\Setting::get('seo', 'og_image');
+        $ogType        = \App\Models\Setting::get('seo', 'og_type', 'website');
+    @endphp
+    <meta property="og:type"        content="{{ $ogType }}">
+    <meta property="og:url"         content="{{ url()->current() }}">
+    <meta property="og:title"       content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    @if($ogImage)
+    <meta property="og:image"       content="{{ Storage::url($ogImage) }}">
+    @endif
+
+    {{-- Twitter / X Card --}}
+    @php
+        $twCard        = \App\Models\Setting::get('seo', 'twitter_card', 'summary_large_image');
+        $twSite        = \App\Models\Setting::get('seo', 'twitter_site', '');
+        $twTitle       = \App\Models\Setting::get('seo', 'twitter_title_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'twitter_title_en', $ogTitle);
+        $twDescription = \App\Models\Setting::get('seo', 'twitter_description_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'twitter_description_en', $ogDescription);
+        $twImage       = \App\Models\Setting::get('seo', 'twitter_image', $ogImage);
+    @endphp
+    <meta name="twitter:card"        content="{{ $twCard }}">
+    @if($twSite)
+    <meta name="twitter:site"        content="{{ $twSite }}">
+    @endif
+    <meta name="twitter:title"       content="{{ $twTitle }}">
+    <meta name="twitter:description" content="{{ $twDescription }}">
+    @if($twImage)
+    <meta name="twitter:image"       content="{{ Storage::url($twImage) }}">
+    @endif
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9K3B5QBV5Y"></script>
@@ -53,6 +96,8 @@
 
         gtag('config', 'G-9K3B5QBV5Y');
     </script>
+
+
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -668,7 +713,7 @@
                     @endif
                 @else
                     {{-- Regular grid --}}
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
                         @foreach ($halls as $hall)
                             @include('customer.halls.partials.smart-hall-card', [
                                 'hall' => $hall,

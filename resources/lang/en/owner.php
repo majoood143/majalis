@@ -51,6 +51,7 @@ return [
         'customers' => 'Customers',
         'reports' => 'Reports',
         'settings' => 'Settings',
+        'support' => 'Support',
     ],
 
     'user_menu' => [
@@ -1142,6 +1143,10 @@ return [
             'title' => 'Bulk Upload',
             'heading' => 'Bulk Image Upload',
             'subheading' => 'Upload multiple images at once',
+            'settings' => 'Upload Settings',
+            'images_section' => 'Images',
+            'select_images' => 'Select Images',
+            'helper' => 'Max 20 images, 5MB each. Formats: JPEG, PNG, WebP',
             'select_hall' => 'Select a hall...',
             'current_images' => 'Current images',
             'max_20' => 'Max 20 images per upload',
@@ -1301,6 +1306,8 @@ return [
         'view' => 'View',
         'confirm' => 'Confirm',
         'manage' => 'Manage',
+        'download' => 'Download',
+        'back_to_list' => 'Back to List',
     ],
 
     /*
@@ -1836,6 +1843,12 @@ return [
 
        
 
+        // View page
+        'view_subheading'      => ':hall — :date — :amount OMR',
+        'invoice_not_found'    => 'Invoice file not found',
+        'statement_generated'  => 'Statement generated successfully',
+        'statement_failed'     => 'Failed to generate statement',
+
         // Export Column Labels
         'columns' => [
             'booking_number' => 'Booking Number',
@@ -1899,6 +1912,7 @@ return [
         'payment_method' => 'Method',
         'completed_at' => 'Completed',
         'transaction_reference' => 'Reference',
+        'reference' => 'Reference',
 
         // Filters
         'filter_status' => 'Status',
@@ -1907,6 +1921,8 @@ return [
         'filter_until' => 'Until',
         'filter_completed' => 'Completed Only',
         'filter_this_year' => 'This Year',
+        'completed' => 'Completed',
+        'this_year' => 'This Year',
 
         // Tabs
         'tab_all' => 'All Payouts',
@@ -1917,7 +1933,9 @@ return [
         // Page Titles
         'list_title' => 'My Payouts',
         'view_title' => 'Payout Details',
-        'subheading' => 'Total Received: :received OMR | Pending: :pending OMR',
+        'subheading' => 'Total Received: :completed OMR | Pending: :pending OMR',
+        'view_title' => 'Payout Details: :number',
+        'view_subheading' => ':period — :amount OMR — :status',
 
         // Actions
         'download_receipt' => 'Download Receipt',
@@ -1930,8 +1948,10 @@ return [
         'section_financial' => 'Financial Breakdown',
         'section_payment' => 'Payment Details',
         'section_failure' => 'Failure Details',
+        'failure_details' => 'Failure Details',
         'section_notes' => 'Notes',
         'section_timestamps' => 'Timestamps',
+        'no_notes' => 'No notes provided',
 
         // Infolist Fields
         'period_start' => 'Period Start',
@@ -2056,6 +2076,7 @@ return [
         'issue_failed_body' => 'An error occurred while submitting your issue. Please try again or contact support directly.',
 
         // Receipt messages
+        'receipt_not_found' => 'Receipt Not Found',
         'receipt_not_found_body' => 'The receipt file could not be found. Please contact support if you need a copy.',
 
     ],
@@ -2150,6 +2171,56 @@ return [
         'revenue_change' => 'revenue compared to previous month',
         'earnings_change' => 'earnings compared to previous month',
         'month_over_month' => 'Month-over-Month',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tickets
+    |--------------------------------------------------------------------------
+    */
+    'tickets' => [
+        'navigation'  => 'Tickets',
+        'singular'    => 'Ticket',
+        'plural'      => 'Tickets',
+
+        'sections' => [
+            'ticket_information' => 'Ticket Information',
+            'related_booking'    => 'Related Booking',
+            'resolution'         => 'Resolution',
+        ],
+
+        'fields' => [
+            'ticket_number'   => 'Ticket Number',
+            'type'            => 'Ticket Type',
+            'priority'        => 'Priority',
+            'status'          => 'Status',
+            'subject'         => 'Subject',
+            'description'     => 'Description',
+            'booking'         => 'Related Booking',
+            'resolution'      => 'Resolution',
+        ],
+
+        'helpers' => [
+            'booking' => 'Link this ticket to a specific booking if applicable',
+        ],
+
+        'columns' => [
+            'ticket_number' => 'Ticket #',
+            'subject'       => 'Subject',
+            'type'          => 'Type',
+            'priority'      => 'Priority',
+            'status'        => 'Status',
+            'booking'       => 'Booking',
+            'submitted'     => 'Submitted',
+            'last_update'   => 'Last Update',
+        ],
+
+        'filters' => [
+            'status'       => 'Status',
+            'priority'     => 'Priority',
+            'type'         => 'Type',
+            'open_tickets' => 'Open Tickets',
+        ],
     ],
 
     // Common

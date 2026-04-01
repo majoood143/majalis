@@ -7,6 +7,50 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $metaTitle ?? $title }} - Majalis</title>
 
+     {{-- Favicon --}}
+    @php
+        $favicon = \App\Models\Setting::get('seo', 'favicon');
+    @endphp
+    <link rel="icon" type="image/ico" href="{{ $favicon ? Storage::url($favicon) : asset('images/favicon.ico') }}" />
+
+    {{-- Open Graph --}}
+    @php
+        $locale        = app()->getLocale();
+        $ogTitle       = \App\Models\Setting::get('seo', 'og_title_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'og_title_en', config('app.name'));
+        $ogDescription = \App\Models\Setting::get('seo', 'og_description_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'og_description_en', '');
+        $ogImage       = \App\Models\Setting::get('seo', 'og_image');
+        $ogType        = \App\Models\Setting::get('seo', 'og_type', 'website');
+    @endphp
+    <meta property="og:type"        content="{{ $ogType }}">
+    <meta property="og:url"         content="{{ url()->current() }}">
+    <meta property="og:title"       content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    @if($ogImage)
+    <meta property="og:image"       content="{{ Storage::url($ogImage) }}">
+    @endif
+
+    {{-- Twitter / X Card --}}
+    @php
+        $twCard        = \App\Models\Setting::get('seo', 'twitter_card', 'summary_large_image');
+        $twSite        = \App\Models\Setting::get('seo', 'twitter_site', '');
+        $twTitle       = \App\Models\Setting::get('seo', 'twitter_title_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'twitter_title_en', $ogTitle);
+        $twDescription = \App\Models\Setting::get('seo', 'twitter_description_' . $locale)
+                         ?? \App\Models\Setting::get('seo', 'twitter_description_en', $ogDescription);
+        $twImage       = \App\Models\Setting::get('seo', 'twitter_image', $ogImage);
+    @endphp
+    <meta name="twitter:card"        content="{{ $twCard }}">
+    @if($twSite)
+    <meta name="twitter:site"        content="{{ $twSite }}">
+    @endif
+    <meta name="twitter:title"       content="{{ $twTitle }}">
+    <meta name="twitter:description" content="{{ $twDescription }}">
+    @if($twImage)
+    <meta name="twitter:image"       content="{{ Storage::url($twImage) }}">
+    @endif
+
     {{-- SEO Meta Tags --}}
     <meta name="description" content="{{ $metaDescription ?? $title }}">
     <meta property="og:title" content="{{ $metaTitle ?? $title }}">
@@ -19,6 +63,25 @@
 
     {{-- Additional Styles --}}
     <style>
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Regular.ttf") }}') format('truetype');
+            font-weight: 400;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Medium.ttf") }}') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Tajawal';
+            src: url('{{ asset("fonts/Tajawal-Bold.ttf") }}') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+        *, *::before, *::after { font-family: 'Tajawal', sans-serif !important; }
         /* Custom Prose Styles for Content */
         .prose {
             max-width: none;
@@ -168,7 +231,7 @@
                     <h1 class="text-3xl font-bold text-black sm:text-4xl">
                         {{ $title }}
                     </h1>
-                    <p class="mt-2 text-sm text-blue-100">
+                    <p class="mt-2 text-sm text-gray-500">
                         {{ app()->getLocale() === 'ar' ? 'آخر تحديث' : 'Last Updated' }}:
                         {{ $page->updated_at->format('d F Y') }}
                     </p>
@@ -194,7 +257,7 @@
                                 </p>
                             </div>
                             <a href="{{ url('/contact-us') }}"
-                               class="inline-flex items-center px-6 py-3 font-medium text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700">
+                               class="inline-flex items-center px-6 py-3 font-medium text-white transition-colors duration-200 bg-gray-600 rounded-lg hover:bg-blue-700">
                                 {{ app()->getLocale() === 'ar' ? 'اتصل بنا' : 'Contact Us' }}
                                 <svg class="w-5 h-5 {{ app()->getLocale() === 'ar' ? 'mr-2 rotate-180' : 'ml-2' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />

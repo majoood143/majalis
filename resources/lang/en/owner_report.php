@@ -15,6 +15,15 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
+    | Navigation Groups
+    |--------------------------------------------------------------------------
+    */
+    'nav_groups' => [
+        'analytics' => 'Analytics',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Dashboard
     |--------------------------------------------------------------------------
     */
@@ -477,6 +486,11 @@ return [
         // Notifications
         'notifications' => [
             'no_data' => 'No data available for export',
+        ],
+
+        // Errors
+        'errors' => [
+            'export_failed' => 'PDF Export Failed',
         ],
 
         // No data

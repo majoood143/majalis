@@ -60,16 +60,7 @@ enum TicketStatus: string
      */
     public function getLabel(): string
     {
-        return match($this) {
-            self::OPEN => 'Open',
-            self::PENDING => 'Pending Response',
-            self::IN_PROGRESS => 'In Progress',
-            self::ON_HOLD => 'On Hold',
-            self::RESOLVED => 'Resolved',
-            self::CLOSED => 'Closed',
-            self::CANCELLED => 'Cancelled',
-            self::ESCALATED => 'Escalated',
-        };
+        return __('enums.ticket_status.' . $this->value);
     }
 
     /**

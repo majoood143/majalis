@@ -64,7 +64,7 @@ class ManageGallery extends Page
      */
     public function getTitle(): string
     {
-        return 'Manage Gallery';
+        return __('owner.gallery.manage.title');
     }
 
     /**
@@ -72,7 +72,7 @@ class ManageGallery extends Page
      */
     public function getHeading(): string
     {
-        return 'Visual Gallery Manager';
+        return __('owner.gallery.manage.heading');
     }
 
     /**
@@ -80,7 +80,7 @@ class ManageGallery extends Page
      */
     public function getSubheading(): ?string
     {
-        return 'Click images to manage them';
+        return __('owner.gallery.manage.subheading');
     }
 
     /**
@@ -90,16 +90,16 @@ class ManageGallery extends Page
     {
         return [
             Actions\Action::make('back')
-                ->label('Back to Gallery')
+                ->label(__('owner.gallery.actions.back_to_gallery'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
 
             Actions\Action::make('bulk_upload')
-                ->label('Bulk Upload')
+                ->label(__('owner.gallery.actions.bulk_upload'))
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')
-                ->url(fn () => GalleryResource::getUrl('upload') . 
+                ->url(fn () => GalleryResource::getUrl('upload') .
                     ($this->selectedHallId ? '?hall_id=' . $this->selectedHallId : '')),
         ];
     }
@@ -187,7 +187,9 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title($image->is_featured ? 'Marked as Featured' : 'Removed from Featured')
+            ->title($image->is_featured
+                ? __('owner.gallery.notifications.marked_featured')
+                : __('owner.gallery.notifications.unmarked_featured'))
             ->duration(2000)
             ->send();
     }
@@ -207,7 +209,9 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title($image->is_active ? 'Image Activated' : 'Image Deactivated')
+            ->title($image->is_active
+                ? __('owner.gallery.notifications.activated')
+                : __('owner.gallery.notifications.deactivated'))
             ->duration(2000)
             ->send();
     }
@@ -235,7 +239,7 @@ class ManageGallery extends Page
 
         Notification::make()
             ->success()
-            ->title('Image Deleted')
+            ->title(__('owner.gallery.notifications.deleted'))
             ->duration(2000)
             ->send();
     }

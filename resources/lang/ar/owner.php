@@ -51,6 +51,7 @@ return [
         'customers' => 'العملاء',
         'reports' => 'التقارير',
         'settings' => 'الإعدادات',
+        'support' => 'الدعم',
     ],
 
     'user_menu' => [
@@ -1129,6 +1130,10 @@ return [
             'title' => 'رفع مجمع',
             'heading' => 'رفع صور مجمع',
             'subheading' => 'ارفع صورًا متعددة مرة واحدة',
+            'settings' => 'إعدادات الرفع',
+            'images_section' => 'الصور',
+            'select_images' => 'اختر الصور',
+            'helper' => '20 صورة كحد أقصى، 5 ميجابايت لكل منها. التنسيقات: JPEG، PNG، WebP',
             'select_hall' => 'اختر قاعة...',
             'current_images' => 'الصور الحالية',
             'max_20' => '20 صورة كحد أقصى لكل رفع',
@@ -1288,6 +1293,8 @@ return [
         'view' => 'عرض',
         'confirm' => 'تأكيد',
         'manage' => 'إدارة',
+        'download' => 'تنزيل',
+        'back_to_list' => 'العودة إلى القائمة',
     ],
 
     /*
@@ -1681,9 +1688,11 @@ return [
 
     ],
     'earnings' => [
-        'label' => 'ربح',
-        'plural' => 'الأرباح',
+        'label'            => 'ربح',
         'navigation_group' => 'المالية',
+        'navigation'       => 'الأرباح',
+        'singular'         => 'ربح',
+        'plural'           => 'الأرباح',
 
         // أعمدة الجدول
         'booking_number' => 'الحجز #',
@@ -1770,6 +1779,12 @@ return [
         'stat_commission' => 'العمولة المدفوعة',
         'stat_commission_desc' => ':percent% من إجمالي الإيرادات',
 
+        // صفحة العرض
+        'view_subheading'      => ':hall — :date — :amount ريال عماني',
+        'invoice_not_found'    => 'ملف الفاتورة غير موجود',
+        'statement_generated'  => 'تم إنشاء كشف الحساب بنجاح',
+        'statement_failed'     => 'فشل إنشاء كشف الحساب',
+
         // تسميات أعمدة التصدير
         'columns' => [
             'booking_number' => 'رقم الحجز',
@@ -1813,6 +1828,40 @@ return [
         'no_earnings' => 'لم يتم العثور على أرباح.',
         'empty_state_heading' => 'لا توجد أرباح بعد',
         'empty_state_description' => 'ستظهر أرباحك من الحجوزات المكتملة هنا.',
+
+        // أعمدة الجدول (المفاتيح المستخدمة في EarningsResource)
+        'services'      => 'الخدمات',
+        'gross'         => 'الإجمالي',
+        'commission'    => 'العمولة',
+        'net'           => 'صافي الأرباح',
+        'completed_at'  => 'تاريخ الإكمال',
+        'total'         => 'الإجمالي',
+
+        // الفلاتر
+        'from'       => 'من',
+        'to'         => 'إلى',
+        'this_month' => 'هذا الشهر',
+        'last_month' => 'الشهر الماضي',
+
+        // الحالة الفارغة
+        'no_earnings_desc' => 'لم تحصل على أي أرباح بعد. تظهر الأرباح هنا بمجرد تأكيد الحجوزات وسداد مدفوعاتها.',
+
+        // التصدير
+        'export' => 'تصدير الأرباح',
+
+        // أقسام Infolist
+        'booking_info'        => 'معلومات الحجز',
+        'financial_breakdown' => 'التفصيل المالي',
+        'your_earnings'       => 'أرباحك',
+        'commission_type'     => 'نوع العمولة',
+        'commission_rate'     => 'نسبة العمولة',
+        'extra_services'      => 'الخدمات الإضافية',
+        'service_name'        => 'اسم الخدمة',
+        'quantity'            => 'الكمية',
+        'unit_price'          => 'سعر الوحدة',
+        'payment_details'     => 'تفاصيل الدفع',
+        'payment_status'      => 'حالة الدفع',
+        'confirmed_at'        => 'تاريخ التأكيد',
     ],
     // مورد المدفوعات
     'payouts' => [
@@ -1820,7 +1869,6 @@ return [
         'title' => 'المدفوعات',
         'plural' => 'المدفوعات',
         'navigation_group' => 'المالية',
-        'view_subheading' => 'تفاصيل الدفعة لـ ',
 
 
         // أعمدة الجدول
@@ -1835,6 +1883,7 @@ return [
         'payment_method' => 'الطريقة',
         'completed_at' => 'تم الإكمال',
         'transaction_reference' => 'المرجع',
+        'reference' => 'المرجع',
 
         // المرشحات
         'filter_status' => 'الحالة',
@@ -1843,6 +1892,8 @@ return [
         'filter_until' => 'حتى',
         'filter_completed' => 'المكتملة فقط',
         'filter_this_year' => 'هذه السنة',
+        'completed' => 'مكتملة',
+        'this_year' => 'هذه السنة',
 
         // علامات التبويب
         'tab_all' => 'جميع المدفوعات',
@@ -1853,7 +1904,9 @@ return [
         // عناوين الصفحات
         'list_title' => 'مدفوعاتي',
         'view_title' => 'تفاصيل الدفعة',
-        'subheading' => 'إجمالي المستلم: :received ريال عماني | المعلقة: :pending ريال عماني',
+        'subheading' => 'إجمالي المستلم: :completed ريال عماني | المعلقة: :pending ريال عماني',
+        'view_title' => 'تفاصيل الدفعة: :number',
+        'view_subheading' => ':period — :amount ريال عماني — :status',
 
         // الإجراءات
         'download_receipt' => 'تنزيل الإيصال',
@@ -1868,8 +1921,10 @@ return [
         'section_financial' => 'التفصيل المالي',
         'section_payment' => 'تفاصيل الدفع',
         'section_failure' => 'تفاصيل الفشل',
+        'failure_details' => 'تفاصيل الفشل',
         'section_notes' => 'ملاحظات',
         'section_timestamps' => 'الطوابع الزمنية',
+        'no_notes' => 'لا توجد ملاحظات',
 
         // حقول Infolist
         'period_start' => 'بداية الفترة',
@@ -1991,6 +2046,7 @@ return [
         'issue_failed_body' => 'حدث خطأ أثناء إرسال مشكلتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم مباشرة.',
 
         // Receipt messages
+        'receipt_not_found' => 'الإيصال غير موجود',
         'receipt_not_found_body' => 'لم يتم العثور على ملف الإيصال. يرجى الاتصال بالدعم إذا كنت بحاجة إلى نسخة.',
 
     ],
@@ -2076,6 +2132,56 @@ return [
         'revenue_change' => 'إيرادات مقارنة بالشهر السابق',
         'earnings_change' => 'أرباح مقارنة بالشهر السابق',
         'month_over_month' => 'مقارنة شهرية',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | التذاكر
+    |--------------------------------------------------------------------------
+    */
+    'tickets' => [
+        'navigation'  => 'التذاكر',
+        'singular'    => 'تذكرة',
+        'plural'      => 'التذاكر',
+
+        'sections' => [
+            'ticket_information' => 'معلومات التذكرة',
+            'related_booking'    => 'الحجز المرتبط',
+            'resolution'         => 'الحل',
+        ],
+
+        'fields' => [
+            'ticket_number'   => 'رقم التذكرة',
+            'type'            => 'نوع التذكرة',
+            'priority'        => 'الأولوية',
+            'status'          => 'الحالة',
+            'subject'         => 'الموضوع',
+            'description'     => 'الوصف',
+            'booking'         => 'الحجز المرتبط',
+            'resolution'      => 'الحل',
+        ],
+
+        'helpers' => [
+            'booking' => 'اربط هذه التذكرة بحجز محدد إن كان ذلك منطبقاً',
+        ],
+
+        'columns' => [
+            'ticket_number' => 'رقم التذكرة',
+            'subject'       => 'الموضوع',
+            'type'          => 'النوع',
+            'priority'      => 'الأولوية',
+            'status'        => 'الحالة',
+            'booking'       => 'الحجز',
+            'submitted'     => 'تاريخ الإرسال',
+            'last_update'   => 'آخر تحديث',
+        ],
+
+        'filters' => [
+            'status'       => 'الحالة',
+            'priority'     => 'الأولوية',
+            'type'         => 'النوع',
+            'open_tickets' => 'التذاكر المفتوحة',
+        ],
     ],
 
     // مشترك

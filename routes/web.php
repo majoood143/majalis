@@ -144,3 +144,8 @@ Route::post('/reviews/submit', [ReviewController::class, 'store'])->name('review
 require __DIR__ . '/auth.php';
 require __DIR__ . '/customer.php';
 require __DIR__ . '/guest-booking.php';
+
+// Catch-all: resolve any slug as a dynamic CMS page (must be last)
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('pages.dynamic');

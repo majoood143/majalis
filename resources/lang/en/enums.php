@@ -70,4 +70,48 @@ return [
         'evening' => 'Evening',
         'full_day' => 'Full Day',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ticket Type
+    |--------------------------------------------------------------------------
+    */
+    'ticket_type' => [
+        'claim'        => 'Claim',
+        'complaint'    => 'Complaint',
+        'inquiry'      => 'Inquiry',
+        'refund'       => 'Refund Request',
+        'cancellation' => 'Cancellation Request',
+        'technical'    => 'Technical Issue',
+        'feedback'     => 'Feedback',
+        'other'        => 'Other',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ticket Priority
+    |--------------------------------------------------------------------------
+    */
+    'ticket_priority' => [
+        'low'    => 'Low',
+        'medium' => 'Medium',
+        'high'   => 'High',
+        'urgent' => 'Urgent',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ticket Status
+    |--------------------------------------------------------------------------
+    */
+    'ticket_status' => [
+        'open'        => 'Open',
+        'pending'     => 'Pending Response',
+        'in_progress' => 'In Progress',
+        'on_hold'     => 'On Hold',
+        'resolved'    => 'Resolved',
+        'closed'      => 'Closed',
+        'cancelled'   => 'Cancelled',
+        'escalated'   => 'Escalated',
+    ],
 ];

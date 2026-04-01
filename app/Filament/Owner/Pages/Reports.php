@@ -63,7 +63,12 @@ class Reports extends Page implements HasForms
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
 
     /** @var string|null */
-    protected static ?string $navigationGroup = 'Analytics';
+    protected static ?string $navigationGroup = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner_report.nav_groups.analytics');
+    }
 
     /** @var int|null */
     protected static ?int $navigationSort = 10;
@@ -465,7 +470,7 @@ class Reports extends Page implements HasForms
             ->get();
 
         return [
-            'labels' => $data->pluck('time_slot')->map(fn($s) => __('slots.' . $s))->toArray(),
+            'labels' => $data->pluck('time_slot')->map(fn($s) => __('owner_report.slots.' . $s))->toArray(),
             'data'   => $data->pluck('count')->toArray(),
         ];
     }

@@ -48,7 +48,7 @@ class ManageSettings extends Page implements Forms\Contracts\HasForms
 
     public function mount(): void
     {
-        $groups = ['general', 'contact', 'social', 'finance', 'gtag'];
+        $groups = ['general', 'contact', 'social', 'finance', 'gtag', 'seo'];
 
         $loaded = [];
         foreach ($groups as $group) {
@@ -272,6 +272,131 @@ class ManageSettings extends Page implements Forms\Contracts\HasForms
                                             ->label(__('settings.fields.bank_swift'))
                                             ->placeholder('BANKOMAN')
                                             ->maxLength(20),
+                                    ]),
+                            ]),
+
+                        // ─── SEO / OPEN GRAPH ───────────────────────────────
+                        Tabs\Tab::make(__('settings.tabs.seo'))
+                            ->icon('heroicon-o-magnifying-glass')
+                            ->schema([
+                                Forms\Components\Section::make(__('settings.sections.favicon'))
+                                    ->description(__('settings.sections.favicon_desc'))
+                                    ->schema([
+                                        Forms\Components\FileUpload::make('seo.favicon')
+                                            ->label(__('settings.fields.favicon'))
+                                            ->image()
+                                            ->directory('seo')
+                                            ->acceptedFileTypes(['image/x-icon', 'image/png', 'image/svg+xml'])
+                                            ->helperText(__('settings.helpers.favicon')),
+                                    ]),
+
+                                Forms\Components\Section::make(__('settings.sections.open_graph'))
+                                    ->description(__('settings.sections.open_graph_desc'))
+                                    ->schema([
+                                        // shared fields
+                                        Forms\Components\Grid::make(2)->schema([
+                                            Forms\Components\Select::make('seo.og_type')
+                                                ->label(__('settings.fields.og_type'))
+                                                ->options([
+                                                    'website' => 'website',
+                                                    'article' => 'article',
+                                                ])
+                                                ->default('website'),
+
+                                            Forms\Components\FileUpload::make('seo.og_image')
+                                                ->label(__('settings.fields.og_image'))
+                                                ->image()
+                                                ->directory('seo')
+                                                ->helperText(__('settings.helpers.og_image')),
+                                        ]),
+
+                                        // per-language title & description
+                                        Tabs::make('og_langs')
+                                            ->tabs([
+                                                Tabs\Tab::make('English')->schema([
+                                                    Forms\Components\TextInput::make('seo.og_title_en')
+                                                        ->label(__('settings.fields.og_title') . ' (EN)')
+                                                        ->placeholder('Majalis – Book the Perfect Hall')
+                                                        ->maxLength(95),
+
+                                                    Forms\Components\Textarea::make('seo.og_description_en')
+                                                        ->label(__('settings.fields.og_description') . ' (EN)')
+                                                        ->rows(3)
+                                                        ->maxLength(200),
+                                                ]),
+
+                                                Tabs\Tab::make('العربية')->schema([
+                                                    Forms\Components\TextInput::make('seo.og_title_ar')
+                                                        ->label(__('settings.fields.og_title') . ' (AR)')
+                                                        ->placeholder('مجالس – احجز القاعة المثالية')
+                                                        ->maxLength(95)
+                                                        ->extraInputAttributes(['dir' => 'rtl']),
+
+                                                    Forms\Components\Textarea::make('seo.og_description_ar')
+                                                        ->label(__('settings.fields.og_description') . ' (AR)')
+                                                        ->rows(3)
+                                                        ->maxLength(200)
+                                                        ->extraInputAttributes(['dir' => 'rtl']),
+                                                ]),
+                                            ]),
+                                    ]),
+
+                                Forms\Components\Section::make(__('settings.sections.twitter_card'))
+                                    ->description(__('settings.sections.twitter_card_desc'))
+                                    ->schema([
+                                        // shared fields
+                                        Forms\Components\Grid::make(2)->schema([
+                                            Forms\Components\Select::make('seo.twitter_card')
+                                                ->label(__('settings.fields.twitter_card'))
+                                                ->options([
+                                                    'summary'             => 'Summary',
+                                                    'summary_large_image' => 'Summary with Large Image',
+                                                ])
+                                                ->default('summary_large_image'),
+
+                                            Forms\Components\TextInput::make('seo.twitter_site')
+                                                ->label(__('settings.fields.twitter_site'))
+                                                ->placeholder('@majalis')
+                                                ->maxLength(50)
+                                                ->helperText(__('settings.helpers.twitter_site')),
+
+                                            Forms\Components\FileUpload::make('seo.twitter_image')
+                                                ->label(__('settings.fields.twitter_image'))
+                                                ->image()
+                                                ->directory('seo')
+                                                ->helperText(__('settings.helpers.twitter_image'))
+                                                ->columnSpanFull(),
+                                        ]),
+
+                                        // per-language title & description
+                                        Tabs::make('tw_langs')
+                                            ->tabs([
+                                                Tabs\Tab::make('English')->schema([
+                                                    Forms\Components\TextInput::make('seo.twitter_title_en')
+                                                        ->label(__('settings.fields.twitter_title') . ' (EN)')
+                                                        ->placeholder('Majalis – Book the Perfect Hall')
+                                                        ->maxLength(70),
+
+                                                    Forms\Components\Textarea::make('seo.twitter_description_en')
+                                                        ->label(__('settings.fields.twitter_description') . ' (EN)')
+                                                        ->rows(3)
+                                                        ->maxLength(200),
+                                                ]),
+
+                                                Tabs\Tab::make('العربية')->schema([
+                                                    Forms\Components\TextInput::make('seo.twitter_title_ar')
+                                                        ->label(__('settings.fields.twitter_title') . ' (AR)')
+                                                        ->placeholder('مجالس – احجز القاعة المثالية')
+                                                        ->maxLength(70)
+                                                        ->extraInputAttributes(['dir' => 'rtl']),
+
+                                                    Forms\Components\Textarea::make('seo.twitter_description_ar')
+                                                        ->label(__('settings.fields.twitter_description') . ' (AR)')
+                                                        ->rows(3)
+                                                        ->maxLength(200)
+                                                        ->extraInputAttributes(['dir' => 'rtl']),
+                                                ]),
+                                            ]),
                                     ]),
                             ]),
 

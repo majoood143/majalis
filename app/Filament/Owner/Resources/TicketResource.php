@@ -24,11 +24,29 @@ class TicketResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationGroup = 'Support';
-
     protected static ?int $navigationSort = 10;
 
     protected static ?string $recordTitleAttribute = 'ticket_number';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('owner.nav_groups.support');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('owner.tickets.navigation');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('owner.tickets.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('owner.tickets.plural');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -52,30 +70,30 @@ class TicketResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Ticket Information')
+                Forms\Components\Section::make(__('owner.tickets.sections.ticket_information'))
                     ->schema([
                         Forms\Components\TextInput::make('ticket_number')
-                            ->label('Ticket Number')
+                            ->label(__('owner.tickets.fields.ticket_number'))
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn ($record) => $record !== null),
 
                         Forms\Components\Select::make('type')
-                            ->label('Ticket Type')
+                            ->label(__('owner.tickets.fields.type'))
                             ->options(TicketType::toSelectArray())
                             ->required()
                             ->native(false)
                             ->searchable(),
 
                         Forms\Components\Select::make('priority')
-                            ->label('Priority')
+                            ->label(__('owner.tickets.fields.priority'))
                             ->options(TicketPriority::toSelectArray())
                             ->default(TicketPriority::MEDIUM->value)
                             ->required()
                             ->native(false),
 
                         Forms\Components\Select::make('status')
-                            ->label('Status')
+                            ->label(__('owner.tickets.fields.status'))
                             ->options(TicketStatus::toSelectArray())
                             ->default(TicketStatus::OPEN->value)
                             ->disabled()
@@ -83,23 +101,23 @@ class TicketResource extends Resource
                             ->visible(fn ($record) => $record !== null),
 
                         Forms\Components\TextInput::make('subject')
-                            ->label('Subject')
+                            ->label(__('owner.tickets.fields.subject'))
                             ->required()
                             ->maxLength(200)
                             ->columnSpanFull(),
 
                         Forms\Components\Textarea::make('description')
-                            ->label('Description')
+                            ->label(__('owner.tickets.fields.description'))
                             ->required()
                             ->rows(5)
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Related Booking')
+                Forms\Components\Section::make(__('owner.tickets.sections.related_booking'))
                     ->schema([
                         Forms\Components\Select::make('booking_id')
-                            ->label('Related Booking')
+                            ->label(__('owner.tickets.fields.booking'))
                             ->options(function () {
                                 $user = Auth::user();
                                 return \App\Models\Booking::whereHas('hall', fn ($q) => $q->where('owner_id', $user->id))
@@ -110,13 +128,13 @@ class TicketResource extends Resource
                                     );
                             })
                             ->searchable()
-                            ->helperText('Link this ticket to a specific booking if applicable'),
+                            ->helperText(__('owner.tickets.helpers.booking')),
                     ]),
 
-                Forms\Components\Section::make('Resolution')
+                Forms\Components\Section::make(__('owner.tickets.sections.resolution'))
                     ->schema([
                         Forms\Components\Textarea::make('resolution')
-                            ->label('Resolution')
+                            ->label(__('owner.tickets.fields.resolution'))
                             ->rows(4)
                             ->columnSpanFull()
                             ->disabled()
@@ -132,7 +150,7 @@ class TicketResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('ticket_number')
-                    ->label('Ticket #')
+                    ->label(__('owner.tickets.columns.ticket_number'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
@@ -140,46 +158,46 @@ class TicketResource extends Resource
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('subject')
-                    ->label('Subject')
+                    ->label(__('owner.tickets.columns.subject'))
                     ->searchable()
                     ->limit(40)
                     ->tooltip(fn ($record) => $record->subject)
                     ->wrap(),
 
                 Tables\Columns\BadgeColumn::make('type')
-                    ->label('Type')
+                    ->label(__('owner.tickets.columns.type'))
                     ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->getColor())
                     ->icon(fn ($state) => $state->getIcon())
                     ->sortable(),
 
                 Tables\Columns\BadgeColumn::make('priority')
-                    ->label('Priority')
+                    ->label(__('owner.tickets.columns.priority'))
                     ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->getColor())
                     ->sortable(),
 
                 Tables\Columns\BadgeColumn::make('status')
-                    ->label('Status')
+                    ->label(__('owner.tickets.columns.status'))
                     ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->getColor())
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('booking.id')
-                    ->label('Booking')
+                    ->label(__('owner.tickets.columns.booking'))
                     ->prefix('#')
                     ->placeholder('—')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Submitted')
+                    ->label(__('owner.tickets.columns.submitted'))
                     ->dateTime('M d, Y')
                     ->sortable()
                     ->since()
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Last Update')
+                    ->label(__('owner.tickets.columns.last_update'))
                     ->dateTime('M d, Y H:i')
                     ->sortable()
                     ->since()
@@ -187,22 +205,22 @@ class TicketResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
+                    ->label(__('owner.tickets.filters.status'))
                     ->options(TicketStatus::toSelectArray())
                     ->multiple(),
 
                 Tables\Filters\SelectFilter::make('priority')
-                    ->label('Priority')
+                    ->label(__('owner.tickets.filters.priority'))
                     ->options(TicketPriority::toSelectArray())
                     ->multiple(),
 
                 Tables\Filters\SelectFilter::make('type')
-                    ->label('Type')
+                    ->label(__('owner.tickets.filters.type'))
                     ->options(TicketType::toSelectArray())
                     ->multiple(),
 
                 Tables\Filters\Filter::make('open')
-                    ->label('Open Tickets')
+                    ->label(__('owner.tickets.filters.open_tickets'))
                     ->query(fn (Builder $query) => $query->open())
                     ->toggle()
                     ->default(),

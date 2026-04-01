@@ -60,16 +60,7 @@ enum TicketType: string
      */
     public function getLabel(): string
     {
-        return match($this) {
-            self::CLAIM => 'Claim',
-            self::COMPLAINT => 'Complaint',
-            self::INQUIRY => 'Inquiry',
-            self::REFUND => 'Refund Request',
-            self::CANCELLATION => 'Cancellation Request',
-            self::TECHNICAL => 'Technical Issue',
-            self::FEEDBACK => 'Feedback',
-            self::OTHER => 'Other',
-        };
+        return __('enums.ticket_type.' . $this->value);
     }
 
     /**

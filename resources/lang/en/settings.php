@@ -27,6 +27,7 @@ return [
         'social'  => 'Social Media',
         'finance' => 'Finance & Banking',
         'gtag'    => 'Google Analytics',
+        'seo'     => 'SEO & Meta Tags',
     ],
 
     /*
@@ -52,6 +53,13 @@ return [
         'bank_desc'          => 'Bank information displayed on invoices and payout documents.',
         'gtag'               => 'Google Tag / Analytics',
         'gtag_desc'          => 'Configure Google Analytics tracking for your platform.',
+
+        'favicon'            => 'Favicon',
+        'favicon_desc'       => 'The small icon shown in browser tabs.',
+        'open_graph'         => 'Open Graph (Facebook / LinkedIn)',
+        'open_graph_desc'    => 'Controls how your pages appear when shared on social platforms.',
+        'twitter_card'       => 'Twitter / X Card',
+        'twitter_card_desc'  => 'Controls the preview card shown when links are shared on X (Twitter).',
     ],
 
     /*
@@ -89,6 +97,18 @@ return [
         'gtag_id'       => 'Measurement ID',
         'gtag_enabled'  => 'Enable Tracking',
         'anonymize_ip'  => 'Anonymize IP Addresses',
+
+        // SEO
+        'favicon'              => 'Favicon',
+        'og_title'             => 'OG Title',
+        'og_description'       => 'OG Description',
+        'og_image'             => 'OG Image',
+        'og_type'              => 'OG Type',
+        'twitter_card'         => 'Card Type',
+        'twitter_site'         => 'Twitter / X Handle',
+        'twitter_title'        => 'Twitter Title',
+        'twitter_description'  => 'Twitter Description',
+        'twitter_image'        => 'Twitter Image',
     ],
 
     /*
@@ -101,10 +121,14 @@ return [
     ],
 
     'helpers' => [
-        'whatsapp'     => 'Include country code, e.g. +968 9000 0000',
-        'vat_rate'     => 'Enter 0 to disable VAT on bookings.',
-        'currency'     => 'ISO 4217 currency code, e.g. OMR, SAR, AED.',
-        'anonymize_ip' => 'Recommended for GDPR compliance.',
+        'whatsapp'      => 'Include country code, e.g. +968 9000 0000',
+        'vat_rate'      => 'Enter 0 to disable VAT on bookings.',
+        'currency'      => 'ISO 4217 currency code, e.g. OMR, SAR, AED.',
+        'anonymize_ip'  => 'Recommended for GDPR compliance.',
+        'favicon'       => 'Recommended: 32×32 or 64×64 px, .ico or .png format.',
+        'og_image'      => 'Recommended size: 1200×630 px.',
+        'twitter_site'  => 'Your Twitter / X username including the @ symbol.',
+        'twitter_image' => 'Recommended size: 1200×628 px.',
     ],
 
 ];
