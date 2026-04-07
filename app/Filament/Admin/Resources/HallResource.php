@@ -747,7 +747,51 @@ class HallResource extends Resource
                             ]),
 
                         // =============================================
-                        // TAB 7: Settings
+                        // TAB 7: FAQ
+                        // =============================================
+                        Forms\Components\Tabs\Tab::make(__('admin.faq'))
+                            ->icon('heroicon-o-question-mark-circle')
+                            ->schema([
+                                Forms\Components\Repeater::make('faq')
+                                    ->label(__('admin.faq_items'))
+                                    ->schema([
+                                        Forms\Components\TextInput::make('question.en')
+                                            ->label(__('admin.faq_question_english'))
+                                            ->required()
+                                            ->maxLength(500)
+                                            ->placeholder(__('admin.faq_question_english_placeholder')),
+
+                                        Forms\Components\TextInput::make('question.ar')
+                                            ->label(__('admin.faq_question_arabic'))
+                                            ->required()
+                                            ->maxLength(500)
+                                            ->placeholder(__('admin.faq_question_arabic_placeholder')),
+
+                                        Forms\Components\Textarea::make('answer.en')
+                                            ->label(__('admin.faq_answer_english'))
+                                            ->required()
+                                            ->rows(3)
+                                            ->maxLength(2000)
+                                            ->placeholder(__('admin.faq_answer_english_placeholder'))
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Textarea::make('answer.ar')
+                                            ->label(__('admin.faq_answer_arabic'))
+                                            ->required()
+                                            ->rows(3)
+                                            ->maxLength(2000)
+                                            ->placeholder(__('admin.faq_answer_arabic_placeholder'))
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->collapsible()
+                                    ->itemLabel(fn(array $state): ?string => $state['question']['en'] ?? null)
+                                    ->addActionLabel(__('admin.faq_add_item'))
+                                    ->columnSpanFull(),
+                            ]),
+
+                        // =============================================
+                        // TAB 8: Settings
                         // =============================================
                         Forms\Components\Tabs\Tab::make(__('admin.settings'))
                             ->icon('heroicon-o-cog-6-tooth')

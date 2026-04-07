@@ -3,6 +3,8 @@
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
 use App\Filament\Admin\Resources\HallResource;
+use App\Models\User;
+use App\Services\ImageOptimizationService;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
@@ -162,7 +164,18 @@ class CreateHall extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $hall = $this->record;
+        $hall      = $this->record;
+        $optimizer = app(ImageOptimizationService::class);
+
+        // Compress featured image
+        if (!empty($hall->featured_image)) {
+            $optimizer->compress($hall->featured_image);
+        }
+
+        // Compress gallery images
+        if (!empty($hall->gallery)) {
+            $optimizer->compressMany($hall->gallery);
+        }
 
         // Log the creation
         Log::info('Hall created', [
@@ -184,6 +197,41 @@ class CreateHall extends CreateRecord
 
         // Notify owner
         $this->notifyOwner($hall);
+
+        // Notify all admins via database
+        $this->notifyAdmins($hall, 'created');
+    }
+
+    protected function notifyAdmins($hall, string $event): void
+    {
+        $hallName = $hall->getTranslation('name', 'en', false) ?: $hall->name;
+        $actor    = Auth::user()->name;
+
+        $titles = [
+            'created' => "Hall Created: {$hallName}",
+            'updated' => "Hall Updated: {$hallName}",
+            'deleted' => "Hall Deleted: {$hallName}",
+        ];
+
+        $bodies = [
+            'created' => "Created by {$actor}",
+            'updated' => "Updated by {$actor}",
+            'deleted' => "Deleted by {$actor}",
+        ];
+
+        $admins = User::where('role', \App\Enums\UserRole::ADMIN)->get();
+
+        $notification = Notification::make()
+            ->title($titles[$event])
+            ->body($bodies[$event]);
+
+        match ($event) {
+            'deleted' => $notification->danger(),
+            'updated' => $notification->warning(),
+            default   => $notification->success(),
+        };
+
+        $notification->sendToDatabase($admins);
     }
 
     protected function generateInitialAvailability($hall): void

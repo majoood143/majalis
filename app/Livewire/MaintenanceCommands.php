@@ -25,15 +25,37 @@ class MaintenanceCommands extends Component
 
     public function loadSystemInfo()
     {
+        $dbDefault   = config('database.default');
+        $diskFree    = @disk_free_space('/');
+        $diskTotal   = @disk_total_space('/');
+
         $this->systemInfo = [
+            // Application
             'laravel_version'    => app()->version(),
             'php_version'        => PHP_VERSION,
             'environment'        => app()->environment(),
-            'debug_mode'         => config('app.debug'),
             'timezone'           => config('app.timezone'),
+            // Status
+            'debug_mode'         => config('app.debug'),
             'maintenance_mode'   => app()->isDownForMaintenance(),
             'queue_driver'       => config('queue.default'),
-            'queue_connection'   => config('queue.connections.' . config('queue.default') . '.driver', 'unknown'),
+            'cache_driver'       => config('cache.default'),
+            // Infrastructure
+            'db_driver'          => $dbDefault,
+            'db_database'        => config("database.connections.{$dbDefault}.database", 'N/A'),
+            'session_driver'     => config('session.driver'),
+            'mail_mailer'        => config('mail.default'),
+            // Server
+            'server_os'          => PHP_OS,
+            'php_memory_limit'   => ini_get('memory_limit'),
+            'php_extensions'     => count(get_loaded_extensions()),
+            'server_software'    => $_SERVER['SERVER_SOFTWARE'] ?? (PHP_SAPI === 'cli' ? 'CLI/' . PHP_SAPI : 'Unknown'),
+            // Disk
+            'disk_free_gb'       => $diskFree !== false  ? round($diskFree  / 1073741824, 1) : null,
+            'disk_total_gb'      => $diskTotal !== false ? round($diskTotal / 1073741824, 1) : null,
+            'disk_used_pct'      => ($diskFree !== false && $diskTotal !== false && $diskTotal > 0)
+                                        ? round((1 - $diskFree / $diskTotal) * 100, 1)
+                                        : 0,
         ];
     }
 

@@ -297,6 +297,8 @@ return [
     'filters'             => 'Filters',
     'more_filters'        => 'More filters',
     'hide_filters'        => 'Hide filters',
+    'hall_type'           => 'Hall Type',
+    'all_hall_types'      => 'All Types',
     'features'            => 'Features',
     'guests'              => 'guests',
     'enter_guests'        => 'Enter number of guests',
@@ -381,6 +383,9 @@ return [
     'platform_fee_included_in_advance_payment' => 'Platform fee included in advance payment',
     'payment_partial' => 'Partial Payment',
     'advance_paid' => 'Advance Paid',
+
+    // FAQ
+    'faq_title' => 'Frequently Asked Questions',
 
 
 ];

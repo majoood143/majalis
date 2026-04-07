@@ -296,6 +296,8 @@ return [
     'filters'             => 'الفلاتر',
     'more_filters'        => 'فلاتر إضافية',
     'hide_filters'        => 'إخفاء الفلاتر',
+    'hall_type'           => 'نوع القاعة',
+    'all_hall_types'      => 'جميع الأنواع',
     'features'            => 'المزايا',
     'guests'              => 'ضيف',
     'enter_guests'        => 'أدخل عدد الضيوف',
@@ -376,7 +378,13 @@ return [
     'hall_rental'       => 'تأجير القاعة',
     'event'              => 'الفعالية',
     'balance_due'        => 'المبلغ المتبقي',
+    'service_fee'       => 'رسوم الخدمة',
+    'platform_fee_info' => 'رسوم بسيطة لتغطية خدمات المنصة والدعم',
     'platform_fee_included_in_advance' => 'رسوم المنصة مشمولة في الدفعة المقدمة',
+    'platform_fee_included_in_advance_payment' => 'رسوم المنصة مشمولة في الدفعة المقدمة',
     'payment_partial' => 'دفع جزئي',
     'advance_paid' => 'الدفعة المقدمة المدفوعة',
+
+    // الأسئلة الشائعة
+    'faq_title' => 'الأسئلة الشائعة',
 ];

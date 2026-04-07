@@ -8,6 +8,7 @@ use App\Models\OwnerPayout;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Customer\BookingController;
+use App\Http\Controllers\Customer\GuestTicketController;
 use App\Http\Controllers\Customer\HallController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
@@ -119,6 +120,16 @@ Route::get('/api/halls/suggest-dates', [HallController::class, 'suggestDates'])
 
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/customer-tickets.php';
+});
+
+// Guest (unauthenticated) ticket submission — public routes
+Route::middleware('guest')->prefix('tickets')->name('guest.tickets.')->group(function () {
+    Route::get('/submit',            [GuestTicketController::class, 'verify'])->name('verify');
+    Route::post('/submit/lookup',    [GuestTicketController::class, 'lookup'])->name('lookup');
+    Route::post('/submit/select',    [GuestTicketController::class, 'selectBooking'])->name('select');
+    Route::get('/submit/form',       [GuestTicketController::class, 'create'])->name('create');
+    Route::post('/submit/form',      [GuestTicketController::class, 'store'])->name('store');
+    Route::get('/submit/success',    [GuestTicketController::class, 'success'])->name('success');
 });
 
 // Public payment callback routes — no auth required (for admin-sent payment links)

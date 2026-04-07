@@ -55,7 +55,7 @@ class EditTicket extends EditRecord
      */
     protected function getSavedNotificationTitle(): ?string
     {
-        return 'Ticket updated successfully';
+        return __('ticket_admin.notif_updated');
     }
 
     /**

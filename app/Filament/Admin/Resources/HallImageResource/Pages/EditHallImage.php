@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\HallImageResource\Pages;
 
 use App\Filament\Admin\Resources\HallImageResource;
+use App\Services\ImageOptimizationService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
@@ -158,15 +159,26 @@ class EditHallImage extends EditRecord
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $oldValues = $record->toArray();
+        $oldImagePath = $record->image_path;
+        $oldValues    = $record->toArray();
 
         $record->update($data);
 
-        // Extract metadata if image changed
-        if (isset($data['image_path']) && $data['image_path'] !== $oldValues['image_path']) {
+        // If a new image was uploaded, compress it and regenerate thumbnail
+        if (isset($data['image_path']) && $data['image_path'] !== $oldImagePath) {
+            $optimizer = app(ImageOptimizationService::class);
+            $result    = $optimizer->compress($data['image_path']);
+
+            if (isset($result['saved_bytes'])) {
+                Log::info('Image compressed on edit', [
+                    'image_id'      => $record->id,
+                    'saved_bytes'   => $result['saved_bytes'],
+                    'saved_percent' => $result['saved_percent'],
+                ]);
+            }
+
             $this->extractImageMetadata($record);
 
-            // Generate new thumbnail
             if (empty($data['thumbnail_path'])) {
                 $this->generateThumbnail($record);
             }
@@ -203,27 +215,23 @@ class EditHallImage extends EditRecord
     protected function optimizeImage(): void
     {
         try {
-            // Implement image optimization
-            // Example using Intervention Image or similar package
+            $optimizer = app(ImageOptimizationService::class);
+            $result    = $optimizer->compress($this->record->image_path);
 
-            $originalSize = Storage::disk('public')->size($this->record->image_path);
+            if (isset($result['error'])) {
+                throw new \RuntimeException($result['error']);
+            }
 
-            // Optimization logic here
-
-            $newSize = Storage::disk('public')->size($this->record->image_path);
-            $savedBytes = $originalSize - $newSize;
-            $savedPercentage = round(($savedBytes / $originalSize) * 100, 1);
-
-            // Update file size in database
             $this->extractImageMetadata($this->record);
+
+            $saved   = $result['saved_bytes'];
+            $percent = $result['saved_percent'];
 
             Notification::make()
                 ->success()
                 ->title('Image Optimized')
-                ->body("Saved {$savedPercentage}% ({$this->formatBytes($savedBytes)})")
+                ->body("Saved {$percent}% (" . $optimizer->formatBytes($saved) . ")")
                 ->send();
-
-            Cache::tags(['hall_images', 'hall_' . $this->record->hall_id])->flush();
         } catch (\Exception $e) {
             Notification::make()
                 ->danger()
@@ -236,8 +244,14 @@ class EditHallImage extends EditRecord
     protected function generateThumbnail($image): void
     {
         try {
-            // Implement thumbnail generation
-            Log::info('Thumbnail generated for image: ' . $image->id);
+            $thumbnailPath = 'halls/thumbnails/' . pathinfo($image->image_path, PATHINFO_FILENAME) . '.jpg';
+            $success = app(ImageOptimizationService::class)
+                ->generateThumbnail($image->image_path, $thumbnailPath);
+
+            if ($success) {
+                $image->update(['thumbnail_path' => $thumbnailPath]);
+                Log::info('Thumbnail generated for image: ' . $image->id);
+            }
         } catch (\Exception $e) {
             Log::error('Thumbnail generation failed: ' . $e->getMessage());
         }

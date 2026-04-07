@@ -928,6 +928,63 @@
                     </div>
                 @endif
 
+                {{-- ═══ FAQ ═══ --}}
+                @if (!empty($hall->faq) && count($hall->faq) > 0)
+                    <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
+                        <h3 class="flex items-center gap-2 mb-5 text-xl font-bold text-gray-900">
+                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ __('halls.faq_title') }}
+                        </h3>
+                        <div class="space-y-3" x-data="{ open: null }">
+                            @foreach ($hall->faq as $index => $item)
+                                @php
+                                    $locale = app()->getLocale();
+                                    $question = is_array($item['question'] ?? null)
+                                        ? ($item['question'][$locale] ?? $item['question']['en'] ?? '')
+                                        : ($item['question'] ?? '');
+                                    $answer = is_array($item['answer'] ?? null)
+                                        ? ($item['answer'][$locale] ?? $item['answer']['en'] ?? '')
+                                        : ($item['answer'] ?? '');
+                                @endphp
+                                @if ($question && $answer)
+                                    <div class="overflow-hidden border border-gray-200 rounded-xl">
+                                        <button
+                                            type="button"
+                                            class="flex items-center justify-between w-full gap-3 px-5 py-4 text-left text-gray-900 transition-colors hover:bg-gray-50"
+                                            @click="open = open === {{ $index }} ? null : {{ $index }}"
+                                            :aria-expanded="open === {{ $index }}"
+                                        >
+                                            <span class="font-medium text-gray-900">{{ $question }}</span>
+                                            <svg
+                                                class="flex-shrink-0 w-5 h-5 text-primary-600 transition-transform duration-200"
+                                                :class="{ 'rotate-180': open === {{ $index }} }"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                            >
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        <div
+                                            x-show="open === {{ $index }}"
+                                            x-transition:enter="transition ease-out duration-150"
+                                            x-transition:enter-start="opacity-0 -translate-y-1"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            x-transition:leave="transition ease-in duration-100"
+                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                            x-transition:leave-end="opacity-0 -translate-y-1"
+                                            class="px-5 pb-4 text-sm leading-relaxed text-gray-600 border-t border-gray-100"
+                                        >
+                                            <div class="pt-3">{{ $answer }}</div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 {{-- ═══ Hall Info Card: Contact · Map · Hours (mobile) ═══ --}}
                 <div class="overflow-hidden bg-white border border-gray-200 shadow-sm lg:hidden rounded-2xl">
 

@@ -151,12 +151,33 @@ class Ticket extends Model
 
     /**
      * Get the user (customer) who created this ticket.
+     * Nullable — guest-submitted tickets have no user_id until account is created.
      *
      * @return BelongsTo<User, Ticket>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id')->withDefault();
+    }
+
+    /**
+     * Get the guest email stored in metadata (for unlinked guest tickets).
+     *
+     * @return string|null
+     */
+    public function getGuestEmailAttribute(): ?string
+    {
+        return $this->metadata['guest_email'] ?? null;
+    }
+
+    /**
+     * Check whether this ticket was submitted by a guest (no account at time of submission).
+     *
+     * @return bool
+     */
+    public function isGuestTicket(): bool
+    {
+        return $this->user_id === null;
     }
 
     /**

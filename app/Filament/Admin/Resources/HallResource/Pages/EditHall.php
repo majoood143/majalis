@@ -3,6 +3,8 @@
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
 use App\Filament\Admin\Resources\HallResource;
+use App\Models\User;
+use App\Services\ImageOptimizationService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
@@ -219,6 +221,9 @@ class EditHall extends EditRecord
                     }
 
                     Cache::tags(['halls', 'city_' . $this->record->city_id])->flush();
+
+                    // Notify all admins via database
+                    $this->notifyAdmins($this->record, 'deleted');
                 }),
 
             Actions\Action::make('viewHistory')
@@ -321,6 +326,23 @@ class EditHall extends EditRecord
 
     protected function afterSave(): void
     {
+        $optimizer = app(ImageOptimizationService::class);
+
+        // Compress featured_image only if it changed
+        $oldFeatured = $this->record->getOriginal('featured_image');
+        $newFeatured = $this->record->featured_image;
+        if (!empty($newFeatured) && $newFeatured !== $oldFeatured) {
+            $optimizer->compress($newFeatured);
+        }
+
+        // Compress any newly added gallery images
+        $oldGallery = (array) ($this->record->getOriginal('gallery') ?? []);
+        $newGallery = (array) ($this->record->gallery ?? []);
+        $added      = array_diff($newGallery, $oldGallery);
+        if (!empty($added)) {
+            $optimizer->compressMany(array_values($added));
+        }
+
         // Clear cache for both old and new city
         $oldCityId = $this->record->getOriginal('city_id');
         $newCityId = $this->record->city_id;
@@ -341,6 +363,39 @@ class EditHall extends EditRecord
             'name' => $this->record->name,
             'updated_by' => Auth::id(),
         ]);
+
+        // Notify all admins via database
+        $this->notifyAdmins($this->record, 'updated');
+    }
+
+    protected function notifyAdmins($hall, string $event): void
+    {
+        $hallName = $hall->getTranslation('name', 'en', false) ?: $hall->name;
+        $actor    = Auth::user()->name;
+
+        $titles = [
+            'updated' => "Hall Updated: {$hallName}",
+            'deleted' => "Hall Deleted: {$hallName}",
+        ];
+
+        $bodies = [
+            'updated' => "Updated by {$actor}",
+            'deleted' => "Deleted by {$actor}",
+        ];
+
+        $admins = User::where('role', \App\Enums\UserRole::ADMIN)->get();
+
+        $notification = Notification::make()
+            ->title($titles[$event])
+            ->body($bodies[$event]);
+
+        match ($event) {
+            'deleted' => $notification->danger(),
+            'updated' => $notification->warning(),
+            default   => $notification->success(),
+        };
+
+        $notification->sendToDatabase($admins);
     }
 
     protected function generateUniqueSlug(string $name, ?int $ignoreId = null): string

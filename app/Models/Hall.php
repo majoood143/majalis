@@ -102,6 +102,7 @@ class Hall extends Model
         'function_hours',
         'is_24_hours',
         'special_hours_note',
+        'faq',
     ];
 
     /**
@@ -149,6 +150,7 @@ class Hall extends Model
         'function_hours' => 'array',
         'is_24_hours' => 'boolean',
         'special_hours_note' => 'string',
+        'faq' => 'array',
     ];
 
     /**

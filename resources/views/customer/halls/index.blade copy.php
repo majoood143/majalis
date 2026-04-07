@@ -399,8 +399,6 @@
                         </div>
                     </div>
 
-                    
-
                     {{-- Time Slot --}}
                     <div class="col-span-1 md:col-span-3">
                         <label
@@ -466,7 +464,7 @@
                 </div>
 
                 {{-- Advanced Filters (collapsible) --}}
-                <div x-data="{ open: {{ request('max_price') || request('features') || request('min_guests') || request('search') || request('hall_type_id') ? 'true' : 'false' }} }" class="mt-3">
+                <div x-data="{ open: {{ request('max_price') || request('features') || request('min_guests') || request('search') ? 'true' : 'false' }} }" class="mt-3">
                     <button type="button" @click="open = !open"
                         class="flex items-center gap-1 text-xs transition text-brand-300 hover:text-white">
                         <svg class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': open }" fill="none"
@@ -503,21 +501,6 @@
                             <input type="number" name="max_price" value="{{ request('max_price') }}"
                                 min="0" step="0.001" placeholder="{{ __('halls.no_limit') }}"
                                 class="w-full px-3 py-2.5 bg-white/90 text-gray-800 rounded-xl border-0 focus:ring-2 focus:ring-brand-400 placeholder-gray-400 font-medium text-sm">
-                        </div>
-                        {{-- Hall Type --}}
-                        <div>
-                            <label
-                                class="block text-[10px] md:text-xs font-semibold text-brand-300 uppercase tracking-wider mb-1">{{ __('halls.hall_type') }}</label>
-                            <select name="hall_type_id"
-                                class="w-full px-3 py-2.5 bg-white/90 text-gray-800 rounded-xl border-0 focus:ring-2 focus:ring-brand-400 font-medium appearance-none text-sm">
-                                <option value="">{{ __('halls.all_hall_types') }}</option>
-                                @foreach ($hallTypes as $type)
-                                    <option value="{{ $type->id }}"
-                                        {{ (int) request('hall_type_id') === $type->id ? 'selected' : '' }}>
-                                        {{ $type->name }}
-                                    </option>
-                                @endforeach
-                            </select>
                         </div>
                         {{-- Features --}}
                         <div class="col-span-2 md:col-span-1">
@@ -837,22 +820,6 @@
                             </select>
                         </div>
 
-                        {{-- Hall Type --}}
-                        <div>
-                            <label
-                                class="block mb-2 text-sm font-bold text-gray-700">{{ __('halls.hall_type') }}</label>
-                            <select name="hall_type_id"
-                                class="w-full px-4 text-base border-2 border-gray-200 h-14 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent">
-                                <option value="">{{ __('halls.all_hall_types') }}</option>
-                                @foreach ($hallTypes as $type)
-                                    <option value="{{ $type->id }}"
-                                        {{ (int) request('hall_type_id') === $type->id ? 'selected' : '' }}>
-                                        {{ $type->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
                         {{-- Guests --}}
                         <div>
                             <label
@@ -1006,7 +973,7 @@
                 get activeFiltersCount() {
                     let count = 0;
                     const p = new URLSearchParams(window.location.search);
-                    ['region_id', 'city_id', 'min_guests', 'min_price', 'max_price', 'search', 'features[]', 'hall_type_id'].forEach(
+                    ['region_id', 'city_id', 'min_guests', 'min_price', 'max_price', 'search', 'features[]'].forEach(
                         k => {
                             if (p.get(k)) count++;
                         });

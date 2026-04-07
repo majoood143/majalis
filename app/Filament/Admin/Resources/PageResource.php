@@ -32,22 +32,27 @@ class PageResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.pages.navigation_label');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 // Main Content Section
-                Forms\Components\Section::make('Main Content')
-                    ->description('Page title, slug, and basic information')
+                Forms\Components\Section::make(__('admin.pages.section_main_content'))
+                    ->description(__('admin.pages.section_main_content_desc'))
                     ->schema([
                         // Slug field
                         Forms\Components\TextInput::make('slug')
-                            ->label('Slug')
+                            ->label(__('admin.pages.slug'))
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->alphaDash()
-                            ->helperText('URL-friendly identifier (e.g., about-us)')
+                            ->helperText(__('admin.pages.slug_helper'))
                             ->live(onBlur: true)
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
                                 // Auto-generate slug from English title if empty
@@ -58,7 +63,7 @@ class PageResource extends Resource
 
                         // English Title
                         Forms\Components\TextInput::make('title_en')
-                            ->label('Title (English)')
+                            ->label(__('admin.pages.title_en'))
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
@@ -71,7 +76,7 @@ class PageResource extends Resource
 
                         // Arabic Title
                         Forms\Components\TextInput::make('title_ar')
-                            ->label('Title (Arabic)')
+                            ->label(__('admin.pages.title_ar'))
                             ->required()
                             ->maxLength(255)
                             ->extraAttributes(['dir' => 'rtl']),
@@ -79,10 +84,10 @@ class PageResource extends Resource
                     ->columns(2),
 
                 // English Content Section
-                Forms\Components\Section::make('English Content')
+                Forms\Components\Section::make(__('admin.pages.section_content_en'))
                     ->schema([
                         Forms\Components\RichEditor::make('content_en')
-                            ->label('Content (English)')
+                            ->label(__('admin.pages.content_en'))
                             ->required()
                             ->columnSpanFull()
                             ->toolbarButtons([
@@ -102,10 +107,10 @@ class PageResource extends Resource
                     ->collapsible(),
 
                 // Arabic Content Section
-                Forms\Components\Section::make('Arabic Content')
+                Forms\Components\Section::make(__('admin.pages.section_content_ar'))
                     ->schema([
                         Forms\Components\RichEditor::make('content_ar')
-                            ->label('Content (Arabic)')
+                            ->label(__('admin.pages.content_ar'))
                             ->required()
                             ->columnSpanFull()
                             ->extraAttributes(['dir' => 'rtl'])
@@ -126,63 +131,63 @@ class PageResource extends Resource
                     ->collapsible(),
 
                 // SEO Section
-                Forms\Components\Section::make('SEO Settings')
-                    ->description('Meta tags for search engines')
+                Forms\Components\Section::make(__('admin.pages.section_seo'))
+                    ->description(__('admin.pages.section_seo_desc'))
                     ->schema([
                         // English SEO
                         Forms\Components\TextInput::make('meta_title_en')
-                            ->label('Meta Title (English)')
+                            ->label(__('admin.pages.meta_title_en'))
                             ->maxLength(60)
-                            ->helperText('Recommended: 50-60 characters'),
+                            ->helperText(__('admin.pages.meta_title_helper')),
 
                         Forms\Components\Textarea::make('meta_description_en')
-                            ->label('Meta Description (English)')
+                            ->label(__('admin.pages.meta_description_en'))
                             ->maxLength(160)
                             ->rows(3)
-                            ->helperText('Recommended: 150-160 characters'),
+                            ->helperText(__('admin.pages.meta_description_helper')),
 
                         // Arabic SEO
                         Forms\Components\TextInput::make('meta_title_ar')
-                            ->label('Meta Title (Arabic)')
+                            ->label(__('admin.pages.meta_title_ar'))
                             ->maxLength(60)
                             ->extraAttributes(['dir' => 'rtl'])
-                            ->helperText('Recommended: 50-60 characters'),
+                            ->helperText(__('admin.pages.meta_title_helper')),
 
                         Forms\Components\Textarea::make('meta_description_ar')
-                            ->label('Meta Description (Arabic)')
+                            ->label(__('admin.pages.meta_description_ar'))
                             ->maxLength(160)
                             ->rows(3)
                             ->extraAttributes(['dir' => 'rtl'])
-                            ->helperText('Recommended: 150-160 characters'),
+                            ->helperText(__('admin.pages.meta_description_helper')),
                     ])
                     ->columns(2)
                     ->collapsible()
                     ->collapsed(),
 
                 // Settings Section
-                Forms\Components\Section::make('Display Settings')
+                Forms\Components\Section::make(__('admin.pages.section_display_settings'))
                     ->schema([
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('admin.pages.is_active'))
                             ->default(true)
-                            ->helperText('Page is visible to users'),
+                            ->helperText(__('admin.pages.is_active_helper')),
 
                         Forms\Components\TextInput::make('order')
-                            ->label('Display Order')
+                            ->label(__('admin.pages.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0)
-                            ->helperText('Lower numbers appear first'),
+                            ->helperText(__('admin.pages.order_helper')),
 
                         Forms\Components\Toggle::make('show_in_header')
-                            ->label('Show in Header')
+                            ->label(__('admin.pages.show_in_header'))
                             ->default(false)
-                            ->helperText('Display link in header navigation'),
+                            ->helperText(__('admin.pages.show_in_header_helper')),
 
                         Forms\Components\Toggle::make('show_in_footer')
-                            ->label('Show in Footer')
+                            ->label(__('admin.pages.show_in_footer'))
                             ->default(true)
-                            ->helperText('Display link in footer navigation'),
+                            ->helperText(__('admin.pages.show_in_footer_helper')),
                     ])
                     ->columns(4),
             ]);
@@ -193,19 +198,19 @@ class PageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title_en')
-                    ->label('Title (English)')
+                    ->label(__('admin.pages.title_en'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('title_ar')
-                    ->label('Title (Arabic)')
+                    ->label(__('admin.pages.title_ar'))
                     ->searchable()
                     ->sortable()
                     ->extraAttributes(['dir' => 'rtl']),
 
                 Tables\Columns\TextColumn::make('slug')
-                    ->label('Slug')
+                    ->label(__('admin.pages.slug'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
@@ -213,47 +218,47 @@ class PageResource extends Resource
                     ->color('gray'),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.pages.is_active'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('order')
-                    ->label('Order')
+                    ->label(__('admin.pages.order'))
                     ->numeric()
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('show_in_header')
-                    ->label('Header')
+                    ->label(__('admin.pages.header'))
                     ->boolean(),
 
                 Tables\Columns\IconColumn::make('show_in_footer')
-                    ->label('Footer')
+                    ->label(__('admin.pages.footer'))
                     ->boolean(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label(__('admin.pages.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated At')
+                    ->label(__('admin.pages.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Status')
-                    ->placeholder('All Pages')
-                    ->trueLabel('Active Only')
-                    ->falseLabel('Inactive Only'),
+                    ->label(__('admin.pages.filter_status'))
+                    ->placeholder(__('admin.pages.filter_all'))
+                    ->trueLabel(__('admin.pages.filter_active'))
+                    ->falseLabel(__('admin.pages.filter_inactive')),
 
                 Tables\Filters\TernaryFilter::make('show_in_footer')
-                    ->label('Show in Footer'),
+                    ->label(__('admin.pages.show_in_footer')),
 
                 Tables\Filters\TernaryFilter::make('show_in_header')
-                    ->label('Show in Header'),
+                    ->label(__('admin.pages.show_in_header')),
 
                 Tables\Filters\TrashedFilter::make(),
             ])

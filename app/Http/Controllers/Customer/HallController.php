@@ -27,6 +27,7 @@ use App\Models\Hall;
 use App\Models\City;
 use App\Models\Region;
 use App\Models\HallFeature;
+use App\Models\HallType;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -69,9 +70,10 @@ class HallController extends Controller
             'city_id'    => ['nullable', 'integer', 'exists:cities,id'],
             'min_guests' => ['nullable', 'integer', 'min:1'],
             'max_price'  => ['nullable', 'numeric', 'min:0'],
-            'features'   => ['nullable', 'array'],
-            'features.*' => ['integer'],
-            'sort'       => ['nullable', 'string', 'in:rating,price_low,price_high,capacity,latest'],
+            'features'      => ['nullable', 'array'],
+            'features.*'    => ['integer'],
+            'hall_type_id'  => ['nullable', 'integer', 'exists:hall_types,id'],
+            'sort'          => ['nullable', 'string', 'in:rating,price_low,price_high,capacity,latest'],
         ]);
 
         // ── Determine search mode ──
@@ -80,8 +82,9 @@ class HallController extends Controller
         $availableCount = 0;
 
         // ── Get filter options (always needed) ──
-        $regions  = Region::where('is_active', true)->orderBy('order')->get();
-        $features = HallFeature::where('is_active', true)->orderBy('order')->get();
+        $regions   = Region::where('is_active', true)->orderBy('order')->get();
+        $features  = HallFeature::where('is_active', true)->orderBy('order')->get();
+        $hallTypes = HallType::where('is_active', true)->orderBy('sort_order')->get();
         $timeSlots = AvailabilityService::TIME_SLOTS;
 
         // ── Get cities (filtered by region if selected) ──
@@ -117,6 +120,12 @@ class HallController extends Controller
                 $halls = $halls->filter(fn(Hall $h) => in_array($h->city_id, $regionCityIds));
             }
 
+            // Filter by hall type
+            if ($request->filled('hall_type_id')) {
+                $typeId = (int) $validated['hall_type_id'];
+                $halls = $halls->filter(fn(Hall $h) => $h->hallTypes->pluck('id')->contains($typeId));
+            }
+
             // Count available vs total
             $availableCount = $halls->where('is_available', true)->count();
 
@@ -140,7 +149,7 @@ class HallController extends Controller
         // ══════════════════════════════════════════════════════════
         } else {
             $query = Hall::query()
-                ->with(['city.region', 'owner'])
+                ->with(['city.region', 'owner', 'hallTypes'])
                 ->where('is_active', true)
                 ->whereNull('deleted_at');
 
@@ -170,6 +179,11 @@ class HallController extends Controller
                 foreach ($validated['features'] as $featureId) {
                     $query->whereJsonContains('features', (int) $featureId);
                 }
+            }
+
+            // Hall type filter
+            if ($request->filled('hall_type_id')) {
+                $query->whereHas('hallTypes', fn($q) => $q->where('hall_types.id', (int) $validated['hall_type_id']));
             }
 
             // Sort
@@ -216,14 +230,15 @@ class HallController extends Controller
             'halls',
             'regions',
             'cities',
-            'features',        // ← NEW: hall features for filter chips
-            'timeSlots',       // ← NEW: time slot dropdown options
-            'isDateSearch',    // ← NEW: whether date search was performed
-            'suggestions',     // ← NEW: nearby date suggestions (Phase 4)
-            'availableCount',  // ← NEW: count of available halls
-            'mapHalls',        // EXISTING: map pin data
-            'stats',           // EXISTING: price statistics
-            'hallsByRegion',   // EXISTING: grouped halls
+            'features',
+            'hallTypes',
+            'timeSlots',
+            'isDateSearch',
+            'suggestions',
+            'availableCount',
+            'mapHalls',
+            'stats',
+            'hallsByRegion',
         ));
     }
 

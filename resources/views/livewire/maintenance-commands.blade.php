@@ -4,7 +4,10 @@
     {{-- ═══════════════════════════════════════════════════════════ --}}
     {{-- System Information                                          --}}
     {{-- ═══════════════════════════════════════════════════════════ --}}
-    <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-xl dark:border-gray-700 dark:bg-gray-800">
+
+
+    <div class="grid gap-6 md:grid-cols-2">
+    <div class="p-6 bg-white border border-gray-200 shadow-sm md:grid-cols-2 rounded-xl dark:border-gray-700 dark:bg-gray-800">
         <div class="flex items-center gap-3 mb-5">
             <div class="flex items-center justify-center w-10 h-10 bg-indigo-100 rounded-lg dark:bg-indigo-900/40">
                 <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
@@ -17,18 +20,17 @@
             </div>
         </div>
 
+        {{-- Row 1 — Application --}}
+        <p class="mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase dark:text-gray-500">Application</p>
         <div class="grid grid-cols-2 mb-5 gap-x-8 gap-y-3 md:grid-cols-4">
-            {{-- Laravel --}}
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Laravel</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white">v{{ $systemInfo['laravel_version'] }}</span>
             </div>
-            {{-- PHP --}}
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">PHP</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $systemInfo['php_version'] }}</span>
             </div>
-            {{-- Environment --}}
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Environment</span>
                 @if ($systemInfo['environment'] === 'production')
@@ -39,12 +41,15 @@
                     <span class="inline-flex w-fit px-2 py-0.5 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full dark:bg-yellow-900/50 dark:text-yellow-300">{{ $systemInfo['environment'] }}</span>
                 @endif
             </div>
-            {{-- Timezone --}}
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Timezone</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $systemInfo['timezone'] }}</span>
             </div>
-            {{-- Debug --}}
+        </div>
+
+        {{-- Row 2 — Status --}}
+        <p class="mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase dark:text-gray-500">Status</p>
+        <div class="grid grid-cols-2 mb-5 gap-x-8 gap-y-3 md:grid-cols-4">
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Debug Mode</span>
                 @if ($systemInfo['debug_mode'])
@@ -53,7 +58,6 @@
                     <span class="inline-flex w-fit px-2 py-0.5 text-xs font-medium text-green-800 bg-green-100 rounded-full dark:bg-green-900/50 dark:text-green-300">Disabled</span>
                 @endif
             </div>
-            {{-- Maintenance --}}
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Maintenance</span>
                 @if ($systemInfo['maintenance_mode'])
@@ -62,14 +66,59 @@
                     <span class="inline-flex w-fit px-2 py-0.5 text-xs font-medium text-green-800 bg-green-100 rounded-full dark:bg-green-900/50 dark:text-green-300">Inactive</span>
                 @endif
             </div>
-            {{-- Queue --}}
             <div class="flex flex-col gap-1">
-                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Queue Driver</span>
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $systemInfo['queue_driver'] }} <span class="font-normal text-gray-500 dark:text-gray-400">({{ $systemInfo['queue_connection'] }})</span></span>
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Queue</span>
+                <span class="text-sm font-semibold text-gray-900 capitalize dark:text-white">{{ $systemInfo['queue_driver'] }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Cache</span>
+                <span class="text-sm font-semibold text-gray-900 capitalize dark:text-white">{{ $systemInfo['cache_driver'] }}</span>
             </div>
         </div>
 
-        {{-- Storage bars --}}
+        {{-- Row 3 — Infrastructure --}}
+        <p class="mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase dark:text-gray-500">Infrastructure</p>
+        <div class="grid grid-cols-2 mb-5 gap-x-8 gap-y-3 md:grid-cols-4">
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">DB Driver</span>
+                <span class="text-sm font-semibold text-gray-900 capitalize dark:text-white">{{ $systemInfo['db_driver'] }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Database</span>
+                <span class="text-sm font-semibold text-gray-900 truncate dark:text-white">{{ $systemInfo['db_database'] }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Session</span>
+                <span class="text-sm font-semibold text-gray-900 capitalize dark:text-white">{{ $systemInfo['session_driver'] }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Mail</span>
+                <span class="text-sm font-semibold text-gray-900 capitalize dark:text-white">{{ $systemInfo['mail_mailer'] }}</span>
+            </div>
+        </div>
+
+        {{-- Row 4 — Server --}}
+        <p class="mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase dark:text-gray-500">Server</p>
+        <div class="grid grid-cols-2 mb-5 gap-x-8 gap-y-3 md:grid-cols-4">
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">OS</span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $systemInfo['server_os'] }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">PHP Memory</span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $systemInfo['php_memory_limit'] }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Extensions</span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $systemInfo['php_extensions'] }} loaded</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Web Server</span>
+                <span class="text-sm font-semibold text-gray-900 truncate dark:text-white">{{ $systemInfo['server_software'] }}</span>
+            </div>
+        </div>
+
+        {{-- Storage / disk bars --}}
         <div class="grid grid-cols-1 gap-3 pt-4 border-t border-gray-100 dark:border-gray-700 sm:grid-cols-2">
             <div>
                 <div class="flex justify-between mb-1">
@@ -89,12 +138,29 @@
                     <div class="h-1.5 bg-blue-500 rounded-full transition-all" style="width: {{ min($cacheSize * 5, 100) }}%"></div>
                 </div>
             </div>
+            @if ($systemInfo['disk_total_gb'])
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Disk Usage</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                        {{ $systemInfo['disk_free_gb'] }} GB free / {{ $systemInfo['disk_total_gb'] }} GB
+                        <span class="text-gray-400">({{ $systemInfo['disk_used_pct'] }}%)</span>
+                    </span>
+                </div>
+                <div class="w-full h-1.5 bg-gray-200 rounded-full dark:bg-gray-700">
+                    <div class="h-1.5 rounded-full transition-all
+                        {{ $systemInfo['disk_used_pct'] >= 90 ? 'bg-red-500' : ($systemInfo['disk_used_pct'] >= 70 ? 'bg-amber-500' : 'bg-emerald-500') }}"
+                        style="width: {{ $systemInfo['disk_used_pct'] }}%"></div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
-    {{-- ═══════════════════════════════════════════════════════════ --}}
+      {{-- ═══════════════════════════════════════════════════════════ --}}
     {{-- Cache Management                                            --}}
     {{-- ═══════════════════════════════════════════════════════════ --}}
+
     <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-xl dark:border-gray-700 dark:bg-gray-800">
         <div class="flex items-center gap-3 mb-5">
             <div class="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-lg dark:bg-orange-900/40">
@@ -174,6 +240,9 @@
             </button>
         </div>
     </div>
+
+    </div>
+
 
     {{-- ═══════════════════════════════════════════════════════════ --}}
     {{-- Quick Actions + Database (side by side)                     --}}
@@ -425,7 +494,7 @@
 
                 {{-- View Logs --}}
                 <button wire:click="viewLogs" wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg bg-rose-600 hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-50 transition-all">
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-rose-600 border border-rose-600 rounded-lg hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-50 transition-all">
                     <span wire:loading.remove wire:target="viewLogs">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
                     </span>
@@ -451,32 +520,134 @@
     {{-- ═══════════════════════════════════════════════════════════ --}}
     {{-- Command Output                                              --}}
     {{-- ═══════════════════════════════════════════════════════════ --}}
-    <div class="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl dark:border-gray-700 dark:bg-gray-800">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-            <div class="flex items-center gap-3">
-                <div class="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-lg dark:bg-gray-700">
-                    <svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Command Output</h4>
+    <div x-data="{
+            copied: false,
+            copyOutput() {
+                const text = document.getElementById('terminal-output').innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    this.copied = true;
+                    setTimeout(() => this.copied = false, 2000);
+                });
+            }
+        }"
+        class="overflow-hidden border border-gray-800 shadow-2xl rounded-xl bg-gray-950">
+
+        {{-- Title bar --}}
+        <div class="flex items-center justify-between px-4 py-2.5 bg-gray-900 border-b border-gray-800">
+            {{-- Traffic lights --}}
+            <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 bg-red-500 rounded-full hover:bg-red-400 transition-colors cursor-default" title="Close"></span>
+                <span class="w-3 h-3 bg-yellow-400 rounded-full hover:bg-yellow-300 transition-colors cursor-default" title="Minimize"></span>
+                <span class="w-3 h-3 bg-green-500 rounded-full hover:bg-green-400 transition-colors cursor-default" title="Maximize"></span>
             </div>
-            <button wire:click="$set('output', '')"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 transition-all">
-                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                Clear
-            </button>
+
+            {{-- Path breadcrumb --}}
+            <div class="flex items-center gap-1.5 font-mono text-xs text-gray-500 select-none">
+                <svg class="w-3.5 h-3.5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-gray-600">~/</span><span class="text-emerald-400">laravel</span>
+                <span class="text-gray-600 mx-0.5">›</span>
+                <span class="text-sky-400">php artisan</span>
+            </div>
+
+            {{-- Right actions --}}
+            <div class="flex items-center gap-2">
+                {{-- Copy button --}}
+                <button @click="copyOutput()" :disabled="!$wire.output"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all
+                        text-gray-400 hover:text-white hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                    <template x-if="!copied">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
+                    </template>
+                    <template x-if="copied">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    </template>
+                    <span x-text="copied ? 'Copied!' : 'Copy'"></span>
+                </button>
+
+                <div class="w-px h-4 bg-gray-700"></div>
+
+                {{-- Clear button --}}
+                <button wire:click="$set('output', '')" :disabled="!$wire.output"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all
+                        text-gray-400 hover:text-red-400 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    Clear
+                </button>
+            </div>
         </div>
 
-        {{-- Terminal chrome --}}
-        <div class="flex items-center gap-1.5 px-4 py-2 bg-gray-900 border-b border-gray-700">
-            <span class="w-3 h-3 bg-red-500 rounded-full opacity-80"></span>
-            <span class="w-3 h-3 bg-yellow-400 rounded-full opacity-80"></span>
-            <span class="w-3 h-3 bg-green-500 rounded-full opacity-80"></span>
-            <span class="ml-3 font-mono text-xs text-gray-500">~/laravel — artisan</span>
+        {{-- Gutter + output --}}
+        <div class="flex">
+            {{-- Line-number gutter --}}
+            <div class="hidden sm:flex flex-col items-end pt-5 pb-5 pl-3 pr-3 bg-gray-900/50 border-r border-gray-800 select-none min-w-[2.75rem]"
+                aria-hidden="true">
+                @if ($output)
+                    @php $lineCount = substr_count($output, "\n") + 1; @endphp
+                    @for ($i = 1; $i <= min($lineCount, 200); $i++)
+                        <span class="font-mono text-gray-700 leading-relaxed" style="font-size:11px">{{ $i }}</span>
+                    @endfor
+                @else
+                    <span class="font-mono text-gray-700 leading-relaxed" style="font-size:11px">1</span>
+                @endif
+            </div>
+
+            {{-- Output body --}}
+            <div class="flex-1 overflow-x-auto overflow-y-auto max-h-[28rem] p-5" id="terminal-output"
+                wire:key="terminal-output-{{ strlen($output) }}">
+                @if ($output)
+                    @php
+                        $lines = explode("\n", $output);
+                    @endphp
+                    @foreach ($lines as $line)
+                        @php
+                            $trimmed = ltrim($line);
+                            if (str_starts_with($trimmed, '✅') || str_starts_with($trimmed, '🎉') || str_starts_with($trimmed, '🔗')) {
+                                $cls = 'text-emerald-400';
+                            } elseif (str_starts_with($trimmed, '❌')) {
+                                $cls = 'text-red-400';
+                            } elseif (str_starts_with($trimmed, '⚠️') || str_starts_with($trimmed, '⚙️') || str_starts_with($trimmed, '🔧') || str_starts_with($trimmed, '🚀')) {
+                                $cls = 'text-amber-400';
+                            } elseif (str_starts_with($trimmed, 'Running:')) {
+                                $cls = 'text-sky-400';
+                            } elseif (str_starts_with($trimmed, 'php artisan') || str_starts_with($trimmed, '  php artisan')) {
+                                $cls = 'text-violet-400';
+                            } elseif (str_starts_with($trimmed, '#')) {
+                                $cls = 'text-gray-600';
+                            } else {
+                                $cls = 'text-gray-300';
+                            }
+                        @endphp
+                        <div class="font-mono leading-relaxed {{ $cls }}" style="font-size:13px">{{ $line ?: '&nbsp;' }}</div>
+                    @endforeach
+                @else
+                    <div class="flex flex-col items-center justify-center h-40 gap-3 select-none">
+                        <svg class="w-10 h-10 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p class="font-mono text-sm text-gray-600">Run a command above — output will appear here.</p>
+                    </div>
+                @endif
+            </div>
         </div>
-        <div class="p-5 bg-gray-950">
-            <pre class="overflow-y-auto font-mono text-sm leading-relaxed text-gray-500 whitespace-pre-wrap max-h-96">{{ $output ?: '# Run a command above — output will appear here.' }}</pre>
+
+        {{-- Status bar --}}
+        <div class="flex items-center justify-between px-4 py-1.5 bg-gray-900/60 border-t border-gray-800 select-none">
+            <div class="flex items-center gap-3 font-mono text-gray-600" style="font-size:11px">
+                @if ($output)
+                    @php $lc = substr_count($output, "\n") + 1; @endphp
+                    <span>{{ $lc }} {{ Str::plural('line', $lc) }}</span>
+                    <span>·</span>
+                    <span>{{ strlen($output) }} bytes</span>
+                @else
+                    <span>empty</span>
+                @endif
+            </div>
+            <div class="flex items-center gap-1.5 font-mono text-gray-600" style="font-size:11px">
+                <span class="inline-block w-1.5 h-1.5 rounded-full {{ $output ? 'bg-emerald-500' : 'bg-gray-600' }}"></span>
+                <span>{{ $output ? 'ready' : 'idle' }}</span>
+            </div>
         </div>
     </div>
 

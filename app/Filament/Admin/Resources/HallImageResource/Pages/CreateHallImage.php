@@ -3,16 +3,13 @@
 namespace App\Filament\Admin\Resources\HallImageResource\Pages;
 
 use App\Filament\Admin\Resources\HallImageResource;
+use App\Services\ImageOptimizationService;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Intervention\Image\Laravel\Facades\Image;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class CreateHallImage extends CreateRecord
 {
@@ -120,24 +117,32 @@ class CreateHallImage extends CreateRecord
     {
         $image = $this->record;
 
-        // Log the upload
         Log::info('Hall image uploaded', [
             'image_id' => $image->id,
-            'hall_id' => $image->hall_id,
-            'type' => $image->type,
+            'hall_id'  => $image->hall_id,
+            'type'     => $image->type,
             'uploaded_by' => Auth::id(),
         ]);
+
+        // Compress the main image before anything else
+        $optimizer = app(ImageOptimizationService::class);
+        $result    = $optimizer->compress($image->image_path);
+
+        if (isset($result['saved_bytes']) && $result['saved_bytes'] > 0) {
+            Log::info('Image compressed', [
+                'image_id'      => $image->id,
+                'saved_bytes'   => $result['saved_bytes'],
+                'saved_percent' => $result['saved_percent'],
+            ]);
+        }
 
         // Auto-generate thumbnail if not provided
         if (empty($image->thumbnail_path)) {
             $this->generateThumbnail($image);
         }
 
-        // Clear cache
-        //Cache::tags(['hall_images', 'hall_' . $image->hall_id])->flush();
-
-        // Optimize image if it's too large
-        $this->optimizeImageIfNeeded($image);
+        // Refresh file_size after compression
+        $this->extractImageMetadata($image);
     }
 
     protected function extractImageMetadata($image): void
@@ -167,41 +172,17 @@ class CreateHallImage extends CreateRecord
 
     protected function generateThumbnail($image): void
     {
-        // Implement thumbnail generation
-        // Example using Intervention Image or similar package
-
         try {
+            $thumbnailPath = 'halls/thumbnails/' . pathinfo($image->image_path, PATHINFO_FILENAME) . '.jpg';
+            $success = app(ImageOptimizationService::class)
+                ->generateThumbnail($image->image_path, $thumbnailPath);
 
-            $manager = new ImageManager(new Driver());
-            $thumbnail = $manager->read(Storage::disk('public')->path($image->image_path))
-            //$thumbnail = Image::make(Storage::disk('public')->path($image->image_path))
-                ->resize(300, 200, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-
-            $thumbnailPath = 'halls/thumbnails/' . basename($image->image_path);
-            Storage::disk('public')->put($thumbnailPath, $thumbnail->encode());
-
-            $image->update(['thumbnail_path' => $thumbnailPath]);
-
-            Log::info('Thumbnail generated for image: ' . $image->id);
-        } catch (\Exception $e) {
-            Log::error('Thumbnail generation failed: ' . $e->getMessage());
-        }
-    }
-
-    protected function optimizeImageIfNeeded($image): void
-    {
-        try {
-            $fileSize = Storage::disk('public')->size($image->image_path);
-            $threshold = 2 * 1024 * 1024; // 2MB
-
-            if ($fileSize > $threshold) {
-                // Implement image optimization
-                Log::info('Large image detected, optimization recommended: ' . $image->id);
+            if ($success) {
+                $image->update(['thumbnail_path' => $thumbnailPath]);
+                Log::info('Thumbnail generated for image: ' . $image->id);
             }
         } catch (\Exception $e) {
-            Log::error('Image optimization check failed: ' . $e->getMessage());
+            Log::error('Thumbnail generation failed: ' . $e->getMessage());
         }
     }
 

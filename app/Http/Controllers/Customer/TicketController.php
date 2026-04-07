@@ -3,25 +3,30 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TicketSubmittedAdminMail;
+use App\Mail\TicketSubmittedCustomerMail;
 use App\Models\Ticket;
 use App\Models\TicketType;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use App\Models\TicketMessageType;
 use App\Models\Booking;
+use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
 /**
  * Customer Ticket Controller
- * 
+ *
  * Handles customer-facing ticket operations including creating new tickets,
  * viewing ticket details, adding replies, and managing attachments.
- * 
+ *
  * @package App\Http\Controllers\Customer
  * @version 1.0.0
  */
@@ -29,7 +34,7 @@ class TicketController extends Controller
 {
     /**
      * Display a listing of customer's tickets.
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\View\View
      */
@@ -41,10 +46,10 @@ class TicketController extends Controller
 
         // Build query
         $query = Ticket::where('user_id', Auth::id())
-            ->with(['messages' => function($q) {
+            ->with(['messages' => function ($q) {
                 $q->where('is_internal', false)
-                  ->latest()
-                  ->take(1);
+                    ->latest()
+                    ->take(1);
             }])
             ->latest();
 
@@ -75,7 +80,7 @@ class TicketController extends Controller
 
     /**
      * Show the form for creating a new ticket.
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function create()
@@ -99,7 +104,7 @@ class TicketController extends Controller
 
     /**
      * Store a newly created ticket.
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -140,7 +145,7 @@ class TicketController extends Controller
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $path = $file->store('ticket-attachments', 'private');
-                    
+
                     $attachments[] = [
                         'path' => $path,
                         'original_name' => $file->getClientOriginalName(),
@@ -161,16 +166,21 @@ class TicketController extends Controller
 
             DB::commit();
 
-            // Send notification to admin/staff (implement as needed)
-            // $this->notifyStaffAboutNewTicket($ticket);
+            // Send confirmation email to customer
+            Mail::to($ticket->user->email)->send(new TicketSubmittedCustomerMail($ticket));
+
+            // Send notification email to admin staff
+            $adminUsers = User::where('role', UserRole::ADMIN)->where('is_active', true)->get();
+            foreach ($adminUsers as $admin) {
+                Mail::to($admin->email)->send(new TicketSubmittedAdminMail($ticket));
+            }
 
             return redirect()
                 ->route('customer.tickets.show', $ticket)
                 ->with('success', 'Ticket created successfully! Ticket #' . $ticket->ticket_number);
-
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return back()
                 ->with('error', 'Failed to create ticket: ' . $e->getMessage())
                 ->withInput();
@@ -179,7 +189,7 @@ class TicketController extends Controller
 
     /**
      * Display the specified ticket.
-     * 
+     *
      * @param Ticket $ticket
      * @return \Illuminate\View\View
      */
@@ -193,11 +203,11 @@ class TicketController extends Controller
         // Load relationships
         $ticket->load([
             'booking.hall',
-            'messages' => function($q) {
+            'messages' => function ($q) {
                 // Only show customer-visible messages
                 $q->where('is_internal', false)
-                  ->with('user')
-                  ->orderBy('created_at', 'asc');
+                    ->with('user')
+                    ->orderBy('created_at', 'asc');
             }
         ]);
 
@@ -212,7 +222,7 @@ class TicketController extends Controller
 
     /**
      * Add a reply to the ticket.
-     * 
+     *
      * @param Request $request
      * @param Ticket $ticket
      * @return \Illuminate\Http\RedirectResponse
@@ -247,7 +257,7 @@ class TicketController extends Controller
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $path = $file->store('ticket-attachments', 'private');
-                    
+
                     $attachments[] = [
                         'path' => $path,
                         'original_name' => $file->getClientOriginalName(),
@@ -277,17 +287,16 @@ class TicketController extends Controller
             // $this->notifyStaffAboutReply($ticket);
 
             return back()->with('success', 'Reply added successfully!');
-
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return back()->with('error', 'Failed to add reply: ' . $e->getMessage());
         }
     }
 
     /**
      * Download an attachment.
-     * 
+     *
      * @param Ticket $ticket
      * @param int $messageId
      * @param int $index
@@ -324,7 +333,7 @@ class TicketController extends Controller
 
     /**
      * Close a ticket (customer request).
-     * 
+     *
      * @param Ticket $ticket
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -344,7 +353,6 @@ class TicketController extends Controller
             $ticket->close();
 
             return back()->with('success', 'Ticket closed successfully!');
-
         } catch (Exception $e) {
             return back()->with('error', 'Failed to close ticket: ' . $e->getMessage());
         }
@@ -352,7 +360,7 @@ class TicketController extends Controller
 
     /**
      * Rate a closed ticket.
-     * 
+     *
      * @param Request $request
      * @param Ticket $ticket
      * @return \Illuminate\Http\RedirectResponse
@@ -388,7 +396,6 @@ class TicketController extends Controller
             $ticket->rate($request->rating, $request->feedback);
 
             return back()->with('success', 'Thank you for your feedback!');
-
         } catch (Exception $e) {
             return back()->with('error', 'Failed to submit rating: ' . $e->getMessage());
         }
@@ -396,7 +403,7 @@ class TicketController extends Controller
 
     /**
      * Reopen a closed ticket.
-     * 
+     *
      * @param Ticket $ticket
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -423,7 +430,6 @@ class TicketController extends Controller
             );
 
             return back()->with('success', 'Ticket has been reopened.');
-
         } catch (Exception $e) {
             return back()->with('error', 'Failed to reopen ticket: ' . $e->getMessage());
         }

@@ -97,6 +97,9 @@
                         <a href="{{ route('customer.bookings') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.bookings') || request()->routeIs('customer.booking.*') ? 'text-indigo-600 font-semibold' : '' }}">
                             {{ __('dashboard.my_bookings') }}
                         </a>
+                        <a href="{{ route('customer.tickets.index') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                            {{ __('tickets.nav_link') }}
+                        </a>
 
                         <!-- User Dropdown -->
                         <div x-data="{ open: false }" class="relative">
@@ -124,6 +127,10 @@
                             </div>
                         </div>
                     @else
+                        <a href="{{ route('guest.tickets.verify') }}"
+                           class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('guest.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                            {{ __('tickets_guest.verify_title') }}
+                        </a>
                         <a href="{{ route('login') }}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600">
                             {{ __('dashboard.login') }}
                         </a>
@@ -183,6 +190,9 @@
                     <a href="{{ route('customer.bookings') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.my_bookings') }}
                     </a>
+                    <a href="{{ route('customer.tickets.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50 {{ request()->routeIs('customer.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                        {{ __('tickets.nav_link') }}
+                    </a>
                     <a href="{{ route('customer.profile') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.my_profile') }}
                     </a>
@@ -193,6 +203,10 @@
                         </button>
                     </form>
                 @else
+                    <a href="{{ route('guest.tickets.verify') }}"
+                       class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50 {{ request()->routeIs('guest.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                        {{ __('tickets_guest.verify_title') }}
+                    </a>
                     <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
                         {{ __('dashboard.login') }}
                     </a>

@@ -57,6 +57,6 @@ class CreateTicket extends CreateRecord
      */
     protected function getCreatedNotificationTitle(): ?string
     {
-        return 'Ticket created successfully';
+        return __('ticket_admin.notif_created');
     }
 }

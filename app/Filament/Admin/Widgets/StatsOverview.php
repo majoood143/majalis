@@ -31,34 +31,40 @@ class StatsOverview extends BaseWidget
             ? (($monthlyBookings - $previousMonthBookings) / $previousMonthBookings) * 100
             : 0;
 
+        $totalHalls = Hall::count();
+        $customerCount = User::where('role', 'customer')->count();
+        $bookingsTrendValue = round(abs($bookingsTrend), 1);
+
         return [
-            Stat::make('Total Revenue', number_format($totalRevenue, 3) . ' OMR')
-                ->description('All-time revenue')
+            Stat::make(__('admin.stats_overview.total_revenue'), number_format($totalRevenue, 3) . ' OMR')
+                ->description(__('admin.stats_overview.total_revenue_desc'))
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('success'),
 
-            Stat::make('Platform Earnings', number_format($platformEarnings, 3) . ' OMR')
-                ->description('Total commission earned')
+            Stat::make(__('admin.stats_overview.platform_earnings'), number_format($platformEarnings, 3) . ' OMR')
+                ->description(__('admin.stats_overview.platform_earnings_desc'))
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('warning'),
 
-            Stat::make('Monthly Revenue', number_format($monthlyRevenue, 3) . ' OMR')
-                ->description('This month')
+            Stat::make(__('admin.stats_overview.monthly_revenue'), number_format($monthlyRevenue, 3) . ' OMR')
+                ->description(__('admin.stats_overview.monthly_revenue_desc'))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('info'),
 
-            Stat::make('Total Bookings', Booking::count())
-                ->description($bookingsTrend >= 0 ? "+{$bookingsTrend}% from last month" : "{$bookingsTrend}% from last month")
+            Stat::make(__('admin.stats_overview.total_bookings'), Booking::count())
+                ->description($bookingsTrend >= 0
+                    ? __('admin.stats_overview.bookings_trend_up', ['value' => $bookingsTrendValue])
+                    : __('admin.stats_overview.bookings_trend_down', ['value' => $bookingsTrendValue]))
                 ->descriptionIcon($bookingsTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($bookingsTrend >= 0 ? 'success' : 'danger'),
 
-            Stat::make('Active Halls', Hall::where('is_active', true)->count())
-                ->description('Out of ' . Hall::count() . ' total halls')
+            Stat::make(__('admin.stats_overview.active_halls'), Hall::where('is_active', true)->count())
+                ->description(__('admin.stats_overview.active_halls_desc', ['total' => $totalHalls]))
                 ->descriptionIcon('heroicon-m-building-office-2')
                 ->color('primary'),
 
-            Stat::make('Hall Owners', User::where('role', 'hall_owner')->count())
-                ->description(User::where('role', 'customer')->count() . ' customers registered')
+            Stat::make(__('admin.stats_overview.hall_owners'), User::where('role', 'hall_owner')->count())
+                ->description(__('admin.stats_overview.hall_owners_desc', ['count' => $customerCount]))
                 ->descriptionIcon('heroicon-m-users')
                 ->color('gray'),
         ];

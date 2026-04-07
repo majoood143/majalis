@@ -12,44 +12,19 @@ use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * List Tickets Page
- *
- * Displays a comprehensive list of all tickets with filtering, searching, and statistics.
- * Includes dashboard widgets showing key metrics and tabbed navigation for quick filtering.
- *
- * @package App\Filament\Admin\Resources\TicketResource\Pages
- * @version 1.0.0
- */
 class ListTickets extends ListRecords
 {
-    /**
-     * The resource this page belongs to.
-     *
-     * @var string
-     */
     protected static string $resource = TicketResource::class;
 
-    /**
-     * Get the header actions for the page.
-     *
-     * @return array
-     */
     protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-o-plus')
-                ->label('New Ticket'),
+                ->label(__('ticket_admin.new_ticket')),
         ];
     }
 
-    /**
-     * Get the header widgets for the page.
-     * These widgets display key statistics about tickets.
-     *
-     * @return array
-     */
     protected function getHeaderWidgets(): array
     {
         return [
@@ -57,28 +32,20 @@ class ListTickets extends ListRecords
         ];
     }
 
-    /**
-     * Define tabs for quick filtering of tickets.
-     *
-     * @return array
-     */
     public function getTabs(): array
     {
         return [
-            // All tickets
-            'all' => Tab::make('All Tickets')
+            'all' => Tab::make(__('ticket_admin.tab_all'))
                 ->badge(Ticket::count())
                 ->badgeColor('gray'),
 
-            // Open tickets (not closed or cancelled)
-            'open' => Tab::make('Open')
+            'open' => Tab::make(__('ticket_admin.tab_open'))
                 ->icon('heroicon-o-envelope-open')
                 ->modifyQueryUsing(fn (Builder $query) => $query->open())
                 ->badge(Ticket::open()->count())
                 ->badgeColor('info'),
 
-            // My tickets (assigned to current user)
-            'my_tickets' => Tab::make('My Tickets')
+            'my_tickets' => Tab::make(__('ticket_admin.tab_my_tickets'))
                 ->icon('heroicon-o-user')
                 ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('assigned_to', Auth::id())
@@ -86,8 +53,7 @@ class ListTickets extends ListRecords
                 ->badge(Ticket::where('assigned_to', Auth::id())->count())
                 ->badgeColor('success'),
 
-            // Unassigned tickets
-            'unassigned' => Tab::make('Unassigned')
+            'unassigned' => Tab::make(__('ticket_admin.tab_unassigned'))
                 ->icon('heroicon-o-inbox')
                 ->modifyQueryUsing(fn (Builder $query) =>
                     $query->whereNull('assigned_to')
@@ -98,27 +64,21 @@ class ListTickets extends ListRecords
                     ->count())
                 ->badgeColor('warning'),
 
-            // Urgent tickets
-            'urgent' => Tab::make('Urgent')
+            'urgent' => Tab::make(__('ticket_admin.tab_urgent'))
                 ->icon('heroicon-o-fire')
                 ->modifyQueryUsing(fn (Builder $query) =>
-                    $query->where('priority', TicketPriority::URGENT->value)
-                        ->open()
+                    $query->where('priority', TicketPriority::URGENT->value)->open()
                 )
-                ->badge(Ticket::where('priority', TicketPriority::URGENT->value)
-                    ->open()
-                    ->count())
+                ->badge(Ticket::where('priority', TicketPriority::URGENT->value)->open()->count())
                 ->badgeColor('danger'),
 
-            // Overdue tickets
-            'overdue' => Tab::make('Overdue')
+            'overdue' => Tab::make(__('ticket_admin.tab_overdue'))
                 ->icon('heroicon-o-exclamation-triangle')
                 ->modifyQueryUsing(fn (Builder $query) => $query->overdue())
                 ->badge(Ticket::overdue()->count())
                 ->badgeColor('danger'),
 
-            // In progress
-            'in_progress' => Tab::make('In Progress')
+            'in_progress' => Tab::make(__('ticket_admin.tab_in_progress'))
                 ->icon('heroicon-o-arrow-path')
                 ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', TicketStatus::IN_PROGRESS->value)
@@ -126,8 +86,7 @@ class ListTickets extends ListRecords
                 ->badge(Ticket::where('status', TicketStatus::IN_PROGRESS->value)->count())
                 ->badgeColor('primary'),
 
-            // Resolved tickets
-            'resolved' => Tab::make('Resolved')
+            'resolved' => Tab::make(__('ticket_admin.tab_resolved'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', TicketStatus::RESOLVED->value)
@@ -135,8 +94,7 @@ class ListTickets extends ListRecords
                 ->badge(Ticket::where('status', TicketStatus::RESOLVED->value)->count())
                 ->badgeColor('success'),
 
-            // Closed tickets
-            'closed' => Tab::make('Closed')
+            'closed' => Tab::make(__('ticket_admin.tab_closed'))
                 ->icon('heroicon-o-lock-closed')
                 ->modifyQueryUsing(fn (Builder $query) =>
                     $query->where('status', TicketStatus::CLOSED->value)
