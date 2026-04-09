@@ -22,14 +22,18 @@ class ViewHallAvailability extends ViewRecord
                 ->color('primary'),
 
             Actions\Action::make('toggleAvailability')
-                ->label(fn() => $this->record->is_available ? 'Block Slot' : 'Unblock Slot')
+                ->label(fn() => $this->record->is_available
+                    ? __('hall-availability.view_page.block_slot')
+                    : __('hall-availability.view_page.unblock_slot'))
                 ->icon(fn() => $this->record->is_available ? 'heroicon-o-lock-closed' : 'heroicon-o-lock-open')
                 ->color(fn() => $this->record->is_available ? 'danger' : 'success')
                 ->requiresConfirmation()
-                ->modalHeading(fn() => $this->record->is_available ? 'Block This Slot?' : 'Unblock This Slot?')
+                ->modalHeading(fn() => $this->record->is_available
+                    ? __('hall-availability.view_page.block_modal_heading')
+                    : __('hall-availability.view_page.unblock_modal_heading'))
                 ->modalDescription(fn() => $this->record->is_available
-                    ? 'This will prevent new bookings for this time slot.'
-                    : 'This will make the slot available for bookings again.')
+                    ? __('hall-availability.view_page.block_modal_description')
+                    : __('hall-availability.view_page.unblock_modal_description'))
                 ->action(function () {
                     $wasAvailable = $this->record->is_available;
                     $this->record->is_available = !$this->record->is_available;
@@ -45,8 +49,10 @@ class ViewHallAvailability extends ViewRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Availability Updated')
-                        ->body($this->record->is_available ? 'Slot is now available for bookings.' : 'Slot has been blocked.')
+                        ->title(__('hall-availability.notifications.availability_updated'))
+                        ->body($this->record->is_available
+                            ? __('hall-availability.notifications.slot_now_available')
+                            : __('hall-availability.notifications.slot_blocked'))
                         ->send();
 
                     Cache::tags(['availability', 'hall_' . $this->record->hall_id])->flush();
@@ -54,7 +60,7 @@ class ViewHallAvailability extends ViewRecord
                 }),
 
             Actions\Action::make('viewHall')
-                ->label('View Hall')
+                ->label(__('hall-availability.view_page.view_hall'))
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
                 ->url(fn() => route('filament.admin.resources.halls.view', [
@@ -62,7 +68,7 @@ class ViewHallAvailability extends ViewRecord
                 ])),
 
             Actions\Action::make('viewBookings')
-                ->label('View Bookings')
+                ->label(__('hall-availability.view_page.view_bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
                 ->url(fn() => route('filament.admin.resources.bookings.index', [
@@ -75,12 +81,12 @@ class ViewHallAvailability extends ViewRecord
                 ->badgeColor('warning'),
 
             Actions\Action::make('duplicate')
-                ->label('Duplicate')
+                ->label(__('hall-availability.view_page.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
                 ->requiresConfirmation()
-                ->modalHeading('Duplicate Availability')
-                ->modalDescription('Create a copy of this availability for the next day.')
+                ->modalHeading(__('hall-availability.view_page.duplicate_heading'))
+                ->modalDescription(__('hall-availability.view_page.duplicate_description'))
                 ->action(function () {
                     $newAvailability = $this->record->replicate();
                     $newAvailability->date = $this->record->date->addDay();
@@ -88,11 +94,13 @@ class ViewHallAvailability extends ViewRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Availability Duplicated')
-                        ->body('A new availability has been created for ' . $newAvailability->date->format('d M Y'))
+                        ->title(__('hall-availability.notifications.duplicated'))
+                        ->body(__('hall-availability.notifications.duplicated_body', [
+                            'date' => $newAvailability->date->format('d M Y'),
+                        ]))
                         ->actions([
                             \Filament\Notifications\Actions\Action::make('view')
-                                ->label('View Duplicate')
+                                ->label(__('hall-availability.view_page.view_duplicate'))
                                 ->url(HallAvailabilityResource::getUrl('view', ['record' => $newAvailability->id])),
                         ])
                         ->send();
@@ -108,12 +116,12 @@ class ViewHallAvailability extends ViewRecord
         return $infolist
             ->schema([
                 // Slot Information Section
-                Infolists\Components\Section::make('Slot Information')
+                Infolists\Components\Section::make(__('hall-availability.view_page.slot_information'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall.name')
-                                    ->label('Hall')
+                                    ->label(__('hall-availability.view_page.hall_label'))
                                     ->formatStateUsing(fn($record) => $record->hall->name)
                                     ->badge()
                                     ->color('success')
@@ -123,7 +131,7 @@ class ViewHallAvailability extends ViewRecord
                                     ->openUrlInNewTab(),
 
                                 Infolists\Components\TextEntry::make('date')
-                                    ->label('Date')
+                                    ->label(__('hall-availability.view_page.date_label'))
                                     ->date('l, d F Y')
                                     ->badge()
                                     ->color(fn($record) => $record->date->isPast() ? 'gray' : 'primary')
@@ -131,12 +139,12 @@ class ViewHallAvailability extends ViewRecord
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
 
                                 Infolists\Components\TextEntry::make('time_slot')
-                                    ->label('Time Slot')
+                                    ->label(__('hall-availability.view_page.time_slot_label'))
                                     ->formatStateUsing(fn($state) => match ($state) {
-                                        'morning' => 'Morning',
-                                        'afternoon' => 'Afternoon',
-                                        'evening' => 'Evening',
-                                        'full_day' => 'Full Day',
+                                        'morning' => __('hall-availability.view_page.time_slot_morning'),
+                                        'afternoon' => __('hall-availability.view_page.time_slot_afternoon'),
+                                        'evening' => __('hall-availability.view_page.time_slot_evening'),
+                                        'full_day' => __('hall-availability.view_page.time_slot_full_day'),
                                         default => ucfirst(str_replace('_', ' ', $state)),
                                     })
                                     ->badge()
@@ -149,26 +157,28 @@ class ViewHallAvailability extends ViewRecord
                     ->collapsible(),
 
                 // Status & Availability Section
-                Infolists\Components\Section::make('Status & Availability')
+                Infolists\Components\Section::make(__('hall-availability.view_page.status_availability'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('is_available')
-                                    ->label('Availability Status')
-                                    ->formatStateUsing(fn($state) => $state ? 'Available' : 'Blocked')
+                                    ->label(__('hall-availability.view_page.availability_status'))
+                                    ->formatStateUsing(fn($state) => $state
+                                        ? __('hall-availability.status.available')
+                                        : __('hall-availability.status.blocked'))
                                     ->badge()
                                     ->color(fn($state) => $state ? 'success' : 'danger')
                                     ->icon(fn($state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
 
                                 Infolists\Components\TextEntry::make('reason')
-                                    ->label('Block Reason')
+                                    ->label(__('hall-availability.view_page.block_reason'))
                                     ->formatStateUsing(fn($state) => match ($state) {
-                                        'maintenance' => 'Under Maintenance',
-                                        'blocked' => 'Blocked by Owner',
-                                        'custom' => 'Custom Block',
-                                        'holiday' => 'Holiday',
-                                        null => 'N/A',
+                                        'maintenance' => __('hall-availability.view_page.reason_maintenance'),
+                                        'blocked' => __('hall-availability.view_page.reason_blocked'),
+                                        'custom' => __('hall-availability.view_page.reason_custom'),
+                                        'holiday' => __('hall-availability.view_page.reason_holiday'),
+                                        null => __('hall-availability.view_page.reason_na'),
                                         default => ucfirst($state),
                                     })
                                     ->badge()
@@ -183,7 +193,7 @@ class ViewHallAvailability extends ViewRecord
                                     ->visible(fn($record) => !$record->is_available),
 
                                 Infolists\Components\TextEntry::make('bookings_count')
-                                    ->label('Active Bookings')
+                                    ->label(__('hall-availability.view_page.active_bookings'))
                                     ->state(fn($record) => $this->getBookingsCount())
                                     ->badge()
                                     ->color(fn($state) => $state > 0 ? 'warning' : 'gray')
@@ -191,31 +201,31 @@ class ViewHallAvailability extends ViewRecord
                             ]),
 
                         Infolists\Components\TextEntry::make('notes')
-                            ->label('Notes')
+                            ->label(__('hall-availability.view_page.notes_label'))
                             ->columnSpanFull()
-                            ->placeholder('No additional notes')
+                            ->placeholder(__('hall-availability.view_page.no_notes'))
                             ->visible(fn($record) => !empty($record->notes)),
                     ])
                     ->icon('heroicon-o-signal')
                     ->collapsible(),
 
                 // Pricing Information Section
-                Infolists\Components\Section::make('Pricing Information')
+                Infolists\Components\Section::make(__('hall-availability.view_page.pricing_information'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('custom_price')
-                                    ->label('Custom Price')
+                                    ->label(__('hall-availability.view_page.custom_price_label'))
                                     ->money('OMR', locale: 'en_OM')
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-currency-dollar')
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
-                                    ->placeholder('Using Default Price')
+                                    ->placeholder(__('hall-availability.view_page.using_default_price'))
                                     ->visible(fn($record) => $record->custom_price !== null),
 
                                 Infolists\Components\TextEntry::make('default_price')
-                                    ->label('Default Hall Price')
+                                    ->label(__('hall-availability.view_page.default_hall_price'))
                                     ->state(fn($record) => $this->getDefaultPrice())
                                     ->money('OMR', locale: 'en_OM')
                                     ->badge()
@@ -223,7 +233,7 @@ class ViewHallAvailability extends ViewRecord
                                     ->icon('heroicon-o-banknotes'),
 
                                 Infolists\Components\TextEntry::make('effective_price')
-                                    ->label('Effective Price')
+                                    ->label(__('hall-availability.view_page.effective_price_label'))
                                     ->state(fn($record) => $record->custom_price ?? $this->getDefaultPrice())
                                     ->money('OMR', locale: 'en_OM')
                                     ->badge()
@@ -236,25 +246,25 @@ class ViewHallAvailability extends ViewRecord
                     ->collapsible(),
 
                 // Hall Details Section
-                Infolists\Components\Section::make('Hall Details')
+                Infolists\Components\Section::make(__('hall-availability.view_page.hall_details'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('hall.city.name')
-                                    ->label('City')
+                                    ->label(__('hall-availability.view_page.city'))
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-map-pin'),
 
                                 Infolists\Components\TextEntry::make('hall.owner.name')
-                                    ->label('Hall Owner')
+                                    ->label(__('hall-availability.view_page.hall_owner'))
                                     ->badge()
                                     ->color('primary')
                                     ->icon('heroicon-o-user'),
 
                                 Infolists\Components\TextEntry::make('hall.capacity_max')
-                                    ->label('Hall Capacity')
-                                    ->suffix(' guests')
+                                    ->label(__('hall-availability.view_page.hall_capacity'))
+                                    ->suffix(__('hall-availability.status.guests_suffix'))
                                     ->badge()
                                     ->color('gray')
                                     ->icon('heroicon-o-users'),
@@ -264,14 +274,14 @@ class ViewHallAvailability extends ViewRecord
                     ->collapsed(),
 
                 // Statistics & Insights Section
-                Infolists\Components\Section::make('Statistics & Insights')
+                Infolists\Components\Section::make(__('hall-availability.view_page.statistics_insights'))
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('days_until')
-                                    ->label('Days Until')
+                                    ->label(__('hall-availability.view_page.days_until'))
                                     ->state(fn($record) => max(0, $record->date->diffInDays(now(), false) * -1))
-                                    ->suffix(' days')
+                                    ->suffix(__('hall-availability.status.days_suffix'))
                                     ->badge()
                                     ->color(fn($state) => match (true) {
                                         $state < 0 => 'gray',
@@ -282,22 +292,22 @@ class ViewHallAvailability extends ViewRecord
                                     ->icon('heroicon-o-clock'),
 
                                 Infolists\Components\TextEntry::make('same_day_slots')
-                                    ->label('Same Day Slots')
+                                    ->label(__('hall-availability.view_page.same_day_slots'))
                                     ->state(fn($record) => $this->getSameDaySlotsCount())
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-squares-2x2'),
 
                                 Infolists\Components\TextEntry::make('day_of_week')
-                                    ->label('Day of Week')
+                                    ->label(__('hall-availability.view_page.day_of_week'))
                                     ->state(fn($record) => $record->date->format('l'))
                                     ->badge()
                                     ->color('primary')
                                     ->icon('heroicon-o-calendar-days'),
 
                                 Infolists\Components\TextEntry::make('week_number')
-                                    ->label('Week Number')
-                                    ->state(fn($record) => 'Week ' . $record->date->weekOfYear)
+                                    ->label(__('hall-availability.view_page.week_number'))
+                                    ->state(fn($record) => __('hall-availability.status.week_prefix') . $record->date->weekOfYear)
                                     ->badge()
                                     ->color('gray')
                                     ->icon('heroicon-o-calendar'),
@@ -307,26 +317,26 @@ class ViewHallAvailability extends ViewRecord
                     ->collapsed(),
 
                 // System Information Section
-                Infolists\Components\Section::make('System Information')
+                Infolists\Components\Section::make(__('hall-availability.view_page.system_information'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('id')
-                                    ->label('Availability ID')
+                                    ->label(__('hall-availability.view_page.availability_id'))
                                     ->badge()
                                     ->color('gray')
                                     ->copyable()
                                     ->icon('heroicon-o-hashtag'),
 
                                 Infolists\Components\TextEntry::make('created_at')
-                                    ->label('Created At')
+                                    ->label(__('hall-availability.view_page.created_at'))
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar')
                                     ->since()
                                     ->tooltip(fn($record) => $record->created_at->format('d M Y, h:i A')),
 
                                 Infolists\Components\TextEntry::make('updated_at')
-                                    ->label('Last Updated')
+                                    ->label(__('hall-availability.view_page.last_updated'))
                                     ->dateTime('d M Y, h:i A')
                                     ->since()
                                     ->icon('heroicon-o-clock')
@@ -340,27 +350,27 @@ class ViewHallAvailability extends ViewRecord
 
     public function getTitle(): string
     {
-        return 'View Availability: ' . $this->record->hall->name;
+        return __('hall-availability.view_page.title') . ': ' . $this->record->hall->name;
     }
 
     public function getSubheading(): ?string
     {
         $date = $this->record->date->format('l, d F Y');
-        $timeSlot = match ($this->record->time_slot) {
-            'morning' => 'Morning',
-            'afternoon' => 'Afternoon',
-            'evening' => 'Evening',
-            'full_day' => 'Full Day',
-            default => ucfirst($this->record->time_slot),
-        };
-        $status = $this->record->is_available ? '✓ Available' : '✗ Blocked';
+        $timeSlot = __('hall-availability.time_slots_short.' . $this->record->time_slot)
+            ?: ucfirst($this->record->time_slot);
+        $status = $this->record->is_available
+            ? __('hall-availability.view_page.available_status')
+            : __('hall-availability.view_page.blocked_status');
 
         return "{$date} • {$timeSlot} • {$status}";
     }
 
     public function getBreadcrumb(): string
     {
-        return $this->record->date->format('d M Y') . ' - ' . ucfirst($this->record->time_slot);
+        $timeSlot = __('hall-availability.time_slots_short.' . $this->record->time_slot)
+            ?: ucfirst($this->record->time_slot);
+
+        return $this->record->date->format('d M Y') . ' - ' . $timeSlot;
     }
 
     public function hasCombinedRelationManagerTabsWithContent(): bool

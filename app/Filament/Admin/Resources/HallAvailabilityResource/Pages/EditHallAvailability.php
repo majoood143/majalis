@@ -19,27 +19,31 @@ class EditHallAvailability extends EditRecord
     {
         return [
             Actions\Action::make('toggleAvailability')
-                ->label(fn() => $this->record->is_available ? 'Block Slot' : 'Unblock Slot')
+                ->label(fn() => $this->record->is_available
+                    ? __('hall-availability.edit_page.toggle_block')
+                    : __('hall-availability.edit_page.toggle_unblock'))
                 ->icon(fn() => $this->record->is_available ? 'heroicon-o-lock-closed' : 'heroicon-o-lock-open')
                 ->color(fn() => $this->record->is_available ? 'danger' : 'success')
                 ->requiresConfirmation()
-                ->modalHeading(fn() => $this->record->is_available ? 'Block This Slot' : 'Unblock This Slot')
+                ->modalHeading(fn() => $this->record->is_available
+                    ? __('hall-availability.edit_page.block_heading')
+                    : __('hall-availability.edit_page.unblock_heading'))
                 ->modalDescription(fn() => $this->record->is_available
-                    ? 'This will block the slot and prevent new bookings.'
-                    : 'This will make the slot available for bookings again.')
+                    ? __('hall-availability.edit_page.block_description')
+                    : __('hall-availability.edit_page.unblock_description'))
                 ->form(fn() => $this->record->is_available ? [
                     \Filament\Forms\Components\Select::make('reason')
-                        ->label('Block Reason')
+                        ->label(__('hall-availability.edit_page.block_reason_label'))
                         ->options([
-                            'maintenance' => 'Under Maintenance',
-                            'blocked' => 'Blocked by Owner',
-                            'holiday' => 'Holiday',
-                            'custom' => 'Custom Block',
+                            'maintenance' => __('hall-availability.reasons.maintenance'),
+                            'blocked' => __('hall-availability.reasons.blocked'),
+                            'holiday' => __('hall-availability.reasons.holiday'),
+                            'custom' => __('hall-availability.reasons.custom'),
                         ])
                         ->required(),
 
                     \Filament\Forms\Components\Textarea::make('notes')
-                        ->label('Notes')
+                        ->label(__('hall-availability.notes'))
                         ->rows(3),
                 ] : [])
                 ->action(function (array $data) {
@@ -73,8 +77,8 @@ class EditHallAvailability extends EditRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Availability Updated')
-                        ->body('Slot availability has been updated.')
+                        ->title(__('hall-availability.notifications.availability_updated'))
+                        ->body(__('hall-availability.notifications.availability_updated_body'))
                         ->send();
 
                     // Clear cache
@@ -84,7 +88,7 @@ class EditHallAvailability extends EditRecord
                 }),
 
             Actions\Action::make('viewBookings')
-                ->label('View Bookings')
+                ->label(__('hall-availability.edit_page.view_bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
                 ->url(fn() => route('filament.admin.resources.bookings.index', [
@@ -95,25 +99,25 @@ class EditHallAvailability extends EditRecord
                 ])),
 
             Actions\Action::make('updatePrice')
-                ->label('Update Price')
+                ->label(__('hall-availability.edit_page.update_price'))
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
                 ->form([
                     \Filament\Forms\Components\TextInput::make('custom_price')
-                        ->label('Custom Price')
+                        ->label(__('hall-availability.custom_price'))
                         ->numeric()
                         ->prefix('OMR')
                         ->step(0.001)
                         ->minValue(0)
-                        ->helperText('Leave empty to use default hall pricing')
+                        ->helperText(__('hall-availability.edit_page.leave_empty_default'))
                         ->default(fn() => $this->record->custom_price),
 
                     \Filament\Forms\Components\Placeholder::make('current_default')
-                        ->label('Default Hall Price')
+                        ->label(__('hall-availability.edit_page.default_hall_price'))
                         ->content(fn() => number_format($this->getDefaultPrice(), 3) . ' OMR'),
 
                     \Filament\Forms\Components\Textarea::make('reason')
-                        ->label('Reason for Price Change')
+                        ->label(__('hall-availability.edit_page.price_change_reason'))
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
@@ -134,8 +138,8 @@ class EditHallAvailability extends EditRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Price Updated')
-                        ->body('Custom price has been updated successfully.')
+                        ->title(__('hall-availability.notifications.price_updated'))
+                        ->body(__('hall-availability.notifications.price_updated_body'))
                         ->send();
 
                     // Clear cache
@@ -143,31 +147,31 @@ class EditHallAvailability extends EditRecord
                 }),
 
             Actions\Action::make('duplicate')
-                ->label('Duplicate to Other Dates')
+                ->label(__('hall-availability.edit_page.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
                 ->form([
                     \Filament\Forms\Components\DatePicker::make('start_date')
-                        ->label('Start Date')
+                        ->label(__('hall-availability.bulk_block_modal.start_date'))
                         ->required()
                         ->native(false)
                         ->minDate(now())
                         ->default(now()->addDay()),
 
                     \Filament\Forms\Components\DatePicker::make('end_date')
-                        ->label('End Date')
+                        ->label(__('hall-availability.bulk_block_modal.end_date'))
                         ->required()
                         ->native(false)
                         ->minDate(now())
                         ->afterOrEqual('start_date'),
 
                     \Filament\Forms\Components\Toggle::make('copy_same_time_slot')
-                        ->label('Same Time Slot Only')
-                        ->helperText('Copy only the same time slot, or all time slots')
+                        ->label(__('hall-availability.edit_page.same_time_slot'))
+                        ->helperText(__('hall-availability.edit_page.same_time_slot_helper'))
                         ->default(true),
 
                     \Filament\Forms\Components\Toggle::make('skip_existing')
-                        ->label('Skip Existing Records')
+                        ->label(__('hall-availability.generate_availability_modal.skip_existing'))
                         ->default(true),
                 ])
                 ->action(function (array $data) {
@@ -175,21 +179,21 @@ class EditHallAvailability extends EditRecord
                 }),
 
             Actions\Action::make('extendBlock')
-                ->label('Extend Block Period')
+                ->label(__('hall-availability.edit_page.extend_block'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('danger')
                 ->visible(fn() => !$this->record->is_available)
                 ->form([
                     \Filament\Forms\Components\DatePicker::make('extend_until')
-                        ->label('Extend Until')
+                        ->label(__('hall-availability.edit_page.extend_until'))
                         ->required()
                         ->native(false)
                         ->minDate($this->record->date)
                         ->default($this->record->date->addWeek()),
 
                     \Filament\Forms\Components\Toggle::make('copy_settings')
-                        ->label('Copy Block Settings')
-                        ->helperText('Use the same reason and notes')
+                        ->label(__('hall-availability.edit_page.copy_settings'))
+                        ->helperText(__('hall-availability.edit_page.copy_settings_helper'))
                         ->default(true),
                 ])
                 ->action(function (array $data) {
@@ -223,12 +227,12 @@ class EditHallAvailability extends EditRecord
                 ->successNotification(
                     Notification::make()
                         ->success()
-                        ->title('Availability Deleted')
-                        ->body('The availability record has been deleted.')
+                        ->title(__('hall-availability.notifications.deleted'))
+                        ->body(__('hall-availability.notifications.deleted_body'))
                 ),
 
             Actions\Action::make('viewHistory')
-                ->label('View History')
+                ->label(__('hall-availability.edit_page.view_history'))
                 ->icon('heroicon-o-clock')
                 ->color('gray')
                 ->modalContent(fn() => view('filament.pages.activity-log', [
@@ -238,7 +242,7 @@ class EditHallAvailability extends EditRecord
                         ->get()
                 ]))
                 ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
+                ->modalCancelActionLabel(__('hall-availability.edit_page.close')),
         ];
     }
 
@@ -251,8 +255,8 @@ class EditHallAvailability extends EditRecord
     {
         return Notification::make()
             ->success()
-            ->title('Availability Updated')
-            ->body('The availability record has been updated successfully.')
+            ->title(__('hall-availability.notifications.availability_updated'))
+            ->body(__('hall-availability.notifications.record_updated_body'))
             ->duration(5000);
     }
 
@@ -267,8 +271,8 @@ class EditHallAvailability extends EditRecord
         if (isset($data['date']) && \Carbon\Carbon::parse($data['date'])->isPast()) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Date')
-                ->body('Cannot set availability for past dates.')
+                ->title(__('hall-availability.errors.invalid_date'))
+                ->body(__('hall-availability.errors.invalid_date_edit_body'))
                 ->persistent()
                 ->send();
 
@@ -279,8 +283,8 @@ class EditHallAvailability extends EditRecord
         if (isset($data['custom_price']) && $data['custom_price'] < 0) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Price')
-                ->body('Custom price cannot be negative.')
+                ->title(__('hall-availability.errors.invalid_price'))
+                ->body(__('hall-availability.errors.invalid_price_body'))
                 ->persistent()
                 ->send();
 
@@ -297,8 +301,8 @@ class EditHallAvailability extends EditRecord
         if (!$data['is_available'] && empty($data['reason'])) {
             Notification::make()
                 ->warning()
-                ->title('Missing Reason')
-                ->body('Please provide a reason for blocking this slot.')
+                ->title(__('hall-availability.errors.missing_reason'))
+                ->body(__('hall-availability.errors.missing_reason_body'))
                 ->send();
         }
 
@@ -318,8 +322,8 @@ class EditHallAvailability extends EditRecord
             if ($exists) {
                 Notification::make()
                     ->danger()
-                    ->title('Duplicate Slot')
-                    ->body('This time slot already exists for the selected hall and date.')
+                    ->title(__('hall-availability.errors.duplicate_slot'))
+                    ->body(__('hall-availability.errors.duplicate_slot_body'))
                     ->persistent()
                     ->send();
 
@@ -441,8 +445,11 @@ class EditHallAvailability extends EditRecord
 
         Notification::make()
             ->success()
-            ->title('Duplication Completed')
-            ->body("Created: {$createdCount}, Skipped: {$skippedCount} records.")
+            ->title(__('hall-availability.notifications.duplication_completed'))
+            ->body(__('hall-availability.notifications.duplication_body', [
+                'created' => $createdCount,
+                'skipped' => $skippedCount,
+            ]))
             ->send();
     }
 
@@ -479,8 +486,8 @@ class EditHallAvailability extends EditRecord
 
         Notification::make()
             ->success()
-            ->title('Block Period Extended')
-            ->body("{$createdCount} slot(s) blocked.")
+            ->title(__('hall-availability.notifications.block_extended'))
+            ->body(__('hall-availability.notifications.block_extended_body', ['count' => $createdCount]))
             ->send();
     }
 
@@ -508,17 +515,20 @@ class EditHallAvailability extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Edit Availability: ' . $this->record->hall->name;
+        return __('hall-availability.edit_page.title') . ': ' . $this->record->hall->name;
     }
 
     public function getSubheading(): ?string
     {
         $date = $this->record->date->format('d M Y');
-        $timeSlot = ucfirst(str_replace('_', ' ', $this->record->time_slot));
-        $status = $this->record->is_available ? 'Available' : 'Blocked';
+        $timeSlot = __('hall-availability.time_slots_short.' . $this->record->time_slot)
+            ?: ucfirst(str_replace('_', ' ', $this->record->time_slot));
+        $status = $this->record->is_available
+            ? __('hall-availability.status.available')
+            : __('hall-availability.status.blocked');
         $price = $this->record->custom_price
-            ? number_format($this->record->custom_price, 3) . ' OMR (Custom)'
-            : 'Default Price';
+            ? number_format($this->record->custom_price, 3) . ' OMR'
+            : __('hall-availability.default_price');
 
         return "{$date} • {$timeSlot} • {$status} • {$price}";
     }

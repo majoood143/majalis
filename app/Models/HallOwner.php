@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Mail\HallOwnerRejectedMail;
+use App\Mail\HallOwnerVerifiedMail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
@@ -149,6 +152,11 @@ class HallOwner extends Model
         // Update user role
         $this->user->update(['role' => 'hall_owner']);
         $this->user->assignRole('hall_owner');
+
+        // Send verification email
+        if ($this->user->email) {
+            Mail::to($this->user->email)->queue(new HallOwnerVerifiedMail($this));
+        }
     }
 
 
@@ -159,6 +167,11 @@ class HallOwner extends Model
             'is_verified' => false,
             'verification_notes' => $notes,
         ]);
+
+        // Send rejection email
+        if ($this->user->email) {
+            Mail::to($this->user->email)->queue(new HallOwnerRejectedMail($this, $notes));
+        }
     }
 
     public function activate(): void

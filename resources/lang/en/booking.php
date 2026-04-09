@@ -759,6 +759,12 @@ return [
         'transaction_history' => 'Transaction History',
         'amount_paid' => 'Amount Paid',
         'failed_at' => 'Failed At',
+        'total_refunded' => 'Total Refunded',
+        'pending_payments' => 'Pending Payments',
+        'refund_details' => 'Refund Details',
+        'refund_reason' => 'Refund Reason',
+        'refunded_at' => 'Refunded At',
+        'failure_reason' => 'Failure Reason',
     ],
 
     // Placeholders
@@ -798,6 +804,7 @@ return [
         'failed' => 'Failed',
         'refunded' => 'Refunded',
         'partial' => 'Partially Paid',
+        'partially_refunded' => 'Partially Refunded',
         'cancelled' => 'Cancelled',
     ],
 

@@ -7,6 +7,7 @@ use App\Models\ExtraService;
 use App\Models\Hall;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Tabs\Tab;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -240,6 +241,8 @@ class ExtraServiceResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->label(__('extra-service.view')),
                     Tables\Actions\EditAction::make()
                         ->label(__('extra-service.edit')),
                     Tables\Actions\DeleteAction::make()
@@ -267,6 +270,7 @@ class ExtraServiceResource extends Resource
         return [
             'index' => Pages\ListExtraServices::route('/'),
             'create' => Pages\CreateExtraService::route('/create'),
+            'view' => Pages\ViewExtraService::route('/{record}'),
             'edit' => Pages\EditExtraService::route('/{record}/edit'),
         ];
     }

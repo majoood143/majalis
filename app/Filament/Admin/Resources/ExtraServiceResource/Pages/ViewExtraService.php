@@ -25,7 +25,7 @@ class ViewExtraService extends ViewRecord
                 ->color('primary'),
 
             Actions\Action::make('toggleActive')
-                ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
+                ->label(fn() => $this->record->is_active ? __('extra-service.page_actions.deactivate') : __('extra-service.page_actions.activate'))
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
                 ->requiresConfirmation()
@@ -33,8 +33,8 @@ class ViewExtraService extends ViewRecord
                     if ($this->record->is_active && $this->record->is_required) {
                         Notification::make()
                             ->danger()
-                            ->title('Cannot Deactivate')
-                            ->body('Required services cannot be deactivated.')
+                            ->title(__('extra-service.notifications.cannot_deactivate_title'))
+                            ->body(__('extra-service.notifications.cannot_deactivate_body_short'))
                             ->send();
                         return;
                     }
@@ -44,7 +44,7 @@ class ViewExtraService extends ViewRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Status Updated')
+                        ->title(__('extra-service.notifications.status_updated_title'))
                         ->send();
 
                     Cache::tags(['services', 'hall_' . $this->record->hall_id])->flush();
@@ -52,7 +52,7 @@ class ViewExtraService extends ViewRecord
                 }),
 
             Actions\Action::make('toggleRequired')
-                ->label(fn() => $this->record->is_required ? 'Make Optional' : 'Make Required')
+                ->label(fn() => $this->record->is_required ? __('extra-service.page_actions.make_optional') : __('extra-service.page_actions.make_required'))
                 ->icon(fn() => $this->record->is_required ? 'heroicon-o-x-mark' : 'heroicon-o-star')
                 ->color(fn() => $this->record->is_required ? 'gray' : 'warning')
                 ->requiresConfirmation()
@@ -67,7 +67,7 @@ class ViewExtraService extends ViewRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Requirement Status Updated')
+                        ->title(__('extra-service.notifications.requirement_updated_title'))
                         ->send();
 
                     Cache::tags(['services', 'hall_' . $this->record->hall_id])->flush();
@@ -75,7 +75,7 @@ class ViewExtraService extends ViewRecord
                 }),
 
             Actions\Action::make('viewHall')
-                ->label('View Hall')
+                ->label(__('extra-service.page_actions.view_hall'))
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
                 ->url(fn() => route('filament.admin.resources.halls.view', [
@@ -83,7 +83,7 @@ class ViewExtraService extends ViewRecord
                 ])),
 
             Actions\Action::make('viewBookings')
-                ->label('View Bookings')
+                ->label(__('extra-service.page_actions.view_bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
                 ->url(fn() => route('filament.admin.resources.bookings.index', [
@@ -93,19 +93,19 @@ class ViewExtraService extends ViewRecord
                 ])),
 
             Actions\Action::make('calculateRevenue')
-                ->label('Revenue Analysis')
+                ->label(__('extra-service.page_actions.revenue_analysis'))
                 ->icon('heroicon-o-chart-bar')
                 ->color('success')
-                ->modalHeading('Service Revenue Analysis')
+                ->modalHeading(__('extra-service.page_actions.service_revenue_analysis_heading'))
                 ->modalContent(fn() => view('filament.pages.service-revenue-analysis', [
                     'service' => $this->record,
                     'stats' => $this->getRevenueStats(),
                 ]))
                 ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
+                ->modalCancelActionLabel(__('extra-service.page_actions.close')),
 
             Actions\Action::make('duplicate')
-                ->label('Duplicate')
+                ->label(__('extra-service.page_actions.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
                 ->requiresConfirmation()
@@ -122,10 +122,10 @@ class ViewExtraService extends ViewRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Service Duplicated')
+                        ->title(__('extra-service.notifications.service_duplicated_title'))
                         ->actions([
                             \Filament\Notifications\Actions\Action::make('view')
-                                ->label('View Duplicate')
+                                ->label(__('extra-service.page_actions.view_duplicate'))
                                 ->url(ExtraServiceResource::getUrl('view', ['record' => $newService->id])),
                         ])
                         ->send();
@@ -136,8 +136,8 @@ class ViewExtraService extends ViewRecord
                     if ($this->record->is_required) {
                         Notification::make()
                             ->danger()
-                            ->title('Cannot Delete')
-                            ->body('Required services cannot be deleted.')
+                            ->title(__('extra-service.notifications.cannot_delete_title'))
+                            ->body(__('extra-service.notifications.cannot_delete_body'))
                             ->persistent()
                             ->send();
 
@@ -159,7 +159,7 @@ class ViewExtraService extends ViewRecord
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Service Overview')
+                Infolists\Components\Section::make(__('extra-service.infolist.service_overview'))
                     ->schema([
                         Infolists\Components\ImageEntry::make('image')
                             ->label('')
@@ -171,7 +171,7 @@ class ViewExtraService extends ViewRecord
                         Infolists\Components\Grid::make(2)
                             ->schema([
                                 Infolists\Components\TextEntry::make('name')
-                                    ->label('Service Name')
+                                    ->label(__('extra-service.infolist.service_name'))
                                     ->formatStateUsing(fn($record) => $record->name)
                                     ->badge()
                                     ->color('primary')
@@ -179,7 +179,7 @@ class ViewExtraService extends ViewRecord
                                     ->icon('heroicon-o-gift'),
 
                                 Infolists\Components\TextEntry::make('hall.name')
-                                    ->label('Hall')
+                                    ->label(__('extra-service.infolist.hall'))
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-building-storefront'),
@@ -188,38 +188,38 @@ class ViewExtraService extends ViewRecord
                         Infolists\Components\Grid::make(2)
                             ->schema([
                                 Infolists\Components\TextEntry::make('name.en')
-                                    ->label('Name (English)')
+                                    ->label(__('extra-service.infolist.name_en'))
                                     ->icon('heroicon-o-language'),
 
                                 Infolists\Components\TextEntry::make('name.ar')
-                                    ->label('Name (Arabic)')
+                                    ->label(__('extra-service.infolist.name_ar'))
                                     ->icon('heroicon-o-language'),
                             ]),
                     ])
                     ->icon('heroicon-o-information-circle')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Description')
+                Infolists\Components\Section::make(__('extra-service.infolist.description_section'))
                     ->schema([
                         Infolists\Components\TextEntry::make('description.en')
-                            ->label('Description (English)')
+                            ->label(__('extra-service.infolist.description_en'))
                             ->html()
                             ->columnSpanFull(),
 
                         Infolists\Components\TextEntry::make('description.ar')
-                            ->label('Description (Arabic)')
+                            ->label(__('extra-service.infolist.description_ar'))
                             ->html()
                             ->columnSpanFull(),
                     ])
                     ->icon('heroicon-o-document-text')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Pricing Details')
+                Infolists\Components\Section::make(__('extra-service.infolist.pricing_details'))
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('price')
-                                    ->label('Price')
+                                    ->label(__('extra-service.infolist.price'))
                                     ->money('OMR')
                                     ->badge()
                                     ->color('success')
@@ -228,13 +228,13 @@ class ViewExtraService extends ViewRecord
                                     ->copyable(),
 
                                 Infolists\Components\TextEntry::make('unit')
-                                    ->label('Unit')
+                                    ->label(__('extra-service.infolist.unit'))
                                     ->formatStateUsing(fn(string $state): string => match ($state) {
-                                        'per_person' => 'Per Person',
-                                        'per_item' => 'Per Item',
-                                        'per_hour' => 'Per Hour',
-                                        'fixed' => 'Fixed Price',
-                                        default => ucfirst($state),
+                                        'per_person' => __('extra-service.infolist.unit_per_person'),
+                                        'per_item'   => __('extra-service.infolist.unit_per_item'),
+                                        'per_hour'   => __('extra-service.infolist.unit_per_hour'),
+                                        'fixed'      => __('extra-service.units.fixed'),
+                                        default      => ucfirst($state),
                                     })
                                     ->badge()
                                     ->color('info')
@@ -247,30 +247,30 @@ class ViewExtraService extends ViewRecord
                                     }),
 
                                 Infolists\Components\TextEntry::make('minimum_quantity')
-                                    ->label('Min Quantity')
+                                    ->label(__('extra-service.infolist.min_quantity'))
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-arrow-down-circle'),
 
                                 Infolists\Components\TextEntry::make('maximum_quantity')
-                                    ->label('Max Quantity')
-                                    ->placeholder('Unlimited')
+                                    ->label(__('extra-service.infolist.max_quantity'))
+                                    ->placeholder(__('extra-service.infolist.unlimited'))
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-arrow-up-circle'),
                             ]),
 
                         Infolists\Components\TextEntry::make('price_range')
-                            ->label('Price Range')
+                            ->label(__('extra-service.infolist.price_range'))
                             ->state(function ($record) {
                                 if ($record->unit === 'fixed') {
-                                    return number_format($record->price, 3) . ' OMR (Fixed)';
+                                    return number_format($record->price, 3) . ' OMR (' . __('extra-service.infolist.unit_fixed') . ')';
                                 }
 
                                 $min = $record->price * $record->minimum_quantity;
                                 $max = $record->maximum_quantity
                                     ? $record->price * $record->maximum_quantity
-                                    : 'Unlimited';
+                                    : __('extra-service.infolist.unlimited');
 
                                 $maxDisplay = is_numeric($max) ? number_format($max, 3) . ' OMR' : $max;
 
@@ -282,12 +282,12 @@ class ViewExtraService extends ViewRecord
                     ->icon('heroicon-o-banknotes')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Service Settings')
+                Infolists\Components\Section::make(__('extra-service.infolist.service_settings'))
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\IconEntry::make('is_active')
-                                    ->label('Active Status')
+                                    ->label(__('extra-service.infolist.active_status'))
                                     ->boolean()
                                     ->trueIcon('heroicon-o-check-circle')
                                     ->falseIcon('heroicon-o-x-circle')
@@ -296,7 +296,7 @@ class ViewExtraService extends ViewRecord
                                     ->size(Infolists\Components\IconEntry\IconEntrySize::Large),
 
                                 Infolists\Components\IconEntry::make('is_required')
-                                    ->label('Required Service')
+                                    ->label(__('extra-service.infolist.required_service'))
                                     ->boolean()
                                     ->trueIcon('heroicon-o-star')
                                     ->falseIcon('heroicon-o-minus-circle')
@@ -305,14 +305,14 @@ class ViewExtraService extends ViewRecord
                                     ->size(Infolists\Components\IconEntry\IconEntrySize::Large),
 
                                 Infolists\Components\TextEntry::make('order')
-                                    ->label('Display Order')
+                                    ->label(__('extra-service.infolist.display_order'))
                                     ->badge()
                                     ->color('gray')
                                     ->icon('heroicon-o-bars-3'),
 
                                 Infolists\Components\TextEntry::make('image_status')
-                                    ->label('Image')
-                                    ->state(fn($record) => $record->image ? 'Available' : 'No Image')
+                                    ->label(__('extra-service.infolist.image'))
+                                    ->state(fn($record) => $record->image ? __('extra-service.infolist.image_available') : __('extra-service.infolist.no_image'))
                                     ->badge()
                                     ->color(fn($record) => $record->image ? 'success' : 'gray')
                                     ->icon(fn($record) => $record->image ? 'heroicon-o-photo' : 'heroicon-o-x-mark'),
@@ -321,33 +321,33 @@ class ViewExtraService extends ViewRecord
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Usage Statistics')
+                Infolists\Components\Section::make(__('extra-service.infolist.usage_statistics'))
                     ->schema([
                         Infolists\Components\Grid::make(4)
                             ->schema([
                                 Infolists\Components\TextEntry::make('total_bookings')
-                                    ->label('Total Bookings')
+                                    ->label(__('extra-service.infolist.total_bookings'))
                                     ->state(fn($record) => $this->getTotalBookings($record))
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-calendar'),
 
                                 Infolists\Components\TextEntry::make('total_revenue')
-                                    ->label('Total Revenue')
+                                    ->label(__('extra-service.infolist.total_revenue'))
                                     ->state(fn($record) => number_format($this->getTotalRevenue($record), 3) . ' OMR')
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-banknotes'),
 
                                 Infolists\Components\TextEntry::make('avg_quantity')
-                                    ->label('Avg Quantity')
+                                    ->label(__('extra-service.infolist.avg_quantity'))
                                     ->state(fn($record) => number_format($this->getAverageQuantity($record), 2))
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-chart-bar'),
 
                                 Infolists\Components\TextEntry::make('last_booked')
-                                    ->label('Last Booked')
+                                    ->label(__('extra-service.infolist.last_booked'))
                                     ->state(fn($record) => $this->getLastBookedDate($record))
                                     ->badge()
                                     ->color('gray')
@@ -357,24 +357,24 @@ class ViewExtraService extends ViewRecord
                     ->icon('heroicon-o-chart-bar-square')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('System Information')
+                Infolists\Components\Section::make(__('extra-service.infolist.system_information'))
                     ->schema([
                         Infolists\Components\Grid::make(3)
                             ->schema([
                                 Infolists\Components\TextEntry::make('id')
-                                    ->label('Service ID')
+                                    ->label(__('extra-service.infolist.service_id'))
                                     ->badge()
                                     ->color('gray')
                                     ->copyable()
                                     ->icon('heroicon-o-hashtag'),
 
                                 Infolists\Components\TextEntry::make('created_at')
-                                    ->label('Created At')
+                                    ->label(__('extra-service.infolist.created_at'))
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar'),
 
                                 Infolists\Components\TextEntry::make('updated_at')
-                                    ->label('Last Updated')
+                                    ->label(__('extra-service.infolist.last_updated'))
                                     ->dateTime('d M Y, h:i A')
                                     ->since()
                                     ->icon('heroicon-o-clock'),
@@ -383,7 +383,7 @@ class ViewExtraService extends ViewRecord
                     ->icon('heroicon-o-server')
                     ->collapsed(),
 
-                Infolists\Components\Section::make('Activity History')
+                Infolists\Components\Section::make(__('extra-service.infolist.activity_history'))
                     ->schema([
                         Infolists\Components\ViewEntry::make('activity_log')
                             ->label('')
@@ -403,22 +403,22 @@ class ViewExtraService extends ViewRecord
 
     public function getTitle(): string
     {
-        return 'View Service: ' . $this->record->name;
+        return __('extra-service.page_titles.view', ['name' => $this->record->name]);
     }
 
     public function getSubheading(): ?string
     {
-        $hall = $this->record->hall->name ?? 'Unknown Hall';
+        $hall = $this->record->hall->name ?? __('extra-service.unknown_city');
         $price = number_format($this->record->price, 3) . ' OMR';
         $unit = match ($this->record->unit) {
-            'per_person' => 'Per Person',
-            'per_item' => 'Per Item',
-            'per_hour' => 'Per Hour',
-            'fixed' => 'Fixed',
-            default => ucfirst($this->record->unit),
+            'per_person' => __('extra-service.infolist.unit_per_person'),
+            'per_item'   => __('extra-service.infolist.unit_per_item'),
+            'per_hour'   => __('extra-service.infolist.unit_per_hour'),
+            'fixed'      => __('extra-service.infolist.unit_fixed'),
+            default      => ucfirst($this->record->unit),
         };
-        $status = $this->record->is_active ? 'Active' : 'Inactive';
-        $required = $this->record->is_required ? '• Required' : '';
+        $status = $this->record->is_active ? __('extra-service.status.active') : __('extra-service.status.inactive');
+        $required = $this->record->is_required ? '• ' . __('extra-service.status.required') : '';
 
         return "{$hall} • {$status} {$required} • {$price} / {$unit}";
     }
@@ -491,7 +491,7 @@ class ViewExtraService extends ViewRecord
     protected function getLastBookedDate($record): string
     {
         // Implement based on your booking structure
-        return 'Never';
+        return __('extra-service.infolist.never');
     }
 
     public function getBreadcrumb(): string

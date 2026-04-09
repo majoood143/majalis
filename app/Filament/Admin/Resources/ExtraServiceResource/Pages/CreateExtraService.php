@@ -26,8 +26,8 @@ class CreateExtraService extends CreateRecord
     {
         return Notification::make()
             ->success()
-            ->title('Extra Service Created')
-            ->body('The extra service has been created successfully.')
+            ->title(__('extra-service.notifications.extra_service_created_title'))
+            ->body(__('extra-service.notifications.extra_service_created_body'))
             ->duration(5000);
     }
 
@@ -44,8 +44,8 @@ class CreateExtraService extends CreateRecord
         if ($data['price'] < 0) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Price')
-                ->body('Price cannot be negative.')
+                ->title(__('extra-service.notifications.invalid_price_title'))
+                ->body(__('extra-service.notifications.invalid_price_body'))
                 ->persistent()
                 ->send();
 
@@ -56,8 +56,8 @@ class CreateExtraService extends CreateRecord
         if (isset($data['maximum_quantity']) && $data['maximum_quantity'] < $data['minimum_quantity']) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Quantity Range')
-                ->body('Maximum quantity must be greater than or equal to minimum quantity.')
+                ->title(__('extra-service.notifications.invalid_quantity_range_title'))
+                ->body(__('extra-service.notifications.invalid_quantity_range_body'))
                 ->persistent()
                 ->send();
 
@@ -75,8 +75,8 @@ class CreateExtraService extends CreateRecord
         if ($exists) {
             Notification::make()
                 ->warning()
-                ->title('Similar Service Found')
-                ->body('A service with a similar name already exists for this hall.')
+                ->title(__('extra-service.notifications.similar_service_title'))
+                ->body(__('extra-service.notifications.similar_service_body'))
                 ->persistent()
                 ->send();
         }
@@ -85,8 +85,8 @@ class CreateExtraService extends CreateRecord
         if ($data['is_required'] && !$data['is_active']) {
             Notification::make()
                 ->warning()
-                ->title('Auto-Activation')
-                ->body('Required services must be active. Service has been activated automatically.')
+                ->title(__('extra-service.notifications.auto_activation_title'))
+                ->body(__('extra-service.notifications.auto_activation_body'))
                 ->send();
 
             $data['is_active'] = true;
@@ -182,12 +182,12 @@ class CreateExtraService extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Create Extra Service';
+        return __('extra-service.page_titles.create');
     }
 
     public function getSubheading(): ?string
     {
-        return 'Add a new extra service to a hall';
+        return __('extra-service.page_subheadings.create');
     }
 
     public function mount(): void

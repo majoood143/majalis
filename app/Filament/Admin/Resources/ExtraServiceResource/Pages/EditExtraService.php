@@ -20,21 +20,21 @@ class EditExtraService extends EditRecord
     {
         return [
             Actions\Action::make('toggleActive')
-                ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
+                ->label(fn() => $this->record->is_active ? __('extra-service.page_actions.deactivate') : __('extra-service.page_actions.activate'))
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
                 ->requiresConfirmation()
-                ->modalHeading(fn() => $this->record->is_active ? 'Deactivate Service' : 'Activate Service')
+                ->modalHeading(fn() => $this->record->is_active ? __('extra-service.page_actions.deactivate_heading') : __('extra-service.page_actions.activate_heading'))
                 ->modalDescription(fn() => $this->record->is_active
-                    ? 'This will deactivate the service. It will no longer be available for new bookings.'
-                    : 'This will activate the service and make it available for bookings.')
+                    ? __('extra-service.page_actions.deactivate_description')
+                    : __('extra-service.page_actions.activate_description'))
                 ->action(function () {
                     // Prevent deactivation of required services
                     if ($this->record->is_active && $this->record->is_required) {
                         Notification::make()
                             ->danger()
-                            ->title('Cannot Deactivate')
-                            ->body('Required services cannot be deactivated. Remove the required flag first.')
+                            ->title(__('extra-service.notifications.cannot_deactivate_title'))
+                            ->body(__('extra-service.notifications.cannot_deactivate_body'))
                             ->persistent()
                             ->send();
                         return;
@@ -44,8 +44,8 @@ class EditExtraService extends EditRecord
                     $this->record->save();
 
                     Notification::make()
-                        ->title('Status Updated')
-                        ->body('Service status has been updated successfully.')
+                        ->title(__('extra-service.notifications.status_updated_title'))
+                        ->body(__('extra-service.notifications.status_updated_body'))
                         ->success()
                         ->send();
 
@@ -56,14 +56,14 @@ class EditExtraService extends EditRecord
                 }),
 
             Actions\Action::make('toggleRequired')
-                ->label(fn() => $this->record->is_required ? 'Make Optional' : 'Make Required')
+                ->label(fn() => $this->record->is_required ? __('extra-service.page_actions.make_optional') : __('extra-service.page_actions.make_required'))
                 ->icon(fn() => $this->record->is_required ? 'heroicon-o-x-mark' : 'heroicon-o-star')
                 ->color(fn() => $this->record->is_required ? 'gray' : 'warning')
                 ->requiresConfirmation()
-                ->modalHeading(fn() => $this->record->is_required ? 'Make Service Optional' : 'Make Service Required')
+                ->modalHeading(fn() => $this->record->is_required ? __('extra-service.page_actions.make_optional_heading') : __('extra-service.page_actions.make_required_heading'))
                 ->modalDescription(fn() => $this->record->is_required
-                    ? 'This service will no longer be automatically added to bookings.'
-                    : 'This service will be automatically added to all new bookings for this hall.')
+                    ? __('extra-service.page_actions.make_optional_description')
+                    : __('extra-service.page_actions.make_required_description'))
                 ->action(function () {
                     $wasRequired = $this->record->is_required;
                     $this->record->is_required = !$this->record->is_required;
@@ -76,8 +76,8 @@ class EditExtraService extends EditRecord
                     $this->record->save();
 
                     Notification::make()
-                        ->title('Requirement Status Updated')
-                        ->body('Service requirement status has been updated.')
+                        ->title(__('extra-service.notifications.requirement_updated_title'))
+                        ->body(__('extra-service.notifications.requirement_updated_body'))
                         ->success()
                         ->send();
 
@@ -88,7 +88,7 @@ class EditExtraService extends EditRecord
                 }),
 
             Actions\Action::make('viewBookings')
-                ->label('View Bookings')
+                ->label(__('extra-service.page_actions.view_bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
                 ->url(fn() => route('filament.admin.resources.bookings.index', [
@@ -98,24 +98,24 @@ class EditExtraService extends EditRecord
                 ])),
 
             Actions\Action::make('calculateRevenue')
-                ->label('Calculate Revenue')
+                ->label(__('extra-service.page_actions.calculate_revenue'))
                 ->icon('heroicon-o-calculator')
                 ->color('success')
-                ->modalHeading('Service Revenue Analysis')
+                ->modalHeading(__('extra-service.page_actions.service_revenue_analysis_heading'))
                 ->modalContent(fn() => view('filament.pages.service-revenue-analysis', [
                     'service' => $this->record,
                     'stats' => $this->getRevenueStats(),
                 ]))
                 ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
+                ->modalCancelActionLabel(__('extra-service.page_actions.close')),
 
             Actions\Action::make('updatePrice')
-                ->label('Update Price')
+                ->label(__('extra-service.page_actions.update_price'))
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
                 ->form([
                     \Filament\Forms\Components\TextInput::make('new_price')
-                        ->label('New Price')
+                        ->label(__('extra-service.page_actions.new_price'))
                         ->numeric()
                         ->required()
                         ->prefix('OMR')
@@ -124,12 +124,12 @@ class EditExtraService extends EditRecord
                         ->default(fn() => $this->record->price),
 
                     \Filament\Forms\Components\Textarea::make('reason')
-                        ->label('Reason for Price Change')
+                        ->label(__('extra-service.page_actions.reason_for_price_change'))
                         ->rows(3),
 
                     \Filament\Forms\Components\Toggle::make('apply_to_pending')
-                        ->label('Apply to Pending Bookings')
-                        ->helperText('Update price for pending bookings that include this service')
+                        ->label(__('extra-service.page_actions.apply_to_pending'))
+                        ->helperText(__('extra-service.page_actions.apply_to_pending_helper'))
                         ->default(false),
                 ])
                 ->action(function (array $data) {
@@ -155,8 +155,8 @@ class EditExtraService extends EditRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Price Updated')
-                        ->body('Service price has been updated successfully.')
+                        ->title(__('extra-service.notifications.price_updated_title'))
+                        ->body(__('extra-service.notifications.price_updated_body'))
                         ->send();
 
                     // Clear cache
@@ -164,12 +164,12 @@ class EditExtraService extends EditRecord
                 }),
 
             Actions\Action::make('duplicate')
-                ->label('Duplicate')
+                ->label(__('extra-service.page_actions.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
                 ->form([
                     \Filament\Forms\Components\Select::make('target_hall_id')
-                        ->label('Target Hall')
+                        ->label(__('extra-service.page_actions.target_hall'))
                         ->options(\App\Models\Hall::pluck('name', 'id'))
                         ->default($this->record->hall_id)
                         ->required()
@@ -177,7 +177,7 @@ class EditExtraService extends EditRecord
                         ->preload(),
 
                     \Filament\Forms\Components\Toggle::make('copy_image')
-                        ->label('Copy Image')
+                        ->label(__('extra-service.page_actions.copy_image'))
                         ->default(true),
                 ])
                 ->action(function (array $data) {
@@ -201,24 +201,24 @@ class EditExtraService extends EditRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Service Duplicated')
-                        ->body('The service has been duplicated successfully.')
+                        ->title(__('extra-service.notifications.service_duplicated_title'))
+                        ->body(__('extra-service.notifications.service_duplicated_body'))
                         ->actions([
                             \Filament\Notifications\Actions\Action::make('view')
-                                ->label('Edit Duplicate')
+                                ->label(__('extra-service.page_actions.edit_duplicate'))
                                 ->url(ExtraServiceResource::getUrl('edit', ['record' => $newService->id])),
                         ])
                         ->send();
                 }),
 
             Actions\Action::make('replaceImage')
-                ->label('Replace Image')
+                ->label(__('extra-service.page_actions.replace_image'))
                 ->icon('heroicon-o-photo')
                 ->color('info')
                 ->visible(fn() => $this->record->image !== null)
                 ->form([
                     \Filament\Forms\Components\FileUpload::make('new_image')
-                        ->label('New Image')
+                        ->label(__('extra-service.page_actions.new_image'))
                         ->image()
                         ->required()
                         ->directory('services'),
@@ -234,8 +234,8 @@ class EditExtraService extends EditRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Image Updated')
-                        ->body('Service image has been replaced successfully.')
+                        ->title(__('extra-service.notifications.image_updated_title'))
+                        ->body(__('extra-service.notifications.image_updated_body'))
                         ->send();
                 }),
 
@@ -246,11 +246,11 @@ class EditExtraService extends EditRecord
                     // if ($this->record->bookings()->exists()) {
                     //     Notification::make()
                     //         ->danger()
-                    //         ->title('Cannot Delete Service')
+                    //         ->title(__('extra-service.notifications.cannot_delete_required_title'))
                     //         ->body('This service is used in existing bookings.')
                     //         ->persistent()
                     //         ->send();
-                    //     
+                    //
                     //     $action->cancel();
                     // }
 
@@ -258,8 +258,8 @@ class EditExtraService extends EditRecord
                     if ($this->record->is_required) {
                         Notification::make()
                             ->danger()
-                            ->title('Cannot Delete Required Service')
-                            ->body('Required services cannot be deleted. Make it optional first.')
+                            ->title(__('extra-service.notifications.cannot_delete_required_title'))
+                            ->body(__('extra-service.notifications.cannot_delete_required_body'))
                             ->persistent()
                             ->send();
 
@@ -278,22 +278,22 @@ class EditExtraService extends EditRecord
                 ->successNotification(
                     Notification::make()
                         ->success()
-                        ->title('Service Deleted')
-                        ->body('The extra service has been deleted successfully.')
+                        ->title(__('extra-service.notifications.service_deleted_title'))
+                        ->body(__('extra-service.notifications.service_deleted_body'))
                 ),
 
-            Actions\Action::make('viewHistory')
-                ->label('View History')
-                ->icon('heroicon-o-clock')
-                ->color('gray')
-                ->modalContent(fn() => view('filament.pages.activity-log', [
-                    'activities' => activity()
-                        ->forSubject($this->record)
-                        ->latest()
-                        ->get()
-                ]))
-                ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
+            // Actions\Action::make('viewHistory')
+            //     ->label('View History')
+            //     ->icon('heroicon-o-clock')
+            //     ->color('gray')
+            //     ->modalContent(fn() => view('filament.pages.activity-log', [
+            //         'activities' => activity()
+            //             ->forSubject($this->record)
+            //             ->latest()
+            //             ->get()
+            //     ]))
+            //     ->modalSubmitAction(false)
+            //     ->modalCancelActionLabel('Close'),
         ];
     }
 
@@ -306,8 +306,8 @@ class EditExtraService extends EditRecord
     {
         return Notification::make()
             ->success()
-            ->title('Service Updated')
-            ->body('The extra service has been updated successfully.')
+            ->title(__('extra-service.notifications.service_updated_title'))
+            ->body(__('extra-service.notifications.service_updated_body'))
             ->duration(5000);
     }
 
@@ -322,8 +322,8 @@ class EditExtraService extends EditRecord
         if ($data['price'] < 0) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Price')
-                ->body('Price cannot be negative.')
+                ->title(__('extra-service.notifications.invalid_price_title'))
+                ->body(__('extra-service.notifications.invalid_price_body'))
                 ->persistent()
                 ->send();
 
@@ -334,8 +334,8 @@ class EditExtraService extends EditRecord
         if (isset($data['maximum_quantity']) && $data['maximum_quantity'] < $data['minimum_quantity']) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Quantity Range')
-                ->body('Maximum quantity must be greater than or equal to minimum quantity.')
+                ->title(__('extra-service.notifications.invalid_quantity_range_title'))
+                ->body(__('extra-service.notifications.invalid_quantity_range_body'))
                 ->persistent()
                 ->send();
 
@@ -346,8 +346,8 @@ class EditExtraService extends EditRecord
         if ($data['is_required'] && !$data['is_active']) {
             Notification::make()
                 ->warning()
-                ->title('Auto-Activation')
-                ->body('Required services must be active. Service has been activated automatically.')
+                ->title(__('extra-service.notifications.auto_activation_title'))
+                ->body(__('extra-service.notifications.auto_activation_body'))
                 ->send();
 
             $data['is_active'] = true;
@@ -357,8 +357,8 @@ class EditExtraService extends EditRecord
         if ($data['hall_id'] !== $this->record->hall_id) {
             Notification::make()
                 ->warning()
-                ->title('Hall Changed')
-                ->body('Moving service to a different hall. Existing bookings will not be affected.')
+                ->title(__('extra-service.notifications.hall_changed_title'))
+                ->body(__('extra-service.notifications.hall_changed_body'))
                 ->send();
         }
 
@@ -515,16 +515,22 @@ class EditExtraService extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Edit Service: ' . $this->record->name;
+        return __('extra-service.page_titles.edit', ['name' => $this->record->name]);
     }
 
     public function getSubheading(): ?string
     {
-        $hall = $this->record->hall->name ?? 'Unknown Hall';
+        $hall = $this->record->hall->name ?? __('extra-service.unknown_city');
         $price = number_format($this->record->price, 3) . ' OMR';
-        $unit = ucfirst(str_replace('_', ' ', $this->record->unit));
-        $status = $this->record->is_active ? 'Active' : 'Inactive';
-        $required = $this->record->is_required ? '• Required' : '';
+        $unit = match ($this->record->unit) {
+            'per_person' => __('extra-service.infolist.unit_per_person'),
+            'per_item'   => __('extra-service.infolist.unit_per_item'),
+            'per_hour'   => __('extra-service.infolist.unit_per_hour'),
+            'fixed'      => __('extra-service.infolist.unit_fixed'),
+            default      => ucfirst(str_replace('_', ' ', $this->record->unit)),
+        };
+        $status = $this->record->is_active ? __('extra-service.status.active') : __('extra-service.status.inactive');
+        $required = $this->record->is_required ? '• ' . __('extra-service.status.required') : '';
 
         return "{$hall} • {$status} {$required} • {$price} / {$unit}";
     }

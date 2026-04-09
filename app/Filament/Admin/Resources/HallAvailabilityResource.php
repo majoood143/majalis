@@ -170,12 +170,11 @@ class HallAvailabilityResource extends Resource
 
                 Tables\Columns\TextColumn::make('effective_price')
                     ->label(__('hall-availability.effective_price'))
-                    ->money('OMR')
-                    ->formatStateUsing(function ($record) {
+                    ->state(function ($record) {
                         if (!$record->hall) {
                             return __('hall-availability.not_applicable');
                         }
-                        return $record->getEffectivePrice();
+                        return number_format($record->getEffectivePrice(), 3) . ' OMR';
                     })
                     ->toggleable(),
 

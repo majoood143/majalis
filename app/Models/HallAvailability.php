@@ -329,6 +329,6 @@ class HallAvailability extends Model
      */
     public function getEffectivePrice(): float
     {
-        return $this->custom_price ?? $this->hall->getPriceForSlot($this->time_slot);
+        return (float) ($this->custom_price ?? $this->hall->getPriceForSlot($this->time_slot));
     }
 }

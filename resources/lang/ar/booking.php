@@ -96,12 +96,16 @@ return [
         'customer_details' => 'تفاصيل العميل',
         'pricing_breakdown' => 'تفاصيل السعر',
         'advance_payment_details' => 'تفاصيل الدفع المقدم',
+        'advance_payment_details_description' => 'تفاصيل الحجوزات التي تتطلب دفعاً مقدماً',
         'extra_services' => 'خدمات إضافية',
+        'extra_services_description' => 'إضافة خدمات إضافية طلبها العميل',
         'description' => 'اختر خدمات إضافية لهذا الحجز',
         'payment_type_helper' => 'تم تعيينه بواسطة إعدادات القاعة',
         'timestamps' => 'الطوابع الزمنية',
         'cancellation_details' => 'تفاصيل الإلغاء',
         'admin_notes' => 'ملاحظات المسؤول',
+        'payment_transactions' => 'معاملات الدفع',
+        'payment_transactions_description' => 'قائمة معاملات الدفع لهذا الحجز',
 
     ],
 
@@ -657,6 +661,9 @@ return [
         'balance_payment_reference' => 'مرجع الدفع',
         'balance_payment_reference_placeholder' => 'رقم المعاملة أو رقم الإيصال',
         'payment_date' => 'تاريخ الدفع',
+        'reminder_custom_message' => 'رسالة مخصصة (اختياري)',
+        'reminder_custom_message_placeholder' => 'أضف رسالة شخصية لتضمينها في بريد التذكير...',
+        'reminder_custom_message_help' => 'ستُضمَّن هذه الرسالة في بريد التذكير المُرسَل للعميل.',
     ],
 
     // Notifications
@@ -684,6 +691,28 @@ return [
         'payment_link_sent_body' => 'تم إرسال رابط الدفع إلى :email',
         'payment_link_failed_title' => 'فشل إنشاء رابط الدفع',
         'payment_link_failed_body' => 'تعذر إنشاء رابط الدفع. يرجى المحاولة مجدداً.',
+        'validation_error_title' => 'خطأ في التحقق',
+        'validation_error_body' => 'حدث خطأ أثناء التحقق: :error',
+        'creation_error_title' => 'فشل إنشاء الحجز',
+        'creation_error_body' => 'تعذر إنشاء الحجز: :error',
+        'unexpected_error_title' => 'خطأ غير متوقع',
+        'unexpected_error_body' => 'حدث خطأ غير متوقع: :error',
+        'reminder_not_sent_title' => 'لم يُرسَل التذكير',
+        'reminder_not_sent_body' => 'تعذر إرسال التذكير. يرجى مراجعة السجلات.',
+        'reminder_failed_title' => 'فشل إرسال التذكير',
+        'slot_already_booked_title' => 'الفترة محجوزة بالفعل',
+        'slot_already_booked_body' => 'هذه الفترة محجوزة بالفعل (الحجز رقم :booking_number). يرجى اختيار تاريخ أو فترة زمنية مختلفة.',
+        'guest_count_below_min_title' => 'عدد الضيوف أقل من الحد الأدنى',
+        'guest_count_below_min_body' => 'الحد الأدنى للسعة هو :capacity_min ضيف. تم تعديل عدد الضيوف.',
+        'guest_count_exceeds_max_title' => 'عدد الضيوف يتجاوز الحد الأقصى',
+        'guest_count_exceeds_max_body' => 'الحد الأقصى للسعة هو :capacity_max ضيف.',
+        'slot_just_booked_title' => 'الفترة محجوزة بالفعل',
+        'slot_just_booked_body' => 'هذه الفترة تم حجزها للتو من قبل مستخدم آخر. يرجى اختيار فترة زمنية مختلفة.',
+        'advance_payment_booking_title' => 'حجز بدفع مقدم',
+        'advance_payment_booking_body' => 'هذا الحجز يتطلب دفع مقدم. يجب على العميل دفع :advance_amount ريال عماني مقدماً. رصيد :balance_due ريال عماني مستحق قبل الحدث.',
+        'booking_created_title' => 'تم إنشاء الحجز بنجاح',
+        'booking_summary_title' => '📋 ملخص الحجز',
+        'booking_summary_body' => "**الحجز:** :booking_number\n**المبلغ الإجمالي:** :total_amount ريال عماني\n**نوع الدفع:** دفع مقدم\n**المبلغ المقدم المطلوب:** :advance_amount ريال عماني\n**الرصيد المستحق:** :balance_due ريال عماني\n\nيجب على العميل دفع المبلغ المقدم قبل تأكيد الحدث.",
     ],
 
 
@@ -707,7 +736,6 @@ return [
         'hall_price' => 'سعر القاعة',
         'services_price' => 'سعر الخدمات',
         'subtotal' => 'المجموع الفرعي',
-        //'commission_amount' => 'مبلغ العمولة',
         'platform_fee' => 'رسوم المنصة',
         'total_amount' => 'المبلغ الإجمالي',
         'owner_payout' => 'دفع المالك',
@@ -731,7 +759,21 @@ return [
         'admin_notes' => 'ملاحظات المسؤول',
         'registered_user' => 'مستخدم مسجل',
         'guest_user' => 'ضيف',
-        'customer_notes_placeholder' => 'أدخل أي ملاحظات خاصة أو طلبات خاصة'
+        'customer_notes_placeholder' => 'أدخل أي ملاحظات خاصة أو طلبات خاصة',
+        'commission_amount' => 'مبلغ العمولة',
+        'days_away' => 'أيام متبقية',
+        'transaction_id' => 'رقم المعاملة',
+        'total_transactions' => 'إجمالي المعاملات',
+        'total_paid' => 'إجمالي المدفوع',
+        'total_refunded' => 'إجمالي المسترجع',
+        'transaction_history' => 'سجل المعاملات',
+        'amount_paid' => 'المبلغ المدفوع',
+        'failed_at' => 'وقت الفشل',
+        'pending_payments' => 'المدفوعات المعلقة',
+        'refund_details' => 'تفاصيل الاسترجاع',
+        'refund_reason' => 'سبب الاسترجاع',
+        'refunded_at' => 'تاريخ الاسترجاع',
+        'failure_reason' => 'سبب الفشل',
     ],
 
     // Placeholders
@@ -758,6 +800,11 @@ return [
         'cancelled' => 'ملغى',
         'balance_paid' => 'الرصيد مدفوع',
         'balance_pending' => 'الرصيد قيد الانتظار',
+        'no_show' => 'لم يحضر',
+        'partial' => 'جزئي',
+        'refunded' => 'مسترجع',
+        'failed' => 'فشل',
+        'paid' => 'مدفوع',
     ],
 
     // Payment Statuses
@@ -767,6 +814,9 @@ return [
         'failed' => 'فشل',
         'refunded' => 'مسترجع',
         'partially_paid' => 'مدفوع جزئياً',
+        'partial' => 'مدفوع جزئياً',
+        'partially_refunded' => 'مسترجع جزئياً',
+        'cancelled' => 'ملغى',
     ],
 
     // Payment Types
@@ -799,12 +849,19 @@ return [
         'bank_transfer' => 'تحويل بنكي',
         'cash' => 'نقداً',
         'card' => 'بطاقة',
+        'online' => 'دفع إلكتروني',
+        'thawani' => 'ثواني',
     ],
 
     // Messages
     'messages' => [
         'reference_copied' => 'تم نسخ المرجع!',
-
+        'transaction_id_copied' => 'تم نسخ رقم المعاملة!',
+        'select_hall_first' => 'اختر القاعة أولاً',
+        'select_date_first' => 'اختر التاريخ أولاً',
+        'no_services_available' => 'لا توجد خدمات إضافية متاحة لهذه القاعة',
+        'slots_available' => ':count فترة/فترات متاحة',
+        'fully_booked' => 'محجوز بالكامل',
     ],
 
     'exceptions' => [

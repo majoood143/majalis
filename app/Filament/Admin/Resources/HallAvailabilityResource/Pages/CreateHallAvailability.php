@@ -23,12 +23,14 @@ class CreateHallAvailability extends CreateRecord
 
     protected function getCreatedNotification(): ?Notification
     {
-        $status = $this->record->is_available ? 'Available' : 'Blocked';
+        $status = $this->record->is_available
+            ? __('hall-availability.status.available')
+            : __('hall-availability.status.blocked');
 
         return Notification::make()
             ->success()
-            ->title('Availability Created')
-            ->body("Hall availability has been set to {$status}.")
+            ->title(__('hall-availability.notifications.created'))
+            ->body(__('hall-availability.notifications.created_body', ['status' => $status]))
             ->duration(5000);
     }
 
@@ -41,8 +43,8 @@ class CreateHallAvailability extends CreateRecord
         if (isset($data['date']) && \Carbon\Carbon::parse($data['date'])->isPast()) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Date')
-                ->body('Cannot create availability for past dates.')
+                ->title(__('hall-availability.errors.invalid_date'))
+                ->body(__('hall-availability.errors.invalid_date_body'))
                 ->persistent()
                 ->send();
 
@@ -58,8 +60,8 @@ class CreateHallAvailability extends CreateRecord
         if ($exists) {
             Notification::make()
                 ->danger()
-                ->title('Duplicate Slot')
-                ->body('This time slot already exists for the selected hall and date.')
+                ->title(__('hall-availability.errors.duplicate_slot'))
+                ->body(__('hall-availability.errors.duplicate_slot_body'))
                 ->persistent()
                 ->send();
 
@@ -70,8 +72,8 @@ class CreateHallAvailability extends CreateRecord
         if (isset($data['custom_price']) && $data['custom_price'] < 0) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Price')
-                ->body('Custom price cannot be negative.')
+                ->title(__('hall-availability.errors.invalid_price'))
+                ->body(__('hall-availability.errors.invalid_price_body'))
                 ->persistent()
                 ->send();
 
@@ -88,8 +90,8 @@ class CreateHallAvailability extends CreateRecord
         if (!$data['is_available'] && empty($data['reason'])) {
             Notification::make()
                 ->warning()
-                ->title('Missing Reason')
-                ->body('Please provide a reason for blocking this slot.')
+                ->title(__('hall-availability.errors.missing_reason'))
+                ->body(__('hall-availability.errors.missing_reason_body'))
                 ->send();
         }
 
@@ -161,8 +163,8 @@ class CreateHallAvailability extends CreateRecord
         if ($bookingsCount > 0 && !$data['is_available']) {
             Notification::make()
                 ->warning()
-                ->title('Existing Bookings Found')
-                ->body("There are {$bookingsCount} existing booking(s) for this slot. They may need to be cancelled.")
+                ->title(__('hall-availability.errors.existing_bookings'))
+                ->body(__('hall-availability.errors.existing_bookings_body', ['count' => $bookingsCount]))
                 ->persistent()
                 ->send();
         }
@@ -190,8 +192,8 @@ class CreateHallAvailability extends CreateRecord
             // Notify about pending bookings that need attention
             Notification::make()
                 ->warning()
-                ->title('Pending Bookings')
-                ->body("There are {$pendingBookings->count()} pending booking(s) for this blocked slot.")
+                ->title(__('hall-availability.errors.pending_bookings'))
+                ->body(__('hall-availability.errors.pending_bookings_body', ['count' => $pendingBookings->count()]))
                 ->persistent()
                 ->send();
         }
@@ -213,12 +215,12 @@ class CreateHallAvailability extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Create Hall Availability';
+        return __('hall-availability.create_page.title');
     }
 
     public function getSubheading(): ?string
     {
-        return 'Set availability or block specific time slots for halls';
+        return __('hall-availability.create_page.subheading');
     }
 
     public function mount(): void
