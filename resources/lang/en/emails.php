@@ -38,4 +38,9 @@ return [
         'view_ticket_btn'         => 'View Your Ticket',
         'view_and_respond_btn'    => 'View & Respond',
     ],
+
+    'booking' => [
+        'regards' => 'Warm Regards,',
+        'team'    => 'The :app Team',
+    ],
 ];

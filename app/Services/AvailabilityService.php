@@ -85,6 +85,7 @@ class AvailabilityService
         $query = Hall::query()
             ->with(['city.region', 'owner'])
             ->where('is_active', true)
+            ->where('is_listed', true)
             ->whereNull('deleted_at');
 
         // ── Step 2: Apply optional filters ──

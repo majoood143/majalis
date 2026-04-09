@@ -522,6 +522,11 @@ return [
     'max_images' => 'Maximum 10 images',
     'inactive_halls_hidden' => 'Inactive halls are hidden from customers',
     'featured_halls_highlighted' => 'Featured halls appear in highlighted sections',
+    'is_listed' => 'Listed on Website',
+    'is_listed_help' => 'When disabled, this hall will not appear in search results or the hall listing page',
+    'listed_filter' => 'Website Listing',
+    'listed_only' => 'Listed only',
+    'unlisted_only' => 'Unlisted only',
     'allow_cancellation_help' => 'Minimum hours before booking to allow cancellation',
     'cancellation_fee_help' => 'Fee percentage charged on cancellation',
 

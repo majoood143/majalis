@@ -348,6 +348,80 @@ class HallOwnerResource extends Resource
                             ->columnSpanFull(),
                     ])->columns(3),
 
+                Infolists\Components\Section::make(__('hall-owner.infolist.documents'))
+                    ->schema([
+                        Infolists\Components\TextEntry::make('commercial_registration_document')
+                            ->label(__('hall-owner.infolist.commercial_registration_document'))
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-400 italic">' . __('hall-owner.infolist.not_submitted') . '</span>';
+                                }
+                                $url = asset('storage/' . $state);
+                                $ext = strtolower(pathinfo($state, PATHINFO_EXTENSION));
+                                if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                    return '<a href="' . $url . '" target="_blank"><img src="' . $url . '" class="max-h-40 rounded border" /></a>';
+                                }
+                                return '<a href="' . $url . '" target="_blank" class="inline-flex items-center gap-1 text-primary-600 hover:underline font-medium"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> View Document</a>';
+                            })
+                            ->html(),
+
+                        Infolists\Components\TextEntry::make('tax_certificate')
+                            ->label(__('hall-owner.infolist.tax_certificate'))
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-400 italic">' . __('hall-owner.infolist.not_submitted') . '</span>';
+                                }
+                                $url = asset('storage/' . $state);
+                                $ext = strtolower(pathinfo($state, PATHINFO_EXTENSION));
+                                if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                    return '<a href="' . $url . '" target="_blank"><img src="' . $url . '" class="max-h-40 rounded border" /></a>';
+                                }
+                                return '<a href="' . $url . '" target="_blank" class="inline-flex items-center gap-1 text-primary-600 hover:underline font-medium"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> View Document</a>';
+                            })
+                            ->html(),
+
+                        Infolists\Components\TextEntry::make('identity_document')
+                            ->label(__('hall-owner.infolist.identity_document'))
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-400 italic">' . __('hall-owner.infolist.not_submitted') . '</span>';
+                                }
+                                $url = asset('storage/' . $state);
+                                $ext = strtolower(pathinfo($state, PATHINFO_EXTENSION));
+                                if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                    return '<a href="' . $url . '" target="_blank"><img src="' . $url . '" class="max-h-40 rounded border" /></a>';
+                                }
+                                return '<a href="' . $url . '" target="_blank" class="inline-flex items-center gap-1 text-primary-600 hover:underline font-medium"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> View Document</a>';
+                            })
+                            ->html(),
+
+                        Infolists\Components\TextEntry::make('additional_documents')
+                            ->label(__('hall-owner.infolist.additional_documents'))
+                            ->formatStateUsing(function ($state) {
+                                if (empty($state)) {
+                                    return '<span class="text-gray-400 italic">' . __('hall-owner.infolist.not_submitted') . '</span>';
+                                }
+                                $files = is_array($state) ? $state : json_decode($state, true) ?? [];
+                                if (empty($files)) {
+                                    return '<span class="text-gray-400 italic">' . __('hall-owner.infolist.not_submitted') . '</span>';
+                                }
+                                $html = '<div class="flex flex-wrap gap-3">';
+                                foreach ($files as $index => $file) {
+                                    $url = asset('storage/' . $file);
+                                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                        $html .= '<a href="' . $url . '" target="_blank"><img src="' . $url . '" class="max-h-40 rounded border" /></a>';
+                                    } else {
+                                        $html .= '<a href="' . $url . '" target="_blank" class="inline-flex items-center gap-1 text-primary-600 hover:underline font-medium"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> Document ' . ($index + 1) . '</a>';
+                                    }
+                                }
+                                $html .= '</div>';
+                                return $html;
+                            })
+                            ->html()
+                            ->columnSpanFull(),
+                    ])->columns(3),
+
                 Infolists\Components\Section::make(__('hall-owner.infolist.statistics'))
                     ->schema([
                         Infolists\Components\TextEntry::make('total_halls')

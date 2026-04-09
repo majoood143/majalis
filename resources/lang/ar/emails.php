@@ -38,4 +38,9 @@ return [
         'view_ticket_btn'         => 'عرض تذكرتك',
         'view_and_respond_btn'    => 'عرض والرد',
     ],
+
+    'booking' => [
+        'regards' => 'مع تحياتنا،',
+        'team'    => 'فريق :app',
+    ],
 ];

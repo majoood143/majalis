@@ -122,6 +122,7 @@ return [
     'infolist' => [
         'business_information' => 'Business Information',
         'owner' => 'Owner',
+        'business_name' => 'Business Name',
         'contact_information' => 'Contact Information',
         'bank_details' => 'Bank Details',
         'verification_status' => 'Verification Status',
@@ -135,6 +136,12 @@ return [
         'total_revenue' => 'Total Revenue',
         'business_name_ar' => 'Business Name (Arabic)',
         'business_address_ar' => 'Business Address (Arabic)',
+        'documents' => 'Submitted Documents',
+        'commercial_registration_document' => 'Commercial Registration Document',
+        'tax_certificate' => 'Tax Certificate',
+        'identity_document' => 'Identity Document',
+        'additional_documents' => 'Additional Documents',
+        'not_submitted' => 'Not submitted',
     ],
 
     // Notifications
@@ -256,6 +263,7 @@ return [
             'commercial_registration_taken'    => 'This commercial registration is already registered.',
             'business_phone_required'          => 'Please enter your business phone number.',
             'business_address_required'        => 'Please enter your business address.',
+            'bank_account_number_digits'        => 'Account number must contain digits only.',
             'cr_document_required'             => 'Please upload your commercial registration document.',
             'id_document_required'             => 'Please upload your identity document.',
             'document_mimes'                   => 'Document must be a PDF, JPG, or PNG file.',

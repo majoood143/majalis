@@ -64,8 +64,6 @@ return [
         'fixed' => 'مبلغ ثابت',
         'verify' => 'تحقق',
         'reject' => 'رفض',
-        'verify' => 'تحقق',
-        'reject' => 'رفض',
     ],
 
     // Tabs
@@ -75,16 +73,6 @@ return [
         'verified' => 'موثق',
         'active' => 'نشط',
         'inactive' => 'غير نشط',
-        'custom_commission' => 'عمولة مخصصة',
-        'with_halls' => 'بملك قاعات',
-        'without_halls' => 'بدون قاعات',
-        'incomplete_documents' => 'وثائق غير مكتملة',
-        'business_info' => 'معلومات العمل',
-        'contact' => 'جهات الاتصال',
-        'bank_details' => 'تفاصيل البنك',
-        'documents' => 'الوثائق',
-        'verification' => 'التحقق',
-        'commission' => 'العمولة',
         'custom_commission' => 'عمولة مخصصة',
         'with_halls' => 'يملك قاعات',
         'without_halls' => 'لا يملك قاعات',
@@ -127,9 +115,6 @@ return [
         'verified_at' => 'تاريخ التحقق',
         'total_halls' => 'إجمالي القاعات',
         'created_at' => 'تاريخ الإنشاء',
-        'verified_at' => 'تاريخ التحقق',
-        'total_halls' => 'إجمالي القاعات',
-        'created_at' => 'تاريخ الإنشاء',
     ],
 
     // Info List
@@ -150,7 +135,12 @@ return [
         'total_revenue' => 'إجمالي الإيرادات',
         'business_name_ar' => 'اسم العمل (عربي)',
         'business_address_ar' => 'عنوان العمل (عربي)',
-
+        'documents' => 'المستندات المقدمة',
+        'commercial_registration_document' => 'وثيقة السجل التجاري',
+        'tax_certificate' => 'الشهادة الضريبية',
+        'identity_document' => 'وثيقة الهوية',
+        'additional_documents' => 'مستندات إضافية',
+        'not_submitted' => 'لم يُرفع',
     ],
 
     // Notifications
@@ -170,21 +160,6 @@ return [
         'owner_updated' => 'تم تحديث المالك',
         'owner_deleted' => 'تم حذف المالك',
         'update_error' => 'فشلت العملية',
-        'export_success' => 'تم التصدير بنجاح', // Add this if missing
-        'export_success_body' => 'تم تصدير مالكي القاعات بنجاح.', // Add this if missing
-        'export_error' => 'فشل التصدير', // Add this if missing
-        'bulk_verify_success' => 'تم التحقق بالجملة', // Add this if missing
-        'bulk_verify_success_body' => 'تم التحقق من :count مالك.', // Add this if missing
-        'notification_sent' => 'تم إرسال الإشعارات', // Add this if missing
-        'notification_sent_body' => 'تم إرسال :count إشعار.', // Add this if missing
-        'report_generated' => 'تم إنشاء التقرير بنجاح', // Add this if missing
-        'report_generated_body' => 'تم إنشاء تقرير جميع مالكي القاعات.', // Add this if missing
-        'report_failed' => 'فشل إنشاء التقرير', // Add this if missing
-        'owner_verified' => 'تم التحقق من المالك', // Add this if missing
-        'owner_rejected' => 'تم رفض المالك', // Add this if missing
-        'owner_updated' => 'تم تحديث المالك', // Add this if missing
-        'owner_deleted' => 'تم حذف المالك', // Add this if missing
-        'update_error' => 'فشلت العملية', // Add this if missing
     ],
 
     // Filters
@@ -288,6 +263,7 @@ return [
             'commercial_registration_taken'    => 'هذا السجل التجاري مسجّل بالفعل.',
             'business_phone_required'          => 'الرجاء إدخال رقم هاتف العمل.',
             'business_address_required'        => 'الرجاء إدخال عنوان العمل.',
+            'bank_account_number_digits'        => 'يجب أن يحتوي رقم الحساب على أرقام فقط.',
             'cr_document_required'             => 'الرجاء رفع وثيقة السجل التجاري.',
             'id_document_required'             => 'الرجاء رفع وثيقة الهوية.',
             'document_mimes'                   => 'يجب أن يكون الملف بصيغة PDF أو JPG أو PNG.',

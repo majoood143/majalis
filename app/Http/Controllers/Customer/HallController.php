@@ -151,6 +151,7 @@ class HallController extends Controller
             $query = Hall::query()
                 ->with(['city.region', 'owner', 'hallTypes'])
                 ->where('is_active', true)
+                ->where('is_listed', true)
                 ->whereNull('deleted_at');
 
             // Region filter
@@ -272,6 +273,7 @@ class HallController extends Controller
 
         $hall = Hall::where('slug', $slug)
             ->where('is_active', true)
+            ->where('is_listed', true)
             ->with([
                 'city.region',
                 'owner',

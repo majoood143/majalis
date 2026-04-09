@@ -10,7 +10,6 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -20,11 +19,9 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\SpatieLaravelTranslatablePlugin;
 use App\Http\Middleware\SetUserLanguage;
-use App\Livewire\LanguageSwitcher;
 //use Filament\Panels\Enums\PanelsRenderHook;
 use Filament\View\PanelsRenderHook;
 use App\Filament\Pages\EditProfile;
-use Illuminate\Support\Facades\Auth;
 use Rmsramos\Activitylog\ActivitylogPlugin;
 use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
@@ -45,6 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->profile()
             ->colors([
                 'primary' => Color::hex('#B9916D'),
                 'danger' => Color::Red,
@@ -60,14 +58,13 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/favicon.ico'))
             ->passwordReset()
-            ->profile()
             // ADD LOCALE CONFIGURATION
 
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
                 Pages\Dashboard::class,
-                EditProfile::class,
+            EditProfile::class,
                 \App\Filament\Pages\Maintenance::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
@@ -85,7 +82,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-
+                SetUserLanguage::class,
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
@@ -103,9 +100,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                AuthenticateSession::class,
-                StartSession::class,
-                SetUserLanguage::class,
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
@@ -129,7 +123,7 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(
                 SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['en', 'ar']),
-           
+
 
             );
     }

@@ -808,6 +808,12 @@ class HallResource extends Resource
                                     ->default(false)
                                     ->helperText(__('admin.featured_halls_highlighted')),
 
+                                Forms\Components\Toggle::make('is_listed')
+                                    ->label(__('admin.is_listed'))
+                                    ->inline(false)
+                                    ->default(true)
+                                    ->helperText(__('admin.is_listed_help')),
+
                                 Forms\Components\Toggle::make('requires_approval')
                                     ->label(__('admin.requires_approval'))
                                     ->helperText(__('admin.require_admin_approval'))
@@ -925,6 +931,11 @@ class HallResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger'),
+
+                // Listed on website status
+                Tables\Columns\ToggleColumn::make('is_listed')
+                    ->label(__('admin.is_listed'))
+                    ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -957,6 +968,14 @@ class HallResource extends Resource
                     ->boolean()
                     ->trueLabel(__('admin.active_only'))
                     ->falseLabel(__('admin.inactive_only'))
+                    ->native(false),
+
+                // Listed on website filter
+                Tables\Filters\TernaryFilter::make('is_listed')
+                    ->label(__('admin.listed_filter'))
+                    ->boolean()
+                    ->trueLabel(__('admin.listed_only'))
+                    ->falseLabel(__('admin.unlisted_only'))
                     ->native(false),
 
                 // Capacity range filter
