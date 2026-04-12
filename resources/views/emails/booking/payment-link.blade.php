@@ -35,40 +35,39 @@
         </div>
     </div>
 
-    <h2 style="text-align: center; color: #4f46e5;">Complete Your Booking Payment</h2>
+    <h2 style="text-align: center; color: #4f46e5;">{{ __('emails.payment_link.title') }}</h2>
 
     <p style="text-align: center;">
-        Dear {{ $booking->customer_name }},
+        {{ __('emails.booking.greeting', ['name' => $booking->customer_name]) }}
     </p>
 
     <p style="text-align: center; color: #4b5563;">
-        Your booking <strong>{{ $booking->booking_number }}</strong> is reserved.
-        Please complete your payment to confirm it.
+        {{ __('emails.payment_link.intro', ['number' => $booking->booking_number]) }}
     </p>
 
     {{-- Booking Details --}}
     <div class="info-box">
-        <div class="info-box-header">Booking Details</div>
+        <div class="info-box-header">{{ __('emails.booking.details_title') }}</div>
 
         <div class="info-row">
-            <span class="info-label">Booking #</span>
+            <span class="info-label">{{ __('emails.booking.booking_number') }}</span>
             <span class="info-value" style="color: #4f46e5; font-size: 16px;">{{ $booking->booking_number }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Hall</span>
+            <span class="info-label">{{ __('emails.booking.hall') }}</span>
             <span class="info-value">{{ $hallName }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Date</span>
+            <span class="info-label">{{ __('emails.booking.date') }}</span>
             <span class="info-value">{{ $booking->booking_date->format('l, d F Y') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Time Slot</span>
+            <span class="info-label">{{ __('emails.booking.time_slot') }}</span>
             <span class="info-value">{{ $timeSlot }}</span>
         </div>
         @if($booking->number_of_guests)
         <div class="info-row">
-            <span class="info-label">Guests</span>
+            <span class="info-label">{{ __('emails.booking.guests') }}</span>
             <span class="info-value">{{ $booking->number_of_guests }}</span>
         </div>
         @endif
@@ -77,14 +76,14 @@
     {{-- Amount Due --}}
     <div class="highlight-box" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6;">
         <p style="margin: 0 0 4px 0; font-weight: 600; color: #1e40af; font-size: 15px;">
-            Amount Due
+            {{ __('emails.payment.failed.amount_due') }}
         </p>
         <p style="margin: 0; font-size: 28px; font-weight: 700; color: #1d4ed8;">
-            {{ number_format($paymentAmount, 3) }} OMR
+            {{ number_format($paymentAmount, 3) }} {{ __('currency.omr') }}
         </p>
         @if($booking->isAdvancePayment())
         <p style="margin: 8px 0 0 0; font-size: 13px; color: #3b82f6;">
-            Advance payment — remaining balance: {{ number_format((float)$booking->balance_due, 3) }} OMR
+            {{ __('emails.payment_link.advance_note', ['balance' => number_format((float)$booking->balance_due, 3)]) }}
         </p>
         @endif
     </div>
@@ -95,12 +94,12 @@
            style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
                   color: white; text-decoration: none; padding: 16px 48px; border-radius: 12px;
                   font-size: 18px; font-weight: 700; letter-spacing: 0.5px;">
-            Pay Now →
+            {{ __('emails.payment_link.pay_now') }} →
         </a>
     </div>
 
     <p style="text-align: center; font-size: 13px; color: #9ca3af;">
-        This payment link will expire. If you have trouble clicking the button, copy and paste this URL into your browser:
+        {{ __('emails.payment_link.link_expiry_note') }}
     </p>
     <p style="text-align: center; font-size: 12px; color: #6b7280; word-break: break-all;">
         {{ $paymentUrl }}
@@ -109,11 +108,11 @@
     <div class="divider"></div>
 
     <p style="text-align: center; font-size: 14px; color: #6b7280;">
-        If you did not make this booking or have any questions, please contact us.
+        {{ __('emails.payment_link.footer_note') }}
     </p>
 
     <p style="text-align: center; margin-top: 20px;">
-        Best regards,<br>
-        <strong>{{ config('app.name', 'Majalis') }} Team</strong>
+        {{ __('emails.booking.regards') }}<br>
+        <strong>{{ __('emails.booking.team', ['app' => config('app.name', 'Majalis')]) }}</strong>
     </p>
 @endsection

@@ -204,11 +204,10 @@
     <tr>
         <td style="padding:20px 24px;">
             <p style="margin:0 0 6px 0;font-size:15px;font-weight:700;color:#92400e;">
-                &#9888; Advance Payment Received
+                &#9888; {{ __('emails.booking.advance_payment_received') }}
             </p>
             <p style="margin:0;font-size:14px;color:#b45309;">
-                Advance paid: {{ number_format($booking->advance_amount, 3) }} OMR &mdash;
-                Balance due: <strong>{{ number_format($booking->balance_due, 3) }} OMR</strong>
+                {{ __('emails.booking.advance_paid_desc', ['advance' => number_format($booking->advance_amount, 3), 'balance' => number_format($booking->balance_due, 3)]) }}
             </p>
         </td>
     </tr>

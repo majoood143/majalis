@@ -16,11 +16,27 @@ class NotificationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bell';
 
-    protected static ?string $navigationGroup = 'System';
-
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $label = 'Notification';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('notification.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('notification.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('notification.plural');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('notification.navigation_label');
+    }
 
     public static function form(Form $form): Form
     {
@@ -46,19 +62,19 @@ class NotificationResource extends Resource
                     ->formatStateUsing(fn($state) => class_basename($state)),
 
                 Tables\Columns\TextColumn::make('notifiable.name')
-                    ->label('User')
+                    ->label(__('notification.columns.user'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('data.title')
-                    ->label('Title')
+                    ->label(__('notification.columns.title'))
                     ->limit(50),
 
                 Tables\Columns\TextColumn::make('data.body')
-                    ->label('Message')
+                    ->label(__('notification.columns.message'))
                     ->limit(50),
 
                 Tables\Columns\IconColumn::make('read_at')
-                    ->label('Read')
+                    ->label(__('notification.columns.read'))
                     ->boolean()
                     ->sortable(),
 
@@ -68,7 +84,7 @@ class NotificationResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('read_at')
-                    ->label('Read Status')
+                    ->label(__('notification.filters.read_status'))
                     ->queries(
                         true: fn($query) => $query->whereNotNull('read_at'),
                         false: fn($query) => $query->whereNull('read_at'),
@@ -76,6 +92,7 @@ class NotificationResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('markAsRead')
+                    ->label(__('notification.actions.mark_as_read'))
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->visible(fn($record) => !$record->read_at)
@@ -85,6 +102,7 @@ class NotificationResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('markAsRead')
+                    ->label(__('notification.actions.mark_as_read'))
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->action(fn($records) => $records->each->markAsRead()),

@@ -16,6 +16,7 @@ class ViewNotification extends ViewRecord
     {
         return [
             Actions\Action::make('markAsRead')
+                ->label(__('notification.actions.mark_as_read'))
                 ->visible(fn() => !$this->record->read_at)
                 ->action(function () {
                     $this->record->markAsRead();
@@ -30,15 +31,25 @@ class ViewNotification extends ViewRecord
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Notification Details')
+                Infolists\Components\Section::make(__('notification.infolist.details_section'))
                     ->schema([
                         Infolists\Components\TextEntry::make('type')
+                            ->label(__('notification.infolist.type'))
                             ->formatStateUsing(fn($state) => class_basename($state)),
-                        Infolists\Components\TextEntry::make('notifiable.name')->label('User'),
-                        Infolists\Components\TextEntry::make('data.title')->label('Title'),
-                        Infolists\Components\TextEntry::make('data.body')->label('Message')->columnSpanFull(),
-                        Infolists\Components\TextEntry::make('created_at')->dateTime(),
-                        Infolists\Components\TextEntry::make('read_at')->dateTime()->placeholder('Unread'),
+                        Infolists\Components\TextEntry::make('notifiable.name')
+                            ->label(__('notification.infolist.user')),
+                        Infolists\Components\TextEntry::make('data.title')
+                            ->label(__('notification.infolist.title')),
+                        Infolists\Components\TextEntry::make('data.body')
+                            ->label(__('notification.infolist.message'))
+                            ->columnSpanFull(),
+                        Infolists\Components\TextEntry::make('created_at')
+                            ->label(__('notification.infolist.created_at'))
+                            ->dateTime(),
+                        Infolists\Components\TextEntry::make('read_at')
+                            ->label(__('notification.infolist.read_at'))
+                            ->dateTime()
+                            ->placeholder(__('notification.infolist.unread_placeholder')),
                     ])->columns(2),
             ]);
     }

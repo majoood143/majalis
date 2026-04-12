@@ -17,7 +17,7 @@ class ListNotifications extends ListRecords
     {
         return [
             Actions\Action::make('markAllAsRead')
-                ->label('Mark All as Read')
+                ->label(__('notification.actions.mark_all_as_read'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->action(function () {
@@ -25,14 +25,14 @@ class ListNotifications extends ListRecords
 
                     Notification::make()
                         ->success()
-                        ->title('All notifications marked as read')
+                        ->title(__('notification.notifications.all_marked_read_title'))
                         ->send();
 
                     $this->redirect(static::getUrl());
                 }),
 
             Actions\Action::make('deleteRead')
-                ->label('Delete Read')
+                ->label(__('notification.actions.delete_read'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')
                 ->requiresConfirmation()
@@ -41,7 +41,7 @@ class ListNotifications extends ListRecords
 
                     Notification::make()
                         ->success()
-                        ->title("{$deleted} notification(s) deleted")
+                        ->title(__('notification.notifications.deleted_title', ['count' => $deleted]))
                         ->send();
 
                     $this->redirect(static::getUrl());
@@ -52,16 +52,16 @@ class ListNotifications extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make('All')
+            'all' => Tab::make(__('notification.tabs.all'))
                 ->badge(fn() => \Illuminate\Notifications\DatabaseNotification::count()),
 
-            'unread' => Tab::make('Unread')
+            'unread' => Tab::make(__('notification.tabs.unread'))
                 ->icon('heroicon-o-bell-alert')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('read_at'))
                 ->badge(fn() => \Illuminate\Notifications\DatabaseNotification::whereNull('read_at')->count())
                 ->badgeColor('warning'),
 
-            'read' => Tab::make('Read')
+            'read' => Tab::make(__('notification.tabs.read'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('read_at'))
                 ->badge(fn() => \Illuminate\Notifications\DatabaseNotification::whereNotNull('read_at')->count())
