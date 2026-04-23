@@ -956,6 +956,7 @@ return [
         'hall_price' => 'Hall Price',
         'services_price' => 'Extra Services',
         'subtotal' => 'Subtotal',
+        'promo_code' => 'Promo Code Discount',
         'platform_fee' => 'Platform Fee',
         'total_amount' => 'Total Amount',
 
@@ -1035,6 +1036,7 @@ return [
         'hall_price' => 'Hall Price',
         'services_total' => 'Services Total',
         'subtotal' => 'Subtotal',
+        'promo_code' => 'Promo Discount',
         'platform_fee' => 'Platform Fee',
         'grand_total' => 'Grand Total',
         'currency' => 'OMR',

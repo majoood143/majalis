@@ -14,10 +14,6 @@ return [
         'attachment' => MailAttachment::class,
     ],
 
-    'mailer' => [
-        'track' => env('MAILS_TRACK', true), // Ensure this is true
-    ],
-
     // Table names for saving sent emails and polymorphic relations to database
 
     'database' => [
@@ -96,7 +92,7 @@ return [
 
     'notifications' => [
         'mail' => [
-            'to' => ['m.m.h.89@hotmail.com'],
+            'to' => ['test@example.com'],
         ],
 
         'discord' => [

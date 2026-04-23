@@ -12,7 +12,6 @@ use App\Listeners\LinkGuestBookingsOnRegistration;
 use App\Listeners\LinkGuestTicketsOnRegistration;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Mail\Events\MessageSent;
 
 /**
  * EventServiceProvider
@@ -37,7 +36,6 @@ class EventServiceProvider extends ServiceProvider
             LinkGuestBookingsOnRegistration::class,
             LinkGuestTicketsOnRegistration::class,
         ],
-        // UpdateMailStatus was removed — class Backstage\FilamentMails\Listeners\UpdateMailStatus does not exist
         // =========================================================
         // BOOKING EVENTS
         // =========================================================

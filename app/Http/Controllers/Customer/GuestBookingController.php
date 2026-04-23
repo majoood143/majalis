@@ -30,6 +30,8 @@ use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use App\Services\BookingPdfService;
+use App\Models\PromoCode;
+use App\Services\PromoCodeService;
 
 /**
  * Guest Booking Controller
@@ -891,17 +893,54 @@ class GuestBookingController extends Controller
             }
 
             // ================================================================
+            // STEP 2A: Apply promo code (if submitted and not already applied)
+            // ================================================================
+
+            $promoCodeInput = trim((string) $request->input('promo_code', ''));
+            if ($promoCodeInput !== '' && !$booking->promo_code_id) {
+                try {
+                    $promoService = app(PromoCodeService::class);
+                    $promoResult  = $promoService->validate(
+                        $promoCodeInput,
+                        (int) $booking->hall_id,
+                        (float) $booking->subtotal
+                    );
+
+                    if ($promoResult['valid']) {
+                        $promoCode = PromoCode::find($promoResult['promo_code_id']);
+                        if ($promoCode) {
+                            $promoService->applyToBooking($promoCode, $booking);
+                            $booking->refresh();
+
+                            Log::info('Promo code applied to guest booking', [
+                                'booking_id'      => $booking->id,
+                                'promo_code'      => $promoCodeInput,
+                                'discount_amount' => $booking->discount_amount,
+                                'new_total'       => $booking->total_amount,
+                            ]);
+                        }
+                    }
+                } catch (Exception $promoError) {
+                    // Promo failure is non-critical; proceed without discount
+                    Log::warning('Promo code application failed (non-critical)', [
+                        'booking_id' => $booking->id,
+                        'error'      => $promoError->getMessage(),
+                    ]);
+                }
+            }
+
+            // ================================================================
             // STEP 2: Calculate payment amount
             // ================================================================
 
             $paymentType = $request->input('payment_type', 'full');
-            $totalAmount = (float) $booking->total_amount;
+            $totalAmount = (float) $booking->total_amount; // May have been reduced by promo
 
             // Calculate based on payment type
             if ($paymentType === 'advance' && $booking->hall && $booking->hall->allows_advance_payment) {
-                // Calculate advance on subtotal (hall + services, before platform fee),
-                // then add the full platform fee so it is collected upfront.
-                $subtotal    = (float) ($booking->subtotal ?? ($totalAmount - (float) $booking->platform_fee));
+                // Use the discounted subtotal as the base for advance calculation
+                $discountAmount = (float) ($booking->discount_amount ?? 0);
+                $subtotal    = max(0.0, (float) ($booking->subtotal ?? 0) - $discountAmount);
                 $platformFee = (float) ($booking->platform_fee ?? 0);
                 $paymentAmount = $booking->hall->calculateAdvanceAmount($subtotal) + $platformFee;
                 // Safety: advance must not exceed total
@@ -1314,6 +1353,25 @@ class GuestBookingController extends Controller
             ]);
 
             DB::commit();
+
+            // ── 0. Record promo code usage (if a promo was applied) ──────────
+            try {
+                if ($booking->promo_code_id) {
+                    $promoCode = PromoCode::find($booking->promo_code_id);
+                    if ($promoCode) {
+                        app(PromoCodeService::class)->recordUsage($promoCode, $booking->fresh());
+                        Log::info('Promo code usage recorded', [
+                            'booking_id'    => $booking->id,
+                            'promo_code_id' => $promoCode->id,
+                        ]);
+                    }
+                }
+            } catch (Exception $e) {
+                Log::warning('Promo code usage recording failed (non-critical)', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
 
             // ── 1. Generate booking confirmation PDF ─────────────────────────
             try {

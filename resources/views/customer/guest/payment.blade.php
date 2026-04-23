@@ -196,6 +196,35 @@
                                     </div>
                                 @endif
 
+                                {{-- Promo Code --}}
+                                {{-- Hidden field — submitted with form; populated by JS on success --}}
+                                <input type="hidden" id="promo-code-value" name="promo_code"
+                                    value="{{ $booking->promoCode?->code ?? '' }}">
+
+                                <div class="mb-6" id="promo-section">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700">
+                                        {{ __('promo.label') }}
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="promo-input"
+                                            maxlength="50"
+                                            placeholder="{{ __('promo.placeholder') }}"
+                                            class="flex-1 border-gray-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 text-sm uppercase"
+                                            autocomplete="off"
+                                        >
+                                        <button
+                                            type="button"
+                                            id="promo-apply-btn"
+                                            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition whitespace-nowrap"
+                                        >
+                                            {{ __('promo.apply') }}
+                                        </button>
+                                    </div>
+                                    <div id="promo-message" class="mt-2 hidden text-sm"></div>
+                                </div>
+
                                 {{-- Payment Gateway Info --}}
                                 <div class="p-4 mb-6 border border-blue-100 rounded-lg bg-blue-50">
                                     <div class="flex items-start">
@@ -388,14 +417,25 @@
                                     </div>
                                 @endif
 
+                                {{-- Promo Discount Line (hidden until applied) --}}
+                                <div id="sidebar-discount-row" class="{{ (float) $booking->discount_amount > 0 ? '' : 'hidden' }} flex justify-between text-green-600">
+                                    <span>{{ __('promo.discount_label') }}</span>
+                                    <span id="sidebar-discount-amount">
+                                        - {{ number_format((float) $booking->discount_amount, 3) }}
+                                        <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal" class="inline w-6 h-6 -mt-1">
+                                    </span>
+                                </div>
+
                                 <hr class="my-2">
 
                                 {{-- Total --}}
                                 <div class="flex justify-between text-base font-semibold">
                                     <span>{{ __('halls.total') }}</span>
-                                    <span class="text-primary-600">{{ number_format((float) $booking->total_amount, 3) }}
+                                    <span class="text-primary-600" id="sidebar-total">
+                                        {{ number_format((float) $booking->total_amount, 3) }}
                                         <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
-                                            class="inline w-6 h-6 -mt-1"></span>
+                                            class="inline w-6 h-6 -mt-1">
+                                    </span>
                                 </div>
 
                                 {{-- Advance Payment Breakdown (shown when user selects advance) --}}
@@ -489,7 +529,7 @@
                     const isAdvance = this.value === 'advance';
                     const amount = isAdvance ?
                         '{{ number_format($advanceAmount, 3) }}' :
-                        '{{ number_format($booking->total_amount, 3) }}';
+                        currentTotal;
 
                     payText.innerHTML = '{{ __('payment.pay_now') }} - ' + amount +
                         ' {{ __('currency.omr') }}';
@@ -497,6 +537,98 @@
                     if (advanceSummary) {
                         advanceSummary.style.display = isAdvance ? 'block' : 'none';
                     }
+                });
+            });
+
+            // ── Promo Code ────────────────────────────────────────────────
+            let currentTotal = '{{ number_format($booking->total_amount, 3) }}';
+            const originalTotal = parseFloat('{{ (float) $booking->total_amount }}');
+
+            const promoInput      = document.getElementById('promo-input');
+            const promoCodeValue  = document.getElementById('promo-code-value'); // hidden field submitted with form
+            const promoApplyBtn   = document.getElementById('promo-apply-btn');
+            const promoMessage    = document.getElementById('promo-message');
+            const discountRow     = document.getElementById('sidebar-discount-row');
+            const discountAmountEl = document.getElementById('sidebar-discount-amount');
+            const sidebarTotal    = document.getElementById('sidebar-total');
+
+            function updatePayButtonText() {
+                payText.innerHTML = '{{ __('payment.pay_now') }} - ' + currentTotal + ' {{ __('currency.omr') }}';
+            }
+
+            function markPromoApplied(code) {
+                promoCodeValue.value = code;   // ← this field IS submitted (not disabled)
+                promoInput.value = code;
+                promoInput.readOnly = true;
+                promoInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                promoApplyBtn.textContent = '{{ __('promo.applied') }}';
+                promoApplyBtn.disabled = true;
+                promoApplyBtn.classList.replace('bg-primary-600', 'bg-green-600');
+            }
+
+            // Pre-fill UI if booking already has a promo applied (e.g. after cancel/retry)
+            @if ($booking->promo_code_id && (float) $booking->discount_amount > 0)
+                markPromoApplied('{{ $booking->promoCode?->code ?? '' }}');
+                promoMessage.className = 'mt-2 text-sm text-green-600';
+                promoMessage.classList.remove('hidden');
+                promoMessage.textContent = '{{ __('promo.code_applied', ['amount' => number_format((float) $booking->discount_amount, 3)]) }}';
+            @endif
+
+            promoApplyBtn.addEventListener('click', function () {
+                const code = promoInput.value.trim().toUpperCase();
+                if (!code) return;
+
+                promoApplyBtn.disabled = true;
+                promoApplyBtn.textContent = '{{ __('promo.checking') }}';
+                promoMessage.className = 'mt-2 text-sm';
+                promoMessage.classList.remove('hidden');
+                promoMessage.textContent = '';
+
+                fetch('{{ route('api.promo-code.validate') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        booking_id: {{ $booking->id }},
+                    }),
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.valid) {
+                        const discount = parseFloat(data.discount_amount);
+                        const newTotal = Math.max(0, originalTotal - discount);
+
+                        currentTotal = newTotal.toFixed(3);
+
+                        // Show discount line in sidebar
+                        discountRow.classList.remove('hidden');
+                        discountAmountEl.innerHTML = '- ' + discount.toFixed(3) +
+                            ' <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal" class="inline w-6 h-6 -mt-1">';
+                        sidebarTotal.innerHTML = newTotal.toFixed(3) +
+                            ' <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal" class="inline w-6 h-6 -mt-1">';
+
+                        updatePayButtonText();
+
+                        promoMessage.className = 'mt-2 text-sm text-green-600';
+                        promoMessage.textContent = data.message;
+
+                        markPromoApplied(code); // populates hidden field + locks UI
+                    } else {
+                        promoMessage.className = 'mt-2 text-sm text-red-600';
+                        promoMessage.textContent = data.message;
+                        promoApplyBtn.disabled = false;
+                        promoApplyBtn.textContent = '{{ __('promo.apply') }}';
+                    }
+                })
+                .catch(() => {
+                    promoMessage.className = 'mt-2 text-sm text-red-600';
+                    promoMessage.textContent = '{{ __('promo.error') }}';
+                    promoApplyBtn.disabled = false;
+                    promoApplyBtn.textContent = '{{ __('promo.apply') }}';
                 });
             });
         });

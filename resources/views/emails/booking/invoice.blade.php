@@ -15,7 +15,7 @@
 --}}
 <x-mail::message>
 {{-- Greeting --}}
-# {{ __('booking.email.invoice_greeting', ['name' => $booking->customer_name], 'Dear :name') }}
+# {{ __('booking.email.invoice_greeting', ['name' => $booking->customer_name]) }}
 
 {{-- Custom Message from Admin (if provided) --}}
 @if($customMessage)
@@ -25,63 +25,66 @@
 @endif
 
 {{-- Introduction --}}
-{{ __('booking.email.invoice_intro', [], 'Please find attached your invoice for your recent booking with us.') }}
+{{ __('booking.email.invoice_intro') }}
 
 {{-- Booking Summary Panel --}}
 <x-mail::panel>
-**{{ __('booking.email.booking_summary', [], 'Booking Summary') }}**
+**{{ __('booking.email.booking_summary') }}**
 
 @php
     // Get hall name with locale support
-    $hallName = is_array($booking->hall?->name) 
+    $hallName = is_array($booking->hall?->name)
         ? ($booking->hall->name[app()->getLocale()] ?? $booking->hall->name['en'] ?? 'N/A')
         : ($booking->hall?->name ?? 'N/A');
-    
+
     // Time slot label
-    $timeSlotLabel = __('booking.time_slots.' . $booking->time_slot, [], ucfirst(str_replace('_', ' ', $booking->time_slot ?? 'N/A')));
+    $timeSlotLabel = __('booking.time_slots.' . $booking->time_slot);
 @endphp
 
 | | |
 |---|---|
-| **{{ __('booking.email.booking_number', [], 'Booking Number') }}** | {{ $booking->booking_number }} |
-| **{{ __('booking.email.hall', [], 'Hall') }}** | {{ $hallName }} |
-| **{{ __('booking.email.event_date', [], 'Event Date') }}** | {{ $booking->booking_date?->format('l, d M Y') ?? 'N/A' }} |
-| **{{ __('booking.email.time_slot', [], 'Time Slot') }}** | {{ $timeSlotLabel }} |
-| **{{ __('booking.email.guests', [], 'Number of Guests') }}** | {{ $booking->number_of_guests ?? 'N/A' }} {{ __('booking.email.persons', [], 'persons') }} |
+| **{{ __('booking.email.booking_number') }}** | {{ $booking->booking_number }} |
+| **{{ __('booking.email.hall') }}** | {{ $hallName }} |
+| **{{ __('booking.email.event_date') }}** | {{ $booking->booking_date?->format('l, d M Y') ?? 'N/A' }} |
+| **{{ __('booking.email.time_slot') }}** | {{ $timeSlotLabel }} |
+| **{{ __('booking.email.guests') }}** | {{ $booking->number_of_guests ?? 'N/A' }} {{ __('booking.email.persons') }} |
 @if($booking->event_type)
-| **{{ __('booking.email.event_type', [], 'Event Type') }}** | {{ __('booking.event_types.' . $booking->event_type, [], ucfirst($booking->event_type)) }} |
+| **{{ __('booking.email.event_type') }}** | {{ __('booking.event_types.' . $booking->event_type) }} |
 @endif
 </x-mail::panel>
 
 {{-- Financial Summary Panel --}}
 <x-mail::panel>
-**{{ __('booking.email.financial_summary', [], 'Financial Summary') }}**
+**{{ __('booking.email.financial_summary') }}**
 
 | | |
 |---|---|
-| **{{ __('booking.email.hall_price', [], 'Hall Price') }}** | {{ number_format((float)$booking->hall_price, 3) }} {{ __('currency.omr', [], 'OMR') }} |
+| **{{ __('booking.email.hall_price') }}** | {{ number_format((float)$booking->hall_price, 3) }} {{ __('currency.omr') }} |
 @if($booking->services_price > 0)
-| **{{ __('booking.email.services_price', [], 'Extra Services') }}** | {{ number_format((float)$booking->services_price, 3) }} {{ __('currency.omr', [], 'OMR') }} |
+| **{{ __('booking.email.services_price') }}** | {{ number_format((float)$booking->services_price, 3) }} {{ __('currency.omr') }} |
 @endif
-| **{{ __('booking.email.subtotal', [], 'Subtotal') }}** | {{ number_format((float)$booking->subtotal, 3) }} {{ __('currency.omr', [], 'OMR') }} |
+| **{{ __('booking.email.subtotal') }}** | {{ number_format((float)$booking->subtotal, 3) }} {{ __('currency.omr') }} |
+@if($booking->promoCode && (float)($booking->discount_amount ?? 0) > 0)
+| **{{ __('booking.email.promo_code') }} ({{ $booking->promoCode->code }})** | - {{ number_format((float)$booking->discount_amount, 3) }} {{ __('currency.omr') }} |
+@endif
 @if($booking->commission_amount > 0)
-| **{{ __('booking.email.platform_fee', [], 'Platform Fee') }}** | {{ number_format((float)$booking->commission_amount, 3) }} {{ __('currency.omr', [], 'OMR') }} |
+| **{{ __('booking.email.platform_fee') }}** | {{ number_format((float)$booking->commission_amount, 3) }} {{ __('currency.omr') }} |
 @endif
-| **{{ __('booking.email.total_amount', [], 'Total Amount') }}** | **{{ number_format((float)$booking->total_amount, 3) }} {{ __('currency.omr', [], 'OMR') }}** |
+| **{{ __('booking.email.total_amount') }}** | **{{ number_format((float)$booking->total_amount, 3) }} {{ __('currency.omr') }}** |
 </x-mail::panel>
 
 {{-- Payment Information (if advance payment) --}}
 @if($booking->payment_type === 'advance')
 <x-mail::panel>
-**{{ __('booking.email.payment_info', [], 'Payment Information') }}**
+**{{ __('booking.email.payment_info') }}**
 
 | | |
 |---|---|
-| **{{ __('booking.email.payment_type', [], 'Payment Type') }}** | {{ __('advance_payment.payment_type_advance', [], 'Advance Payment') }} |
-| **{{ __('booking.email.advance_paid', [], 'Advance Paid') }}** | {{ number_format((float)$booking->advance_amount, 3) }} {{ __('currency.omr', [], 'OMR') }} |
-| **{{ __('booking.email.balance_due', [], 'Balance Due') }}** | {{ number_format((float)$booking->balance_due, 3) }} {{ __('currency.omr', [], 'OMR') }} |
+| **{{ __('booking.email.payment_type') }}** | {{ __('advance_payment.payment_type_advance') }} |
+| **{{ __('booking.email.advance_paid') }}** | {{ number_format((float)$booking->advance_amount, 3) }} {{ __('currency.omr') }} |
+| **{{ __('booking.email.balance_due') }}** | {{ number_format((float)$booking->balance_due, 3) }} {{ __('currency.omr') }} |
 @if($booking->balance_paid_at)
-| **{{ __('booking.email.balance_paid', [], 'Balance Paid') }}** | ✅ {{ $booking->balance_paid_at->format('d M Y H:i') }} |
+| **{{ __('booking.email.balance_paid') }}** | ✅ {{ $booking->balance_paid_at->format('d M Y H:i') }} |
 @endif
 </x-mail::panel>
 @endif
@@ -90,38 +93,38 @@
 <x-mail::panel>
 | | |
 |---|---|
-| **{{ __('booking.email.booking_status', [], 'Booking Status') }}** | {{ __('booking.statuses.' . $booking->status, [], ucfirst($booking->status)) }} |
-| **{{ __('booking.email.payment_status', [], 'Payment Status') }}** | {{ __('booking.payment_statuses.' . $booking->payment_status, [], ucfirst(str_replace('_', ' ', $booking->payment_status))) }} |
+| **{{ __('booking.email.booking_status') }}** | {{ __('booking.statuses.' . $booking->status) }} |
+| **{{ __('booking.email.payment_status') }}** | {{ __('booking.payment_statuses.' . $booking->payment_status) }} |
 </x-mail::panel>
 
 {{-- Extra Services (if any) --}}
 @if($booking->extraServices && $booking->extraServices->count() > 0)
 <x-mail::panel>
-**{{ __('booking.email.extra_services', [], 'Extra Services') }}**
+**{{ __('booking.email.extra_services') }}**
 
 @foreach($booking->extraServices as $service)
 @php
-    $serviceName = is_array($service->name) 
+    $serviceName = is_array($service->name)
         ? ($service->name[app()->getLocale()] ?? $service->name['en'] ?? 'Service')
         : $service->name;
 @endphp
-- {{ $serviceName }}: {{ $service->pivot->quantity }} × {{ number_format((float)$service->pivot->unit_price, 3) }} {{ __('currency.omr', [], 'OMR') }} = **{{ number_format((float)$service->pivot->total_price, 3) }} {{ __('currency.omr', [], 'OMR') }}**
+- {{ $serviceName }}: {{ $service->pivot->quantity }} × {{ number_format((float)$service->pivot->unit_price, 3) }} {{ __('currency.omr') }} = **{{ number_format((float)$service->pivot->total_price, 3) }} {{ __('currency.omr') }}**
 @endforeach
 </x-mail::panel>
 @endif
 
 {{-- Note about PDF attachment --}}
-📄 {{ __('booking.email.invoice_pdf_attached', [], 'A PDF copy of your invoice is attached to this email for your records.') }}
+📄 {{ __('booking.email.invoice_pdf_attached') }}
 
 {{-- Contact Information --}}
-{{ __('booking.email.invoice_questions', [], 'If you have any questions about this invoice, please don\'t hesitate to contact us.') }}
+{{ __('booking.email.invoice_questions') }}
 
 {{-- Closing --}}
-{{ __('booking.email.regards', [], 'Best Regards') }},<br>
+{{ __('booking.email.regards') }},<br>
 **{{ config('app.name', 'Majalis') }}**
 
 {{-- Footer Subcopy --}}
 <x-mail::subcopy>
-{{ __('booking.email.invoice_footer', [], 'This is an automated email. Please do not reply directly to this message.') }}
+{{ __('booking.email.invoice_footer') }}
 </x-mail::subcopy>
 </x-mail::message>

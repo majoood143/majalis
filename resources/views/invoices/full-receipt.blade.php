@@ -225,6 +225,17 @@
                         <td class="info-label">{{ __('Subtotal') }}</td>
                         <td class="text-right">{{ $formattedSubtotal }} OMR</td>
                     </tr>
+                    @if($promoCode && (float)($booking->discount_amount ?? 0) > 0)
+                    <tr style="background: #f0fdf4;">
+                        <td style="color: #059669; padding: 5px 8px;">
+                            {{ __('Promo Code') }}: {{ $promoCode->code }}
+                            ({{ $promoCode->discount_label }})
+                        </td>
+                        <td class="text-right" style="color: #059669; font-weight: bold; padding: 5px 8px;">
+                            - {{ $formattedDiscount }} OMR
+                        </td>
+                    </tr>
+                    @endif
                     <tr>
                         <td class="info-label">
                             {{ __('Platform Fee') }}{{ $booking->service_fee_type === 'percentage' && $booking->service_fee_value ? ' (' . $booking->service_fee_value . '%)' : '' }}

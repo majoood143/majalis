@@ -112,6 +112,8 @@ class Booking extends Model
         'commission_type',
         'commission_value',
         'owner_payout',
+        'promo_code_id',
+        'discount_amount',
         'status',
         'payment_status',
         'payment_type',
@@ -153,6 +155,8 @@ class Booking extends Model
         'commission_amount' => 'decimal:2',
         'commission_value' => 'decimal:2',
         'owner_payout' => 'decimal:2',
+        'promo_code_id'  => 'integer',
+        'discount_amount' => 'decimal:2',
         'advance_amount' => 'decimal:3',
         'balance_due' => 'decimal:3',
         'refund_amount' => 'decimal:2',
@@ -255,6 +259,16 @@ class Booking extends Model
     public function extraServices(): HasMany
     {
         return $this->hasMany(BookingExtraService::class);
+    }
+
+    /**
+     * Get the promo code applied to this booking.
+     *
+     * @return BelongsTo<PromoCode, Booking>
+     */
+    public function promoCode(): BelongsTo
+    {
+        return $this->belongsTo(PromoCode::class);
     }
 
     /**

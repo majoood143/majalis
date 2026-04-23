@@ -25,13 +25,12 @@ use App\Filament\Pages\EditProfile;
 use Rmsramos\Activitylog\ActivitylogPlugin;
 use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
-use Vormkracht10\FilamentMails\Facades\FilamentMails;
+use Vormkracht10\FilamentMails\FilamentMails;
 use Vormkracht10\FilamentMails\FilamentMailsPlugin;
 use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Illuminate\Support\Facades\Blade;
 use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
-use Guava\FilamentKnowledgeBase\KnowledgeBasePlugin;
 
 
 class AdminPanelProvider extends PanelProvider

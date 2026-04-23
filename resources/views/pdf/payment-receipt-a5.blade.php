@@ -4,36 +4,25 @@
 |--------------------------------------------------------------------------
 |
 | Compact payment receipt template optimized for A5 printing.
+| Black-and-white style with logo, matching the other invoice templates.
 | Supports both English and Arabic content with RTL layout detection.
 |
 | Variables:
 | - $payment: Payment model instance
 | - $booking: Booking model instance (optional, via $payment->booking)
 | - $hall: Hall model instance (optional, via $booking->hall)
-|
-| Usage:
-| Pdf::loadView('pdf.payment-receipt-a5', compact('payment', 'booking', 'hall'))
-|     ->setPaper('a5', 'portrait')
-|     ->download('receipt.pdf');
+| - $generatedDate: Carbon instance
+| - $platformName, $platformPhone, $platformEmail, $platformAddress
 |
 --}}
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>{{ __('payment.receipt.title') }} - {{ $payment->payment_reference }}</title>
+    <title>{{ __('Payment Receipt') }} - {{ $payment->payment_reference }}</title>
     <style>
-        /**
-         * Reset and Base Styles
-         * A5 dimensions: 148mm x 210mm
-         */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; }
 
         @page {
             size: A5 portrait;
@@ -41,505 +30,310 @@
         }
 
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 10px;
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 7.5pt;
+            color: #000000;
             line-height: 1.4;
-            color: #333;
-            background: #fff;
-            padding: 5mm;
-            direction: {{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }};
-        }
-
-        /**
-         * Header Section
-         * Company branding and receipt identifier
-         */
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #2563eb;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-
-        .header h1 {
-            font-size: 18px;
-            color: #1e40af;
-            margin-bottom: 2px;
-            letter-spacing: 1px;
-        }
-
-        .header .tagline {
-            font-size: 8px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .header .receipt-number {
-            font-size: 10px;
-            color: #2563eb;
-            font-weight: bold;
-        }
-
-        /**
-         * Receipt Title Bar
-         * Visual indicator of document type
-         */
-        .receipt-title {
-            text-align: center;
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            color: white;
-            padding: 8px 10px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            border-radius: 4px;
-        }
-
-        /**
-         * Status Badge
-         * Payment status indicator with color coding
-         */
-        .status-container {
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 9px;
-            letter-spacing: 0.5px;
-        }
-
-        .status-paid {
-            background-color: #dcfce7;
-            color: #166534;
-            border: 1px solid #22c55e;
-        }
-
-        .status-pending {
-            background-color: #fef3c7;
-            color: #92400e;
-            border: 1px solid #f59e0b;
-        }
-
-        .status-failed {
-            background-color: #fee2e2;
-            color: #dc2626;
-            border: 1px solid #ef4444;
-        }
-
-        .status-refunded {
-            background-color: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #3b82f6;
-        }
-
-        /**
-         * Amount Display Box
-         * Prominent display of payment amount
-         */
-        .amount-box {
-            background-color: #f0fdf4;
-            border: 2px solid #22c55e;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .amount-label {
-            font-size: 9px;
-            color: #666;
-            margin-bottom: 3px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .amount-value {
-            font-size: 22px;
-            font-weight: bold;
-            color: #166534;
-        }
-
-        .currency {
-            font-size: 12px;
-            color: #666;
-            margin-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 3px;
-        }
-
-        /**
-         * Refund Box (if applicable)
-         */
-        .refund-box {
-            background-color: #fef3c7;
-            border: 2px solid #f59e0b;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .refund-label {
-            font-size: 8px;
-            color: #92400e;
-            margin-bottom: 2px;
-            text-transform: uppercase;
-        }
-
-        .refund-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #b45309;
-        }
-
-        /**
-         * Information Sections
-         * Organized data display
-         */
-        .section {
-            margin-bottom: 10px;
+            background: #ffffff;
+            direction: {{ app()->isLocale('ar') ? 'rtl' : 'ltr' }};
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
         .section-title {
-            font-size: 10px;
+            font-size: 8pt;
             font-weight: bold;
-            color: #1e40af;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 4px;
+            color: #000000;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000000;
             margin-bottom: 6px;
+        }
+
+        .data-table { width: 100%; border-collapse: collapse; font-size: 7pt; }
+
+        .data-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #000000;
+            font-size: 6.5pt;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            padding: 4px 6px;
+            border-bottom: 1px solid #999999;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        /**
-         * Information Grid Layout
-         * Label-value pairs in tabular format
-         */
-        .info-grid {
-            display: table;
-            width: 100%;
+        .data-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e5e5e5;
+            color: #000000;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        .info-row {
-            display: table-row;
-        }
+        .data-table tbody tr:nth-child(even) td { background: #fafafa; }
 
-        .info-label {
-            display: table-cell;
-            padding: 3px 8px 3px 0;
-            font-weight: bold;
-            color: #666;
-            width: 40%;
-            font-size: 9px;
-        }
+        .text-right  { text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }}; }
+        .text-center { text-align: center; }
 
-        .info-value {
-            display: table-cell;
-            padding: 3px 0;
-            font-size: 9px;
-            color: #333;
-        }
+        .info-label { color: #444444; font-size: 6.5pt; }
+        .info-value { font-weight: 500; color: #000000; }
 
-        /**
-         * Two Column Layout
-         * Side-by-side information display
-         */
-        .two-columns {
-            display: table;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .column {
-            display: table-cell;
-            width: 50%;
-            vertical-align: top;
-            padding-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}: 8px;
-        }
-
-        .column:last-child {
-            padding-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}: 0;
-            padding-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 8px;
-        }
-
-        /**
-         * Thank You Message
-         */
-        .thank-you {
-            text-align: center;
-            padding: 10px;
-            background-color: #eff6ff;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .thank-you p {
-            color: #1e40af;
-            font-weight: bold;
-            font-size: 10px;
-            margin: 0;
-        }
-
-        .thank-you .sub-text {
-            font-weight: normal;
-            font-size: 8px;
-            color: #666;
-            margin-top: 3px;
-        }
-
-        /**
-         * Footer Section
-         */
-        .footer {
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            font-size: 8px;
-            color: #666;
-        }
-
-        .footer p {
-            margin: 2px 0;
-        }
-
-        .footer .company-info {
-            margin-top: 8px;
-            font-weight: bold;
-            color: #1e40af;
-        }
-
-        /**
-         * Watermark (for paid receipts)
-         */
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 50px;
-            color: rgba(34, 197, 94, 0.08);
-            font-weight: bold;
-            z-index: -1;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-        }
-
-        /**
-         * QR Code Placeholder
-         */
-        .qr-section {
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .qr-code {
-            width: 60px;
-            height: 60px;
-            border: 1px solid #ddd;
+        .badge {
             display: inline-block;
+            padding: 2px 6px;
+            font-size: 6.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1.5px solid #000000;
+            color: #000000;
         }
 
-        .qr-label {
-            font-size: 7px;
-            color: #999;
-            margin-top: 3px;
-        }
-
-        /**
-         * Print Styles
-         */
-        @media print {
-            body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .amount-box,
-            .status-badge,
-            .thank-you {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
+        .footer-text { font-size: 6pt; color: #555555; }
     </style>
 </head>
 <body>
-    {{-- Watermark for paid receipts --}}
-    @if($payment->status === 'paid')
-        <div class="watermark">{{ __('payment.status.paid') }}</div>
-    @endif
 
-    {{-- Header Section --}}
-    <div class="header">
-        <h1>{{ config('app.name', 'Majalis') }}</h1>
-        <p class="tagline">{{ __('payment.receipt.tagline', ['default' => 'Hall Booking Management System']) }}</p>
-        <p class="receipt-number">{{ $payment->payment_reference }}</p>
-    </div>
+@php
+    // Pre-process any array-cast / translatable fields into plain strings
+    // (Hall model casts 'name' and others as 'array' via Spatie translatable)
+    $locale = app()->getLocale();
 
-    {{-- Receipt Title --}}
-    <div class="receipt-title">
-        {{ __('payment.receipt.title', ['default' => 'PAYMENT RECEIPT']) }}
-    </div>
+    $safeHallName = 'N/A';
+    if ($hall) {
+        $raw = $hall->name;
+        if (is_array($raw)) {
+            $safeHallName = $raw[$locale] ?? $raw['ar'] ?? $raw['en'] ?? 'N/A';
+        } elseif (is_string($raw) && $raw !== '') {
+            $safeHallName = $raw;
+        }
+        $safeHallName = is_string($safeHallName) ? $safeHallName : 'N/A';
+    }
 
-    {{-- Status Badge --}}
-    <div class="status-container">
-        <span class="status-badge status-{{ $payment->status }}">
-            @php
-                $statusText = match($payment->status) {
-                    'paid' => __('payment.status.paid'),
-                    'pending' => __('payment.status.pending'),
-                    'failed' => __('payment.status.failed'),
-                    'refunded' => __('payment.status.refunded'),
-                    'partially_refunded' => __('payment.status.partially_refunded'),
-                    default => ucfirst($payment->status),
-                };
-            @endphp
-            {{ $statusText }}
-        </span>
-    </div>
+    $safeBookingNumber = is_array($booking?->booking_number) ? ($booking->booking_number[$locale] ?? 'N/A') : ($booking?->booking_number ?? 'N/A');
+    $safeCustomerName  = is_array($booking?->customer_name)  ? ($booking->customer_name[$locale]  ?? 'N/A') : ($booking?->customer_name  ?? 'N/A');
+    $safeCustomerPhone = is_array($booking?->customer_phone) ? ($booking->customer_phone[$locale] ?? 'N/A') : ($booking?->customer_phone ?? 'N/A');
+    $safeCustomerEmail = is_array($booking?->customer_email) ? ($booking->customer_email[$locale] ?? 'N/A') : ($booking?->customer_email ?? 'N/A');
+    $safeTimeSlot      = is_array($booking?->time_slot)      ? ($booking->time_slot[$locale]      ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->time_slot ?? 'N/A'));
+    $safePaymentType   = is_array($booking?->payment_type)   ? ($booking->payment_type[$locale]   ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->payment_type ?? 'N/A'));
+    $safePaymentMethod = is_array($payment->payment_method)  ? ($payment->payment_method[$locale] ?? 'N/A') : ucfirst($payment->payment_method ?? 'N/A');
+    $safeStatus        = strtoupper(str_replace('_', ' ', is_string($payment->status) ? $payment->status : 'N/A'));
+    $safeRefundReason  = is_array($payment->refund_reason)   ? ($payment->refund_reason[$locale]  ?? '')    : ($payment->refund_reason ?? '');
 
-    {{-- Amount Box --}}
-    <div class="amount-box">
-        <div class="amount-label">{{ __('payment.receipt.amount_paid', ['default' => 'Amount Paid']) }}</div>
-        <div class="amount-value">
-            <span class="currency">{{ $payment->currency ?? 'OMR' }}</span>
-            {{ number_format((float) $payment->amount, 3) }}
-        </div>
-    </div>
+    $safePlatformName    = is_array($platformName)    ? ($platformName[$locale]    ?? 'Majalis')              : (string) ($platformName    ?? 'Majalis');
+    $safePlatformAddress = is_array($platformAddress) ? ($platformAddress[$locale] ?? 'Muscat, Oman')         : (string) ($platformAddress ?? 'Muscat, Oman');
+    $safePlatformPhone   = is_array($platformPhone)   ? ($platformPhone[$locale]   ?? '+968 9999 9999')       : (string) ($platformPhone   ?? '+968 9999 9999');
+    $safePlatformEmail   = is_array($platformEmail)   ? ($platformEmail[$locale]   ?? 'info@majalis.om')      : (string) ($platformEmail   ?? 'info@majalis.om');
+@endphp
 
-    {{-- Refund Box (if applicable) --}}
-    @if($payment->refund_amount && (float) $payment->refund_amount > 0)
-        <div class="refund-box">
-            <div class="refund-label">{{ __('payment.receipt.refund_amount', ['default' => 'Refunded Amount']) }}</div>
-            <div class="refund-value">
-                {{ $payment->currency ?? 'OMR' }} {{ number_format((float) $payment->refund_amount, 3) }}
-            </div>
-        </div>
-    @endif
-
-    {{-- Two Column Layout: Payment & Booking Details --}}
-    <div class="two-columns">
-        {{-- Payment Details Column --}}
-        <div class="column">
-            <div class="section">
-                <div class="section-title">{{ __('payment.receipt.payment_details', ['default' => 'Payment Details']) }}</div>
-                <div class="info-grid">
-                    <div class="info-row">
-                        <div class="info-label">{{ __('payment.fields.payment_reference') }}:</div>
-                        <div class="info-value">{{ $payment->payment_reference }}</div>
-                    </div>
-                    @if($payment->transaction_id)
-                        <div class="info-row">
-                            <div class="info-label">{{ __('payment.fields.transaction_id') }}:</div>
-                            <div class="info-value">{{ $payment->transaction_id }}</div>
-                        </div>
-                    @endif
-                    <div class="info-row">
-                        <div class="info-label">{{ __('payment.fields.payment_method') }}:</div>
-                        <div class="info-value">{{ ucfirst($payment->payment_method ?? 'N/A') }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">{{ __('payment.fields.payment_date') }}:</div>
-                        <div class="info-value">
-                            {{ $payment->paid_at
-                                ? $payment->paid_at->format('d M Y, H:i')
-                                : ($payment->created_at ? $payment->created_at->format('d M Y, H:i') : 'N/A')
-                            }}
-                        </div>
-                    </div>
+    {{-- ========================================================================
+        Header — Logo (left) + Receipt title / ref (right)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-bottom: 2px solid #000000; margin-bottom: 10px; padding-bottom: 6px;">
+        <tr>
+            <td width="50%" style="vertical-align: top;">
+                <img src="{{ public_path(config('app.logo_path')) }}"
+                     alt="{{ $safePlatformName }}"
+                     style="height: 32px; display: block; margin-bottom: 4px;">
+                <div style="font-size: 6.5pt; color: #444444; line-height: 1.6;">
+                    {{ $safePlatformAddress }}<br>
+                    {{ __('Phone') }}: {{ $safePlatformPhone }}<br>
+                    {{ __('Email') }}: {{ $safePlatformEmail }}
                 </div>
-            </div>
-        </div>
-
-        {{-- Booking Details Column --}}
-        <div class="column">
-            <div class="section">
-                <div class="section-title">{{ __('payment.receipt.booking_details', ['default' => 'Booking Details']) }}</div>
-                <div class="info-grid">
+            </td>
+            <td width="50%" style="vertical-align: top; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">
+                <div style="font-size: 14pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('Payment Receipt') }}
+                </div>
+                <div style="font-size: 7.5pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('Receipt Number') }}: {{ $payment->payment_reference }}
+                </div>
+                <div style="font-size: 6.5pt; color: #444444; margin-bottom: 5px;">
+                    {{ __('Generated') }}: {{ $generatedDate->format('d/m/Y H:i') }}
                     @if($booking)
-                        <div class="info-row">
-                            <div class="info-label">{{ __('payment.fields.booking') }}:</div>
-                            <div class="info-value">{{ $booking->booking_number }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">{{ __('payment.receipt.hall') }}:</div>
-                            <div class="info-value">
-                                @php
-                                    $hallName = $hall->name ?? null;
-                                    if (is_array($hallName)) {
-                                        $hallName = $hallName[app()->getLocale()] ?? $hallName['en'] ?? 'N/A';
-                                    }
-                                @endphp
-                                {{ $hallName ?? 'N/A' }}
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">{{ __('payment.receipt.event_date') }}:</div>
-                            <div class="info-value">
-                                {{ $booking->booking_date ? $booking->booking_date->format('d M Y') : 'N/A' }}
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">{{ __('payment.receipt.time_slot') }}:</div>
-                            <div class="info-value">
-                                {{ ucfirst(str_replace('_', ' ', $booking->time_slot ?? 'N/A')) }}
-                            </div>
-                        </div>
-                    @else
-                        <div class="info-row">
-                            <div class="info-label">{{ __('payment.fields.booking') }}:</div>
-                            <div class="info-value">N/A</div>
-                        </div>
+                        <br>Booking: {{ $safeBookingNumber }}
                     @endif
                 </div>
-            </div>
-        </div>
-    </div>
+                <span class="badge">{{ $safeStatus }}</span>
+            </td>
+        </tr>
+    </table>
 
-    {{-- Customer Information --}}
-    @if($booking)
-        <div class="section">
-            <div class="section-title">{{ __('payment.receipt.customer_info', ['default' => 'Customer Information']) }}</div>
-            <div class="info-grid">
-                <div class="info-row">
-                    <div class="info-label">{{ __('payment.receipt.customer_name') }}:</div>
-                    <div class="info-value">{{ $booking->customer_name ?? 'N/A' }}</div>
+    {{-- ========================================================================
+        Amount Banner
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            <td style="border: 1.5px solid #000000; background: #f9f9f9;
+                text-align: center; padding: 8px;">
+                <div style="font-size: 8pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    @if((string) $payment->status === 'paid')
+                        {{ __('PAYMENT RECEIVED SUCCESSFULLY') }}
+                    @elseif((string) $payment->status === 'refunded')
+                        {{ __('PAYMENT REFUNDED') }}
+                    @else
+                        {{ __('PAYMENT PROCESSED') }}
+                    @endif
                 </div>
-                <div class="info-row">
-                    <div class="info-label">{{ __('payment.receipt.email') }}:</div>
-                    <div class="info-value">{{ $booking->customer_email ?? 'N/A' }}</div>
+                <div style="font-size: 18pt; font-weight: bold; color: #000000; margin: 3px 0;">
+                    {{ number_format((float) $payment->amount, 3) }} {{ $payment->currency ?? 'OMR' }}
                 </div>
-                <div class="info-row">
-                    <div class="info-label">{{ __('payment.receipt.phone') }}:</div>
-                    <div class="info-value">{{ $booking->customer_phone ?? 'N/A' }}</div>
+                @if($payment->transaction_id)
+                <div style="font-size: 6.5pt; color: #444444;">
+                    {{ __('Transaction ID') }}: {{ $payment->transaction_id }}
                 </div>
-            </div>
-        </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 1: From + Receipt To (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('From') }}</div>
+                <div style="font-size: 7.5pt; line-height: 1.7;">
+                    <strong>{{ $safePlatformName }}</strong><br>
+                    {{ $safePlatformAddress }}<br>
+                    {{ __('Phone') }}: {{ $safePlatformPhone }}<br>
+                    {{ __('Email') }}: {{ $safePlatformEmail }}
+                </div>
+            </td>
+            <td width="2%"></td>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Receipt To') }}</div>
+                <div style="font-size: 7.5pt; line-height: 1.7;">
+                    @if($booking)
+                        <strong>{{ $safeCustomerName }}</strong><br>
+                        {{ __('Phone') }}: {{ $safeCustomerPhone }}<br>
+                        {{ __('Email') }}: {{ $safeCustomerEmail }}
+                    @else
+                        <span style="color: #444444;">{{ __('N/A') }}</span>
+                    @endif
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 2: Payment Details + Booking Details (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            {{-- Payment Details --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Payment Details') }}</div>
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Payment Method') }}</td>
+                        <td class="text-right">{{ $safePaymentMethod }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">Currency</td>
+                        <td class="text-right">{{ $payment->currency ?? 'OMR' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Payment Date') }}</td>
+                        <td class="text-right">
+                            {{ ($payment->paid_at ?? $payment->created_at)?->format('d/m/Y H:i') ?? 'N/A' }}
+                        </td>
+                    </tr>
+                    <tr style="border-top: 1.5px solid #000000;">
+                        <td style="font-weight: bold; padding: 5px 6px; font-size: 8pt;">{{ __('Amount Paid') }}</td>
+                        <td class="text-right" style="font-weight: bold; padding: 5px 6px; font-size: 8pt;">
+                            {{ number_format((float) $payment->amount, 3) }} {{ $payment->currency ?? 'OMR' }}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <td width="2%"></td>
+
+            {{-- Booking Details --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Booking Details') }}</div>
+                @if($booking)
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Booking No.') }}</td>
+                        <td class="text-right">{{ $booking->booking_number }}</td>
+                    </tr>
+                    @if($hall)
+                    <tr>
+                        <td class="info-label">{{ __('Hall') }}</td>
+                        <td class="text-right">{{ $safeHallName }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td class="info-label">{{ __('Event Date') }}</td>
+                        <td class="text-right">
+                            {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') : 'N/A' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Time Slot') }}</td>
+                        <td class="text-right">{{ $safeTimeSlot }}</td>
+                    </tr>
+                </table>
+                @else
+                <div style="font-size: 7pt; color: #444444; padding: 6px;">
+                    {{ __('No booking linked to this payment.') }}
+                </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Refund Section (only if applicable)
+        ======================================================================== --}}
+    @if((float)($payment->refund_amount ?? 0) > 0)
+    <div class="section-title" style="margin-bottom: 5px;">{{ __('Refund Information') }}</div>
+    <table class="data-table" width="100%" style="margin-bottom: 10px;">
+        <tr>
+            <td class="info-label">{{ __('Refund Amount') }}</td>
+            <td class="text-right" style="font-weight: bold;">
+                {{ number_format((float) $payment->refund_amount, 3) }} {{ $payment->currency ?? 'OMR' }}
+            </td>
+        </tr>
+        @if($safeRefundReason)
+        <tr>
+            <td class="info-label">{{ __('Refund Reason') }}</td>
+            <td class="text-right">{{ $safeRefundReason }}</td>
+        </tr>
+        @endif
+    </table>
     @endif
 
-    {{-- Thank You Message --}}
-    <div class="thank-you">
-        <p>{{ __('payment.receipt.thank_you', ['default' => 'Thank you for your payment!']) }}</p>
-        <p class="sub-text">{{ __('payment.receipt.thank_you_sub', ['default' => 'We appreciate your business and look forward to serving you.']) }}</p>
-    </div>
+    {{-- ========================================================================
+        Notice
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <tr>
+            <td style="border: 1px solid #cccccc; background: #f9f9f9; padding: 6px; font-size: 7pt; line-height: 1.7;">
+                &bull; {{ __('Please keep this receipt as proof of payment.') }}<br>
+                &bull; {{ __('This is a computer-generated receipt and does not require a signature.') }}<br>
+                &bull; {{ __('All prices are in Omani Rial (OMR).') }}
+            </td>
+        </tr>
+    </table>
 
-    {{-- Footer --}}
-    <div class="footer">
-        <p>{{ __('payment.receipt.computer_generated', ['default' => 'This is a computer-generated receipt and does not require a signature.']) }}</p>
-        <p>{{ __('payment.receipt.generated_on', ['default' => 'Generated on']) }}: {{ now()->format('d M Y, H:i:s') }}</p>
-        @php
-            $receiptEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
-        @endphp
-        <p class="company-info">
-            <strong>{{ config('app.name', 'Majalis') }}</strong><br>
-            {{ __('payment.receipt.sultanate_oman', ['default' => 'Sultanate of Oman']) }}@if($receiptEmail) | {{ $receiptEmail }}@endif
-        </p>
-    </div>
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-top: 1px solid #cccccc; padding-top: 5px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle;" class="footer-text">
+                <strong>{{ $safePlatformName }}</strong> &mdash;
+                {{ $safePlatformAddress }} &nbsp;|&nbsp; {{ $safePlatformPhone }}
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};" class="footer-text">
+                {{ __('Thank you for your business!') }}<br>
+                {{ __('Generated on') }}: {{ $generatedDate->format('d/m/Y H:i:s') }}
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>

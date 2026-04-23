@@ -288,10 +288,19 @@ class PDFService
 
         // Generate PDF
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.payment-receipt', [
-            'payment' => $payment,
-            'booking' => $payment->booking,
-            'hall' => $payment->booking?->hall,
-        ]);
+            'payment'         => $payment,
+            'booking'         => $payment->booking,
+            'hall'            => $payment->booking?->hall,
+            'generatedDate'   => now(),
+            'platformName'    => config('app.name', 'Majalis'),
+            'platformPhone'   => config('app.phone', '+968 9999 9999'),
+            'platformEmail'   => config('app.email', 'info@majalis.om'),
+            'platformAddress' => config('app.address', 'Muscat, Oman'),
+        ])
+            ->setPaper('a4', 'portrait')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true)
+            ->setOption('defaultFont', 'DejaVu Sans');
 
         // Save PDF
         Storage::disk('local')->put($path, $pdf->output());

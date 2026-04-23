@@ -744,6 +744,35 @@ class ViewBooking extends ViewRecord
                     ->collapsible()
                     ->collapsed(fn() => !$this->record->isAdvancePayment()),
 
+                // Promo Code Section
+                Infolists\Components\Section::make('Promo Code')
+                    ->icon('heroicon-o-tag')
+                    ->schema([
+                        Infolists\Components\Grid::make(4)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('promoCode.code')
+                                    ->label('Code')
+                                    ->badge()
+                                    ->color('success')
+                                    ->icon('heroicon-o-ticket'),
+
+                                Infolists\Components\TextEntry::make('promoCode.name')
+                                    ->label('Promo Name'),
+
+                                Infolists\Components\TextEntry::make('promo_discount_label')
+                                    ->label('Discount')
+                                    ->getStateUsing(fn() => $this->record->promoCode?->discount_label),
+
+                                Infolists\Components\TextEntry::make('discount_amount')
+                                    ->label('Amount Saved')
+                                    ->money('OMR', 3)
+                                    ->color('success')
+                                    ->weight('bold')
+                                    ->icon('heroicon-o-arrow-trending-down'),
+                            ]),
+                    ])
+                    ->visible(fn() => $this->record->promo_code_id !== null),
+
 
 
                 /**

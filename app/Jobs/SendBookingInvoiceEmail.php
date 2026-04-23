@@ -43,7 +43,7 @@ class SendBookingInvoiceEmail
     public function handle(InvoiceService $invoiceService): void
     {
         // Load relationships for invoice generation
-        $this->booking->load(['hall', 'extraServices', 'user']);
+        $this->booking->load(['hall', 'extraServices', 'user', 'promoCode']);
 
         // Generate PDF if needed
         $pdfContent = null;

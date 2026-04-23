@@ -342,15 +342,20 @@ class PaymentResource extends Resource
                             in_array($record->status, ['paid', 'refunded', 'partially_refunded'])
                         )
                         ->action(function (Payment $record) {
-                            try {
+                            //try {
                                 // Load relationships for the receipt
                                 $record->load('booking.hall');
 
                                 // Prepare data for PDF template
                                 $data = [
-                                    'payment' => $record,
-                                    'booking' => $record->booking,
-                                    'hall' => $record->booking?->hall,
+                                    'payment'         => $record,
+                                    'booking'         => $record->booking,
+                                    'hall'            => $record->booking?->hall,
+                                    'generatedDate'   => now(),
+                                    'platformName'    => config('app.name', 'Majalis'),
+                                    'platformPhone'   => config('app.phone', '+968 9999 9999'),
+                                    'platformEmail'   => config('app.email', 'info@majalis.om'),
+                                    'platformAddress' => config('app.address', 'Muscat, Oman'),
                                 ];
 
                                 // Generate A5 PDF with proper encoding for Arabic support
@@ -381,26 +386,26 @@ class PaymentResource extends Resource
                                         'Content-Disposition' => 'attachment; filename="' . $filename . '"',
                                     ]
                                 );
-                            } catch (\Exception $e) {
-                                // Log error for debugging
-                                Log::error('Receipt download failed', [
-                                    'payment_id' => $record->id,
-                                    'error' => $e->getMessage(),
-                                    'trace' => $e->getTraceAsString(),
-                                ]);
+                            // } catch (\Exception $e) {
+                            //     // Log error for debugging
+                            //     Log::error('Receipt download failed', [
+                            //         'payment_id' => $record->id,
+                            //         'error' => $e->getMessage(),
+                            //         'trace' => $e->getTraceAsString(),
+                            //     ]);
 
-                                // Show user-friendly error notification
-                                \Filament\Notifications\Notification::make()
-                                    ->danger()
-                                    ->title(__('payment.notifications.download_failed'))
-                                    ->body(__('payment.notifications.download_failed_body', [
-                                        'error' => $e->getMessage()
-                                    ]))
-                                    ->persistent()
-                                    ->send();
+                            //     // Show user-friendly error notification
+                            //     \Filament\Notifications\Notification::make()
+                            //         ->danger()
+                            //         ->title(__('payment.notifications.download_failed'))
+                            //         ->body(__('payment.notifications.download_failed_body', [
+                            //             'error' => $e->getMessage()
+                            //         ]))
+                            //         ->persistent()
+                            //         ->send();
 
-                                return null;
-                            }
+                            //     return null;
+                            // }
                         }),
 
                     /**
@@ -424,9 +429,14 @@ class PaymentResource extends Resource
 
                                 // Prepare data for PDF template
                                 $data = [
-                                    'payment' => $record,
-                                    'booking' => $record->booking,
-                                    'hall' => $record->booking?->hall,
+                                    'payment'         => $record,
+                                    'booking'         => $record->booking,
+                                    'hall'            => $record->booking?->hall,
+                                    'generatedDate'   => now(),
+                                    'platformName'    => config('app.name', 'Majalis'),
+                                    'platformPhone'   => config('app.phone', '+968 9999 9999'),
+                                    'platformEmail'   => config('app.email', 'info@majalis.om'),
+                                    'platformAddress' => config('app.address', 'Muscat, Oman'),
                                 ];
 
                                 // Generate A5 PDF for printing

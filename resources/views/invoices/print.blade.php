@@ -720,6 +720,12 @@
                     <span>{{ __('booking.invoice.subtotal') }}</span>
                     <span>{{ number_format((float)$booking->subtotal, 3) }} {{ __('booking.invoice.currency') }}</span>
                 </div>
+                @if($booking->promoCode && (float)($booking->discount_amount ?? 0) > 0)
+                <div class="total-row" style="color: var(--success-color);">
+                    <span>{{ __('booking.invoice.promo_code') }}: {{ $booking->promoCode->code }} ({{ $booking->promoCode->discount_label }})</span>
+                    <span>- {{ number_format((float)$booking->discount_amount, 3) }} {{ __('booking.invoice.currency') }}</span>
+                </div>
+                @endif
                 @if((float)$booking->platform_fee > 0)
                 <div class="total-row">
                     <span>{{ __('booking.invoice.platform_fee') }}</span>

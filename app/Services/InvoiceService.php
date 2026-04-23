@@ -47,7 +47,7 @@ class InvoiceService
         }
 
         // Load relationships for invoice
-        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices']);
+        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices', 'promoCode']);
 
         // Prepare invoice data
         $data = $this->prepareInvoiceData($booking, 'advance');
@@ -84,7 +84,7 @@ class InvoiceService
         }
 
         // Load relationships for invoice
-        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices']);
+        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices', 'promoCode']);
 
         // Prepare invoice data
         $data = $this->prepareInvoiceData($booking, 'balance');
@@ -117,7 +117,7 @@ class InvoiceService
         }
 
         // Load relationships for receipt
-        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices']);
+        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices', 'promoCode']);
 
         // Prepare receipt data
         $data = $this->prepareInvoiceData($booking, 'full');
@@ -231,6 +231,10 @@ class InvoiceService
             'formattedTotal' => number_format((float) $booking->total_amount, 3),
             'formattedAdvance' => number_format((float) ($booking->advance_amount ?? 0), 3),
             'formattedBalance' => number_format((float) ($booking->balance_due ?? 0), 3),
+
+            // Promo code details
+            'promoCode' => $booking->promoCode,
+            'formattedDiscount' => number_format((float) ($booking->discount_amount ?? 0), 3),
         ];
     }
 
@@ -291,7 +295,7 @@ class InvoiceService
         }
 
         // Load relationships
-        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices']);
+        $booking->load(['hall.owner', 'hall.city.region', 'user', 'extraServices', 'promoCode']);
 
         // Prepare data
         $data = $this->prepareInvoiceData($booking, $type);

@@ -1711,6 +1711,12 @@ class BookingResource extends Resource
                             ->label('Platform Fee')
                             ->money('OMR', 3),
 
+                        Infolists\Components\TextEntry::make('discount_amount')
+                            ->label('Promo Discount')
+                            ->money('OMR', 3)
+                            ->color('success')
+                            ->visible(fn($record) => $record->promo_code_id !== null),
+
                         Infolists\Components\TextEntry::make('total_amount')
                             ->label('Total Amount')
                             ->money('OMR', 3)
@@ -1719,6 +1725,30 @@ class BookingResource extends Resource
                             ->color('success'),
                     ])
                     ->columns(3),
+
+                // Promo Code Section
+                Infolists\Components\Section::make('Promo Code')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('promoCode.code')
+                            ->label('Code')
+                            ->badge()
+                            ->color('success'),
+
+                        Infolists\Components\TextEntry::make('promoCode.name')
+                            ->label('Promo Name'),
+
+                        Infolists\Components\TextEntry::make('promo_discount_label')
+                            ->label('Discount')
+                            ->getStateUsing(fn($record) => $record->promoCode?->discount_label),
+
+                        Infolists\Components\TextEntry::make('discount_amount')
+                            ->label('Amount Saved')
+                            ->money('OMR', 3)
+                            ->color('success')
+                            ->weight('bold'),
+                    ])
+                    ->columns(4)
+                    ->visible(fn($record) => $record->promo_code_id !== null),
 
                 // ✅ Advance Payment Section
                 Infolists\Components\Section::make('Advance Payment Details')

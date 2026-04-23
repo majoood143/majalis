@@ -1,338 +1,325 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    {{-- <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp"> --}}
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Payment Receipt - {{ $payment->payment_reference }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; }
 
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #333;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            color: #1e40af;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 11px;
-        }
-
-        .receipt-title {
-            text-align: center;
-            background-color: #3b82f6;
-            color: white;
-            padding: 10px;
-            margin-bottom: 20px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-        }
-
-        .status-paid {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .status-refunded {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-
-        .status-failed {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
-
-        .section {
-            margin-bottom: 20px;
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 8pt;
+            color: #000000;
+            line-height: 1.4;
+            background: #ffffff;
+            direction: {{ app()->isLocale('ar') ? 'rtl' : 'ltr' }};
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
         .section-title {
-            font-size: 14px;
+            font-size: 9pt;
             font-weight: bold;
-            color: #1e40af;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
+            color: #000000;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #000000;
+            margin-bottom: 8px;
         }
 
-        .info-grid {
-            display: table;
-            width: 100%;
-        }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
 
-        .info-row {
-            display: table-row;
-        }
-
-        .info-label {
-            display: table-cell;
-            padding: 5px 10px 5px 0;
+        .data-table th {
+            background: #f0f0f0;
             font-weight: bold;
-            color: #666;
-            width: 40%;
+            color: #000000;
+            font-size: 7pt;
+            text-transform: uppercase;
+            padding: 5px 8px;
+            border-bottom: 1px solid #999999;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        .info-value {
-            display: table-cell;
-            padding: 5px 0;
+        .data-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #e5e5e5;
+            color: #000000;
+            text-align: {{ app()->isLocale('ar') ? 'right' : 'left' }};
         }
 
-        .amount-box {
-            background-color: #f0fdf4;
-            border: 2px solid #22c55e;
-            padding: 15px;
-            text-align: center;
-            margin: 20px 0;
-        }
+        .data-table tbody tr:nth-child(even) td { background: #fafafa; }
 
-        .amount-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-        }
+        .text-right  { text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }}; }
+        .text-center { text-align: center; }
 
-        .amount-value {
-            font-size: 28px;
+        .info-label { color: #444444; font-size: 7pt; }
+        .info-value { font-weight: 500; color: #000000; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 7pt;
             font-weight: bold;
-            color: #166534;
+            text-transform: uppercase;
+            border: 1.5px solid #000000;
+            color: #000000;
         }
 
-        .refund-box {
-            background-color: #fef3c7;
-            border: 2px solid #f59e0b;
-            padding: 15px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .refund-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #b45309;
-        }
-
-        .two-columns {
-            display: table;
-            width: 100%;
-        }
-
-        .column {
-            display: table-cell;
-            width: 50%;
-            vertical-align: top;
-            padding-right: 15px;
-        }
-
-        .column:last-child {
-            padding-right: 0;
-            padding-left: 15px;
-        }
-
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            font-size: 10px;
-            color: #666;
-        }
-
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 80px;
-            color: rgba(0, 0, 0, 0.03);
-            font-weight: bold;
-            z-index: -1;
-        }
-
-        .thank-you {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #eff6ff;
-            border-radius: 5px;
-        }
-
-        .thank-you p {
-            color: #1e40af;
-            font-weight: bold;
-        }
+        .footer-text { font-size: 6.5pt; color: #555555; }
     </style>
 </head>
 <body>
-    <div class="watermark">PAID</div>
 
-    <!-- Header -->
-    <div class="header">
-        <h1>Majalis</h1>
-        <p>Hall Booking Management System</p>
-        <p>Sultanate of Oman</p>
-    </div>
+@php
+    $locale = app()->getLocale();
 
-    <!-- Receipt Title -->
-    <div class="receipt-title">
-        PAYMENT RECEIPT
-    </div>
+    $safeHallName = 'N/A';
+    if ($hall) {
+        $raw = $hall->name;
+        if (is_array($raw)) {
+            $safeHallName = $raw[$locale] ?? $raw['ar'] ?? $raw['en'] ?? 'N/A';
+        } elseif (is_string($raw) && $raw !== '') {
+            $safeHallName = $raw;
+        }
+        $safeHallName = is_string($safeHallName) ? $safeHallName : 'N/A';
+    }
 
-    <!-- Payment Reference & Status -->
-    <div class="section" style="text-align: center; margin-bottom: 20px;">
-        <p style="font-size: 11px; color: #666;">Receipt Number</p>
-        <p style="font-size: 18px; font-weight: bold; color: #1e40af;">{{ $payment->payment_reference }}</p>
-        <br>
-        <span class="status-badge status-{{ $payment->status }}">
-            {{ strtoupper(str_replace('_', ' ', $payment->status)) }}
-        </span>
-    </div>
+    $safeCustomerName  = is_array($booking?->customer_name)  ? ($booking->customer_name[$locale]  ?? 'N/A') : ($booking?->customer_name  ?? 'N/A');
+    $safeCustomerPhone = is_array($booking?->customer_phone) ? ($booking->customer_phone[$locale] ?? 'N/A') : ($booking?->customer_phone ?? 'N/A');
+    $safeCustomerEmail = is_array($booking?->customer_email) ? ($booking->customer_email[$locale] ?? 'N/A') : ($booking?->customer_email ?? 'N/A');
+    $safeTimeSlot      = is_array($booking?->time_slot)      ? ($booking->time_slot[$locale]      ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->time_slot ?? 'N/A'));
+    $safePaymentType   = is_array($booking?->payment_type)   ? ($booking->payment_type[$locale]   ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->payment_type ?? 'N/A'));
+    $safePaymentMethod = is_array($payment->payment_method)  ? ($payment->payment_method[$locale] ?? 'N/A') : ucfirst($payment->payment_method ?? 'N/A');
+    $safeStatus        = strtoupper(str_replace('_', ' ', is_string($payment->status) ? $payment->status : 'N/A'));
+    $safeRefundReason  = is_array($payment->refund_reason)   ? ($payment->refund_reason[$locale]  ?? '')    : ($payment->refund_reason ?? '');
 
-    <!-- Amount Box -->
-    <div class="amount-box">
-        <div class="amount-label">Amount Paid</div>
-        <div class="amount-value">{{ number_format((float)$payment->amount, 3) }} OMR</div>
-    </div>
+    $safePlatformName    = is_array($platformName)    ? ($platformName[$locale]    ?? 'Majalis')        : (string) ($platformName    ?? 'Majalis');
+    $safePlatformAddress = is_array($platformAddress) ? ($platformAddress[$locale] ?? 'Muscat, Oman')   : (string) ($platformAddress ?? 'Muscat, Oman');
+    $safePlatformPhone   = is_array($platformPhone)   ? ($platformPhone[$locale]   ?? '+968 9999 9999') : (string) ($platformPhone   ?? '+968 9999 9999');
+    $safePlatformEmail   = is_array($platformEmail)   ? ($platformEmail[$locale]   ?? 'info@majalis.om'): (string) ($platformEmail   ?? 'info@majalis.om');
+@endphp
 
-    @if($payment->refund_amount > 0)
-    <div class="refund-box">
-        <div class="amount-label">Refund Amount</div>
-        <div class="refund-value">{{ number_format((float)$payment->refund_amount, 3) }} OMR</div>
-        @if($payment->refund_reason)
-        <p style="font-size: 10px; margin-top: 5px;">Reason: {{ $payment->refund_reason }}</p>
-        @endif
-    </div>
-    @endif
-
-    <!-- Two Column Layout -->
-    <div class="two-columns">
-        <!-- Payment Details -->
-        <div class="column">
-            <div class="section">
-                <div class="section-title">Payment Details</div>
-                <div class="info-grid">
-                    <div class="info-row">
-                        <div class="info-label">Transaction ID:</div>
-                        <div class="info-value">{{ $payment->transaction_id ?? 'N/A' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Payment Method:</div>
-                        <div class="info-value">{{ $payment->payment_method ?? 'N/A' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Currency:</div>
-                        <div class="info-value">{{ $payment->currency }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Payment Date:</div>
-                        <div class="info-value">
-                            {{ $payment->paid_at ? $payment->paid_at->format('d M Y, H:i') : ($payment->created_at ? $payment->created_at->format('d M Y, H:i') : 'N/A') }}
-                        </div>
-                    </div>
+    {{-- ========================================================================
+        Header — Logo (left) + Receipt title / ref (right)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-bottom: 2px solid #000000; margin-bottom: 12px; padding-bottom: 8px;">
+        <tr>
+            <td width="50%" style="vertical-align: top;">
+                <img src="{{ public_path(config('app.logo_path')) }}"
+                     alt="{{ $safePlatformName }}"
+                     style="height: 40px; display: block; margin-bottom: 6px;">
+                <div style="font-size: 7pt; color: #444444; line-height: 1.6;">
+                    {{ $safePlatformAddress }}<br>
+                    {{ __('Phone') }}: {{ $safePlatformPhone }}<br>
+                    {{ __('Email') }}: {{ $safePlatformEmail }}
                 </div>
-            </div>
-        </div>
-
-        <!-- Booking Details -->
-        <div class="column">
-            <div class="section">
-                <div class="section-title">Booking Details</div>
-                <div class="info-grid">
+            </td>
+            <td width="50%" style="vertical-align: top; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};">
+                <div style="font-size: 16pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('Payment Receipt') }}
+                </div>
+                <div style="font-size: 8pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    {{ __('Receipt Number') }}: {{ $payment->payment_reference }}
+                </div>
+                <div style="font-size: 7pt; color: #444444; margin-bottom: 6px;">
+                    {{ __('Generated') }}: {{ $generatedDate->format('d/m/Y H:i') }}
                     @if($booking)
-                    <div class="info-row">
-                        <div class="info-label">Booking Number:</div>
-                        <div class="info-value">{{ $booking->booking_number }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Hall:</div>
-                        <div class="info-value">{{ $hall->name ?? 'N/A' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Event Date:</div>
-                        <div class="info-value">{{ $booking->booking_date ? $booking->booking_date->format('d M Y') : 'N/A' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Time Slot:</div>
-                        <div class="info-value">{{ ucfirst(str_replace('_', ' ', $booking->time_slot ?? 'N/A')) }}</div>
-                    </div>
-                    @else
-                    <div class="info-row">
-                        <div class="info-label">Booking:</div>
-                        <div class="info-value">N/A</div>
-                    </div>
+                        &nbsp;|&nbsp; {{ __('Booking') }}: {{ $booking->booking_number }}
                     @endif
                 </div>
-            </div>
-        </div>
-    </div>
+                <span class="badge">{{ $safeStatus }}</span>
+            </td>
+        </tr>
+    </table>
 
-    <!-- Customer Details -->
-    @if($booking)
-    <div class="section">
-        <div class="section-title">Customer Information</div>
-        <div class="info-grid">
-            <div class="info-row">
-                <div class="info-label">Customer Name:</div>
-                <div class="info-value">{{ $booking->customer_name ?? 'N/A' }}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Email:</div>
-                <div class="info-value">{{ $booking->customer_email ?? 'N/A' }}</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">Phone:</div>
-                <div class="info-value">{{ $booking->customer_phone ?? 'N/A' }}</div>
-            </div>
-        </div>
-    </div>
+    {{-- ========================================================================
+        Status Banner
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td style="border: 1.5px solid #000000; background: #f9f9f9;
+                text-align: center; padding: 10px;">
+                <div style="font-size: 11pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
+                    @if((string) $payment->status === 'paid')
+                        {{ __('PAYMENT RECEIVED SUCCESSFULLY') }}
+                    @elseif((string) $payment->status === 'refunded')
+                        {{ __('PAYMENT REFUNDED') }}
+                    @else
+                        {{ __('PAYMENT PROCESSED') }}
+                    @endif
+                </div>
+                <div style="font-size: 20pt; font-weight: bold; color: #000000; margin: 4px 0;">
+                    {{ number_format((float) $payment->amount, 3) }} {{ $payment->currency }}
+                </div>
+                <div style="font-size: 7.5pt; color: #444444;">
+                    {{ $payment->transaction_id ? __('Transaction ID') . ': ' . $payment->transaction_id : '' }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 1: From + Receipt To (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('From') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8;">
+                    <strong>{{ $safePlatformName }}</strong><br>
+                    {{ $safePlatformAddress }}<br>
+                    {{ __('Phone') }}: {{ $safePlatformPhone }}<br>
+                    {{ __('Email') }}: {{ $safePlatformEmail }}
+                </div>
+            </td>
+            <td width="2%"></td>
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Receipt To') }}</div>
+                <div style="font-size: 8pt; line-height: 1.8;">
+                    @if($booking)
+                        <strong>{{ $safeCustomerName }}</strong><br>
+                        {{ __('Phone') }}: {{ $safeCustomerPhone }}<br>
+                        {{ __('Email') }}: {{ $safeCustomerEmail }}
+                    @else
+                        <span style="color: #444444;">{{ __('N/A') }}</span>
+                    @endif
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Row 2: Payment Details + Booking Details (side by side)
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            {{-- Payment Details --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Payment Details') }}</div>
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Payment Method') }}</td>
+                        <td class="text-right">{{ $safePaymentMethod }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Currency') }}</td>
+                        <td class="text-right">{{ $payment->currency }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Payment Date') }}</td>
+                        <td class="text-right">
+                            {{ ($payment->paid_at ?? $payment->created_at)?->format('d/m/Y H:i') ?? 'N/A' }}
+                        </td>
+                    </tr>
+                    @if($payment->transaction_id)
+                    <tr>
+                        <td class="info-label">{{ __('Transaction ID') }}</td>
+                        <td class="text-right">{{ $payment->transaction_id }}</td>
+                    </tr>
+                    @endif
+                    <tr style="border-top: 1.5px solid #000000;">
+                        <td style="font-weight: bold; padding: 6px 8px; font-size: 9pt;">
+                            {{ __('Amount Paid') }}
+                        </td>
+                        <td class="text-right" style="font-weight: bold; padding: 6px 8px; font-size: 9pt;">
+                            {{ number_format((float) $payment->amount, 3) }} {{ $payment->currency }}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            <td width="2%"></td>
+
+            {{-- Booking Details --}}
+            <td width="49%" style="vertical-align: top;">
+                <div class="section-title">{{ __('Booking Details') }}</div>
+                @if($booking)
+                <table class="data-table" width="100%">
+                    <tr>
+                        <td class="info-label">{{ __('Booking Number') }}</td>
+                        <td class="text-right">{{ $booking->booking_number }}</td>
+                    </tr>
+                    @if($hall)
+                    <tr>
+                        <td class="info-label">{{ __('Hall Name') }}</td>
+                        <td class="text-right">{{ $safeHallName }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td class="info-label">{{ __('Event Date') }}</td>
+                        <td class="text-right">
+                            {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') : 'N/A' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Time Slot') }}</td>
+                        <td class="text-right">{{ $safeTimeSlot }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">{{ __('Payment Type') }}</td>
+                        <td class="text-right">{{ $safePaymentType }}</td>
+                    </tr>
+                </table>
+                @else
+                <div style="font-size: 7.5pt; color: #444444; padding: 8px;">
+                    {{ __('No booking linked to this payment.') }}
+                </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    {{-- ========================================================================
+        Refund Section (only if applicable)
+        ======================================================================== --}}
+    @if((float)($payment->refund_amount ?? 0) > 0)
+    <div class="section-title" style="margin-bottom: 6px;">{{ __('Refund Information') }}</div>
+    <table class="data-table" width="100%" style="margin-bottom: 12px;">
+        <tr>
+            <td class="info-label">{{ __('Refund Amount') }}</td>
+            <td class="text-right" style="font-weight: bold;">
+                {{ number_format((float) $payment->refund_amount, 3) }} {{ $payment->currency }}
+            </td>
+        </tr>
+        @if($safeRefundReason)
+        <tr>
+            <td class="info-label">{{ __('Refund Reason') }}</td>
+            <td class="text-right">{{ $safeRefundReason }}</td>
+        </tr>
+        @endif
+    </table>
     @endif
 
-    <!-- Thank You Message -->
-    <div class="thank-you">
-        <p>Thank you for your payment!</p>
-        <p style="font-weight: normal; font-size: 11px; color: #666; margin-top: 5px;">
-            We appreciate your business and look forward to serving you.
-        </p>
-    </div>
+    {{-- ========================================================================
+        Notice
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+        <tr>
+            <td style="border: 1px solid #cccccc; background: #f9f9f9; padding: 8px; font-size: 7.5pt; line-height: 1.8;">
+                &bull; {{ __('Please keep this receipt as proof of payment.') }}<br>
+                &bull; {{ __('This is a computer-generated receipt and does not require a signature.') }}<br>
+                &bull; {{ __('All prices are in Omani Rial (OMR).') }}<br>
+                &bull; {{ __('For any payment disputes or queries, please contact our support team.') }}
+            </td>
+        </tr>
+    </table>
 
-    <!-- Footer -->
-    @php $receiptEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email'); @endphp
-    <div class="footer">
-        <p>This is a computer-generated receipt and does not require a signature.</p>
-        <p>Generated on: {{ now()->format('d M Y, H:i:s') }}</p>
-        <p style="margin-top: 10px;">
-            <strong>Majalis</strong> - Hall Booking Management System<br>
-            Sultanate of Oman@if($receiptEmail) | {{ $receiptEmail }}@endif
-        </p>
-    </div>
+    {{-- ========================================================================
+        Footer
+        ======================================================================== --}}
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-top: 1px solid #cccccc; padding-top: 6px;">
+        <tr>
+            <td width="60%" style="vertical-align: middle;" class="footer-text">
+                <strong>{{ $safePlatformName }}</strong> &mdash;
+                {{ $safePlatformAddress }} &nbsp;|&nbsp; {{ $safePlatformPhone }} &nbsp;|&nbsp; {{ $safePlatformEmail }}
+            </td>
+            <td width="40%" style="vertical-align: middle; text-align: {{ app()->isLocale('ar') ? 'left' : 'right' }};" class="footer-text">
+                {{ __('Thank you for your business!') }}<br>
+                {{ __('This is an automated receipt. Generated on') }}: {{ $generatedDate->format('d/m/Y H:i:s') }}
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>

@@ -49,6 +49,8 @@ class BookingInvoiceMail extends Mailable
         $this->subject = $emailSubject;
         $this->customMessage = $customMessage;
         $this->pdfContent = $pdfContent;
+        // Capture the current locale so the blade renders in the correct language
+        $this->locale = app()->getLocale();
     }
 
     /**

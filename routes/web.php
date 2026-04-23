@@ -13,6 +13,7 @@ use App\Http\Controllers\Customer\HallController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\PromoCodeController;
 
 // Home page — Hall listings (served at / without redirect)
 Route::get('/', [HallController::class, 'index'])->name('home');
@@ -92,7 +93,7 @@ Route::get('/bookings/{booking}/invoice/print', function (Booking $booking) {
         403
     );
 
-    return view('invoices.print', ['booking' => $booking->load(['hall', 'extraServices', 'user'])]);
+    return view('invoices.print', ['booking' => $booking->load(['hall', 'extraServices', 'user', 'promoCode'])]);
 })->name('bookings.invoice.print')->middleware(['auth:web,filament']);
 
 // Hall Owner Registration (public wizard)
@@ -114,6 +115,11 @@ Route::get('/page/{slug}', [PageController::class, 'show'])->name('pages.show');
 // Hall availability API (public — no auth required)
 Route::get('/api/halls/check-availability', [HallController::class, 'checkDateAvailability'])
     ->name('api.halls.check-availability');
+
+// Promo code validation API (public, rate-limited)
+Route::post('/api/promo-code/validate', [PromoCodeController::class, 'validate'])
+    ->middleware(['throttle:10,1'])
+    ->name('api.promo-code.validate');
 
 Route::get('/api/halls/suggest-dates', [HallController::class, 'suggestDates'])
     ->name('api.halls.suggest-dates');
