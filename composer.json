@@ -25,6 +25,7 @@
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
+        "marcogermani87/filament-captcha": "^1.9",
         "mpdf/mpdf": "^8.2",
         "predis/predis": "^3.2",
         "rmsramos/activitylog": "^2.0",

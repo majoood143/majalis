@@ -15,6 +15,7 @@ use Filament\Facades\Filament;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Filament\Notifications\Notification;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use MarcoGermani87\FilamentCaptcha\Forms\Components\CaptchaField;
 
 class Login extends BaseLogin
 {
@@ -49,6 +50,7 @@ class Login extends BaseLogin
     {
         return $form
             ->schema([
+                CaptchaField::make('captcha'),
                 $this->getEmailFormComponent()
                     ->label(__('owner.auth.email'))
                     ->placeholder(__('owner.auth.email_placeholder'))
@@ -66,6 +68,7 @@ class Login extends BaseLogin
 
                 $this->getRememberFormComponent()
                     ->label(__('owner.auth.remember_me')),
+
             ])
             ->statePath('data');
     }

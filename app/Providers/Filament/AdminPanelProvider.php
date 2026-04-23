@@ -33,6 +33,7 @@ use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
 
 
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -94,7 +95,9 @@ class AdminPanelProvider extends PanelProvider
                 GtagPlugin::make(),
                 FilamentEnvEditorPlugin::make()
                     ->viewPage(\App\Filament\Admin\Pages\EnvEditor::class),
+            //\MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
             //KnowledgeBasePlugin::make(),
+
 
             ])
             ->authMiddleware([
@@ -122,6 +125,7 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(
                 SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['en', 'ar']),
+
 
 
             );
