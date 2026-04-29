@@ -897,6 +897,7 @@ class ViewBooking extends ViewRecord
                                         // Transaction ID (from gateway)
                                         Infolists\Components\TextEntry::make('transaction_id')
                                             ->label(__('booking.labels.transaction_id'))
+                                            ->limit(30)
                                             ->copyable()
                                             ->copyMessage(__('booking.messages.transaction_id_copied'))
                                             ->placeholder('-')

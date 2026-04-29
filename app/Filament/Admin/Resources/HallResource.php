@@ -838,6 +838,29 @@ class HallResource extends Resource
                                     ->default(0)
                                     ->suffix('%')
                                     ->helperText(__('admin.cancellation_fee_help')),
+
+                                Forms\Components\Section::make(__('admin.initial_availability'))
+                                    ->description(__('admin.initial_availability_description'))
+                                    ->schema([
+                                        Forms\Components\DatePicker::make('availability_from_date')
+                                            ->label(__('admin.availability_from_date'))
+                                            ->required()
+                                            ->default(now())
+                                            ->minDate(now())
+                                            ->native(false)
+                                            ->displayFormat('Y-m-d'),
+
+                                        Forms\Components\DatePicker::make('availability_to_date')
+                                            ->label(__('admin.availability_to_date'))
+                                            ->required()
+                                            ->default(now()->addMonths(3))
+                                            ->minDate(now())
+                                            ->native(false)
+                                            ->displayFormat('Y-m-d')
+                                            ->afterOrEqual('availability_from_date'),
+                                    ])
+                                    ->columns(2)
+                                    ->columnSpanFull(),
                             ])->columns(2),
                     ])->columnSpanFull(),
             ]);

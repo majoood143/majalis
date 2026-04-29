@@ -3,6 +3,8 @@
 namespace App\Filament\Admin\Resources\HallOwnerResource\Pages;
 
 use App\Filament\Admin\Resources\HallOwnerResource;
+use App\Filament\Admin\Resources\HallOwnerResource\Widgets\HallOwnerStatsOverview;
+use App\Filament\Admin\Resources\HallOwnerResource\Widgets\HallOwnerRecentBookings;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Notifications\Notification;
@@ -171,6 +173,20 @@ class ViewHallOwner extends ViewRecord
     public function hasCombinedRelationManagerTabsWithContent(): bool
     {
         return true;
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            HallOwnerStatsOverview::make(['record' => $this->record]),
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            HallOwnerRecentBookings::make(['record' => $this->record]),
+        ];
     }
 
     protected function generateOwnerReport(array $data): void

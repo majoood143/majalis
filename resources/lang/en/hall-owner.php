@@ -118,6 +118,34 @@ return [
         'created_at' => 'Created At',
     ],
 
+    // Widgets
+    'widgets' => [
+        'total_halls'      => 'Total Halls',
+        'active_halls'     => 'active halls',
+        'total_bookings'   => 'Total Bookings',
+        'total_income'     => 'Total Income',
+        'total_commission' => 'Commission',
+        'total_payout'     => 'Owner Payout',
+        'from_paid_bookings' => 'From paid confirmed/completed bookings',
+        'platform_commission' => 'Platform commission deducted',
+        'pending_payout'   => 'pending payout',
+        'recent_bookings'  => 'Recent Bookings',
+        'columns' => [
+            'booking_number' => 'Booking #',
+            'hall'           => 'Hall',
+            'customer'       => 'Customer',
+            'date'           => 'Date',
+            'status'         => 'Status',
+            'payment'        => 'Payment',
+            'income'         => 'Income',
+            'commission'     => 'Commission',
+            'payout'         => 'Payout',
+        ],
+        'actions' => [
+            'view' => 'View',
+        ],
+    ],
+
     // Info List
     'infolist' => [
         'business_information' => 'Business Information',

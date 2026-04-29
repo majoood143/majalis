@@ -768,5 +768,10 @@ return [
     'faq_question_arabic_placeholder' => 'أدخل السؤال بالعربية',
     'faq_answer_english_placeholder' => 'Enter the answer in English',
     'faq_answer_arabic_placeholder' => 'أدخل الإجابة بالعربية',
+    'initial_availability' => 'Initial Availability',
+    'initial_availability_help' => 'Generate availability slots for the next 3 months based on the hall\'s operating hours and days.',
+    'initial_availability_description' => 'This will create availability records for all halls for the upcoming 3 months, allowing customers to book within that period. It will consider each hall\'s specified operating hours and days of the week to generate accurate time slots.',
+    'availability_from_date' => 'Generate from Date',
+    'availability_to_date' => 'Generate to Date',
 
 ];

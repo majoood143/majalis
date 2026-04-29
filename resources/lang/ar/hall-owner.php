@@ -117,6 +117,34 @@ return [
         'created_at' => 'تاريخ الإنشاء',
     ],
 
+    // Widgets
+    'widgets' => [
+        'total_halls'        => 'إجمالي القاعات',
+        'active_halls'       => 'قاعات نشطة',
+        'total_bookings'     => 'إجمالي الحجوزات',
+        'total_income'       => 'إجمالي الدخل',
+        'total_commission'   => 'العمولة',
+        'total_payout'       => 'مستحقات المالك',
+        'from_paid_bookings' => 'من الحجوزات المدفوعة المؤكدة/المكتملة',
+        'platform_commission' => 'عمولة المنصة المخصومة',
+        'pending_payout'     => 'مستحقات معلقة',
+        'recent_bookings'    => 'الحجوزات الأخيرة',
+        'columns' => [
+            'booking_number' => 'رقم الحجز',
+            'hall'           => 'القاعة',
+            'customer'       => 'العميل',
+            'date'           => 'التاريخ',
+            'status'         => 'الحالة',
+            'payment'        => 'الدفع',
+            'income'         => 'الدخل',
+            'commission'     => 'العمولة',
+            'payout'         => 'المستحقات',
+        ],
+        'actions' => [
+            'view' => 'عرض',
+        ],
+    ],
+
     // Info List
     'infolist' => [
         'business_information' => 'معلومات العمل',

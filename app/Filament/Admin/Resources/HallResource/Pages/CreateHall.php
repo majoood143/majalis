@@ -103,6 +103,9 @@ class CreateHall extends CreateRecord
             $data['whatsapp'] = preg_replace('/[^0-9+]/', '', $data['whatsapp']);
         }
 
+        // Strip virtual availability fields (not stored on halls table)
+        unset($data['availability_from_date'], $data['availability_to_date']);
+
         // Validate pricing override format
         if (!empty($data['pricing_override'])) {
             $validSlots = ['morning', 'afternoon', 'evening', 'full_day'];
@@ -192,8 +195,10 @@ class CreateHall extends CreateRecord
         // Clear cache
         //Cache::tags(['halls', 'city_' . $hall->city_id])->flush();
 
-        // Generate availability for next 3 months
-        $this->generateInitialAvailability($hall);
+        // Generate availability for the chosen date range
+        $fromDate = $this->data['availability_from_date'] ?? now()->toDateString();
+        $toDate   = $this->data['availability_to_date']   ?? now()->addMonths(3)->toDateString();
+        $this->generateInitialAvailability($hall, $fromDate, $toDate);
 
         // Notify owner
         $this->notifyOwner($hall);
@@ -234,10 +239,10 @@ class CreateHall extends CreateRecord
         $notification->sendToDatabase($admins);
     }
 
-    protected function generateInitialAvailability($hall): void
+    protected function generateInitialAvailability($hall, ?string $fromDate = null, ?string $toDate = null): void
     {
-        $startDate = now();
-        $endDate = now()->addMonths(3);
+        $startDate = $fromDate ? \Carbon\Carbon::parse($fromDate) : now();
+        $endDate   = $toDate   ? \Carbon\Carbon::parse($toDate)   : now()->addMonths(3);
         $createdCount = 0;
 
         $currentDate = $startDate->copy();

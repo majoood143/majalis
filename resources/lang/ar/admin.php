@@ -770,4 +770,9 @@ return [
     'faq_question_arabic_placeholder' => 'أدخل السؤال بالعربية',
     'faq_answer_english_placeholder' => 'أدخل الإجابة بالإنجليزية',
     'faq_answer_arabic_placeholder' => 'أدخل الإجابة بالعربية',
+    'initial_availability' => 'التوفر الأولي',
+    'initial_availability_help' => 'إنشاء فجوات توفر لأشهر 3 القادمة بناءً على ساعات و أيام عمل القاعة.',
+    'initial_availability_description' => 'سيؤدي هذا إلى إنشاء سجلات توفر لجميع القاعات لأشهر 3 القادمة، مما يسمح للعملاء بالحجز ضمن هذا الفترة. وسوف يأخذ في الاعتبار ساعات و أيام عمل كل قاعة لتكوين فجوات الوقت الدقيقة.',
+    'availability_from_date' => 'إنشاء من التاريخ',
+    'availability_to_date' => 'إنشاء إلى التاريخ',
 ];

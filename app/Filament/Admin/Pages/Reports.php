@@ -104,6 +104,13 @@ class Reports extends Page implements HasForms
     public string $activeTab = 'overview';
 
     /**
+     * Selected date preset.
+     *
+     * @var string|null
+     */
+    public ?string $preset = null;
+
+    /**
      * Mount the page.
      *
      * @return void
@@ -234,13 +241,14 @@ class Reports extends Page implements HasForms
      */
     public function loadData(): void
     {
-        // Trigger computed properties refresh
         unset($this->dashboardStats);
         unset($this->revenueTrend);
         unset($this->bookingDistribution);
         unset($this->topHalls);
         unset($this->topOwners);
         unset($this->commissionReport);
+
+        $this->dispatch('chartsRefreshed');
     }
 
     /**
@@ -489,7 +497,7 @@ class Reports extends Page implements HasForms
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
             'generatedAt' => now()->format('d M Y H:i'),
-            'generatedBy' => Auth::user()->name,
+            'generatedBy' => Auth::user()?->name ?? '',
         ]);
 
         $filename = "admin_report_{$this->startDate}_{$this->endDate}.pdf";
@@ -510,6 +518,7 @@ class Reports extends Page implements HasForms
     public function setActiveTab(string $tab): void
     {
         $this->activeTab = $tab;
+        $this->dispatch('activeTabUpdated');
     }
 
     /**

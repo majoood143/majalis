@@ -782,6 +782,7 @@ class PaymentResource extends Resource
                             ->label(__('payment.fields.booking')),
                         Infolists\Components\TextEntry::make('transaction_id')
                             ->label(__('payment.fields.transaction_id'))
+                            ->limit(30)
                             ->copyable(),
                         Infolists\Components\TextEntry::make('amount')
                             ->label(__('payment.fields.amount'))

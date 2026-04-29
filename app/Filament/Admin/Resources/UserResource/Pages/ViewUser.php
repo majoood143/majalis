@@ -3,6 +3,9 @@
 namespace App\Filament\Admin\Resources\UserResource\Pages;
 
 use App\Filament\Admin\Resources\UserResource;
+use App\Filament\Admin\Resources\UserResource\Widgets\UserRecentBookings;
+use App\Filament\Admin\Resources\UserResource\Widgets\UserStatsOverview;
+use App\Filament\Admin\Resources\UserResource\Widgets\UserTickets;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists\Infolist;
@@ -17,6 +20,21 @@ class ViewUser extends ViewRecord
         return [
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            UserStatsOverview::class,
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            UserRecentBookings::class,
+            UserTickets::class,
         ];
     }
 

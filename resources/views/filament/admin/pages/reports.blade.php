@@ -369,112 +369,117 @@
     </div>
 
     {{-- Charts Script --}}
-    @push('scripts')
+    @assets
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            document.addEventListener('livewire:navigated', initCharts);
-            document.addEventListener('DOMContentLoaded', initCharts);
+    @endassets
 
-            function initCharts() {
-                // Destroy existing charts
-                Chart.helpers.each(Chart.instances, (instance) => instance.destroy());
+    @script
+    <script>
+        window._adminReportsWire = $wire;
 
-                const isDark = document.documentElement.classList.contains('dark');
-                const textColor = isDark ? '#9ca3af' : '#6b7280';
-                const gridColor = isDark ? '#374151' : '#e5e7eb';
+        window.initCharts = async function () {
+            Chart.helpers.each(Chart.instances, (instance) => instance.destroy());
 
-                // Revenue Chart
-                const revenueCtx = document.getElementById('revenueChart');
-                if (revenueCtx) {
-                    new Chart(revenueCtx, {
-                        type: 'line',
-                        data: {
-                            labels: @json($this->revenueTrend['labels'] ?? []),
-                            datasets: [
-                                {
-                                    label: '{{ __("admin.reports.charts.revenue") }}',
-                                    data: @json($this->revenueTrend['revenue'] ?? []),
-                                    borderColor: '#10b981',
-                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                    fill: true,
-                                    tension: 0.4,
-                                },
-                                {
-                                    label: '{{ __("admin.reports.charts.commission") }}',
-                                    data: @json($this->revenueTrend['commission'] ?? []),
-                                    borderColor: '#6366f1',
-                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                                    fill: true,
-                                    tension: 0.4,
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { labels: { color: textColor } }
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#9ca3af' : '#6b7280';
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+            const chartData = await window._adminReportsWire.getChartData();
+
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.revenueTrend.labels ?? [],
+                        datasets: [
+                            {
+                                label: '{{ __("admin.reports.charts.revenue") }}',
+                                data: chartData.revenueTrend.revenue ?? [],
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.4,
                             },
-                            scales: {
-                                x: { ticks: { color: textColor }, grid: { color: gridColor } },
-                                y: { ticks: { color: textColor }, grid: { color: gridColor } }
+                            {
+                                label: '{{ __("admin.reports.charts.commission") }}',
+                                data: chartData.revenueTrend.commission ?? [],
+                                borderColor: '#6366f1',
+                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                fill: true,
+                                tension: 0.4,
                             }
-                        }
-                    });
-                }
-
-                // Booking Status Chart
-                const bookingCtx = document.getElementById('bookingStatusChart');
-                if (bookingCtx) {
-                    new Chart(bookingCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: @json($this->bookingDistribution['labels'] ?? []),
-                            datasets: [{
-                                data: @json($this->bookingDistribution['data'] ?? []),
-                                backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
-                            }]
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: textColor } }
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'bottom', labels: { color: textColor } }
-                            }
+                        scales: {
+                            x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                            y: { ticks: { color: textColor }, grid: { color: gridColor } }
                         }
-                    });
-                }
-
-                // Time Slot Chart
-                const timeSlotCtx = document.getElementById('timeSlotChart');
-                if (timeSlotCtx) {
-                    new Chart(timeSlotCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: @json($this->timeSlotDistribution['labels'] ?? []),
-                            datasets: [{
-                                label: '{{ __("admin.reports.charts.bookings") }}',
-                                data: @json($this->timeSlotDistribution['data'] ?? []),
-                                backgroundColor: ['#6366f1', '#8b5cf6', '#a855f7', '#c084fc'],
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false }
-                            },
-                            scales: {
-                                x: { ticks: { color: textColor }, grid: { display: false } },
-                                y: { ticks: { color: textColor }, grid: { color: gridColor } }
-                            }
-                        }
-                    });
-                }
+                    }
+                });
             }
 
-            // Reinitialize on tab change
-            Livewire.on('activeTabUpdated', () => setTimeout(initCharts, 100));
-        </script>
-    @endpush
+            // Booking Status Chart
+            const bookingCtx = document.getElementById('bookingStatusChart');
+            if (bookingCtx) {
+                new Chart(bookingCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.bookingDistribution.labels ?? [],
+                        datasets: [{
+                            data: chartData.bookingDistribution.data ?? [],
+                            backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: textColor } }
+                        }
+                    }
+                });
+            }
+
+            // Time Slot Chart
+            const timeSlotCtx = document.getElementById('timeSlotChart');
+            if (timeSlotCtx) {
+                new Chart(timeSlotCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.timeSlotDistribution.labels ?? [],
+                        datasets: [{
+                            label: '{{ __("admin.reports.charts.bookings") }}',
+                            data: chartData.timeSlotDistribution.data ?? [],
+                            backgroundColor: ['#6366f1', '#8b5cf6', '#a855f7', '#c084fc'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { ticks: { color: textColor }, grid: { display: false } },
+                            y: { ticks: { color: textColor }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            }
+        };
+
+        initCharts();
+
+        Livewire.on('chartsRefreshed', () => setTimeout(initCharts, 100));
+        Livewire.on('activeTabUpdated', () => setTimeout(initCharts, 100));
+    </script>
+    @endscript
 </x-filament-panels::page>
