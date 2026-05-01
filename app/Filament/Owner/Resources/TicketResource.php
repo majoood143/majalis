@@ -252,58 +252,6 @@ class TicketResource extends Resource
         ];
     }
 
-    /**
-     * Allow any authenticated owner to access this resource.
-     * Data is already scoped to the owner via getEloquentQuery.
-     *
-     * @return bool
-     */
-    public static function canAccess(): bool
-    {
-        return Auth::check();
-    }
-
-    public static function canViewAny(): bool
-    {
-        return Auth::check();
-    }
-
-    public static function canView($record): bool
-    {
-        $user = Auth::user();
-        return $user && $record->owner_id === $user->id;
-    }
-
-    /**
-     * Allow owners to create payout requests.
-     *
-     * @return bool
-     */
-    public static function canCreate(): bool
-    {
-        return Auth::check();
-    }
-
-    /**
-     * Disable editing payouts.
-     *
-     * @return bool
-     */
-    public static function canEdit($record): bool
-    {
-        return false;
-    }
-
-    /**
-     * Disable deleting payouts.
-     *
-     * @return bool
-     */
-    public static function canDelete($record): bool
-    {
-        return false;
-    }
-
     protected static function getHallOwnerTicketsQuery(): Builder
     {
         return parent::getEloquentQuery()
