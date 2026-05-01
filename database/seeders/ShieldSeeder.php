@@ -94,7 +94,8 @@ class ShieldSeeder extends Seeder
             $query->where('name', 'like', '%hall%')
                 ->orWhere('name', 'like', '%booking%')
                 ->orWhere('name', 'like', '%service%')
-                ->orWhere('name', 'like', '%availability%');
+                ->orWhere('name', 'like', '%availability%')
+                ->orWhere('name', 'like', '%ticket%');
         })->get();
         $hallOwnerRole->syncPermissions($hallOwnerPermissions);
 
