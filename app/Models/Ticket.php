@@ -47,7 +47,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class Ticket extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, HasRoles;
+    use HasFactory, SoftDeletes, LogsActivity;
 
     /**
      * The attributes that are mass assignable.

@@ -28,6 +28,12 @@ class TicketResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'ticket_number';
 
+    // Optional: Define permission prefix for auto-generation
+    public static function getPermissionPrefix(): string
+    {
+        return 'ticket';
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return __('owner.nav_groups.support');
@@ -76,7 +82,7 @@ class TicketResource extends Resource
                             ->label(__('owner.tickets.fields.ticket_number'))
                             ->disabled()
                             ->dehydrated(false)
-                            ->visible(fn ($record) => $record !== null),
+                            ->visible(fn($record) => $record !== null),
 
                         Forms\Components\Select::make('type')
                             ->label(__('owner.tickets.fields.type'))
@@ -98,7 +104,7 @@ class TicketResource extends Resource
                             ->default(TicketStatus::OPEN->value)
                             ->disabled()
                             ->dehydrated(false)
-                            ->visible(fn ($record) => $record !== null),
+                            ->visible(fn($record) => $record !== null),
 
                         Forms\Components\TextInput::make('subject')
                             ->label(__('owner.tickets.fields.subject'))
@@ -120,10 +126,11 @@ class TicketResource extends Resource
                             ->label(__('owner.tickets.fields.booking'))
                             ->options(function () {
                                 $user = Auth::user();
-                                return \App\Models\Booking::whereHas('hall', fn ($q) => $q->where('owner_id', $user->id))
+                                return \App\Models\Booking::whereHas('hall', fn($q) => $q->where('owner_id', $user->id))
                                     ->with('hall')
                                     ->get()
-                                    ->mapWithKeys(fn ($booking) =>
+                                    ->mapWithKeys(
+                                        fn($booking) =>
                                         [$booking->id => "#{$booking->id} - {$booking->hall?->name} ({$booking->booking_date->format('M d, Y')})"]
                                     );
                             })
@@ -138,10 +145,10 @@ class TicketResource extends Resource
                             ->rows(4)
                             ->columnSpanFull()
                             ->disabled()
-                            ->visible(fn ($record) => $record?->resolution !== null),
+                            ->visible(fn($record) => $record?->resolution !== null),
                     ])
                     ->collapsible()
-                    ->visible(fn ($record) => $record?->resolution !== null),
+                    ->visible(fn($record) => $record?->resolution !== null),
             ]);
     }
 
@@ -161,26 +168,26 @@ class TicketResource extends Resource
                     ->label(__('owner.tickets.columns.subject'))
                     ->searchable()
                     ->limit(40)
-                    ->tooltip(fn ($record) => $record->subject)
+                    ->tooltip(fn($record) => $record->subject)
                     ->wrap(),
 
                 Tables\Columns\BadgeColumn::make('type')
                     ->label(__('owner.tickets.columns.type'))
-                    ->formatStateUsing(fn ($state) => $state->getLabel())
-                    ->color(fn ($state) => $state->getColor())
-                    ->icon(fn ($state) => $state->getIcon())
+                    ->formatStateUsing(fn($state) => $state->getLabel())
+                    ->color(fn($state) => $state->getColor())
+                    ->icon(fn($state) => $state->getIcon())
                     ->sortable(),
 
                 Tables\Columns\BadgeColumn::make('priority')
                     ->label(__('owner.tickets.columns.priority'))
-                    ->formatStateUsing(fn ($state) => $state->getLabel())
-                    ->color(fn ($state) => $state->getColor())
+                    ->formatStateUsing(fn($state) => $state->getLabel())
+                    ->color(fn($state) => $state->getColor())
                     ->sortable(),
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('owner.tickets.columns.status'))
-                    ->formatStateUsing(fn ($state) => $state->getLabel())
-                    ->color(fn ($state) => $state->getColor())
+                    ->formatStateUsing(fn($state) => $state->getLabel())
+                    ->color(fn($state) => $state->getColor())
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('booking.id')
@@ -221,14 +228,14 @@ class TicketResource extends Resource
 
                 Tables\Filters\Filter::make('open')
                     ->label(__('owner.tickets.filters.open_tickets'))
-                    ->query(fn (Builder $query) => $query->open())
+                    ->query(fn(Builder $query) => $query->open())
                     ->toggle()
                     ->default(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn (Ticket $record) => in_array($record->status, [
+                    ->visible(fn(Ticket $record) => in_array($record->status, [
                         TicketStatus::OPEN,
                         TicketStatus::PENDING,
                     ])),
@@ -255,7 +262,7 @@ class TicketResource extends Resource
     protected static function getHallOwnerTicketsQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('booking.hall', fn (Builder $q) => $q->where('owner_id', Auth::id()));
+            ->whereHas('booking.hall', fn(Builder $q) => $q->where('owner_id', Auth::id()));
     }
 
     public static function getEloquentQuery(): Builder
@@ -265,7 +272,7 @@ class TicketResource extends Resource
         return parent::getEloquentQuery()
             ->where(function (Builder $q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereHas('booking.hall', fn (Builder $sq) => $sq->where('owner_id', $user->id));
+                    ->orWhereHas('booking.hall', fn(Builder $sq) => $sq->where('owner_id', $user->id));
             });
     }
 }
