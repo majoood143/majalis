@@ -96,6 +96,7 @@ class OwnerPanelProvider extends PanelProvider
                 __('owner.nav_groups.hall_management'),
                 __('owner.nav_groups.bookings'),
                 __('owner.nav_groups.finance'),
+                __('owner.nav_groups.support'),
                 __('owner.nav_groups.settings'),
             ])
             ->plugin(

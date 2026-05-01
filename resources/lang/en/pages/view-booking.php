@@ -51,7 +51,8 @@ return [
             'email' => 'Send Email',
             'email_subject' => 'Regarding Booking :number',
             'whatsapp' => 'WhatsApp Message',
-            'whatsapp_message' => 'Hello! Regarding your booking :number at :hall on :date.',
+            //'whatsapp_message' => 'Hello! Regarding your booking :number at :hall on :date.',
+            'whatsapp_message' => "Hello! Regarding your booking :number at :hall on :date.\n\nمرحباً! بخصوص حجزك :number في :hall بتاريخ :date.",
         ],
 
         'download_invoice' => 'Download Invoice',

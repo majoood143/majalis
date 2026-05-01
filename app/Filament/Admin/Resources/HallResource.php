@@ -462,21 +462,16 @@ class HallResource extends Resource
                         Forms\Components\Tabs\Tab::make(__('admin.location'))
                             ->icon('heroicon-o-map-pin')
                             ->schema([
-                                // Address textarea
-                                Forms\Components\Textarea::make('address')
-                                    ->label(__('admin.full_address'))
+                                Forms\Components\Textarea::make('address_localized.en')
+                                    ->label(__('admin.address_english'))
                                     ->required()
                                     ->rows(2)
-                                    ->columnSpanFull()
-                                    ->placeholder(__('admin.enter_full_address')),
-
-                                // Localized address fields
-                                Forms\Components\TextInput::make('address_localized.en')
-                                    ->label(__('admin.address_english'))
                                     ->placeholder(__('admin.enter_address_english')),
 
-                                Forms\Components\TextInput::make('address_localized.ar')
+                                Forms\Components\Textarea::make('address_localized.ar')
                                     ->label(__('admin.address_arabic'))
+                                    ->required()
+                                    ->rows(2)
                                     ->placeholder(__('admin.enter_address_arabic')),
 
                                 // INTERACTIVE MAP PICKER

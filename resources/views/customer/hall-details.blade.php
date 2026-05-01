@@ -15,11 +15,10 @@
     {{-- Open Graph --}}
     @php
         $locale        = app()->getLocale();
-        $ogTitle       = \App\Models\Setting::get('seo', 'og_title_' . $locale)
-                         ?? \App\Models\Setting::get('seo', 'og_title_en', config('app.name'));
-        $ogDescription = \App\Models\Setting::get('seo', 'og_description_' . $locale)
-                         ?? \App\Models\Setting::get('seo', 'og_description_en', '');
-        $ogImage       = \App\Models\Setting::get('seo', 'og_image');
+        $ogTitle       = is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name;
+        $ogDescription = is_array($hall->description) ? $hall->description[app()->getLocale()] ?? $hall->description['en'] : $hall->description;
+
+        $ogImage       = $hall->featured_image ?: ($hall->images()->active()->first()->image_path ?? null);
         $ogType        = \App\Models\Setting::get('seo', 'og_type', 'website');
     @endphp
     <meta property="og:type"        content="{{ $ogType }}">
@@ -558,7 +557,7 @@
                         </svg>
                         <span>
                             {{ is_array($hall->city->name) ? $hall->city->name[app()->getLocale()] ?? $hall->city->name['en'] : $hall->city->name }},
-                            {{ $hall->address }}
+                            {{ $hall->address_localized[$locale] ?? $hall->address_localized['en'] ?? $hall->address_localized }}
                         </span>
                     </div>
 
@@ -959,7 +958,7 @@
                                         >
                                             <span class="font-medium text-gray-900">{{ $question }}</span>
                                             <svg
-                                                class="flex-shrink-0 w-5 h-5 text-primary-600 transition-transform duration-200"
+                                                class="flex-shrink-0 w-5 h-5 transition-transform duration-200 text-primary-600"
                                                 :class="{ 'rotate-180': open === {{ $index }} }"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                             >

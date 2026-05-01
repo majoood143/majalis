@@ -254,7 +254,7 @@ class ViewBooking extends ViewRecord
                     ->label(__('pages/view-booking.actions.contact.whatsapp'))
                     ->icon('heroicon-o-chat-bubble-left-ellipsis')
                     ->url(fn(): string => "https://api.whatsapp.com/send?phone=" . preg_replace('/[^0-9]/', '', $this->record->customer_phone) .
-                        "?text=" . urlencode(__('pages/view-booking.actions.contact.whatsapp_message', [
+                        "&text=" . urlencode(__('pages/view-booking.actions.contact.whatsapp_message', [
                             'number' => $this->record->booking_number,
                             'hall' => $this->record->hall?->name[app()->getLocale()] ?? $this->record->hall?->name['en'] ?? __('common.hall'),
                             'date' => $this->record->booking_date->format('d M Y'),
