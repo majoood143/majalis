@@ -50,14 +50,14 @@ class TicketResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = static::getHallOwnerTicketsQuery()->open()->count();
+        $count = static::getEloquentQuery()->open()->count();
 
         return $count > 0 ? (string) $count : null;
     }
 
     public static function getNavigationBadgeColor(): string|array|null
     {
-        $count = static::getHallOwnerTicketsQuery()->open()->count();
+        $count = static::getEloquentQuery()->open()->count();
 
         return match (true) {
             $count > 10 => 'danger',
@@ -266,6 +266,12 @@ class TicketResource extends Resource
     public static function canViewAny(): bool
     {
         return Auth::check();
+    }
+
+    public static function canView($record): bool
+    {
+        $user = Auth::user();
+        return $user && $record->owner_id === $user->id;
     }
 
     /**

@@ -671,6 +671,9 @@ class PayoutResource extends Resource
         return Auth::check();
     }
 
+   
+
+
     /**
      * Allow owners to create payout requests.
      *
