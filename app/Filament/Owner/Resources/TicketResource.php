@@ -252,6 +252,17 @@ class TicketResource extends Resource
         ];
     }
 
+    /**
+     * Allow any authenticated owner to access this resource.
+     * Data is already scoped to the owner via getEloquentQuery.
+     *
+     * @return bool
+     */
+    public static function canAccess(): bool
+    {
+        return Auth::check();
+    }
+
     public static function canViewAny(): bool
     {
         return Auth::check();
