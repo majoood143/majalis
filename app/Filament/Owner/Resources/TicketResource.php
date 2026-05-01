@@ -26,13 +26,13 @@ class TicketResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $recordTitleAttribute = 'ticket_number';
+    protected static ?string $recordTitleAttribute = 'ticket';
 
     // Optional: Define permission prefix for auto-generation
-    public static function getPermissionPrefix(): string
-    {
-        return 'ticket';
-    }
+    // public static function getPermissionPrefix(): string
+    // {
+    //     return 'ticket';
+    // }
 
     public static function getNavigationGroup(): ?string
     {
