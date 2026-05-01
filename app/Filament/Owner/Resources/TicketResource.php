@@ -50,14 +50,14 @@ class TicketResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = static::getEloquentQuery()->open()->count();
+        $count = static::getHallOwnerTicketsQuery()->open()->count();
 
         return $count > 0 ? (string) $count : null;
     }
 
     public static function getNavigationBadgeColor(): string|array|null
     {
-        $count = static::getEloquentQuery()->open()->count();
+        $count = static::getHallOwnerTicketsQuery()->open()->count();
 
         return match (true) {
             $count > 10 => 'danger',
@@ -250,6 +250,12 @@ class TicketResource extends Resource
             'view'   => Pages\ViewTicket::route('/{record}'),
             'edit'   => Pages\EditTicket::route('/{record}/edit'),
         ];
+    }
+
+    protected static function getHallOwnerTicketsQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('booking.hall', fn (Builder $q) => $q->where('owner_id', Auth::id()));
     }
 
     public static function getEloquentQuery(): Builder
