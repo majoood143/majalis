@@ -252,6 +252,11 @@ class TicketResource extends Resource
         ];
     }
 
+    public static function canViewAny(): bool
+    {
+        return Auth::check();
+    }
+
     protected static function getHallOwnerTicketsQuery(): Builder
     {
         return parent::getEloquentQuery()
