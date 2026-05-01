@@ -268,6 +268,36 @@ class TicketResource extends Resource
         return Auth::check();
     }
 
+    /**
+     * Allow owners to create payout requests.
+     *
+     * @return bool
+     */
+    public static function canCreate(): bool
+    {
+        return Auth::check();
+    }
+
+    /**
+     * Disable editing payouts.
+     *
+     * @return bool
+     */
+    public static function canEdit($record): bool
+    {
+        return false;
+    }
+
+    /**
+     * Disable deleting payouts.
+     *
+     * @return bool
+     */
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
     protected static function getHallOwnerTicketsQuery(): Builder
     {
         return parent::getEloquentQuery()
