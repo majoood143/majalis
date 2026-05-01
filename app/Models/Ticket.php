@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * Ticket Model
@@ -46,7 +47,7 @@ use Spatie\Activitylog\LogOptions;
  */
 class Ticket extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, SoftDeletes, LogsActivity, HasRoles;
 
     /**
      * The attributes that are mass assignable.
