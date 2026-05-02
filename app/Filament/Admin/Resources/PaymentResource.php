@@ -19,6 +19,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\PaymentResource\Pages;
 use App\Models\Payment;
+use App\Models\Setting;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -352,10 +353,10 @@ class PaymentResource extends Resource
                                     'booking'         => $record->booking,
                                     'hall'            => $record->booking?->hall,
                                     'generatedDate'   => now(),
-                                    'platformName'    => config('app.name', 'Majalis'),
-                                    'platformPhone'   => config('app.phone', '+968 9999 9999'),
-                                    'platformEmail'   => config('app.email', 'info@majalis.om'),
-                                    'platformAddress' => config('app.address', 'Muscat, Oman'),
+                                    'platformName'    => Setting::get('general', 'site_name', 'Majalis'),
+                                    'platformPhone'   => Setting::get('contact', 'phone', '+968 9999 9999'),
+                                    'platformEmail'   => Setting::get('contact', 'email', 'info@majalis.om'),
+                                    'platformAddress' => Setting::get('contact', 'address', 'Muscat, Oman'),
                                 ];
 
                                 // Generate A5 PDF with proper encoding for Arabic support
@@ -433,10 +434,10 @@ class PaymentResource extends Resource
                                     'booking'         => $record->booking,
                                     'hall'            => $record->booking?->hall,
                                     'generatedDate'   => now(),
-                                    'platformName'    => config('app.name', 'Majalis'),
-                                    'platformPhone'   => config('app.phone', '+968 9999 9999'),
-                                    'platformEmail'   => config('app.email', 'info@majalis.om'),
-                                    'platformAddress' => config('app.address', 'Muscat, Oman'),
+                                    'platformName'    => Setting::get('general', 'site_name', 'Majalis'),
+                                    'platformPhone'   => Setting::get('contact', 'phone', '+968 9999 9999'),
+                                    'platformEmail'   => Setting::get('contact', 'email', 'info@majalis.om'),
+                                    'platformAddress' => Setting::get('contact', 'address', 'Muscat, Oman'),
                                 ];
 
                                 // Generate A5 PDF for printing

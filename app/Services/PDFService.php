@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -292,10 +293,10 @@ class PDFService
             'booking'         => $payment->booking,
             'hall'            => $payment->booking?->hall,
             'generatedDate'   => now(),
-            'platformName'    => config('app.name', 'Majalis'),
-            'platformPhone'   => config('app.phone', '+968 9999 9999'),
-            'platformEmail'   => config('app.email', 'info@majalis.om'),
-            'platformAddress' => config('app.address', 'Muscat, Oman'),
+            'platformName'    => Setting::get('general', 'site_name', 'Majalis'),
+            'platformPhone'   => Setting::get('contact', 'phone', '+968 9999 9999'),
+            'platformEmail'   => Setting::get('contact', 'email', 'info@majalis.om'),
+            'platformAddress' => Setting::get('contact', 'address', 'Muscat, Oman'),
         ])
             ->setPaper('a4', 'portrait')
             ->setOption('isHtml5ParserEnabled', true)

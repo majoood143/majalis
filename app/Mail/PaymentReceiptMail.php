@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\Payment;
+use App\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -86,9 +87,14 @@ class PaymentReceiptMail extends Mailable
 
         // Generate PDF content at send time (not in constructor)
         $pdfContent = Pdf::loadView('pdf.payment-receipt', [
-            'payment' => $this->payment,
-            'booking' => $this->payment->booking,
-            'hall' => $this->payment->booking?->hall,
+            'payment'         => $this->payment,
+            'booking'         => $this->payment->booking,
+            'hall'            => $this->payment->booking?->hall,
+            'generatedDate'   => now(),
+            'platformName'    => Setting::get('general', 'site_name', 'Majalis'),
+            'platformPhone'   => Setting::get('contact', 'phone', '+968 9999 9999'),
+            'platformEmail'   => Setting::get('contact', 'email', 'info@majalis.om'),
+            'platformAddress' => Setting::get('contact', 'address', 'Muscat, Oman'),
         ])->output();
 
         $filename = 'receipt_' . $this->payment->payment_reference . '.pdf';

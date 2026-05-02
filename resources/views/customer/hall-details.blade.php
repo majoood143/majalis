@@ -181,12 +181,12 @@
         }
 
         /* RTL Support */
-        [dir="rtl"] .swiper-button-prev:after {
-            content: 'next' !important;
+         .swiper-button-prev:after {
+            content: '<' !important;
         }
 
-        [dir="rtl"] .swiper-button-next:after {
-            content: 'prev' !important;
+         .swiper-button-next:after {
+            content: '>' !important;
         }
     </style>
     <style>
@@ -480,10 +480,10 @@
 
             {{-- Navigation --}}
             <div
-                class="swiper-button-prev {{ app()->getLocale() === 'ar' ? '!right-4 !left-auto' : '!left-4' }} !text-white after:!text-3xl">
+                class="swiper-button-prev {{ app()->getLocale() === 'ar' ? '!right-4 !left-auto' : '!left-4' }} !text-black after:!text-3xl">
             </div>
             <div
-                class="swiper-button-next {{ app()->getLocale() === 'ar' ? '!left-4 !right-auto' : '!right-4' }} !text-white after:!text-3xl">
+                class="swiper-button-next {{ app()->getLocale() === 'ar' ? '!left-4 !right-auto' : '!right-4' }} !text-black after:!text-3xl">
             </div>
 
             {{-- Counter --}}
