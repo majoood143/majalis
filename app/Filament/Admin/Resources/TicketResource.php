@@ -2,6 +2,30 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\TicketResource\RelationManagers\MessagesRelationManager;
+use App\Filament\Admin\Resources\TicketResource\Pages\ListTickets;
+use App\Filament\Admin\Resources\TicketResource\Pages\CreateTicket;
+use App\Filament\Admin\Resources\TicketResource\Pages\ViewTicket;
+use App\Filament\Admin\Resources\TicketResource\Pages\EditTicket;
 use App\Filament\Admin\Resources\TicketResource\Pages;
 use App\Filament\Admin\Resources\TicketResource\RelationManagers;
 use App\Models\Ticket;
@@ -10,7 +34,6 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use App\Models\User;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -18,14 +41,12 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 class TicketResource extends Resource
 {
     protected static ?string $model = Ticket::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?int $navigationSort = 1;
 
@@ -60,48 +81,48 @@ class TicketResource extends Resource
         return 'success';
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('ticket_admin.section_info'))
+        return $schema
+            ->components([
+                Section::make(__('ticket_admin.section_info'))
                     ->description(__('ticket_admin.section_info_desc'))
                     ->schema([
-                        Forms\Components\TextInput::make('ticket_number')
+                        TextInput::make('ticket_number')
                             ->label(__('ticket_admin.ticket_number'))
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn ($record) => $record !== null),
 
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label(__('ticket_admin.type'))
                             ->options(TicketType::toSelectArray())
                             ->required()
                             ->native(false)
                             ->searchable(),
 
-                        Forms\Components\Select::make('priority')
+                        Select::make('priority')
                             ->label(__('ticket_admin.priority'))
                             ->options(TicketPriority::toSelectArray())
                             ->default(TicketPriority::MEDIUM->value)
                             ->required()
                             ->native(false),
 
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label(__('ticket_admin.status'))
                             ->options(TicketStatus::toSelectArray())
                             ->default(TicketStatus::OPEN->value)
                             ->required()
                             ->native(false),
 
-                        Forms\Components\TextInput::make('subject')
+                        TextInput::make('subject')
                             ->label(__('ticket_admin.subject'))
                             ->required()
                             ->maxLength(200)
                             ->columnSpanFull()
                             ->placeholder(__('ticket_admin.subject_placeholder')),
 
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label(__('ticket_admin.description'))
                             ->required()
                             ->rows(5)
@@ -110,10 +131,10 @@ class TicketResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make(__('ticket_admin.section_assignment'))
+                Section::make(__('ticket_admin.section_assignment'))
                     ->description(__('ticket_admin.section_assignment_desc'))
                     ->schema([
-                        Forms\Components\Select::make('user_id')
+                        Select::make('user_id')
                             ->label(__('ticket_admin.customer'))
                             ->relationship('user', 'name')
                             ->required()
@@ -121,7 +142,7 @@ class TicketResource extends Resource
                             ->preload()
                             ->helperText(__('ticket_admin.customer_help')),
 
-                        Forms\Components\Select::make('assigned_to')
+                        Select::make('assigned_to')
                             ->label(__('ticket_admin.assigned_to'))
                             ->relationship('assignedTo', 'name', fn (Builder $query) =>
                                 $query->whereHas('roles', fn ($q) =>
@@ -132,7 +153,7 @@ class TicketResource extends Resource
                             ->preload()
                             ->helperText(__('ticket_admin.assigned_to_help')),
 
-                        Forms\Components\Select::make('booking_id')
+                        Select::make('booking_id')
                             ->label(__('ticket_admin.related_booking'))
                             ->relationship('booking', 'id')
                             ->searchable()
@@ -142,7 +163,7 @@ class TicketResource extends Resource
                                 "#{$record->id} - {$record->hall?->name} ({$record->booking_date->format('M d, Y')})"
                             ),
 
-                        Forms\Components\DateTimePicker::make('due_date')
+                        DateTimePicker::make('due_date')
                             ->label(__('ticket_admin.due_date'))
                             ->helperText(__('ticket_admin.due_date_help'))
                             ->native(false)
@@ -150,10 +171,10 @@ class TicketResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make(__('ticket_admin.section_resolution'))
+                Section::make(__('ticket_admin.section_resolution'))
                     ->description(__('ticket_admin.section_resolution_desc'))
                     ->schema([
-                        Forms\Components\Textarea::make('resolution')
+                        Textarea::make('resolution')
                             ->label(__('ticket_admin.resolution'))
                             ->rows(4)
                             ->columnSpanFull()
@@ -165,14 +186,14 @@ class TicketResource extends Resource
                                 ])
                             ),
 
-                        Forms\Components\Textarea::make('internal_notes')
+                        Textarea::make('internal_notes')
                             ->label(__('ticket_admin.internal_notes'))
                             ->rows(3)
                             ->columnSpanFull()
                             ->placeholder(__('ticket_admin.internal_notes_placeholder'))
                             ->helperText(__('ticket_admin.internal_notes_help')),
 
-                        Forms\Components\Select::make('rating')
+                        Select::make('rating')
                             ->label(__('ticket_admin.rating'))
                             ->options([
                                 1 => __('ticket_admin.rating_1'),
@@ -184,7 +205,7 @@ class TicketResource extends Resource
                             ->native(false)
                             ->visible(fn ($record) => $record && $record->status === TicketStatus::CLOSED),
 
-                        Forms\Components\Textarea::make('feedback')
+                        Textarea::make('feedback')
                             ->label(__('ticket_admin.feedback'))
                             ->rows(3)
                             ->columnSpanFull()
@@ -196,20 +217,20 @@ class TicketResource extends Resource
                         TicketStatus::CLOSED
                     ])),
 
-                Forms\Components\Section::make(__('ticket_admin.section_timeline'))
+                Section::make(__('ticket_admin.section_timeline'))
                     ->description(__('ticket_admin.section_timeline_desc'))
                     ->schema([
-                        Forms\Components\DateTimePicker::make('first_response_at')
+                        DateTimePicker::make('first_response_at')
                             ->label(__('ticket_admin.first_response_at'))
                             ->disabled()
                             ->visible(fn ($record) => $record?->first_response_at),
 
-                        Forms\Components\DateTimePicker::make('resolved_at')
+                        DateTimePicker::make('resolved_at')
                             ->label(__('ticket_admin.resolved_at'))
                             ->disabled()
                             ->visible(fn ($record) => $record?->resolved_at),
 
-                        Forms\Components\DateTimePicker::make('closed_at')
+                        DateTimePicker::make('closed_at')
                             ->label(__('ticket_admin.closed_at'))
                             ->disabled()
                             ->visible(fn ($record) => $record?->closed_at),
@@ -224,7 +245,7 @@ class TicketResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('ticket_number')
+                TextColumn::make('ticket_number')
                     ->label(__('ticket_admin.col_ticket_number'))
                     ->searchable()
                     ->sortable()
@@ -232,48 +253,48 @@ class TicketResource extends Resource
                     ->weight('bold')
                     ->color('primary'),
 
-                Tables\Columns\TextColumn::make('subject')
+                TextColumn::make('subject')
                     ->label(__('ticket_admin.col_subject'))
                     ->searchable()
                     ->limit(40)
                     ->tooltip(fn ($record) => $record->subject)
                     ->wrap(),
 
-                Tables\Columns\BadgeColumn::make('type')
+                BadgeColumn::make('type')
                     ->label(__('ticket_admin.col_type'))
                     ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->getColor())
                     ->icon(fn ($state) => $state->getIcon())
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('priority')
+                BadgeColumn::make('priority')
                     ->label(__('ticket_admin.col_priority'))
                     ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->getColor())
                     ->icon(fn ($state) => $state->getIcon())
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('status')
+                BadgeColumn::make('status')
                     ->label(__('ticket_admin.col_status'))
                     ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->getColor())
                     ->icon(fn ($state) => $state->getIcon())
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label(__('ticket_admin.col_customer'))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('assignedTo.name')
+                TextColumn::make('assignedTo.name')
                     ->label(__('ticket_admin.col_assigned_to'))
                     ->searchable()
                     ->sortable()
                     ->placeholder(__('ticket_admin.unassigned'))
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('booking.id')
+                TextColumn::make('booking.id')
                     ->label(__('ticket_admin.col_booking'))
                     ->prefix('#')
                     ->url(fn ($record) => $record->booking ?
@@ -282,7 +303,7 @@ class TicketResource extends Resource
                     ->placeholder('—')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('due_date')
+                TextColumn::make('due_date')
                     ->label(__('ticket_admin.col_due_date'))
                     ->dateTime('M d, Y H:i')
                     ->sortable()
@@ -291,14 +312,14 @@ class TicketResource extends Resource
                     ->icon(fn ($record) => $record->is_overdue ? 'heroicon-o-exclamation-circle' : null)
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('ticket_admin.col_created'))
                     ->dateTime('M d, Y')
                     ->sortable()
                     ->toggleable()
                     ->toggledHiddenByDefault(),
 
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->label(__('ticket_admin.col_updated'))
                     ->dateTime('M d, Y H:i')
                     ->sortable()
@@ -306,54 +327,54 @@ class TicketResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('ticket_admin.filter_status'))
                     ->options(TicketStatus::toSelectArray())
                     ->multiple()
                     ->preload(),
 
-                Tables\Filters\SelectFilter::make('priority')
+                SelectFilter::make('priority')
                     ->label(__('ticket_admin.filter_priority'))
                     ->options(TicketPriority::toSelectArray())
                     ->multiple()
                     ->preload(),
 
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label(__('ticket_admin.filter_type'))
                     ->options(TicketType::toSelectArray())
                     ->multiple()
                     ->preload(),
 
-                Tables\Filters\SelectFilter::make('assigned_to')
+                SelectFilter::make('assigned_to')
                     ->label(__('ticket_admin.filter_assigned_to'))
                     ->relationship('assignedTo', 'name')
                     ->searchable()
                     ->preload(),
 
-                Tables\Filters\Filter::make('my_tickets')
+                Filter::make('my_tickets')
                     ->label(__('ticket_admin.filter_my_tickets'))
                     ->query(fn (Builder $query) => $query->where('assigned_to', Auth::id()))
                     ->toggle(),
 
-                Tables\Filters\Filter::make('overdue')
+                Filter::make('overdue')
                     ->label(__('ticket_admin.filter_overdue'))
                     ->query(fn (Builder $query) => $query->overdue())
                     ->toggle(),
 
-                Tables\Filters\Filter::make('open')
+                Filter::make('open')
                     ->label(__('ticket_admin.filter_open'))
                     ->query(fn (Builder $query) => $query->open())
                     ->toggle()
                     ->default(),
 
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    ViewAction::make(),
+                    EditAction::make(),
 
-                    Tables\Actions\Action::make('assign_to_me')
+                    Action::make('assign_to_me')
                         ->label(__('ticket_admin.action_assign_to_me'))
                         ->icon('heroicon-o-user-plus')
                         ->color('success')
@@ -369,13 +390,13 @@ class TicketResource extends Resource
                         })
                         ->visible(fn (Ticket $record) => $record->assigned_to !== Auth::id()),
 
-                    Tables\Actions\Action::make('resolve')
+                    Action::make('resolve')
                         ->label(__('ticket_admin.action_resolve'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->form([
-                            Forms\Components\Textarea::make('resolution')
+                        ->schema([
+                            Textarea::make('resolution')
                                 ->label(__('ticket_admin.resolution'))
                                 ->required()
                                 ->rows(4),
@@ -394,7 +415,7 @@ class TicketResource extends Resource
                             TicketStatus::PENDING
                         ])),
 
-                    Tables\Actions\Action::make('close')
+                    Action::make('close')
                         ->label(__('ticket_admin.action_close'))
                         ->icon('heroicon-o-lock-closed')
                         ->color('gray')
@@ -409,17 +430,17 @@ class TicketResource extends Resource
                         })
                         ->visible(fn (Ticket $record) => $record->status === TicketStatus::RESOLVED),
 
-                    Tables\Actions\DeleteAction::make(),
-                    ActivityLogTimelineTableAction::make('Activities'),
+                    DeleteAction::make(),
+                    // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\BulkAction::make('assign')
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('assign')
                         ->label(__('ticket_admin.action_bulk_assign'))
                         ->icon('heroicon-o-user-plus')
-                        ->form([
-                            Forms\Components\Select::make('assigned_to')
+                        ->schema([
+                            Select::make('assigned_to')
                                 ->label(__('ticket_admin.bulk_assign_field'))
                                 ->options(User::whereHas('roles', fn ($q) =>
                                     $q->whereIn('name', ['admin', 'staff', 'super_admin'])
@@ -438,7 +459,7 @@ class TicketResource extends Resource
                                 ->send();
                         }),
 
-                    Tables\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
@@ -448,17 +469,17 @@ class TicketResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\MessagesRelationManager::class,
+            MessagesRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListTickets::route('/'),
-            'create' => Pages\CreateTicket::route('/create'),
-            'view'   => Pages\ViewTicket::route('/{record}'),
-            'edit'   => Pages\EditTicket::route('/{record}/edit'),
+            'index'  => ListTickets::route('/'),
+            'create' => CreateTicket::route('/create'),
+            'view'   => ViewTicket::route('/{record}'),
+            'edit'   => EditTicket::route('/{record}/edit'),
         ];
     }
 

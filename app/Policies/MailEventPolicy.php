@@ -1,108 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
-use Vormkracht10\Mails\Models\MailEvent;
+use Illuminate\Foundation\Auth\User as AuthUser;
+use Backstage\Mails\Laravel\Models\MailEvent;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class MailEventPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_suppression');
+        return $authUser->can('ViewAny:MailEvent');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, MailEvent $mailEvent): bool
+    public function view(AuthUser $authUser, MailEvent $mailEvent): bool
     {
-        return $user->can('view_suppression');
+        return $authUser->can('View:MailEvent');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('create_suppression');
+        return $authUser->can('Create:MailEvent');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, MailEvent $mailEvent): bool
+    public function update(AuthUser $authUser, MailEvent $mailEvent): bool
     {
-        return $user->can('update_suppression');
+        return $authUser->can('Update:MailEvent');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, MailEvent $mailEvent): bool
+    public function delete(AuthUser $authUser, MailEvent $mailEvent): bool
     {
-        return $user->can('delete_suppression');
+        return $authUser->can('Delete:MailEvent');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return $user->can('delete_any_suppression');
+        return $authUser->can('DeleteAny:MailEvent');
     }
 
-    /**
-     * Determine whether the user can permanently delete.
-     */
-    public function forceDelete(User $user, MailEvent $mailEvent): bool
+    public function restore(AuthUser $authUser, MailEvent $mailEvent): bool
     {
-        return $user->can('force_delete_suppression');
+        return $authUser->can('Restore:MailEvent');
     }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(AuthUser $authUser, MailEvent $mailEvent): bool
     {
-        return $user->can('force_delete_any_suppression');
+        return $authUser->can('ForceDelete:MailEvent');
     }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, MailEvent $mailEvent): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_suppression');
+        return $authUser->can('ForceDeleteAny:MailEvent');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_any_suppression');
+        return $authUser->can('RestoreAny:MailEvent');
     }
 
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, MailEvent $mailEvent): bool
+    public function replicate(AuthUser $authUser, MailEvent $mailEvent): bool
     {
-        return $user->can('replicate_suppression');
+        return $authUser->can('Replicate:MailEvent');
     }
 
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('reorder_suppression');
+        return $authUser->can('Reorder:MailEvent');
     }
+
 }

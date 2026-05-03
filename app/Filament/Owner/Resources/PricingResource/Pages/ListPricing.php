@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\PricingResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Actions\CreateAction;
 use App\Filament\Owner\Resources\PricingResource;
 use App\Models\Hall;
 use App\Models\SeasonalPricing;
@@ -58,19 +63,19 @@ class ListPricing extends ListRecords
     {
         return [
             // Price Calculator
-            Actions\Action::make('calculator')
+            Action::make('calculator')
                 ->label(__('owner.pricing.actions.calculator'))
                 ->icon('heroicon-o-calculator')
                 ->color('info')
                 ->url(fn () => PricingResource::getUrl('calculator')),
 
             // Quick Weekend Pricing
-            Actions\Action::make('quick_weekend')
+            Action::make('quick_weekend')
                 ->label(__('owner.pricing.actions.quick_weekend'))
                 ->icon('heroicon-o-calendar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('owner.pricing.fields.hall'))
                         ->options(function () {
                             $user = Auth::user();
@@ -84,7 +89,7 @@ class ListPricing extends ListRecords
                         ->native(false)
                         ->searchable(),
 
-                    \Filament\Forms\Components\TextInput::make('percentage')
+                    TextInput::make('percentage')
                         ->label(__('owner.pricing.fields.weekend_increase'))
                         ->numeric()
                         ->default(20)
@@ -96,7 +101,7 @@ class ListPricing extends ListRecords
 
                     // Verify ownership
                     if ($hall->owner_id !== Auth::id()) {
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->danger()
                             ->title(__('owner.errors.unauthorized'))
                             ->send();
@@ -120,14 +125,14 @@ class ListPricing extends ListRecords
                         'is_active' => true,
                     ]);
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->success()
                         ->title(__('owner.pricing.notifications.weekend_created'))
                         ->send();
                 }),
 
             // Create Action
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(__('owner.pricing.actions.create'))
                 ->icon('heroicon-o-plus'),
         ];
@@ -136,7 +141,7 @@ class ListPricing extends ListRecords
     /**
      * Get tabs for filtering.
      *
-     * @return array<Tab>
+     * @return array<\Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
@@ -146,32 +151,32 @@ class ListPricing extends ListRecords
         });
 
         return [
-            'all' => Tab::make(__('owner.pricing.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.pricing.tabs.all'))
                 ->badge($baseQuery()->count())
                 ->badgeColor('primary'),
 
-            'active' => Tab::make(__('owner.pricing.tabs.active'))
+            'active' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.pricing.tabs.active'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', true)->where('end_date', '>=', now()))
                 ->badge($baseQuery()->where('is_active', true)->where('end_date', '>=', now())->count())
                 ->badgeColor('success')
                 ->icon('heroicon-o-check-circle'),
 
-            'seasonal' => Tab::make(__('owner.pricing.tabs.seasonal'))
+            'seasonal' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.pricing.tabs.seasonal'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'seasonal'))
                 ->badge($baseQuery()->where('type', 'seasonal')->count())
                 ->badgeColor('info'),
 
-            'weekend' => Tab::make(__('owner.pricing.tabs.weekend'))
+            'weekend' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.pricing.tabs.weekend'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'weekend'))
                 ->badge($baseQuery()->where('type', 'weekend')->count())
                 ->badgeColor('warning'),
 
-            'holiday' => Tab::make(__('owner.pricing.tabs.holiday'))
+            'holiday' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.pricing.tabs.holiday'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'holiday'))
                 ->badge($baseQuery()->where('type', 'holiday')->count())
                 ->badgeColor('danger'),
 
-            'expired' => Tab::make(__('owner.pricing.tabs.expired'))
+            'expired' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.pricing.tabs.expired'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('end_date', '<', now())->where('is_recurring', false))
                 ->badge($baseQuery()->where('end_date', '<', now())->where('is_recurring', false)->count())
                 ->badgeColor('gray'),

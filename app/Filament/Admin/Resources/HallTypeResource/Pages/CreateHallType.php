@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\HallTypeResource\Pages;
 
+use App\Models\HallType;
 use App\Filament\Admin\Resources\HallTypeResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -30,7 +31,7 @@ class CreateHallType extends CreateRecord
             $slug = Str::slug($data['name']['en']);
             $base = $slug;
             $counter = 1;
-            while (\App\Models\HallType::where('slug', $slug)->exists()) {
+            while (HallType::where('slug', $slug)->exists()) {
                 $slug = $base . '-' . $counter++;
             }
             $data['slug'] = $slug;

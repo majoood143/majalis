@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Exception;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Payment Model
@@ -41,16 +44,16 @@ use Spatie\Activitylog\LogOptions;
  * @property array|null $gateway_response
  * @property string|null $payment_url
  * @property string|null $invoice_id
- * @property \Carbon\Carbon|null $paid_at
- * @property \Carbon\Carbon|null $failed_at
- * @property \Carbon\Carbon|null $refunded_at
+ * @property Carbon|null $paid_at
+ * @property Carbon|null $failed_at
+ * @property Carbon|null $refunded_at
  * @property float|null $refund_amount
  * @property string|null $refund_reason
  * @property string|null $failure_reason
  * @property string|null $customer_ip
  * @property string|null $user_agent
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  *
  * @property-read Booking $booking
  */
@@ -219,7 +222,7 @@ class Payment extends Model
             $remaining = $this->getRemainingRefundableAmount();
 
             return $remaining > 0;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Error checking if payment can be refunded', [
                 'payment_id' => $this->id ?? 'unknown',
                 'error' => $e->getMessage(),
@@ -311,7 +314,7 @@ class Payment extends Model
             $originalAmount = (float) $this->amount;
 
             return max(0, $originalAmount - $refundedAmount);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Error calculating remaining refundable amount', [
                 'payment_id' => $this->id ?? 'unknown',
                 'error' => $e->getMessage(),
@@ -330,25 +333,25 @@ class Payment extends Model
      * @param float $amount The amount to refund
      * @param string $reason The reason for the refund
      * @return bool Returns true if refund was successful
-     * @throws \Exception If refund validation fails
+     * @throws Exception If refund validation fails
      */
     public function refund(float $amount, string $reason): bool
     {
         // Validate that refund is allowed
         if (!$this->canBeRefunded()) {
-            throw new \Exception('This payment cannot be refunded. Status: ' . $this->status);
+            throw new Exception('This payment cannot be refunded. Status: ' . $this->status);
         }
 
         // Validate refund amount
         if ($amount <= 0) {
-            throw new \Exception('Refund amount must be greater than zero.');
+            throw new Exception('Refund amount must be greater than zero.');
         }
 
         // Get remaining refundable amount
         $remainingAmount = $this->getRemainingRefundableAmount();
 
         if ($amount > $remainingAmount) {
-            throw new \Exception(
+            throw new Exception(
                 "Refund amount ({$amount} OMR) exceeds remaining refundable amount ({$remainingAmount} OMR)."
             );
         }
@@ -404,7 +407,7 @@ class Payment extends Model
             // app(NotificationService::class)->sendRefundNotification($this);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('Payment refund failed', [
@@ -415,7 +418,7 @@ class Payment extends Model
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            throw new \Exception('Refund processing failed: ' . $e->getMessage());
+            throw new Exception('Refund processing failed: ' . $e->getMessage());
         }
     }
 
@@ -426,7 +429,7 @@ class Payment extends Model
      *
      * @param string $reason The reason for the refund
      * @return bool Returns true if refund was successful
-     * @throws \Exception If refund validation fails
+     * @throws Exception If refund validation fails
      */
     public function refundFull(string $reason): bool
     {
@@ -572,7 +575,7 @@ class Payment extends Model
             DB::commit();
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('Failed to mark payment as paid', [
@@ -629,7 +632,7 @@ class Payment extends Model
             DB::commit();
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('Failed to mark payment as failed', [
@@ -661,7 +664,7 @@ class Payment extends Model
             ]);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to store payment URL', [
                 'payment_id' => $this->id,
                 'error' => $e->getMessage(),
@@ -720,9 +723,9 @@ class Payment extends Model
     /**
      * Scope: Filter by status
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $status
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeStatus($query, string $status)
     {
@@ -732,8 +735,8 @@ class Payment extends Model
     /**
      * Scope: Get paid payments
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePaid($query)
     {
@@ -743,8 +746,8 @@ class Payment extends Model
     /**
      * Scope: Get pending payments
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePending($query)
     {
@@ -754,8 +757,8 @@ class Payment extends Model
     /**
      * Scope: Get failed payments
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeFailed($query)
     {
@@ -765,8 +768,8 @@ class Payment extends Model
     /**
      * Scope: Get refunded payments (fully or partially)
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeRefunded($query)
     {
@@ -776,10 +779,10 @@ class Payment extends Model
     /**
      * Scope: Filter by date range
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $from
      * @param string $to
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeDateRange($query, string $from, string $to)
     {
@@ -789,9 +792,9 @@ class Payment extends Model
     /**
      * Scope: Filter by IP address (for fraud detection)
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $ip
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeByIp($query, string $ip)
     {

@@ -2,6 +2,14 @@
 
 namespace App\Filament\Admin\Resources\HallOwnerResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DatePicker;
+use Filament\Actions\DeleteAction;
+use App\Models\HallOwner;
+use ZipArchive;
+use Exception;
 use App\Filament\Admin\Resources\HallOwnerResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -22,11 +30,11 @@ class EditHallOwner extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make()
+            ViewAction::make()
                 ->icon('heroicon-o-eye')
                 ->color('info'),
 
-            Actions\Action::make('verify')
+            Action::make('verify')
                 ->label(fn() => $this->record->is_verified ? 'Unverify' : 'Verify Owner')
                 ->icon(fn() => $this->record->is_verified ? 'heroicon-o-x-circle' : 'heroicon-o-check-badge')
                 ->color(fn() => $this->record->is_verified ? 'warning' : 'success')
@@ -35,8 +43,8 @@ class EditHallOwner extends EditRecord
                 ->modalDescription(fn() => $this->record->is_verified
                     ? 'This will remove verification status from this owner.'
                     : 'This will verify the hall owner and enable their account.')
-                ->form(fn() => !$this->record->is_verified ? [
-                    \Filament\Forms\Components\Textarea::make('verification_notes')
+                ->schema(fn() => !$this->record->is_verified ? [
+                    Textarea::make('verification_notes')
                         ->label('Verification Notes')
                         ->rows(3),
                 ] : [])
@@ -55,7 +63,7 @@ class EditHallOwner extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'danger' : 'success')
@@ -77,7 +85,7 @@ class EditHallOwner extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('downloadDocuments')
+            Action::make('downloadDocuments')
                 ->label('Download Documents')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
@@ -86,18 +94,18 @@ class EditHallOwner extends EditRecord
                 })
                 ->visible(fn() => $this->hasDocuments()),
 
-            Actions\Action::make('generateReport')
+            Action::make('generateReport')
                 ->label('Generate Owner Report')
                 ->icon('heroicon-o-document-chart-bar')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('from_date')
+                ->schema([
+                    DatePicker::make('from_date')
                         ->label('From Date')
                         ->default(now()->startOfMonth())
                         ->native(false)
                         ->required(),
 
-                    \Filament\Forms\Components\DatePicker::make('to_date')
+                    DatePicker::make('to_date')
                         ->label('To Date')
                         ->default(now())
                         ->native(false)
@@ -107,8 +115,8 @@ class EditHallOwner extends EditRecord
                     $this->generateOwnerReport($data);
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     if ($this->record->halls()->count() > 0) {
                         Notification::make()
                             ->danger()
@@ -140,7 +148,7 @@ class EditHallOwner extends EditRecord
             isset($data['commercial_registration']) &&
             $data['commercial_registration'] !== $this->record->commercial_registration
         ) {
-            $exists = \App\Models\HallOwner::where('commercial_registration', $data['commercial_registration'])
+            $exists = HallOwner::where('commercial_registration', $data['commercial_registration'])
                 ->where('id', '!=', $this->record->id)
                 ->exists();
 
@@ -209,8 +217,8 @@ class EditHallOwner extends EditRecord
             $zipFilename = 'documents-owner-' . $this->record->id . '-' . now()->format('Y-m-d-His') . '.zip';
             $zipPath = storage_path('app/public/temp/' . $zipFilename);
 
-            $zip = new \ZipArchive();
-            $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            $zip = new ZipArchive();
+            $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
             foreach ($documents as $label => $filePath) {
                 $fullPath = storage_path('app/public/' . $filePath);
@@ -227,13 +235,13 @@ class EditHallOwner extends EditRecord
                 ->body('All documents have been zipped and are ready for download.')
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label('Download ZIP')
                         ->url(asset('storage/temp/' . $zipFilename))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to zip owner documents', [
                 'owner_id' => $this->record->id,
                 'error'    => $e->getMessage(),
@@ -394,13 +402,13 @@ class EditHallOwner extends EditRecord
                 ->body('Hall owner performance report has been created.')
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label('Download Report')
                         ->url(asset('storage/' . $filepath))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to generate owner report', [
                 'owner_id' => $this->record->id,
                 'error' => $e->getMessage(),

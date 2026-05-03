@@ -1,108 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\ServiceFeeSetting;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ServiceFeeSettingPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_service::fee::setting');
+        return $authUser->can('ViewAny:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, ServiceFeeSetting $serviceFeeSetting): bool
+    public function view(AuthUser $authUser, ServiceFeeSetting $serviceFeeSetting): bool
     {
-        return $user->can('view_service::fee::setting');
+        return $authUser->can('View:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('create_service::fee::setting');
+        return $authUser->can('Create:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, ServiceFeeSetting $serviceFeeSetting): bool
+    public function update(AuthUser $authUser, ServiceFeeSetting $serviceFeeSetting): bool
     {
-        return $user->can('update_service::fee::setting');
+        return $authUser->can('Update:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, ServiceFeeSetting $serviceFeeSetting): bool
+    public function delete(AuthUser $authUser, ServiceFeeSetting $serviceFeeSetting): bool
     {
-        return $user->can('delete_service::fee::setting');
+        return $authUser->can('Delete:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return $user->can('delete_any_service::fee::setting');
+        return $authUser->can('DeleteAny:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can permanently delete.
-     */
-    public function forceDelete(User $user, ServiceFeeSetting $serviceFeeSetting): bool
+    public function restore(AuthUser $authUser, ServiceFeeSetting $serviceFeeSetting): bool
     {
-        return $user->can('force_delete_service::fee::setting');
+        return $authUser->can('Restore:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(AuthUser $authUser, ServiceFeeSetting $serviceFeeSetting): bool
     {
-        return $user->can('force_delete_any_service::fee::setting');
+        return $authUser->can('ForceDelete:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, ServiceFeeSetting $serviceFeeSetting): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_service::fee::setting');
+        return $authUser->can('ForceDeleteAny:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_any_service::fee::setting');
+        return $authUser->can('RestoreAny:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, ServiceFeeSetting $serviceFeeSetting): bool
+    public function replicate(AuthUser $authUser, ServiceFeeSetting $serviceFeeSetting): bool
     {
-        return $user->can('replicate_service::fee::setting');
+        return $authUser->can('Replicate:ServiceFeeSetting');
     }
 
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('reorder_service::fee::setting');
+        return $authUser->can('Reorder:ServiceFeeSetting');
     }
+
 }

@@ -2,16 +2,29 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\GuestSessionResource\Pages\ListGuestSessions;
+use App\Filament\Admin\Resources\GuestSessionResource\Pages\ViewGuestSession;
 use App\Filament\Admin\Resources\GuestSessionResource\Pages;
 use App\Models\GuestSession;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\ActionGroup;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -19,7 +32,7 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = GuestSession::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-shield-check';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shield-check';
 
     protected static ?int $navigationSort = 10;
 
@@ -60,38 +73,38 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
         return false;
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->components([]);
     }
 
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make(__('guest-session.guest_information'))
+        return $schema
+            ->components([
+                Section::make(__('guest-session.guest_information'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('name')
+                        TextEntry::make('name')
                             ->label(__('guest-session.name')),
 
-                        Infolists\Components\TextEntry::make('email')
+                        TextEntry::make('email')
                             ->label(__('guest-session.email'))
                             ->copyable(),
 
-                        Infolists\Components\TextEntry::make('phone')
+                        TextEntry::make('phone')
                             ->label(__('guest-session.phone'))
                             ->placeholder('-'),
 
-                        Infolists\Components\TextEntry::make('session_token')
+                        TextEntry::make('session_token')
                             ->label(__('guest-session.session_token'))
                             ->copyable()
                             ->fontFamily('mono')
                             ->columnSpanFull(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('guest-session.session_status'))
+                Section::make(__('guest-session.session_status'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('status')
+                        TextEntry::make('status')
                             ->label(__('guest-session.status'))
                             ->badge()
                             ->color(fn(string $state): string => match ($state) {
@@ -106,65 +119,65 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
                             })
                             ->formatStateUsing(fn(GuestSession $record): string => $record->status_label),
 
-                        Infolists\Components\IconEntry::make('is_verified')
+                        IconEntry::make('is_verified')
                             ->label(__('guest-session.is_verified'))
                             ->boolean(),
 
-                        Infolists\Components\TextEntry::make('otp_attempts')
+                        TextEntry::make('otp_attempts')
                             ->label(__('guest-session.otp_attempts')),
 
-                        Infolists\Components\TextEntry::make('verified_at')
+                        TextEntry::make('verified_at')
                             ->label(__('guest-session.verified_at'))
                             ->dateTime()
                             ->placeholder('-'),
 
-                        Infolists\Components\TextEntry::make('expires_at')
+                        TextEntry::make('expires_at')
                             ->label(__('guest-session.expires_at'))
                             ->dateTime(),
 
-                        Infolists\Components\TextEntry::make('otp_expires_at')
+                        TextEntry::make('otp_expires_at')
                             ->label(__('guest-session.otp_expires_at'))
                             ->dateTime()
                             ->placeholder('-'),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('guest-session.booking_information'))
+                Section::make(__('guest-session.booking_information'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('hall.name')
+                        TextEntry::make('hall.name')
                             ->label(__('guest-session.hall'))
                             ->placeholder('-'),
 
-                        Infolists\Components\TextEntry::make('booking.booking_number')
+                        TextEntry::make('booking.booking_number')
                             ->label(__('guest-session.booking'))
                             ->placeholder('-'),
 
-                        Infolists\Components\TextEntry::make('booking_data')
+                        TextEntry::make('booking_data')
                             ->label(__('guest-session.booking_data'))
                             ->formatStateUsing(fn($state) => $state ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '-')
                             ->fontFamily('mono')
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Infolists\Components\Section::make(__('guest-session.security_information'))
+                Section::make(__('guest-session.security_information'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('ip_address')
+                        TextEntry::make('ip_address')
                             ->label(__('guest-session.ip_address'))
                             ->placeholder('-')
                             ->copyable(),
 
-                        Infolists\Components\TextEntry::make('user_agent')
+                        TextEntry::make('user_agent')
                             ->label(__('guest-session.user_agent'))
                             ->placeholder('-')
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Infolists\Components\Section::make(__('guest-session.timestamps'))
+                Section::make(__('guest-session.timestamps'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('created_at')
+                        TextEntry::make('created_at')
                             ->label(__('guest-session.created_at'))
                             ->dateTime(),
 
-                        Infolists\Components\TextEntry::make('updated_at')
+                        TextEntry::make('updated_at')
                             ->label(__('guest-session.updated_at'))
                             ->dateTime(),
                     ])->columns(2),
@@ -175,27 +188,27 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->label('#')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('guest-session.name'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->label(__('guest-session.email'))
                     ->searchable()
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('phone')
+                TextColumn::make('phone')
                     ->label(__('guest-session.phone'))
                     ->searchable()
                     ->placeholder('-')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('guest-session.status'))
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -211,40 +224,40 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
                     ->formatStateUsing(fn(GuestSession $record): string => $record->status_label)
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_verified')
+                IconColumn::make('is_verified')
                     ->label(__('guest-session.is_verified'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('otp_attempts')
+                TextColumn::make('otp_attempts')
                     ->label(__('guest-session.otp_attempts'))
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('guest-session.hall'))
                     ->placeholder('-')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('ip_address')
+                TextColumn::make('ip_address')
                     ->label(__('guest-session.ip_address'))
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('expires_at')
+                TextColumn::make('expires_at')
                     ->label(__('guest-session.expires_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('guest-session.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('guest-session.status'))
                     ->options([
                         'pending'   => __('guest-session.status_pending'),
@@ -257,26 +270,26 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
                     ])
                     ->multiple(),
 
-                Tables\Filters\TernaryFilter::make('is_verified')
+                TernaryFilter::make('is_verified')
                     ->label(__('guest-session.is_verified'))
                     ->boolean()
                     ->trueLabel(__('guest-session.verified_only'))
                     ->falseLabel(__('guest-session.unverified_only'))
                     ->native(false),
 
-                Tables\Filters\Filter::make('expired')
+                Filter::make('expired')
                     ->label(__('guest-session.filter_expired'))
                     ->query(fn(Builder $query) => $query->where('expires_at', '<=', now())),
 
-                Tables\Filters\Filter::make('active')
+                Filter::make('active')
                     ->label(__('guest-session.filter_active'))
                     ->query(fn(Builder $query) => $query->where('expires_at', '>', now())
                         ->whereNotIn('status', ['expired', 'cancelled', 'completed'])),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\DeleteAction::make()
+                    ViewAction::make(),
+                    DeleteAction::make()
                         ->label(__('guest-session.hard_delete'))
                         ->icon('heroicon-o-trash')
                         ->color('danger')
@@ -286,9 +299,9 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
                         ->modalSubmitActionLabel(__('guest-session.hard_delete_confirm')),
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->label(__('guest-session.hard_delete_bulk'))
                         ->requiresConfirmation()
                         ->modalHeading(__('guest-session.hard_delete_bulk_heading'))
@@ -307,8 +320,8 @@ class GuestSessionResource extends Resource implements HasShieldPermissions
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListGuestSessions::route('/'),
-            'view'  => Pages\ViewGuestSession::route('/{record}'),
+            'index' => ListGuestSessions::route('/'),
+            'view'  => ViewGuestSession::route('/{record}'),
         ];
     }
 }

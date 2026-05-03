@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\PayoutResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use App\Filament\Owner\Resources\PayoutResource\Widgets\PayoutSummaryWidget;
 use App\Enums\PayoutStatus;
 use App\Filament\Owner\Resources\PayoutResource;
 use App\Models\OwnerPayout;
@@ -83,11 +86,11 @@ class ListPayouts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(__('owner.payouts.create_request'))
                 ->icon('heroicon-o-plus'),
 
-            Actions\Action::make('contactSupport')
+            Action::make('contactSupport')
                 ->label(__('owner.payouts.contact_support'))
                 ->icon('heroicon-o-chat-bubble-left-right')
                 ->color('gray')
@@ -104,32 +107,32 @@ class ListPayouts extends ListRecords
     /**
      * Get tabs for status filtering.
      *
-     * @return array<string, Tab>
+     * @return array<string, \Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
         $user = Auth::user();
 
         return [
-            'all' => Tab::make(__('owner.payouts.tab_all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.payouts.tab_all'))
                 ->icon('heroicon-m-credit-card')
                 ->badge(fn (): int => $this->getTabCount('all')),
 
-            'pending' => Tab::make(__('owner.payouts.tab_pending'))
+            'pending' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.payouts.tab_pending'))
                 ->icon('heroicon-m-clock')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->whereIn('status', [PayoutStatus::PENDING, PayoutStatus::PROCESSING]))
                 ->badge(fn (): int => $this->getTabCount('pending'))
                 ->badgeColor('warning'),
 
-            'completed' => Tab::make(__('owner.payouts.tab_completed'))
+            'completed' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.payouts.tab_completed'))
                 ->icon('heroicon-m-check-circle')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->where('status', PayoutStatus::COMPLETED))
                 ->badge(fn (): int => $this->getTabCount('completed'))
                 ->badgeColor('success'),
 
-            'this_year' => Tab::make(__('owner.payouts.tab_this_year'))
+            'this_year' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.payouts.tab_this_year'))
                 ->icon('heroicon-m-calendar')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->whereYear('created_at', now()->year))
@@ -145,7 +148,7 @@ class ListPayouts extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            PayoutResource\Widgets\PayoutSummaryWidget::class,
+            PayoutSummaryWidget::class,
         ];
     }
 

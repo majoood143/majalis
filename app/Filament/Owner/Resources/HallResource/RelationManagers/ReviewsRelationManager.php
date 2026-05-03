@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\RelationManagers;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ViewAction;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -37,13 +48,13 @@ class ReviewsRelationManager extends RelationManager
             ->defaultSort('created_at', 'desc')
             ->columns([
                 // Customer Info
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label(__('owner.reviews.customer'))
                     ->searchable()
                     ->sortable(),
 
                 // Overall Rating with Stars
-                Tables\Columns\TextColumn::make('rating')
+                TextColumn::make('rating')
                     ->label(__('owner.reviews.rating'))
                     ->formatStateUsing(function (int $state): string {
                         $stars = str_repeat('★', $state) . str_repeat('☆', 5 - $state);
@@ -57,7 +68,7 @@ class ReviewsRelationManager extends RelationManager
                     ->sortable(),
 
                 // Comment Preview
-                Tables\Columns\TextColumn::make('comment')
+                TextColumn::make('comment')
                     ->label(__('owner.reviews.comment'))
                     ->limit(50)
                     ->tooltip(fn ($record): ?string => $record->comment)
@@ -65,7 +76,7 @@ class ReviewsRelationManager extends RelationManager
                     ->wrap(),
 
                 // Owner Response Status
-                Tables\Columns\IconColumn::make('has_response')
+                IconColumn::make('has_response')
                     ->label(__('owner.reviews.responded'))
                     ->state(fn ($record): bool => !empty($record->owner_response))
                     ->boolean()
@@ -75,7 +86,7 @@ class ReviewsRelationManager extends RelationManager
                     ->falseColor('gray'),
 
                 // Approval Status (info only for owner)
-                Tables\Columns\IconColumn::make('is_approved')
+                IconColumn::make('is_approved')
                     ->label(__('owner.reviews.approved'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -84,14 +95,14 @@ class ReviewsRelationManager extends RelationManager
                     ->falseColor('warning'),
 
                 // Review Date
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('owner.reviews.date'))
                     ->date('d M Y')
                     ->sortable(),
             ])
             ->filters([
                 // Rating Filter
-                Tables\Filters\SelectFilter::make('rating')
+                SelectFilter::make('rating')
                     ->label(__('owner.reviews.rating'))
                     ->options([
                         5 => '★★★★★ (5)',
@@ -102,53 +113,53 @@ class ReviewsRelationManager extends RelationManager
                     ]),
 
                 // Has Response Filter
-                Tables\Filters\Filter::make('needs_response')
+                Filter::make('needs_response')
                     ->label(__('owner.reviews.needs_response'))
                     ->query(fn (Builder $query): Builder => $query->whereNull('owner_response')),
 
                 // Approved Filter
-                Tables\Filters\TernaryFilter::make('is_approved')
+                TernaryFilter::make('is_approved')
                     ->label(__('owner.reviews.approved')),
             ])
-            ->actions([
+            ->recordActions([
                 // View Details
-                Tables\Actions\ViewAction::make()
+                ViewAction::make()
                     ->modalHeading(__('owner.reviews.view_title'))
-                    ->infolist([
-                        Infolists\Components\Section::make(__('owner.reviews.rating_section'))
+                    ->schema([
+                        Section::make(__('owner.reviews.rating_section'))
                             ->schema([
-                                Infolists\Components\TextEntry::make('rating')
+                                TextEntry::make('rating')
                                     ->label(__('owner.reviews.overall'))
                                     ->formatStateUsing(fn (int $state): string => str_repeat('★', $state) . str_repeat('☆', 5 - $state)),
 
-                                Infolists\Components\Grid::make(4)
+                                Grid::make(4)
                                     ->schema([
-                                        Infolists\Components\TextEntry::make('cleanliness_rating')
+                                        TextEntry::make('cleanliness_rating')
                                             ->label(__('owner.reviews.cleanliness'))
                                             ->placeholder('-'),
-                                        Infolists\Components\TextEntry::make('service_rating')
+                                        TextEntry::make('service_rating')
                                             ->label(__('owner.reviews.service'))
                                             ->placeholder('-'),
-                                        Infolists\Components\TextEntry::make('value_rating')
+                                        TextEntry::make('value_rating')
                                             ->label(__('owner.reviews.value'))
                                             ->placeholder('-'),
-                                        Infolists\Components\TextEntry::make('location_rating')
+                                        TextEntry::make('location_rating')
                                             ->label(__('owner.reviews.location'))
                                             ->placeholder('-'),
                                     ]),
                             ]),
 
-                        Infolists\Components\Section::make(__('owner.reviews.content_section'))
+                        Section::make(__('owner.reviews.content_section'))
                             ->schema([
-                                Infolists\Components\TextEntry::make('comment')
+                                TextEntry::make('comment')
                                     ->label(__('owner.reviews.comment'))
                                     ->markdown()
                                     ->columnSpanFull(),
                             ]),
 
-                        Infolists\Components\Section::make(__('owner.reviews.response_section'))
+                        Section::make(__('owner.reviews.response_section'))
                             ->schema([
-                                Infolists\Components\TextEntry::make('owner_response')
+                                TextEntry::make('owner_response')
                                     ->label('')
                                     ->markdown()
                                     ->placeholder(__('owner.reviews.no_response')),
@@ -156,14 +167,14 @@ class ReviewsRelationManager extends RelationManager
                     ]),
 
                 // Add/Edit Response
-                Tables\Actions\Action::make('respond')
+                Action::make('respond')
                     ->label(fn ($record): string => $record->owner_response 
                         ? __('owner.reviews.edit_response') 
                         : __('owner.reviews.add_response'))
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('primary')
-                    ->form([
-                        Forms\Components\Textarea::make('owner_response')
+                    ->schema([
+                        Textarea::make('owner_response')
                             ->label(__('owner.reviews.your_response'))
                             ->required()
                             ->rows(5)
@@ -184,7 +195,7 @@ class ReviewsRelationManager extends RelationManager
                     }),
 
                 // Delete Response (if exists)
-                Tables\Actions\Action::make('delete_response')
+                Action::make('delete_response')
                     ->label(__('owner.reviews.delete_response'))
                     ->icon('heroicon-o-trash')
                     ->color('danger')

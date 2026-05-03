@@ -2,6 +2,16 @@
 
 namespace App\Filament\Admin\Resources\HallAvailabilityResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Actions\DeleteAction;
+use Carbon\Carbon;
+use App\Models\HallAvailability;
 use App\Filament\Admin\Resources\HallAvailabilityResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -18,7 +28,7 @@ class EditHallAvailability extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('toggleAvailability')
+            Action::make('toggleAvailability')
                 ->label(fn() => $this->record->is_available
                     ? __('hall-availability.edit_page.toggle_block')
                     : __('hall-availability.edit_page.toggle_unblock'))
@@ -31,8 +41,8 @@ class EditHallAvailability extends EditRecord
                 ->modalDescription(fn() => $this->record->is_available
                     ? __('hall-availability.edit_page.block_description')
                     : __('hall-availability.edit_page.unblock_description'))
-                ->form(fn() => $this->record->is_available ? [
-                    \Filament\Forms\Components\Select::make('reason')
+                ->schema(fn() => $this->record->is_available ? [
+                    Select::make('reason')
                         ->label(__('hall-availability.edit_page.block_reason_label'))
                         ->options([
                             'maintenance' => __('hall-availability.reasons.maintenance'),
@@ -42,7 +52,7 @@ class EditHallAvailability extends EditRecord
                         ])
                         ->required(),
 
-                    \Filament\Forms\Components\Textarea::make('notes')
+                    Textarea::make('notes')
                         ->label(__('hall-availability.notes'))
                         ->rows(3),
                 ] : [])
@@ -87,7 +97,7 @@ class EditHallAvailability extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewBookings')
+            Action::make('viewBookings')
                 ->label(__('hall-availability.edit_page.view_bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
@@ -98,12 +108,12 @@ class EditHallAvailability extends EditRecord
                     ]
                 ])),
 
-            Actions\Action::make('updatePrice')
+            Action::make('updatePrice')
                 ->label(__('hall-availability.edit_page.update_price'))
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('custom_price')
+                ->schema([
+                    TextInput::make('custom_price')
                         ->label(__('hall-availability.custom_price'))
                         ->numeric()
                         ->prefix('OMR')
@@ -112,11 +122,11 @@ class EditHallAvailability extends EditRecord
                         ->helperText(__('hall-availability.edit_page.leave_empty_default'))
                         ->default(fn() => $this->record->custom_price),
 
-                    \Filament\Forms\Components\Placeholder::make('current_default')
+                    Placeholder::make('current_default')
                         ->label(__('hall-availability.edit_page.default_hall_price'))
                         ->content(fn() => number_format($this->getDefaultPrice(), 3) . ' OMR'),
 
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Textarea::make('reason')
                         ->label(__('hall-availability.edit_page.price_change_reason'))
                         ->rows(3),
                 ])
@@ -146,31 +156,31 @@ class EditHallAvailability extends EditRecord
                     Cache::tags(['availability', 'hall_' . $this->record->hall_id])->flush();
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label(__('hall-availability.edit_page.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('start_date')
+                ->schema([
+                    DatePicker::make('start_date')
                         ->label(__('hall-availability.bulk_block_modal.start_date'))
                         ->required()
                         ->native(false)
                         ->minDate(now())
                         ->default(now()->addDay()),
 
-                    \Filament\Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label(__('hall-availability.bulk_block_modal.end_date'))
                         ->required()
                         ->native(false)
                         ->minDate(now())
                         ->afterOrEqual('start_date'),
 
-                    \Filament\Forms\Components\Toggle::make('copy_same_time_slot')
+                    Toggle::make('copy_same_time_slot')
                         ->label(__('hall-availability.edit_page.same_time_slot'))
                         ->helperText(__('hall-availability.edit_page.same_time_slot_helper'))
                         ->default(true),
 
-                    \Filament\Forms\Components\Toggle::make('skip_existing')
+                    Toggle::make('skip_existing')
                         ->label(__('hall-availability.generate_availability_modal.skip_existing'))
                         ->default(true),
                 ])
@@ -178,20 +188,20 @@ class EditHallAvailability extends EditRecord
                     $this->duplicateToOtherDates($data);
                 }),
 
-            Actions\Action::make('extendBlock')
+            Action::make('extendBlock')
                 ->label(__('hall-availability.edit_page.extend_block'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('danger')
                 ->visible(fn() => !$this->record->is_available)
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('extend_until')
+                ->schema([
+                    DatePicker::make('extend_until')
                         ->label(__('hall-availability.edit_page.extend_until'))
                         ->required()
                         ->native(false)
                         ->minDate($this->record->date)
                         ->default($this->record->date->addWeek()),
 
-                    \Filament\Forms\Components\Toggle::make('copy_settings')
+                    Toggle::make('copy_settings')
                         ->label(__('hall-availability.edit_page.copy_settings'))
                         ->helperText(__('hall-availability.edit_page.copy_settings_helper'))
                         ->default(true),
@@ -200,8 +210,8 @@ class EditHallAvailability extends EditRecord
                     $this->extendBlockPeriod($data);
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     // Check for existing bookings
                     // $bookingsCount = \App\Models\Booking::where('hall_id', $this->record->hall_id)
                     //     ->whereDate('booking_date', $this->record->date)
@@ -231,7 +241,7 @@ class EditHallAvailability extends EditRecord
                         ->body(__('hall-availability.notifications.deleted_body'))
                 ),
 
-            Actions\Action::make('viewHistory')
+            Action::make('viewHistory')
                 ->label(__('hall-availability.edit_page.view_history'))
                 ->icon('heroicon-o-clock')
                 ->color('gray')
@@ -268,7 +278,7 @@ class EditHallAvailability extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Validate date is not in the past
-        if (isset($data['date']) && \Carbon\Carbon::parse($data['date'])->isPast()) {
+        if (isset($data['date']) && Carbon::parse($data['date'])->isPast()) {
             Notification::make()
                 ->danger()
                 ->title(__('hall-availability.errors.invalid_date'))
@@ -313,7 +323,7 @@ class EditHallAvailability extends EditRecord
             $data['time_slot'] != $this->record->time_slot
         ) {
 
-            $exists = \App\Models\HallAvailability::where('hall_id', $data['hall_id'])
+            $exists = HallAvailability::where('hall_id', $data['hall_id'])
                 ->where('date', $data['date'])
                 ->where('time_slot', $data['time_slot'])
                 ->where('id', '!=', $this->record->id)
@@ -403,8 +413,8 @@ class EditHallAvailability extends EditRecord
 
     protected function duplicateToOtherDates(array $data): void
     {
-        $startDate = \Carbon\Carbon::parse($data['start_date']);
-        $endDate = \Carbon\Carbon::parse($data['end_date']);
+        $startDate = Carbon::parse($data['start_date']);
+        $endDate = Carbon::parse($data['end_date']);
         $createdCount = 0;
         $skippedCount = 0;
 
@@ -414,7 +424,7 @@ class EditHallAvailability extends EditRecord
                 : ['morning', 'afternoon', 'evening', 'full_day'];
 
             foreach ($timeSlots as $timeSlot) {
-                $exists = \App\Models\HallAvailability::where('hall_id', $this->record->hall_id)
+                $exists = HallAvailability::where('hall_id', $this->record->hall_id)
                     ->where('date', $startDate->toDateString())
                     ->where('time_slot', $timeSlot)
                     ->exists();
@@ -424,7 +434,7 @@ class EditHallAvailability extends EditRecord
                     continue;
                 }
 
-                \App\Models\HallAvailability::create([
+                HallAvailability::create([
                     'hall_id' => $this->record->hall_id,
                     'date' => $startDate->toDateString(),
                     'time_slot' => $timeSlot,
@@ -456,17 +466,17 @@ class EditHallAvailability extends EditRecord
     protected function extendBlockPeriod(array $data): void
     {
         $currentDate = $this->record->date->copy()->addDay();
-        $endDate = \Carbon\Carbon::parse($data['extend_until']);
+        $endDate = Carbon::parse($data['extend_until']);
         $createdCount = 0;
 
         while ($currentDate->lte($endDate)) {
-            $exists = \App\Models\HallAvailability::where('hall_id', $this->record->hall_id)
+            $exists = HallAvailability::where('hall_id', $this->record->hall_id)
                 ->where('date', $currentDate->toDateString())
                 ->where('time_slot', $this->record->time_slot)
                 ->exists();
 
             if (!$exists) {
-                \App\Models\HallAvailability::create([
+                HallAvailability::create([
                     'hall_id' => $this->record->hall_id,
                     'date' => $currentDate->toDateString(),
                     'time_slot' => $this->record->time_slot,

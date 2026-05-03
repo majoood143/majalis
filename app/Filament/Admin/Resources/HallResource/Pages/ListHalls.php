@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use App\Models\City;
+use Filament\Forms\Components\TextInput;
+use App\Models\Hall;
+use Exception;
+use App\Models\HallAvailability;
 use App\Filament\Admin\Resources\HallResource;
 use App\Filament\Admin\Resources\HallResource\Widgets\HallStatsWidget;
 use Filament\Actions;
@@ -37,11 +45,11 @@ class ListHalls extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('exportHalls')
+            Action::make('exportHalls')
                 ->label(__('admin.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -51,18 +59,18 @@ class ListHalls extends ListRecords
                 ->modalDescription(__('admin.actions.export_modal_description'))
                 ->modalSubmitActionLabel(__('admin.actions.export')),
 
-            Actions\Action::make('bulkPriceUpdate')
+            Action::make('bulkPriceUpdate')
                 ->label(__('admin.actions.bulk_price_update'))
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\Select::make('city_id')
+                ->schema([
+                    Select::make('city_id')
                         ->label(__('admin.fields.city'))
-                        ->options(\App\Models\City::pluck('name', 'id'))
+                        ->options(City::pluck('name', 'id'))
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\Select::make('update_type')
+                    Select::make('update_type')
                         ->label(__('admin.fields.update_type'))
                         ->options([
                             'percentage_increase' => __('admin.options.percentage_increase'),
@@ -73,7 +81,7 @@ class ListHalls extends ListRecords
                         ->required()
                         ->reactive(),
 
-                    \Filament\Forms\Components\TextInput::make('value')
+                    TextInput::make('value')
                         ->label(fn($get) => str_contains($get('update_type') ?? '', 'percentage')
                             ? __('admin.fields.percentage')
                             : __('admin.fields.amount'))
@@ -88,7 +96,7 @@ class ListHalls extends ListRecords
                 ->modalHeading(__('admin.actions.bulk_price_modal_heading'))
                 ->modalDescription(__('admin.actions.bulk_price_modal_description')),
 
-            Actions\Action::make('generateSlugs')
+            Action::make('generateSlugs')
                 ->label(__('admin.actions.generate_slugs'))
                 ->icon('heroicon-o-link')
                 ->color('info')
@@ -99,12 +107,12 @@ class ListHalls extends ListRecords
                     $this->generateMissingSlugs();
                 }),
 
-            Actions\Action::make('bulkFeature')
+            Action::make('bulkFeature')
                 ->label(__('admin.actions.bulk_feature'))
                 ->icon('heroicon-o-star')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\Select::make('action')
+                ->schema([
+                    Select::make('action')
                         ->label(__('admin.fields.action'))
                         ->options([
                             'mark_featured' => __('admin.options.mark_featured'),
@@ -112,9 +120,9 @@ class ListHalls extends ListRecords
                         ])
                         ->required(),
 
-                    \Filament\Forms\Components\Select::make('city_id')
+                    Select::make('city_id')
                         ->label(__('admin.fields.city_filter'))
-                        ->options(\App\Models\City::pluck('name', 'id'))
+                        ->options(City::pluck('name', 'id'))
                         ->searchable()
                         ->preload(),
                 ])
@@ -122,7 +130,7 @@ class ListHalls extends ListRecords
                     $this->bulkFeatureManagement($data);
                 }),
 
-            Actions\Action::make('syncAvailability')
+            Action::make('syncAvailability')
                 ->label(__('admin.actions.sync_availability'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('info')
@@ -133,12 +141,12 @@ class ListHalls extends ListRecords
                     $this->syncHallAvailability();
                 }),
 
-            Actions\Action::make('bulkActivation')
+            Action::make('bulkActivation')
                 ->label(__('admin.actions.bulk_activation'))
                 ->icon('heroicon-o-power')
                 ->color('gray')
-                ->form([
-                    \Filament\Forms\Components\Select::make('status')
+                ->schema([
+                    Select::make('status')
                         ->label(__('admin.fields.status'))
                         ->options([
                             'activate' => __('admin.options.activate'),
@@ -146,9 +154,9 @@ class ListHalls extends ListRecords
                         ])
                         ->required(),
 
-                    \Filament\Forms\Components\Select::make('city_id')
+                    Select::make('city_id')
                         ->label(__('admin.fields.city_filter'))
-                        ->options(\App\Models\City::pluck('name', 'id'))
+                        ->options(City::pluck('name', 'id'))
                         ->searchable()
                         ->preload(),
                 ])
@@ -161,64 +169,64 @@ class ListHalls extends ListRecords
     /**
      * Get the tabs for filtering halls.
      *
-     * @return array<string, Tab>
+     * @return array<string, \Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('admin.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.all'))
                 ->icon('heroicon-o-building-office-2')
-                ->badge(fn() => \App\Models\Hall::count()),
+                ->badge(fn() => Hall::count()),
 
-            'active' => Tab::make(__('admin.tabs.active'))
+            'active' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\Hall::where('is_active', true)->count())
+                ->badge(fn() => Hall::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('admin.tabs.inactive'))
+            'inactive' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\Hall::where('is_active', false)->count())
+                ->badge(fn() => Hall::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'featured' => Tab::make(__('admin.tabs.featured'))
+            'featured' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.featured'))
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_featured', true))
-                ->badge(fn() => \App\Models\Hall::where('is_featured', true)->count())
+                ->badge(fn() => Hall::where('is_featured', true)->count())
                 ->badgeColor('warning'),
 
-            'pending_approval' => Tab::make(__('admin.tabs.pending_approval'))
+            'pending_approval' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.pending_approval'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('requires_approval', true))
-                ->badge(fn() => \App\Models\Hall::where('requires_approval', true)->count())
+                ->badge(fn() => Hall::where('requires_approval', true)->count())
                 ->badgeColor('info'),
 
-            'high_capacity' => Tab::make(__('admin.tabs.high_capacity'))
+            'high_capacity' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.high_capacity'))
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('capacity_max', '>=', 500))
-                ->badge(fn() => \App\Models\Hall::where('capacity_max', '>=', 500)->count())
+                ->badge(fn() => Hall::where('capacity_max', '>=', 500)->count())
                 ->badgeColor('purple'),
 
-            'premium_price' => Tab::make(__('admin.tabs.premium_price'))
+            'premium_price' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.premium_price'))
                 ->icon('heroicon-o-currency-dollar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('price_per_slot', '>=', 1000))
-                ->badge(fn() => \App\Models\Hall::where('price_per_slot', '>=', 1000)->count())
+                ->badge(fn() => Hall::where('price_per_slot', '>=', 1000)->count())
                 ->badgeColor('success'),
 
-            'highly_rated' => Tab::make(__('admin.tabs.highly_rated'))
+            'highly_rated' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.highly_rated'))
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('average_rating', '>=', 4.5))
-                ->badge(fn() => \App\Models\Hall::where('average_rating', '>=', 4.5)->count())
+                ->badge(fn() => Hall::where('average_rating', '>=', 4.5)->count())
                 ->badgeColor('warning'),
 
-            'with_video' => Tab::make(__('admin.tabs.with_video'))
+            'with_video' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.with_video'))
                 ->icon('heroicon-o-video-camera')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('video_url'))
-                ->badge(fn() => \App\Models\Hall::whereNotNull('video_url')->count())
+                ->badge(fn() => Hall::whereNotNull('video_url')->count())
                 ->badgeColor('info'),
 
-            'incomplete' => Tab::make(__('admin.tabs.incomplete'))
+            'incomplete' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.incomplete'))
                 ->icon('heroicon-o-exclamation-triangle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where(function ($q) {
                     $q->whereNull('featured_image')
@@ -226,7 +234,7 @@ class ListHalls extends ListRecords
                         ->orWhereNull('latitude')
                         ->orWhereNull('longitude');
                 }))
-                ->badge(fn() => \App\Models\Hall::where(function ($q) {
+                ->badge(fn() => Hall::where(function ($q) {
                     $q->whereNull('featured_image')
                         ->orWhereNull('description->en')
                         ->orWhereNull('latitude')
@@ -234,10 +242,10 @@ class ListHalls extends ListRecords
                 })->count())
                 ->badgeColor('danger'),
 
-            'no_bookings' => Tab::make(__('admin.tabs.no_bookings'))
+            'no_bookings' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.tabs.no_bookings'))
                 ->icon('heroicon-o-calendar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('total_bookings', 0))
-                ->badge(fn() => \App\Models\Hall::where('total_bookings', 0)->count())
+                ->badge(fn() => Hall::where('total_bookings', 0)->count())
                 ->badgeColor('gray'),
         ];
     }
@@ -256,7 +264,7 @@ class ListHalls extends ListRecords
             // FIX: Added withCount('bookings') to dynamically count related bookings
             // This ensures we get the actual booking count from the relationship,
             // not the potentially stale cached 'total_bookings' column
-            $halls = \App\Models\Hall::with(['city', 'owner'])
+            $halls = Hall::with(['city', 'owner'])
                 ->withCount('bookings')  // Adds 'bookings_count' attribute to each Hall
                 ->get();
 
@@ -334,14 +342,14 @@ class ListHalls extends ListRecords
                 ->body(__('admin.notifications.export_success_body'))
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('admin.actions.download'))
                         ->url(asset('storage/exports/' . $filename))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle export errors gracefully
             Notification::make()
                 ->title(__('admin.notifications.export_error'))
@@ -362,7 +370,7 @@ class ListHalls extends ListRecords
         DB::beginTransaction();
 
         try {
-            $query = \App\Models\Hall::query();
+            $query = Hall::query();
 
             // Apply city filter if provided
             if (isset($data['city_id'])) {
@@ -419,7 +427,7 @@ class ListHalls extends ListRecords
 
             $this->redirect(static::getUrl());
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -440,7 +448,7 @@ class ListHalls extends ListRecords
         DB::beginTransaction();
 
         try {
-            $halls = \App\Models\Hall::whereNull('slug')->orWhere('slug', '')->get();
+            $halls = Hall::whereNull('slug')->orWhere('slug', '')->get();
             $updated = 0;
 
             foreach ($halls as $hall) {
@@ -449,7 +457,7 @@ class ListHalls extends ListRecords
                 $counter = 1;
 
                 // Ensure unique slug
-                while (\App\Models\Hall::where('slug', $slug)->where('id', '!=', $hall->id)->exists()) {
+                while (Hall::where('slug', $slug)->where('id', '!=', $hall->id)->exists()) {
                     $slug = $baseSlug . '-' . $counter;
                     $counter++;
                 }
@@ -468,7 +476,7 @@ class ListHalls extends ListRecords
 
             $this->redirect(static::getUrl());
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -490,7 +498,7 @@ class ListHalls extends ListRecords
         DB::beginTransaction();
 
         try {
-            $query = \App\Models\Hall::query();
+            $query = Hall::query();
 
             if (isset($data['city_id'])) {
                 $query->where('city_id', $data['city_id']);
@@ -509,7 +517,7 @@ class ListHalls extends ListRecords
 
             $this->redirect(static::getUrl());
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -531,7 +539,7 @@ class ListHalls extends ListRecords
         DB::beginTransaction();
 
         try {
-            $query = \App\Models\Hall::query();
+            $query = Hall::query();
 
             if (isset($data['city_id'])) {
                 $query->where('city_id', $data['city_id']);
@@ -550,7 +558,7 @@ class ListHalls extends ListRecords
 
             $this->redirect(static::getUrl());
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -572,7 +580,7 @@ class ListHalls extends ListRecords
         DB::beginTransaction();
 
         try {
-            $halls = \App\Models\Hall::where('is_active', true)->get();
+            $halls = Hall::where('is_active', true)->get();
             $createdCount = 0;
 
             $startDate = now();
@@ -583,13 +591,13 @@ class ListHalls extends ListRecords
 
                 while ($currentDate->lte($endDate)) {
                     foreach (['morning', 'afternoon', 'evening', 'full_day'] as $timeSlot) {
-                        $exists = \App\Models\HallAvailability::where('hall_id', $hall->id)
+                        $exists = HallAvailability::where('hall_id', $hall->id)
                             ->where('date', $currentDate->toDateString())
                             ->where('time_slot', $timeSlot)
                             ->exists();
 
                         if (!$exists) {
-                            \App\Models\HallAvailability::create([
+                            HallAvailability::create([
                                 'hall_id' => $hall->id,
                                 'date' => $currentDate->toDateString(),
                                 'time_slot' => $timeSlot,
@@ -612,7 +620,7 @@ class ListHalls extends ListRecords
                 ->body(__('admin.notifications.availability_synced_body', ['count' => $createdCount]))
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()

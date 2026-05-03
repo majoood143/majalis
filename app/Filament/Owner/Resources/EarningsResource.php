@@ -4,6 +4,21 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\ExportBulkAction;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use App\Filament\Owner\Resources\EarningsResource\Pages\ListEarnings;
+use App\Filament\Owner\Resources\EarningsResource\Pages\ViewEarnings;
+use Filament\Resources\Pages\PageRegistration;
 use App\Filament\Owner\Resources\EarningsResource\Pages;
 use App\Models\Booking;
 use Filament\Forms;
@@ -47,7 +62,7 @@ class EarningsResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
 
     /**
      * The navigation group for the resource.
@@ -141,13 +156,13 @@ class EarningsResource extends Resource
     /**
      * Define the form schema (read-only for earnings).
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Earnings are read-only, no form needed
             ]);
     }
@@ -176,7 +191,7 @@ class EarningsResource extends Resource
             })
             ->columns([
                 // Booking number
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label(__('owner.earnings.booking_number'))
                     ->searchable()
                     ->sortable()
@@ -185,7 +200,7 @@ class EarningsResource extends Resource
                     ->color('primary'),
 
                 // Hall name
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('owner.earnings.hall'))
                     ->formatStateUsing(function ($state): string {
                         if (is_array($state)) {
@@ -198,27 +213,27 @@ class EarningsResource extends Resource
                     ->toggleable(),
 
                 // Booking date
-                Tables\Columns\TextColumn::make('booking_date')
+                TextColumn::make('booking_date')
                     ->label(__('owner.earnings.date'))
                     ->date('M d, Y')
                     ->sortable()
                     ->icon('heroicon-m-calendar'),
 
                 // Time slot
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label(__('owner.earnings.slot'))
                     ->badge()
                     ->formatStateUsing(fn ($state): string => __("owner.slots.{$state}"))
                     ->toggleable(),
 
                 // Customer name
-                Tables\Columns\TextColumn::make('customer_name')
+                TextColumn::make('customer_name')
                     ->label(__('owner.earnings.customer'))
                     ->searchable()
                     ->toggleable(),
 
                 // Hall price (base)
-                Tables\Columns\TextColumn::make('hall_price')
+                TextColumn::make('hall_price')
                     ->label(__('owner.earnings.hall_price'))
                     ->money('OMR')
                     ->sortable()
@@ -227,7 +242,7 @@ class EarningsResource extends Resource
                     ->toggleable(),
 
                 // Services price
-                Tables\Columns\TextColumn::make('services_price')
+                TextColumn::make('services_price')
                     ->label(__('owner.earnings.services'))
                     ->money('OMR')
                     ->sortable()
@@ -236,7 +251,7 @@ class EarningsResource extends Resource
                     ->toggleable(),
 
                 // Total amount (gross)
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(__('owner.earnings.gross'))
                     ->money('OMR')
                     ->sortable()
@@ -245,7 +260,7 @@ class EarningsResource extends Resource
                     ->weight('semibold'),
 
                 // Commission amount
-                Tables\Columns\TextColumn::make('commission_amount')
+                TextColumn::make('commission_amount')
                     ->label(__('owner.earnings.commission'))
                     ->money('OMR')
                     ->sortable()
@@ -255,7 +270,7 @@ class EarningsResource extends Resource
                     ->toggleable(),
 
                 // Owner payout (net)
-                Tables\Columns\TextColumn::make('owner_payout')
+                TextColumn::make('owner_payout')
                     ->label(__('owner.earnings.net'))
                     ->money('OMR')
                     ->sortable()
@@ -265,7 +280,7 @@ class EarningsResource extends Resource
                     ->color('success'),
 
                 // Status
-                Tables\Columns\BadgeColumn::make('status')
+                BadgeColumn::make('status')
                     ->label(__('owner.earnings.status'))
                     ->colors([
                         'success' => 'confirmed',
@@ -275,7 +290,7 @@ class EarningsResource extends Resource
                     ->toggleable(),
 
                 // Completed date
-                Tables\Columns\TextColumn::make('completed_at')
+                TextColumn::make('completed_at')
                     ->label(__('owner.earnings.completed_at'))
                     ->dateTime('M d, Y H:i')
                     ->sortable()
@@ -283,16 +298,16 @@ class EarningsResource extends Resource
             ])
             ->filters([
                 // Date range filter
-                Tables\Filters\Filter::make('date_range')
-                    ->form([
-                        Forms\Components\Grid::make(2)
+                Filter::make('date_range')
+                    ->schema([
+                        Grid::make(2)
                             ->schema([
-                                Forms\Components\DatePicker::make('from_date')
+                                DatePicker::make('from_date')
                                     ->label(__('owner.earnings.from_date'))
                                     ->default(now()->startOfMonth())
                                     ->native(false),
 
-                                Forms\Components\DatePicker::make('to_date')
+                                DatePicker::make('to_date')
                                     ->label(__('owner.earnings.to_date'))
                                     ->default(now()->endOfMonth())
                                     ->native(false),
@@ -324,7 +339,7 @@ class EarningsResource extends Resource
                     }),
 
                 // Hall filter
-                Tables\Filters\SelectFilter::make('hall_id')
+                SelectFilter::make('hall_id')
                     ->label(__('owner.earnings.hall'))
                     ->relationship(
                         'hall',
@@ -335,7 +350,7 @@ class EarningsResource extends Resource
                     ->preload(),
 
                 // Status filter
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('owner.earnings.status'))
                     ->options([
                         'confirmed' => __('owner.status.confirmed'),
@@ -343,7 +358,7 @@ class EarningsResource extends Resource
                     ]),
 
                 // Time slot filter
-                Tables\Filters\SelectFilter::make('time_slot')
+                SelectFilter::make('time_slot')
                     ->label(__('owner.earnings.slot'))
                     ->options([
                         'morning' => __('owner.slots.morning'),
@@ -353,7 +368,7 @@ class EarningsResource extends Resource
                     ]),
 
                 // This month quick filter
-                Tables\Filters\Filter::make('this_month')
+                Filter::make('this_month')
                     ->label(__('owner.earnings.this_month'))
                     ->query(fn (Builder $query): Builder => $query
                         ->whereMonth('booking_date', now()->month)
@@ -361,22 +376,22 @@ class EarningsResource extends Resource
                     ->toggle(),
 
                 // Last month quick filter
-                Tables\Filters\Filter::make('last_month')
+                Filter::make('last_month')
                     ->label(__('owner.earnings.last_month'))
                     ->query(fn (Builder $query): Builder => $query
                         ->whereMonth('booking_date', now()->subMonth()->month)
                         ->whereYear('booking_date', now()->subMonth()->year))
                     ->toggle(),
             ])
-            ->actions([
+            ->recordActions([
                 // View details
-                Tables\Actions\ViewAction::make()
+                ViewAction::make()
                     ->label(__('owner.actions.view'))
                     ->icon('heroicon-m-eye'),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 // Export action
-                Tables\Actions\ExportBulkAction::make()
+                ExportBulkAction::make()
                     ->label(__('owner.earnings.export')),
             ])
             ->defaultSort('booking_date', 'desc')
@@ -391,36 +406,36 @@ class EarningsResource extends Resource
     /**
      * Define the infolist schema for viewing earnings details.
      *
-     * @param Infolist $infolist
-     * @return Infolist
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
+        return $schema
+            ->components([
                 // Booking Information Section
-                Infolists\Components\Section::make(__('owner.earnings.booking_info'))
+                Section::make(__('owner.earnings.booking_info'))
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('booking_number')
+                                TextEntry::make('booking_number')
                                     ->label(__('owner.earnings.booking_number'))
                                     ->weight('bold')
                                     ->copyable(),
 
-                                Infolists\Components\TextEntry::make('booking_date')
+                                TextEntry::make('booking_date')
                                     ->label(__('owner.earnings.date'))
                                     ->date('F j, Y'),
 
-                                Infolists\Components\TextEntry::make('time_slot')
+                                TextEntry::make('time_slot')
                                     ->label(__('owner.earnings.slot'))
                                     ->badge()
                                     ->formatStateUsing(fn ($state): string => __("owner.slots.{$state}")),
                             ]),
 
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('hall.name')
+                                TextEntry::make('hall.name')
                                     ->label(__('owner.earnings.hall'))
                                     ->formatStateUsing(function ($state): string {
                                         if (is_array($state)) {
@@ -429,10 +444,10 @@ class EarningsResource extends Resource
                                         return $state ?? '-';
                                     }),
 
-                                Infolists\Components\TextEntry::make('customer_name')
+                                TextEntry::make('customer_name')
                                     ->label(__('owner.earnings.customer')),
 
-                                Infolists\Components\TextEntry::make('status')
+                                TextEntry::make('status')
                                     ->label(__('owner.earnings.status'))
                                     ->badge()
                                     ->color(fn ($state): string => match ($state) {
@@ -446,27 +461,27 @@ class EarningsResource extends Resource
                     ->collapsible(),
 
                 // Financial Breakdown Section
-                Infolists\Components\Section::make(__('owner.earnings.financial_breakdown'))
+                Section::make(__('owner.earnings.financial_breakdown'))
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('hall_price')
+                                TextEntry::make('hall_price')
                                     ->label(__('owner.earnings.hall_price'))
                                     ->money('OMR')
                                     ->size('lg'),
 
-                                Infolists\Components\TextEntry::make('services_price')
+                                TextEntry::make('services_price')
                                     ->label(__('owner.earnings.services'))
                                     ->money('OMR')
                                     ->size('lg'),
 
-                                Infolists\Components\TextEntry::make('total_amount')
+                                TextEntry::make('total_amount')
                                     ->label(__('owner.earnings.gross'))
                                     ->money('OMR')
                                     ->size('lg')
                                     ->weight('bold'),
 
-                                Infolists\Components\TextEntry::make('commission_amount')
+                                TextEntry::make('commission_amount')
                                     ->label(__('owner.earnings.commission'))
                                     ->money('OMR')
                                     ->size('lg')
@@ -474,7 +489,7 @@ class EarningsResource extends Resource
                             ]),
 
                         // Net Earnings Highlight
-                        Infolists\Components\TextEntry::make('owner_payout')
+                        TextEntry::make('owner_payout')
                             ->label(__('owner.earnings.your_earnings'))
                             ->money('OMR')
                             ->size('xl')
@@ -483,13 +498,13 @@ class EarningsResource extends Resource
                             ->extraAttributes(['class' => 'text-2xl']),
 
                         // Commission details
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('commission_type')
+                                TextEntry::make('commission_type')
                                     ->label(__('owner.earnings.commission_type'))
                                     ->formatStateUsing(fn ($state): string => $state ? ucfirst($state) : 'Percentage'),
 
-                                Infolists\Components\TextEntry::make('commission_value')
+                                TextEntry::make('commission_value')
                                     ->label(__('owner.earnings.commission_rate'))
                                     ->formatStateUsing(function ($state, $record): string {
                                         if ($record->commission_type === 'fixed') {
@@ -502,11 +517,11 @@ class EarningsResource extends Resource
                     ->columns(1),
 
                 // Extra Services Section (if any)
-                Infolists\Components\Section::make(__('owner.earnings.extra_services'))
+                Section::make(__('owner.earnings.extra_services'))
                     ->schema([
-                        Infolists\Components\RepeatableEntry::make('extraServices')
+                        RepeatableEntry::make('extraServices')
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
+                                TextEntry::make('name')
                                     ->label(__('owner.earnings.service_name'))
                                     ->formatStateUsing(function ($state): string {
                                         if (is_array($state)) {
@@ -515,14 +530,14 @@ class EarningsResource extends Resource
                                         return $state ?? '-';
                                     }),
 
-                                Infolists\Components\TextEntry::make('pivot.quantity')
+                                TextEntry::make('pivot.quantity')
                                     ->label(__('owner.earnings.quantity')),
 
-                                Infolists\Components\TextEntry::make('pivot.unit_price')
+                                TextEntry::make('pivot.unit_price')
                                     ->label(__('owner.earnings.unit_price'))
                                     ->money('OMR'),
 
-                                Infolists\Components\TextEntry::make('pivot.total_price')
+                                TextEntry::make('pivot.total_price')
                                     ->label(__('owner.earnings.total'))
                                     ->money('OMR')
                                     ->weight('bold'),
@@ -535,21 +550,21 @@ class EarningsResource extends Resource
                     ->hidden(fn ($record): bool => $record->extraServices->isEmpty()),
 
                 // Payment Details
-                Infolists\Components\Section::make(__('owner.earnings.payment_details'))
+                Section::make(__('owner.earnings.payment_details'))
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('payment_status')
+                                TextEntry::make('payment_status')
                                     ->label(__('owner.earnings.payment_status'))
                                     ->badge()
                                     ->color('success')
                                     ->formatStateUsing(fn ($state): string => __("owner.payment.{$state}")),
 
-                                Infolists\Components\TextEntry::make('confirmed_at')
+                                TextEntry::make('confirmed_at')
                                     ->label(__('owner.earnings.confirmed_at'))
                                     ->dateTime('F j, Y H:i'),
 
-                                Infolists\Components\TextEntry::make('completed_at')
+                                TextEntry::make('completed_at')
                                     ->label(__('owner.earnings.completed_at'))
                                     ->dateTime('F j, Y H:i')
                                     ->placeholder('-'),
@@ -562,13 +577,13 @@ class EarningsResource extends Resource
     /**
      * Define the resource pages.
      *
-     * @return array<string, \Filament\Resources\Pages\PageRegistration>
+     * @return array<string, PageRegistration>
      */
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListEarnings::route('/'),
-            'view' => Pages\ViewEarnings::route('/{record}'),
+            'index' => ListEarnings::route('/'),
+            'view' => ViewEarnings::route('/{record}'),
         ];
     }
 

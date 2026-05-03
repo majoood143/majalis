@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\RelationManagers;
 
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -25,11 +39,11 @@ class ImagesRelationManager extends RelationManager
         return __('owner.relation.images');
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\FileUpload::make('image_path')
+        return $schema
+            ->components([
+                FileUpload::make('image_path')
                     ->label(__('owner.images.image'))
                     ->image()
                     ->imageEditor()
@@ -39,7 +53,7 @@ class ImagesRelationManager extends RelationManager
                     ->required()
                     ->columnSpanFull(),
 
-                Forms\Components\Select::make('type')
+                Select::make('type')
                     ->label(__('owner.images.type'))
                     ->options([
                         'featured' => __('owner.images.types.featured'),
@@ -52,21 +66,21 @@ class ImagesRelationManager extends RelationManager
                     ->default('gallery')
                     ->required(),
 
-                Forms\Components\TextInput::make('alt_text.en')
+                TextInput::make('alt_text.en')
                     ->label(__('owner.images.alt_en'))
                     ->maxLength(255)
                     ->helperText(__('owner.images.alt_help')),
 
-                Forms\Components\TextInput::make('alt_text.ar')
+                TextInput::make('alt_text.ar')
                     ->label(__('owner.images.alt_ar'))
                     ->maxLength(255)
                     ->extraInputAttributes(['dir' => 'rtl']),
 
-                Forms\Components\Textarea::make('caption.en')
+                Textarea::make('caption.en')
                     ->label(__('owner.images.caption_en'))
                     ->rows(2),
 
-                Forms\Components\Textarea::make('caption.ar')
+                Textarea::make('caption.ar')
                     ->label(__('owner.images.caption_ar'))
                     ->rows(2)
                     ->extraInputAttributes(['dir' => 'rtl']),
@@ -80,12 +94,12 @@ class ImagesRelationManager extends RelationManager
             ->reorderable('sort_order')
             ->defaultSort('sort_order')
             ->columns([
-                Tables\Columns\ImageColumn::make('image_path')
+                ImageColumn::make('image_path')
                     ->label(__('owner.images.preview'))
                     ->size(80)
                     ->square(),
 
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label(__('owner.images.type'))
                     ->formatStateUsing(fn (string $state): string => __("owner.images.types.{$state}"))
                     ->badge()
@@ -96,18 +110,18 @@ class ImagesRelationManager extends RelationManager
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('alt_text')
+                TextColumn::make('alt_text')
                     ->label(__('owner.images.alt'))
                     ->formatStateUsing(fn ($record) => $record->getTranslation('alt_text', app()->getLocale()) ?: '-')
                     ->limit(30),
 
-                Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label(__('owner.images.order'))
                     ->sortable()
                     ->alignCenter(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label(__('owner.images.type'))
                     ->options([
                         'featured' => __('owner.images.types.featured'),
@@ -119,11 +133,11 @@ class ImagesRelationManager extends RelationManager
                     ]),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('set_featured')
+            ->recordActions([
+                EditAction::make(),
+                Action::make('set_featured')
                     ->label(__('owner.images.set_featured'))
                     ->icon('heroicon-o-star')
                     ->color('warning')
@@ -141,14 +155,14 @@ class ImagesRelationManager extends RelationManager
                         // Update hall featured image
                         $this->ownerRecord->update(['featured_image' => $record->image_path]);
                     }),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->before(function ($record): void {
                         $record->deleteFile();
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->before(function ($records): void {
                             $records->each->deleteFile();
                         }),

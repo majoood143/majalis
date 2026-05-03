@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Enums\CommissionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Translatable\HasTranslations;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Service Fee Setting Model
@@ -36,8 +37,8 @@ use Spatie\Activitylog\LogOptions;
  * @property array|null  $name             Translatable {"en": "...", "ar": "..."}
  * @property array|null  $description      Translatable {"en": "...", "ar": "..."}
  * @property bool        $is_active
- * @property \Carbon\Carbon|null $effective_from
- * @property \Carbon\Carbon|null $effective_to
+ * @property Carbon|null $effective_from
+ * @property Carbon|null $effective_to
  *
  * @property-read Hall|null $hall
  * @property-read User|null $owner

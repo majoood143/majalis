@@ -2,22 +2,32 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\HallCategoryResource\Pages\ListHallCategories;
+use App\Filament\Admin\Resources\HallCategoryResource\Pages\CreateHallCategory;
+use App\Filament\Admin\Resources\HallCategoryResource\Pages\EditHallCategory;
 use App\Filament\Admin\Resources\HallCategoryResource\Pages;
 use App\Models\HallCategory;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
 class HallCategoryResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = HallCategory::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-tag';
 
     protected static ?int $navigationSort = 3;
 
@@ -53,39 +63,39 @@ class HallCategoryResource extends Resource implements HasShieldPermissions
         return __('hall-category.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('hall-category.category_information'))
+        return $schema
+            ->components([
+                Section::make(__('hall-category.category_information'))
                     ->schema([
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('hall-category.name_en'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('hall-category.name_ar'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('slug')
+                        TextInput::make('slug')
                             ->label(__('hall-category.slug'))
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->helperText(__('hall-category.slug_helper')),
 
-                        Forms\Components\TextInput::make('sort_order')
+                        TextInput::make('sort_order')
                             ->label(__('hall-category.sort_order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
-                        Forms\Components\Textarea::make('description.en')
+                        Textarea::make('description.en')
                             ->label(__('hall-category.description_en'))
                             ->rows(3),
 
-                        Forms\Components\Textarea::make('description.ar')
+                        Textarea::make('description.ar')
                             ->label(__('hall-category.description_ar'))
                             ->rows(3),
                     ])->columns(2),
@@ -96,47 +106,47 @@ class HallCategoryResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('hall-category.name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->getTranslation('name', app()->getLocale())),
 
-                Tables\Columns\TextColumn::make('slug')
+                TextColumn::make('slug')
                     ->label(__('hall-category.slug'))
                     ->searchable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('hall_types_count')
+                TextColumn::make('hall_types_count')
                     ->label(__('hall-category.hall_types_count'))
                     ->counts('hallTypes')
                     ->badge()
                     ->color('primary')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label(__('hall-category.sort_order'))
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('hall-category.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->label(__('hall-category.edit')),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label(__('hall-category.delete')),
-                    ActivityLogTimelineTableAction::make('Activities'),
+                    // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('sort_order')
@@ -151,9 +161,9 @@ class HallCategoryResource extends Resource implements HasShieldPermissions
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListHallCategories::route('/'),
-            'create' => Pages\CreateHallCategory::route('/create'),
-            'edit' => Pages\EditHallCategory::route('/{record}/edit'),
+            'index' => ListHallCategories::route('/'),
+            'create' => CreateHallCategory::route('/create'),
+            'edit' => EditHallCategory::route('/{record}/edit'),
         ];
     }
 }

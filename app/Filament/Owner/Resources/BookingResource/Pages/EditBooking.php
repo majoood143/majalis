@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\BookingResource\Pages;
 
+use Filament\Actions\ViewAction;
 use App\Filament\Owner\Resources\BookingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -15,7 +16,7 @@ class EditBooking extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
+            ViewAction::make(),
             // Actions\DeleteAction::make(),
         ];
     }

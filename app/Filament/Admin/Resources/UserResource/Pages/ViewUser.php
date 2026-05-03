@@ -2,13 +2,18 @@
 
 namespace App\Filament\Admin\Resources\UserResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\IconEntry;
 use App\Filament\Admin\Resources\UserResource;
 use App\Filament\Admin\Resources\UserResource\Widgets\UserRecentBookings;
 use App\Filament\Admin\Resources\UserResource\Widgets\UserStatsOverview;
 use App\Filament\Admin\Resources\UserResource\Widgets\UserTickets;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists\Infolist;
 use Filament\Infolists;
 
 class ViewUser extends ViewRecord
@@ -18,8 +23,8 @@ class ViewUser extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
-            Actions\DeleteAction::make(),
+            EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 
@@ -38,18 +43,18 @@ class ViewUser extends ViewRecord
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('User Information')
+                Section::make('User Information')
                     ->schema([
-                        Infolists\Components\TextEntry::make('name'),
-                        Infolists\Components\TextEntry::make('email')->copyable(),
-                        Infolists\Components\TextEntry::make('role')->badge(),
-                        Infolists\Components\TextEntry::make('phone')->copyable(),
-                        Infolists\Components\IconEntry::make('is_active')->boolean(),
-                        Infolists\Components\IconEntry::make('email_verified_at')
+                        TextEntry::make('name'),
+                        TextEntry::make('email')->copyable(),
+                        TextEntry::make('role')->badge(),
+                        TextEntry::make('phone')->copyable(),
+                        IconEntry::make('is_active')->boolean(),
+                        IconEntry::make('email_verified_at')
                             ->label('Email Verified')
                             ->boolean(),
                     ])->columns(3),

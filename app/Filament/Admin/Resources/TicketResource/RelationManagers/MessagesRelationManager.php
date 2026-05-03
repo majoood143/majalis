@@ -2,10 +2,28 @@
 
 namespace App\Filament\Admin\Resources\TicketResource\RelationManagers;
 
+use Illuminate\Database\Eloquent\Model;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\CreateAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
 use App\Models\TicketMessage;
 use App\Models\TicketMessageType;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -20,7 +38,7 @@ class MessagesRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'message';
 
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('ticket_admin.msg_col_message') === 'msg_col_message'
             ? 'Conversation'
@@ -32,11 +50,11 @@ class MessagesRelationManager extends RelationManager
         return __('ticket_admin.msg_add');
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('type')
+        return $schema
+            ->components([
+                Select::make('type')
                     ->label(__('ticket_admin.msg_type'))
                     ->options([
                         TicketMessageType::STAFF_REPLY->value    => TicketMessageType::STAFF_REPLY->getLabel(),
@@ -51,7 +69,7 @@ class MessagesRelationManager extends RelationManager
                         $set('is_internal', $state === TicketMessageType::INTERNAL_NOTE->value);
                     }),
 
-                Forms\Components\Textarea::make('message')
+                Textarea::make('message')
                     ->label(__('ticket_admin.msg_message'))
                     ->required()
                     ->rows(6)
@@ -59,7 +77,7 @@ class MessagesRelationManager extends RelationManager
                     ->placeholder(__('ticket_admin.msg_message_placeholder'))
                     ->maxLength(65535),
 
-                Forms\Components\FileUpload::make('attachments')
+                FileUpload::make('attachments')
                     ->label(__('ticket_admin.msg_attachments'))
                     ->multiple()
                     ->directory('ticket-attachments')
@@ -91,13 +109,13 @@ class MessagesRelationManager extends RelationManager
                         }
                     }),
 
-                Forms\Components\Hidden::make('is_internal')
+                Hidden::make('is_internal')
                     ->default(false)
                     ->dehydrateStateUsing(fn ($get) =>
                         $get('type') === TicketMessageType::INTERNAL_NOTE->value
                     ),
 
-                Forms\Components\Hidden::make('user_id')
+                Hidden::make('user_id')
                     ->default(Auth::id())
                     ->required(),
             ]);
@@ -108,14 +126,14 @@ class MessagesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('message')
             ->columns([
-                Tables\Columns\BadgeColumn::make('type')
+                BadgeColumn::make('type')
                     ->label(__('ticket_admin.msg_col_type'))
                     ->formatStateUsing(fn ($state) => $state?->getLabel() ?? 'Unknown')
                     ->color(fn ($state) => $state?->getColor() ?? 'gray')
                     ->icon(fn ($state) => $state?->getIcon() ?? 'heroicon-o-question-mark-circle')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label(__('ticket_admin.msg_col_from'))
                     ->searchable()
                     ->sortable()
@@ -125,7 +143,7 @@ class MessagesRelationManager extends RelationManager
                         $record->is_internal ? 'warning' : 'primary'
                     ),
 
-                Tables\Columns\TextColumn::make('message')
+                TextColumn::make('message')
                     ->label(__('ticket_admin.msg_col_message'))
                     ->limit(60)
                     ->wrap()
@@ -134,7 +152,7 @@ class MessagesRelationManager extends RelationManager
                     ->html()
                     ->extraAttributes(['class' => 'prose prose-sm']),
 
-                Tables\Columns\IconColumn::make('has_attachments')
+                IconColumn::make('has_attachments')
                     ->label(__('ticket_admin.msg_col_files'))
                     ->boolean()
                     ->trueIcon('heroicon-o-paper-clip')
@@ -148,7 +166,7 @@ class MessagesRelationManager extends RelationManager
                             : __('ticket_admin.msg_no_attachments')
                     ),
 
-                Tables\Columns\IconColumn::make('is_internal')
+                IconColumn::make('is_internal')
                     ->label(__('ticket_admin.msg_col_internal'))
                     ->boolean()
                     ->trueColor('warning')
@@ -162,7 +180,7 @@ class MessagesRelationManager extends RelationManager
                             : __('ticket_admin.msg_visible_to_customers')
                     ),
 
-                Tables\Columns\IconColumn::make('is_read')
+                IconColumn::make('is_read')
                     ->label(__('ticket_admin.msg_col_read'))
                     ->boolean()
                     ->trueColor('success')
@@ -176,7 +194,7 @@ class MessagesRelationManager extends RelationManager
                             : __('ticket_admin.msg_is_unread')
                     ),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('ticket_admin.msg_col_posted'))
                     ->dateTime('M d, Y H:i')
                     ->sortable()
@@ -189,13 +207,13 @@ class MessagesRelationManager extends RelationManager
                     ),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label(__('ticket_admin.msg_filter_type'))
                     ->options(TicketMessageType::toSelectArray())
                     ->multiple()
                     ->preload(),
 
-                Tables\Filters\TernaryFilter::make('is_internal')
+                TernaryFilter::make('is_internal')
                     ->label(__('ticket_admin.msg_filter_visibility'))
                     ->placeholder(__('ticket_admin.msg_filter_all'))
                     ->trueLabel(__('ticket_admin.msg_filter_internal_only'))
@@ -206,7 +224,7 @@ class MessagesRelationManager extends RelationManager
                         blank: fn (Builder $query) => $query,
                     ),
 
-                Tables\Filters\TernaryFilter::make('is_read')
+                TernaryFilter::make('is_read')
                     ->label(__('ticket_admin.msg_filter_read_status'))
                     ->placeholder(__('ticket_admin.msg_filter_all'))
                     ->trueLabel(__('ticket_admin.msg_filter_read'))
@@ -217,7 +235,7 @@ class MessagesRelationManager extends RelationManager
                         blank: fn (Builder $query) => $query,
                     ),
 
-                Tables\Filters\SelectFilter::make('user_id')
+                SelectFilter::make('user_id')
                     ->label(__('ticket_admin.msg_filter_author'))
                     ->relationship('user', 'name')
                     ->searchable()
@@ -225,12 +243,12 @@ class MessagesRelationManager extends RelationManager
                     ->multiple(),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
+                CreateAction::make()
                     ->label(__('ticket_admin.msg_add'))
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->modalHeading(__('ticket_admin.msg_add_heading'))
                     ->modalWidth('2xl')
-                    ->mutateFormDataUsing(function (array $data): array {
+                    ->mutateDataUsing(function (array $data): array {
                         $data['user_id']     = Auth::id();
                         $data['is_internal'] = $data['type'] === TicketMessageType::INTERNAL_NOTE->value;
 
@@ -260,8 +278,8 @@ class MessagesRelationManager extends RelationManager
                     })
                     ->successNotificationTitle(__('ticket_admin.msg_add_success')),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make()
+            ->recordActions([
+                ViewAction::make()
                     ->modalHeading(fn ($record) => __('ticket_admin.msg_modal_from', [
                         'name' => $record->user?->name ?? 'Unknown User',
                     ]))
@@ -271,7 +289,7 @@ class MessagesRelationManager extends RelationManager
                     ->modalWidth('3xl')
                     ->slideOver(),
 
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->visible(fn ($record) =>
                         $record->user_id === Auth::id() &&
                         $record->created_at->diffInMinutes(now()) < 30
@@ -280,7 +298,7 @@ class MessagesRelationManager extends RelationManager
                     ->modalWidth('2xl')
                     ->successNotificationTitle(__('ticket_admin.msg_edit_success')),
 
-                Tables\Actions\Action::make('toggle_read')
+                Action::make('toggle_read')
                     ->label(fn ($record) => $record->is_read
                         ? __('ticket_admin.msg_mark_unread')
                         : __('ticket_admin.msg_mark_read')
@@ -303,7 +321,7 @@ class MessagesRelationManager extends RelationManager
                             : __('ticket_admin.msg_marked_unread')
                     ),
 
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->visible(fn ($record) =>
                         $record->user_id === Auth::id() ||
                         Auth::user()->hasRole('super_admin')
@@ -313,9 +331,9 @@ class MessagesRelationManager extends RelationManager
                     ->modalDescription(__('ticket_admin.msg_delete_desc'))
                     ->successNotificationTitle(__('ticket_admin.msg_delete_success')),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\BulkAction::make('mark_read')
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('mark_read')
                         ->label(__('ticket_admin.msg_bulk_mark_read'))
                         ->icon('heroicon-o-envelope-open')
                         ->color('success')
@@ -323,7 +341,7 @@ class MessagesRelationManager extends RelationManager
                         ->deselectRecordsAfterCompletion()
                         ->successNotificationTitle(__('ticket_admin.msg_bulk_marked_read')),
 
-                    Tables\Actions\BulkAction::make('mark_unread')
+                    BulkAction::make('mark_unread')
                         ->label(__('ticket_admin.msg_bulk_mark_unread'))
                         ->icon('heroicon-o-envelope')
                         ->color('warning')
@@ -331,7 +349,7 @@ class MessagesRelationManager extends RelationManager
                         ->deselectRecordsAfterCompletion()
                         ->successNotificationTitle(__('ticket_admin.msg_bulk_marked_unread')),
 
-                    Tables\Actions\DeleteBulkAction::make()
+                    DeleteBulkAction::make()
                         ->requiresConfirmation()
                         ->modalHeading(__('ticket_admin.msg_bulk_delete_heading'))
                         ->modalDescription(__('ticket_admin.msg_bulk_delete_confirm'))
@@ -354,7 +372,7 @@ class MessagesRelationManager extends RelationManager
             ->orderBy('created_at', 'asc');
     }
 
-    public static function canViewForRecord(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): bool
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
         return $ownerRecord->exists;
     }

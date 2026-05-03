@@ -2,6 +2,11 @@
 
 namespace App\Filament\Admin\Resources\HallFeatureResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Placeholder;
+use Filament\Actions\DeleteAction;
+use App\Models\HallFeature;
 use App\Filament\Admin\Resources\HallFeatureResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -19,7 +24,7 @@ class EditHallFeature extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -42,7 +47,7 @@ class EditHallFeature extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewHalls')
+            Action::make('viewHalls')
                 ->label('View Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
@@ -54,7 +59,7 @@ class EditHallFeature extends EditRecord
                     ])),
                 //->visible(fn() => $this->record->halls()->count() > 0),
 
-            Actions\Action::make('regenerateSlug')
+            Action::make('regenerateSlug')
                 ->label('Regenerate Slug')
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
@@ -84,18 +89,18 @@ class EditHallFeature extends EditRecord
                         ->send();
                 }),
 
-            Actions\Action::make('updateIcon')
+            Action::make('updateIcon')
                 ->label('Update Icon')
                 ->icon('heroicon-o-sparkles')
                 ->color('purple')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('icon')
+                ->schema([
+                    TextInput::make('icon')
                         ->label('Icon')
                         ->placeholder('heroicon-o-icon-name')
                         ->helperText('Use format: heroicon-o-icon-name')
                         ->default(fn() => $this->record->icon),
 
-                    \Filament\Forms\Components\Placeholder::make('icon_preview')
+                    Placeholder::make('icon_preview')
                         ->label('Common Icons')
                         ->content('wifi, parking, music, utensils, tv, air-conditioning, wheelchair-accessible'),
                 ])
@@ -122,7 +127,7 @@ class EditHallFeature extends EditRecord
                     Cache::tags(['features'])->flush();
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -150,14 +155,14 @@ class EditHallFeature extends EditRecord
                         ->title('Feature Duplicated')
                         ->body('The feature has been duplicated successfully.')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('Edit Duplicate')
                                 ->url(HallFeatureResource::getUrl('edit', ['record' => $newFeature->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\Action::make('reorderUp')
+            Action::make('reorderUp')
                 ->label('Move Up')
                 ->icon('heroicon-o-arrow-up')
                 ->color('gray')
@@ -166,7 +171,7 @@ class EditHallFeature extends EditRecord
                     $this->moveFeature('up');
                 }),
 
-            Actions\Action::make('reorderDown')
+            Action::make('reorderDown')
                 ->label('Move Down')
                 ->icon('heroicon-o-arrow-down')
                 ->color('gray')
@@ -175,8 +180,8 @@ class EditHallFeature extends EditRecord
                     $this->moveFeature('down');
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     $hallsCount = $this->record->halls()->count();
 
                     if ($hallsCount > 0) {
@@ -200,7 +205,7 @@ class EditHallFeature extends EditRecord
                         ->body('The hall feature has been deleted successfully.')
                 ),
 
-            Actions\Action::make('viewHistory')
+            Action::make('viewHistory')
                 ->label('View History')
                 ->icon('heroicon-o-clock')
                 ->color('gray')
@@ -252,7 +257,7 @@ class EditHallFeature extends EditRecord
 
         // Check for duplicate slug
         if ($data['slug'] !== $this->record->slug) {
-            $exists = \App\Models\HallFeature::where('slug', $data['slug'])
+            $exists = HallFeature::where('slug', $data['slug'])
                 ->where('id', '!=', $this->record->id)
                 ->exists();
 
@@ -311,7 +316,7 @@ class EditHallFeature extends EditRecord
         $baseSlug = $slug;
         $counter = 1;
 
-        $query = \App\Models\HallFeature::where('slug', $slug);
+        $query = HallFeature::where('slug', $slug);
         if ($ignoreId) {
             $query->where('id', '!=', $ignoreId);
         }
@@ -320,7 +325,7 @@ class EditHallFeature extends EditRecord
             $slug = $baseSlug . '-' . $counter;
             $counter++;
 
-            $query = \App\Models\HallFeature::where('slug', $slug);
+            $query = HallFeature::where('slug', $slug);
             if ($ignoreId) {
                 $query->where('id', '!=', $ignoreId);
             }
@@ -336,22 +341,22 @@ class EditHallFeature extends EditRecord
 
     protected function canMoveUp(): bool
     {
-        return \App\Models\HallFeature::where('order', '<', $this->record->order)->exists();
+        return HallFeature::where('order', '<', $this->record->order)->exists();
     }
 
     protected function canMoveDown(): bool
     {
-        return \App\Models\HallFeature::where('order', '>', $this->record->order)->exists();
+        return HallFeature::where('order', '>', $this->record->order)->exists();
     }
 
     protected function moveFeature(string $direction): void
     {
         if ($direction === 'up') {
-            $swapFeature = \App\Models\HallFeature::where('order', '<', $this->record->order)
+            $swapFeature = HallFeature::where('order', '<', $this->record->order)
                 ->orderBy('order', 'desc')
                 ->first();
         } else {
-            $swapFeature = \App\Models\HallFeature::where('order', '>', $this->record->order)
+            $swapFeature = HallFeature::where('order', '>', $this->record->order)
                 ->orderBy('order', 'asc')
                 ->first();
         }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\AvailabilityResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use App\Filament\Owner\Resources\AvailabilityResource;
 use App\Models\Hall;
 use App\Models\HallAvailability;
@@ -45,7 +48,7 @@ class AvailabilityCalendar extends Page implements HasForms
     /**
      * The view for this page.
      */
-    protected static string $view = 'filament.owner.resources.availability-resource.pages.availability-calendar';
+    protected string $view = 'filament.owner.resources.availability-resource.pages.availability-calendar';
 
     /**
      * Current month being viewed.
@@ -137,19 +140,19 @@ class AvailabilityCalendar extends Page implements HasForms
     {
         return [
             // List View
-            Actions\Action::make('list_view')
+            Action::make('list_view')
                 ->label(__('owner.availability_resource.actions.list_view'))
                 ->icon('heroicon-o-list-bullet')
                 ->color('gray')
                 ->url(fn () => AvailabilityResource::getUrl('index')),
 
             // Bulk Generate
-            Actions\Action::make('bulk_generate')
+            Action::make('bulk_generate')
                 ->label(__('owner.availability_resource.actions.bulk_generate'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
-                ->form([
-                    Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('owner.availability_resource.fields.hall'))
                         ->options($this->getOwnerHalls()->mapWithKeys(fn ($hall) => [
                             $hall->id => $hall->getTranslation('name', app()->getLocale())
@@ -158,7 +161,7 @@ class AvailabilityCalendar extends Page implements HasForms
                         ->native(false)
                         ->default($this->selectedHallId),
 
-                    Forms\Components\TextInput::make('days')
+                    TextInput::make('days')
                         ->label(__('owner.availability_resource.fields.days_to_generate'))
                         ->numeric()
                         ->default(90)

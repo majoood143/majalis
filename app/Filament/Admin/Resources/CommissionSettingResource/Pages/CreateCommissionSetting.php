@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\CommissionSettingResource\Pages;
 
+use App\Models\CommissionSetting;
 use App\Filament\Admin\Resources\CommissionSettingResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -138,7 +139,7 @@ class CreateCommissionSetting extends CreateRecord
 
     protected function validateUniqueScope(array $data): void
     {
-        $query = \App\Models\CommissionSetting::where('is_active', true);
+        $query = CommissionSetting::where('is_active', true);
 
         if (isset($data['hall_id'])) {
             $query->where('hall_id', $data['hall_id']);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use Filament\Actions\Action;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,7 +77,7 @@ class EnsureUserIsOwner
                 ->warning()
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('complete')
+                    Action::make('complete')
                         ->label(__('owner.actions.complete_profile'))
                         ->url(route('filament.owner.pages.profile'))
                 ])

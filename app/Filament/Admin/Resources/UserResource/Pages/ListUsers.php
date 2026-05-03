@@ -2,10 +2,13 @@
 
 namespace App\Filament\Admin\Resources\UserResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\User;
 use App\Filament\Admin\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 
@@ -16,11 +19,11 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('exportUsers')
+            Action::make('exportUsers')
                 ->label(__('user.export_users'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -32,55 +35,55 @@ class ListUsers extends ListRecords
     {
         return [
             'all' => Tab::make(__('user.tabs.all_users'))
-                ->badge(fn() => \App\Models\User::count()),
+                ->badge(fn() => User::count()),
 
             'admin' => Tab::make(__('user.tabs.administrators'))
                 ->icon('heroicon-o-shield-check')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'admin'))
-                ->badge(fn() => \App\Models\User::where('role', 'admin')->count())
+                ->badge(fn() => User::where('role', 'admin')->count())
                 ->badgeColor('danger'),
 
             'hall_owners' => Tab::make(__('user.tabs.hall_owners'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'hall_owner'))
-                ->badge(fn() => \App\Models\User::where('role', 'hall_owner')->count())
+                ->badge(fn() => User::where('role', 'hall_owner')->count())
                 ->badgeColor('warning'),
 
             'customers' => Tab::make(__('user.tabs.customers'))
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'customer'))
-                ->badge(fn() => \App\Models\User::where('role', 'customer')->count())
+                ->badge(fn() => User::where('role', 'customer')->count())
                 ->badgeColor('info'),
 
             'active' => Tab::make(__('user.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\User::where('is_active', true)->count())
+                ->badge(fn() => User::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('user.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\User::where('is_active', false)->count())
+                ->badge(fn() => User::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'verified' => Tab::make(__('user.tabs.email_verified'))
                 ->icon('heroicon-o-check-badge')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('email_verified_at'))
-                ->badge(fn() => \App\Models\User::whereNotNull('email_verified_at')->count())
+                ->badge(fn() => User::whereNotNull('email_verified_at')->count())
                 ->badgeColor('success'),
 
             'unverified' => Tab::make(__('user.tabs.unverified'))
                 ->icon('heroicon-o-exclamation-triangle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('email_verified_at'))
-                ->badge(fn() => \App\Models\User::whereNull('email_verified_at')->count())
+                ->badge(fn() => User::whereNull('email_verified_at')->count())
                 ->badgeColor('warning'),
         ];
     }
 
     protected function exportUsers(): void
     {
-        $users = \App\Models\User::all();
+        $users = User::all();
 
         $filename = 'users_' . now()->format('Y_m_d_His') . '.csv';
         $path = storage_path('app/public/exports/' . $filename);
@@ -123,7 +126,7 @@ class ListUsers extends ListRecords
             ->title(__('user.export.success_title'))
             ->body(__('user.export.success_body', ['filename' => $filename]))
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('user.export.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

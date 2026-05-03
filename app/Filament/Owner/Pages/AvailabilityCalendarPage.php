@@ -32,7 +32,7 @@ class AvailabilityCalendarPage extends Page
     /**
      * The navigation icon.
      */
-    protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calendar';
 
     /**
      * Get the navigation group.
@@ -50,7 +50,7 @@ class AvailabilityCalendarPage extends Page
     /**
      * The view for this page.
      */
-    protected static string $view = 'filament.owner.pages.availability-calendar-page';
+    protected string $view = 'filament.owner.pages.availability-calendar-page';
 
     /**
      * Get the navigation label.

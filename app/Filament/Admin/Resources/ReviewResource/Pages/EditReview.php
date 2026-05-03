@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\ReviewResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\ReviewResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -17,7 +19,7 @@ class EditReview extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('approve')
+            Action::make('approve')
                 ->label(fn() => $this->record->is_approved ? 'Disapprove' : 'Approve')
                 ->icon('heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_approved ? 'warning' : 'success')
@@ -33,7 +35,7 @@ class EditReview extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleFeatured')
+            Action::make('toggleFeatured')
                 ->label(fn() => $this->record->is_featured ? 'Unmark Featured' : 'Mark Featured')
                 ->icon('heroicon-o-star')
                 ->color('warning')
@@ -45,7 +47,7 @@ class EditReview extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

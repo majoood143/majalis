@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Customer;
 
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Http\Controllers\Controller;
 use App\Mail\TicketSubmittedAdminMail;
 use App\Mail\TicketSubmittedCustomerMail;
@@ -36,7 +39,7 @@ class TicketController extends Controller
      * Display a listing of customer's tickets.
      *
      * @param Request $request
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index(Request $request)
     {
@@ -81,7 +84,7 @@ class TicketController extends Controller
     /**
      * Show the form for creating a new ticket.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function create()
     {
@@ -106,7 +109,7 @@ class TicketController extends Controller
      * Store a newly created ticket.
      *
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(Request $request)
     {
@@ -191,7 +194,7 @@ class TicketController extends Controller
      * Display the specified ticket.
      *
      * @param Ticket $ticket
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function show(Ticket $ticket)
     {
@@ -225,7 +228,7 @@ class TicketController extends Controller
      *
      * @param Request $request
      * @param Ticket $ticket
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function reply(Request $request, Ticket $ticket)
     {
@@ -300,7 +303,7 @@ class TicketController extends Controller
      * @param Ticket $ticket
      * @param int $messageId
      * @param int $index
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return StreamedResponse
      */
     public function downloadAttachment(Ticket $ticket, int $messageId, int $index)
     {
@@ -335,7 +338,7 @@ class TicketController extends Controller
      * Close a ticket (customer request).
      *
      * @param Ticket $ticket
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function close(Ticket $ticket)
     {
@@ -363,7 +366,7 @@ class TicketController extends Controller
      *
      * @param Request $request
      * @param Ticket $ticket
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function rate(Request $request, Ticket $ticket)
     {
@@ -405,7 +408,7 @@ class TicketController extends Controller
      * Reopen a closed ticket.
      *
      * @param Ticket $ticket
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function reopen(Ticket $ticket)
     {

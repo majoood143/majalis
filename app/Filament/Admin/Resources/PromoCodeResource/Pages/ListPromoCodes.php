@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PromoCodeResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
 use App\Filament\Admin\Resources\PromoCodeResource;
 use App\Models\PromoCode;
 use Filament\Actions;
@@ -17,9 +19,9 @@ class ListPromoCodes extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
 
-            Actions\Action::make('exportPromoCodes')
+            Action::make('exportPromoCodes')
                 ->label(__('promo.export_btn'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -73,7 +75,7 @@ class ListPromoCodes extends ListRecords
             ->title(__('promo.export_success_title'))
             ->body(__('promo.export_success_body', ['filename' => $filename]))
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('promo.export_download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

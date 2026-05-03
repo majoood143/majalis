@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\TicketResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\TicketResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -32,8 +34,8 @@ class EditTicket extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
+            ViewAction::make(),
+            DeleteAction::make(),
         ];
     }
 

@@ -4,6 +4,27 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Owner\Resources\PricingResource\Pages\ListPricing;
+use App\Filament\Owner\Resources\PricingResource\Pages\CreatePricing;
+use App\Filament\Owner\Resources\PricingResource\Pages\EditPricing;
+use App\Filament\Owner\Resources\PricingResource\Pages\PriceCalculator;
 use App\Filament\Owner\Resources\PricingResource\Pages;
 use App\Models\Hall;
 use App\Models\SeasonalPricing;
@@ -44,7 +65,7 @@ class PricingResource extends Resource
     /**
      * The navigation icon.
      */
-    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-currency-dollar';
 
     /**
      * The navigation group.
@@ -130,19 +151,19 @@ class PricingResource extends Resource
     /**
      * Configure the form for creating/editing pricing rules.
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
         $user = Auth::user();
 
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Basic Information Section
-                Forms\Components\Section::make(__('owner.pricing.sections.basic'))
+                Section::make(__('owner.pricing.sections.basic'))
                     ->description(__('owner.pricing.sections.basic_desc'))
                     ->columns(2)
                     ->schema([
                         // Hall Selection
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('owner.pricing.fields.hall'))
                             ->relationship(
                                 name: 'hall',
@@ -157,21 +178,21 @@ class PricingResource extends Resource
                             ->columnSpanFull(),
 
                         // Name (English)
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('owner.pricing.fields.name_en'))
                             ->required()
                             ->maxLength(100)
                             ->placeholder(__('owner.pricing.placeholders.name_en')),
 
                         // Name (Arabic)
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('owner.pricing.fields.name_ar'))
                             ->required()
                             ->maxLength(100)
                             ->placeholder(__('owner.pricing.placeholders.name_ar')),
 
                         // Type
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label(__('owner.pricing.fields.type'))
                             ->options([
                                 'seasonal' => __('owner.pricing.types.seasonal'),
@@ -187,7 +208,7 @@ class PricingResource extends Resource
                             ->live(),
 
                         // Priority
-                        Forms\Components\TextInput::make('priority')
+                        TextInput::make('priority')
                             ->label(__('owner.pricing.fields.priority'))
                             ->numeric()
                             ->default(0)
@@ -197,12 +218,12 @@ class PricingResource extends Resource
                     ]),
 
                 // Date Range Section
-                Forms\Components\Section::make(__('owner.pricing.sections.date_range'))
+                Section::make(__('owner.pricing.sections.date_range'))
                     ->description(__('owner.pricing.sections.date_range_desc'))
                     ->columns(2)
                     ->schema([
                         // Start Date
-                        Forms\Components\DatePicker::make('start_date')
+                        DatePicker::make('start_date')
                             ->label(__('owner.pricing.fields.start_date'))
                             ->required()
                             ->native(false)
@@ -210,7 +231,7 @@ class PricingResource extends Resource
                             ->closeOnDateSelection(),
 
                         // End Date
-                        Forms\Components\DatePicker::make('end_date')
+                        DatePicker::make('end_date')
                             ->label(__('owner.pricing.fields.end_date'))
                             ->required()
                             ->native(false)
@@ -219,25 +240,25 @@ class PricingResource extends Resource
                             ->afterOrEqual('start_date'),
 
                         // Is Recurring
-                        Forms\Components\Toggle::make('is_recurring')
+                        Toggle::make('is_recurring')
                             ->label(__('owner.pricing.fields.is_recurring'))
                             ->helperText(__('owner.pricing.helpers.is_recurring'))
                             ->live(),
 
                         // Recurrence Type
-                        Forms\Components\Select::make('recurrence_type')
+                        Select::make('recurrence_type')
                             ->label(__('owner.pricing.fields.recurrence_type'))
                             ->options([
                                 'weekly' => __('owner.pricing.recurrence.weekly'),
                                 'yearly' => __('owner.pricing.recurrence.yearly'),
                             ])
                             ->native(false)
-                            ->visible(fn (Forms\Get $get): bool => $get('is_recurring'))
-                            ->required(fn (Forms\Get $get): bool => $get('is_recurring'))
+                            ->visible(fn (Get $get): bool => $get('is_recurring'))
+                            ->required(fn (Get $get): bool => $get('is_recurring'))
                             ->live(),
 
                         // Days of Week (for weekly recurrence)
-                        Forms\Components\CheckboxList::make('days_of_week')
+                        CheckboxList::make('days_of_week')
                             ->label(__('owner.pricing.fields.days_of_week'))
                             ->options([
                                 0 => __('owner.pricing.days.sunday'),
@@ -249,19 +270,19 @@ class PricingResource extends Resource
                                 6 => __('owner.pricing.days.saturday'),
                             ])
                             ->columns(4)
-                            ->visible(fn (Forms\Get $get): bool =>
+                            ->visible(fn (Get $get): bool =>
                                 $get('is_recurring') && $get('recurrence_type') === 'weekly'
                             )
                             ->columnSpanFull(),
                     ]),
 
                 // Pricing Adjustment Section
-                Forms\Components\Section::make(__('owner.pricing.sections.adjustment'))
+                Section::make(__('owner.pricing.sections.adjustment'))
                     ->description(__('owner.pricing.sections.adjustment_desc'))
                     ->columns(2)
                     ->schema([
                         // Adjustment Type
-                        Forms\Components\Select::make('adjustment_type')
+                        Select::make('adjustment_type')
                             ->label(__('owner.pricing.fields.adjustment_type'))
                             ->options([
                                 'percentage' => __('owner.pricing.adjustment_types.percentage'),
@@ -274,8 +295,8 @@ class PricingResource extends Resource
                             ->live(),
 
                         // Adjustment Value
-                        Forms\Components\TextInput::make('adjustment_value')
-                            ->label(fn (Forms\Get $get): string => match ($get('adjustment_type')) {
+                        TextInput::make('adjustment_value')
+                            ->label(fn (Get $get): string => match ($get('adjustment_type')) {
                                 'percentage' => __('owner.pricing.fields.percentage_value'),
                                 'fixed_increase' => __('owner.pricing.fields.increase_amount'),
                                 'fixed_price' => __('owner.pricing.fields.fixed_amount'),
@@ -284,11 +305,11 @@ class PricingResource extends Resource
                             ->numeric()
                             ->required()
                             ->step(0.001)
-                            ->suffix(fn (Forms\Get $get): string => match ($get('adjustment_type')) {
+                            ->suffix(fn (Get $get): string => match ($get('adjustment_type')) {
                                 'percentage' => '%',
                                 default => 'OMR',
                             })
-                            ->helperText(fn (Forms\Get $get): string => match ($get('adjustment_type')) {
+                            ->helperText(fn (Get $get): string => match ($get('adjustment_type')) {
                                 'percentage' => __('owner.pricing.helpers.percentage'),
                                 'fixed_increase' => __('owner.pricing.helpers.fixed_increase'),
                                 'fixed_price' => __('owner.pricing.helpers.fixed_price'),
@@ -296,7 +317,7 @@ class PricingResource extends Resource
                             }),
 
                         // Min Price
-                        Forms\Components\TextInput::make('min_price')
+                        TextInput::make('min_price')
                             ->label(__('owner.pricing.fields.min_price'))
                             ->numeric()
                             ->minValue(0)
@@ -306,7 +327,7 @@ class PricingResource extends Resource
                             ->helperText(__('owner.pricing.helpers.min_price')),
 
                         // Max Price
-                        Forms\Components\TextInput::make('max_price')
+                        TextInput::make('max_price')
                             ->label(__('owner.pricing.fields.max_price'))
                             ->numeric()
                             ->minValue(0)
@@ -316,7 +337,7 @@ class PricingResource extends Resource
                             ->helperText(__('owner.pricing.helpers.max_price')),
 
                         // Apply to Slots
-                        Forms\Components\CheckboxList::make('apply_to_slots')
+                        CheckboxList::make('apply_to_slots')
                             ->label(__('owner.pricing.fields.apply_to_slots'))
                             ->options([
                                 'morning' => __('owner.slots.morning'),
@@ -330,17 +351,17 @@ class PricingResource extends Resource
                     ]),
 
                 // Status Section
-                Forms\Components\Section::make(__('owner.pricing.sections.status'))
+                Section::make(__('owner.pricing.sections.status'))
                     ->columns(2)
                     ->schema([
                         // Is Active
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('owner.pricing.fields.is_active'))
                             ->default(true)
                             ->helperText(__('owner.pricing.helpers.is_active')),
 
                         // Notes
-                        Forms\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->label(__('owner.pricing.fields.notes'))
                             ->rows(2)
                             ->maxLength(500)
@@ -359,21 +380,21 @@ class PricingResource extends Resource
             ->striped()
             ->columns([
                 // Hall Name
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('owner.pricing.columns.hall'))
                     ->formatStateUsing(fn ($record) => $record->hall->getTranslation('name', app()->getLocale()))
                     ->searchable()
                     ->sortable(),
 
                 // Rule Name
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('owner.pricing.columns.name'))
                     ->formatStateUsing(fn ($record) => $record->getTranslation('name', app()->getLocale()))
                     ->searchable()
                     ->sortable(),
 
                 // Type
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label(__('owner.pricing.columns.type'))
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => __("owner.pricing.types.{$state}"))
@@ -388,7 +409,7 @@ class PricingResource extends Resource
                     }),
 
                 // Date Range
-                Tables\Columns\TextColumn::make('start_date')
+                TextColumn::make('start_date')
                     ->label(__('owner.pricing.columns.date_range'))
                     ->formatStateUsing(fn ($record): string =>
                         $record->is_recurring
@@ -400,7 +421,7 @@ class PricingResource extends Resource
                     ->sortable(),
 
                 // Adjustment
-                Tables\Columns\TextColumn::make('adjustment_value')
+                TextColumn::make('adjustment_value')
                     ->label(__('owner.pricing.columns.adjustment'))
                     ->formatStateUsing(fn ($record): string => $record->adjustment_description)
                     ->badge()
@@ -411,14 +432,14 @@ class PricingResource extends Resource
                     ),
 
                 // Priority
-                Tables\Columns\TextColumn::make('priority')
+                TextColumn::make('priority')
                     ->label(__('owner.pricing.columns.priority'))
                     ->badge()
                     ->color('gray')
                     ->sortable(),
 
                 // Status
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('owner.pricing.columns.status'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -427,7 +448,7 @@ class PricingResource extends Resource
                     ->falseColor('danger'),
 
                 // Slots
-                Tables\Columns\TextColumn::make('apply_to_slots')
+                TextColumn::make('apply_to_slots')
                     ->label(__('owner.pricing.columns.slots'))
                     ->formatStateUsing(fn ($state): string =>
                         empty($state)
@@ -470,9 +491,9 @@ class PricingResource extends Resource
                     ->trueLabel(__('owner.pricing.filters.recurring_only'))
                     ->falseLabel(__('owner.pricing.filters.one_time_only')),
             ])
-            ->actions([
+            ->recordActions([
                 // Toggle Active
-                Tables\Actions\Action::make('toggle')
+                Action::make('toggle')
                     ->label(fn ($record): string => $record->is_active
                         ? __('owner.pricing.actions.deactivate')
                         : __('owner.pricing.actions.activate'))
@@ -492,7 +513,7 @@ class PricingResource extends Resource
                     }),
 
                 // Duplicate
-                Tables\Actions\Action::make('duplicate')
+                Action::make('duplicate')
                     ->label(__('owner.pricing.actions.duplicate'))
                     ->icon('heroicon-o-document-duplicate')
                     ->color('gray')
@@ -511,13 +532,13 @@ class PricingResource extends Resource
                             ->send();
                     }),
 
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+            ->toolbarActions([
+                BulkActionGroup::make([
                     // Bulk Activate
-                    Tables\Actions\BulkAction::make('activate')
+                    BulkAction::make('activate')
                         ->label(__('owner.pricing.bulk.activate'))
                         ->icon('heroicon-o-play')
                         ->color('success')
@@ -532,7 +553,7 @@ class PricingResource extends Resource
                         ->deselectRecordsAfterCompletion(),
 
                     // Bulk Deactivate
-                    Tables\Actions\BulkAction::make('deactivate')
+                    BulkAction::make('deactivate')
                         ->label(__('owner.pricing.bulk.deactivate'))
                         ->icon('heroicon-o-pause')
                         ->color('warning')
@@ -546,14 +567,14 @@ class PricingResource extends Resource
                         })
                         ->deselectRecordsAfterCompletion(),
 
-                    Tables\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->emptyStateHeading(__('owner.pricing.empty.heading'))
             ->emptyStateDescription(__('owner.pricing.empty.description'))
             ->emptyStateIcon('heroicon-o-currency-dollar')
             ->emptyStateActions([
-                Tables\Actions\Action::make('create')
+                Action::make('create')
                     ->label(__('owner.pricing.empty.action'))
                     ->icon('heroicon-o-plus')
                     ->url(fn () => static::getUrl('create')),
@@ -566,10 +587,10 @@ class PricingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPricing::route('/'),
-            'create' => Pages\CreatePricing::route('/create'),
-            'edit' => Pages\EditPricing::route('/{record}/edit'),
-            'calculator' => Pages\PriceCalculator::route('/calculator'),
+            'index' => ListPricing::route('/'),
+            'create' => CreatePricing::route('/create'),
+            'edit' => EditPricing::route('/{record}/edit'),
+            'calculator' => PriceCalculator::route('/calculator'),
         ];
     }
 }

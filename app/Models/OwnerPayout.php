@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use App\Enums\PayoutStatus;
 use App\Notifications\PayoutStatusNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,8 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * OwnerPayout Model
@@ -32,8 +34,8 @@ use Spatie\Activitylog\LogOptions;
  * @property int $id
  * @property string $payout_number
  * @property int $owner_id
- * @property \Carbon\Carbon $period_start
- * @property \Carbon\Carbon $period_end
+ * @property Carbon $period_start
+ * @property Carbon $period_end
  * @property float $gross_revenue
  * @property float $commission_amount
  * @property float $commission_rate
@@ -44,16 +46,16 @@ use Spatie\Activitylog\LogOptions;
  * @property string|null $payment_method
  * @property array|null $bank_details
  * @property string|null $transaction_reference
- * @property \Carbon\Carbon|null $processed_at
- * @property \Carbon\Carbon|null $completed_at
- * @property \Carbon\Carbon|null $failed_at
+ * @property Carbon|null $processed_at
+ * @property Carbon|null $completed_at
+ * @property Carbon|null $failed_at
  * @property int|null $processed_by
  * @property string|null $notes
  * @property string|null $failure_reason
  * @property string|null $receipt_path
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- * @property \Carbon\Carbon|null $deleted_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
  *
  * @property-read User $owner
  * @property-read User|null $processor
@@ -220,13 +222,12 @@ class OwnerPayout extends Model
     }
 
     // ==================== SCOPES ====================
-
     /**
      * Scope to filter by owner.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $ownerId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForOwner($query, int $ownerId)
     {
@@ -236,9 +237,9 @@ class OwnerPayout extends Model
     /**
      * Scope to filter by status.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param PayoutStatus $status
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeWithStatus($query, PayoutStatus $status)
     {
@@ -248,8 +249,8 @@ class OwnerPayout extends Model
     /**
      * Scope to filter pending payouts.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePending($query)
     {
@@ -259,8 +260,8 @@ class OwnerPayout extends Model
     /**
      * Scope to filter completed payouts.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeCompleted($query)
     {
@@ -270,10 +271,10 @@ class OwnerPayout extends Model
     /**
      * Scope to filter by period.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $startDate
      * @param string $endDate
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeInPeriod($query, string $startDate, string $endDate)
     {

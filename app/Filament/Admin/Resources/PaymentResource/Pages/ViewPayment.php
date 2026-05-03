@@ -4,6 +4,18 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PaymentResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use App\Services\PaymentService;
+use Exception;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\PaymentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
@@ -42,14 +54,14 @@ class ViewPayment extends ViewRecord
     {
         return [
             // Edit Action - Navigate to edit page
-            Actions\EditAction::make()
+            EditAction::make()
                 ->label('Edit Payment')
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary')
                 ->visible(fn($record) => $record->status !== 'paid'), // Only show if not paid
 
             // View Gateway Response Action - Show modal with Thawani response data
-            Actions\Action::make('view_gateway_response')
+            Action::make('view_gateway_response')
                 ->label('Gateway Response')
                 ->icon('heroicon-o-code-bracket')
                 ->color('info')
@@ -65,18 +77,18 @@ class ViewPayment extends ViewRecord
 
             // Refund Action - Process refund (if applicable)
             // Process Refund Action - Enhanced version
-            Actions\Action::make('process_refund')
+            Action::make('process_refund')
                 ->label('Process Refund')
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->visible(fn($record) => $record->canBeRefunded())
-                ->form(function ($record) {
+                ->schema(function ($record) {
                     $remainingAmount = $record->getRemainingRefundableAmount();
 
                     return [
-                        Forms\Components\Section::make('Refund Information')
+                        Section::make('Refund Information')
                             ->schema([
-                                Forms\Components\Placeholder::make('payment_details')
+                                Placeholder::make('payment_details')
                                     ->label('Payment Details')
                                     ->content(function () use ($record, $remainingAmount) {
                                         return view('filament.components.refund-details', [
@@ -86,7 +98,7 @@ class ViewPayment extends ViewRecord
                                     })
                                     ->columnSpanFull(),
 
-                                Forms\Components\Radio::make('refund_type')
+                                Radio::make('refund_type')
                                     ->label('Refund Type')
                                     ->options([
                                         'full' => 'Full Refund (' . number_format($remainingAmount, 3) . ' OMR)',
@@ -97,7 +109,7 @@ class ViewPayment extends ViewRecord
                                     ->reactive()
                                     ->columnSpanFull(),
 
-                                Forms\Components\TextInput::make('amount')
+                                TextInput::make('amount')
                                     ->label('Refund Amount (OMR)')
                                     ->numeric()
                                     ->required()
@@ -109,7 +121,7 @@ class ViewPayment extends ViewRecord
                                     ->helperText('Enter amount between 0.001 and ' . number_format($remainingAmount, 3) . ' OMR')
                                     ->visible(fn($get) => $get('refund_type') === 'partial'),
 
-                                Forms\Components\Select::make('reason')
+                                Select::make('reason')
                                     ->label('Refund Reason')
                                     ->options([
                                         'Customer Request' => 'Customer Request',
@@ -126,18 +138,18 @@ class ViewPayment extends ViewRecord
                                     ->required()
                                     ->searchable(),
 
-                                Forms\Components\Textarea::make('notes')
+                                Textarea::make('notes')
                                     ->label('Additional Notes (Optional)')
                                     ->rows(3)
                                     ->placeholder('Add any additional details about this refund...')
                                     ->columnSpanFull(),
 
-                                Forms\Components\Toggle::make('notify_customer')
+                                Toggle::make('notify_customer')
                                     ->label('Send notification to customer')
                                     ->default(true)
                                     ->helperText('Customer will receive an email and SMS about this refund'),
 
-                                Forms\Components\Toggle::make('cancel_booking')
+                                Toggle::make('cancel_booking')
                                     ->label('Cancel booking (for full refunds)')
                                     ->default(true)
                                     ->helperText('Booking will be automatically cancelled if full refund is processed')
@@ -165,7 +177,7 @@ class ViewPayment extends ViewRecord
                         $reason .= ' | Processed by: ' . Auth::user()?->name ?? 'System';
 
                         // Process refund
-                        $paymentService = app(\App\Services\PaymentService::class);
+                        $paymentService = app(PaymentService::class);
                         $result = $paymentService->processRefund($record, $amount, $reason);
 
                         if ($result['success']) {
@@ -178,7 +190,7 @@ class ViewPayment extends ViewRecord
                                 ]);
                             }
 
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Refund Processed Successfully')
                                 ->success()
                                 ->body("Refund of " . number_format($amount, 3) . " OMR has been processed. Refund ID: " . ($result['refund_id'] ?? 'N/A'))
@@ -188,8 +200,8 @@ class ViewPayment extends ViewRecord
                             // Refresh the page to show updated status
                             redirect()->route('filament.admin.resources.payments.view', ['record' => $record]);
                         }
-                    } catch (\Exception $e) {
-                        \Filament\Notifications\Notification::make()
+                    } catch (Exception $e) {
+                        Notification::make()
                             ->title('Refund Processing Failed')
                             ->danger()
                             ->body('Error: ' . $e->getMessage())
@@ -200,7 +212,7 @@ class ViewPayment extends ViewRecord
                     }
                 }),
             // Mark as Paid Action - Manually mark payment as paid
-            Actions\Action::make('mark_as_paid')
+            Action::make('mark_as_paid')
                 ->label('Mark as Paid')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -208,12 +220,12 @@ class ViewPayment extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading('Mark Payment as Paid')
                 ->modalDescription('This will manually mark the payment as paid. Use this only if you have received payment confirmation outside the system.')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('transaction_id')
+                ->schema([
+                    TextInput::make('transaction_id')
                         ->label('Transaction ID')
                         ->placeholder('Enter transaction/reference ID')
                         ->maxLength(255),
-                    \Filament\Forms\Components\Textarea::make('notes')
+                    Textarea::make('notes')
                         ->label('Notes')
                         ->placeholder('Add any notes about this manual payment confirmation')
                         ->rows(3),
@@ -226,13 +238,13 @@ class ViewPayment extends ViewRecord
                             null
                         );
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Payment Marked as Paid')
                             ->success()
                             ->body('Payment has been manually marked as paid.')
                             ->send();
-                    } catch (\Exception $e) {
-                        \Filament\Notifications\Notification::make()
+                    } catch (Exception $e) {
+                        Notification::make()
                             ->title('Action Failed')
                             ->danger()
                             ->body('Failed to mark payment as paid: ' . $e->getMessage())
@@ -241,7 +253,7 @@ class ViewPayment extends ViewRecord
                 }),
 
             // Mark as Failed Action - Manually mark payment as failed
-            Actions\Action::make('mark_as_failed')
+            Action::make('mark_as_failed')
                 ->label('Mark as Failed')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
@@ -249,8 +261,8 @@ class ViewPayment extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading('Mark Payment as Failed')
                 ->modalDescription('This will mark the payment as failed. The booking status will also be updated.')
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('failure_reason')
+                ->schema([
+                    Textarea::make('failure_reason')
                         ->label('Failure Reason')
                         ->placeholder('Explain why this payment is being marked as failed')
                         ->required()
@@ -260,13 +272,13 @@ class ViewPayment extends ViewRecord
                     try {
                         $record->markAsFailed($data['failure_reason']);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Payment Marked as Failed')
                             ->success()
                             ->body('Payment has been marked as failed.')
                             ->send();
-                    } catch (\Exception $e) {
-                        \Filament\Notifications\Notification::make()
+                    } catch (Exception $e) {
+                        Notification::make()
                             ->title('Action Failed')
                             ->danger()
                             ->body('Failed to mark payment as failed: ' . $e->getMessage())
@@ -275,7 +287,7 @@ class ViewPayment extends ViewRecord
                 }),
 
             // Delete Action
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->visible(fn($record) => $record->status === 'pending'), // Only allow deletion of pending payments
         ];
     }

@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PaymentResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Exception;
+use Filament\Forms\Components\Toggle;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\PaymentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -42,7 +49,7 @@ class EditPayment extends EditRecord
     {
         return [
             // View action - navigate to view page
-            Actions\ViewAction::make(),
+            ViewAction::make(),
 
             /**
              * Mark as Paid Action
@@ -50,7 +57,7 @@ class EditPayment extends EditRecord
              * Manually marks a pending payment as paid.
              * Updates payment and booking status, sets paid_at timestamp.
              */
-            Actions\Action::make('markAsPaid')
+            Action::make('markAsPaid')
                 ->label('Mark as Paid')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -59,13 +66,13 @@ class EditPayment extends EditRecord
                 ->modalDescription('This will mark the payment as paid and update the booking status.')
                 ->modalIcon('heroicon-o-check-circle')
                 ->visible(fn() => $this->record->status === 'pending')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('transaction_id')
+                ->schema([
+                    TextInput::make('transaction_id')
                         ->label('Transaction ID (Optional)')
                         ->maxLength(255)
                         ->helperText('Enter the payment gateway transaction ID'),
 
-                    \Filament\Forms\Components\Textarea::make('notes')
+                    Textarea::make('notes')
                         ->label('Notes (Optional)')
                         ->rows(2)
                         ->helperText('Add any additional notes about this manual payment confirmation'),
@@ -120,7 +127,7 @@ class EditPayment extends EditRecord
                             ->send();
 
                         $this->redirect(static::getUrl(['record' => $this->record]));
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         DB::rollBack();
 
                         Log::error('Failed to mark payment as paid', [
@@ -142,7 +149,7 @@ class EditPayment extends EditRecord
              *
              * Manually marks a pending payment as failed.
              */
-            Actions\Action::make('markAsFailed')
+            Action::make('markAsFailed')
                 ->label('Mark as Failed')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
@@ -150,8 +157,8 @@ class EditPayment extends EditRecord
                 ->modalHeading('Mark Payment as Failed')
                 ->modalDescription('This will mark the payment as failed and update the booking status.')
                 ->visible(fn() => $this->record->status === 'pending')
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('failure_reason')
+                ->schema([
+                    Textarea::make('failure_reason')
                         ->label('Failure Reason')
                         ->required()
                         ->rows(3)
@@ -167,7 +174,7 @@ class EditPayment extends EditRecord
                             ->send();
 
                         $this->redirect(static::getUrl(['record' => $this->record]));
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Notification::make()
                             ->danger()
                             ->title('Action Failed')
@@ -182,7 +189,7 @@ class EditPayment extends EditRecord
              * Allows processing full or partial refunds.
              * Validates refund amount and updates payment status.
              */
-            Actions\Action::make('processRefund')
+            Action::make('processRefund')
                 ->label('Process Refund')
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
@@ -191,8 +198,8 @@ class EditPayment extends EditRecord
                 ->modalDescription(fn() => "Remaining refundable amount: " .
                     number_format($this->record->getRemainingRefundableAmount(), 3) . " OMR")
                 ->modalIcon('heroicon-o-arrow-path')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('amount')
+                ->schema([
+                    TextInput::make('amount')
                         ->label('Refund Amount')
                         ->numeric()
                         ->required()
@@ -205,13 +212,13 @@ class EditPayment extends EditRecord
                             number_format($this->record->getRemainingRefundableAmount(), 3) . ' OMR')
                         ->live(onBlur: true),
 
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Textarea::make('reason')
                         ->label('Refund Reason')
                         ->required()
                         ->rows(3)
                         ->helperText('This will be visible to the customer'),
 
-                    \Filament\Forms\Components\Toggle::make('notify_customer')
+                    Toggle::make('notify_customer')
                         ->label('Notify Customer')
                         ->default(true)
                         ->helperText('Send refund notification email to customer'),
@@ -235,7 +242,7 @@ class EditPayment extends EditRecord
                             ->send();
 
                         $this->redirect(static::getUrl(['record' => $this->record]));
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Log::error('Refund processing failed', [
                             'payment_id' => $this->record->id,
                             'amount' => $data['amount'],
@@ -256,7 +263,7 @@ class EditPayment extends EditRecord
              *
              * Processes a complete refund of the remaining amount.
              */
-            Actions\Action::make('processFullRefund')
+            Action::make('processFullRefund')
                 ->label('Full Refund')
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('danger')
@@ -264,8 +271,8 @@ class EditPayment extends EditRecord
                 ->modalHeading('Process Full Refund')
                 ->modalDescription(fn() => "Refund entire remaining amount: " .
                     number_format($this->record->getRemainingRefundableAmount(), 3) . " OMR")
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label('Refund Reason')
                         ->required()
                         ->rows(3),
@@ -283,7 +290,7 @@ class EditPayment extends EditRecord
                             ->send();
 
                         $this->redirect(static::getUrl(['record' => $this->record]));
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Notification::make()
                             ->danger()
                             ->title('Refund Failed')
@@ -297,7 +304,7 @@ class EditPayment extends EditRecord
              *
              * Resends payment receipt to customer email.
              */
-            Actions\Action::make('resendReceipt')
+            Action::make('resendReceipt')
                 ->label('Resend Receipt')
                 ->icon('heroicon-o-envelope')
                 ->color('info')
@@ -315,7 +322,7 @@ class EditPayment extends EditRecord
                             ->title('Receipt Sent')
                             ->body('Payment receipt has been sent to customer email.')
                             ->send();
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Notification::make()
                             ->warning()
                             ->title('Send Failed')
@@ -325,7 +332,7 @@ class EditPayment extends EditRecord
                 }),
 
             // Delete action with strict confirmation
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->requiresConfirmation()
                 ->modalHeading('Delete Payment Record')
                 ->modalDescription('Are you sure you want to delete this payment? This action cannot be undone.')
@@ -378,7 +385,7 @@ class EditPayment extends EditRecord
                 ->title('Payment Updated')
                 ->body('Payment details have been updated successfully.')
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Payment after-save tasks failed', [
                 'payment_id' => $this->record->id,
                 'error' => $e->getMessage(),

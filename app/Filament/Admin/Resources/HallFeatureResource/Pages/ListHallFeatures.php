@@ -2,10 +2,13 @@
 
 namespace App\Filament\Admin\Resources\HallFeatureResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use App\Models\HallFeature;
+use Filament\Schemas\Components\Tabs\Tab;
 use App\Filament\Admin\Resources\HallFeatureResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Str;
@@ -20,11 +23,11 @@ class ListHallFeatures extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('exportFeatures')
+            Action::make('exportFeatures')
                 ->label(__('hall-feature.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -34,7 +37,7 @@ class ListHallFeatures extends ListRecords
                 ->modalDescription('Export all hall features to CSV.')
                 ->modalSubmitActionLabel('Export'),
 
-            Actions\Action::make('bulkActivate')
+            Action::make('bulkActivate')
                 ->label(__('hall-feature.bulk_activate'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -42,7 +45,7 @@ class ListHallFeatures extends ListRecords
                 ->modalHeading('Activate All Features')
                 ->modalDescription('This will activate all currently inactive features.')
                 ->action(function () {
-                    $updated = \App\Models\HallFeature::where('is_active', false)->update([
+                    $updated = HallFeature::where('is_active', false)->update([
                         'is_active' => true
                     ]);
 
@@ -56,7 +59,7 @@ class ListHallFeatures extends ListRecords
                     $this->redirect(static::getUrl());
                 }),
 
-            Actions\Action::make('reorderFeatures')
+            Action::make('reorderFeatures')
                 ->label(__('hall-feature.reorder_features'))
                 ->icon('heroicon-o-bars-3-bottom-left')
                 ->color('warning')
@@ -64,7 +67,7 @@ class ListHallFeatures extends ListRecords
                 ->modalHeading('Auto-Reorder Features')
                 ->modalDescription('This will automatically reorder all features alphabetically.')
                 ->action(function () {
-                    $features = \App\Models\HallFeature::orderBy('name->en')->get();
+                    $features = HallFeature::orderBy('name->en')->get();
 
                     $order = 0;
                     foreach ($features as $feature) {
@@ -82,13 +85,13 @@ class ListHallFeatures extends ListRecords
                     $this->redirect(static::getUrl());
                 }),
 
-            Actions\Action::make('generateSlugs')
+            Action::make('generateSlugs')
                 ->label(__('hall-feature.generate_slugs'))
                 ->icon('heroicon-o-link')
                 ->color('info')
                 ->requiresConfirmation()
                 ->action(function () {
-                    $features = \App\Models\HallFeature::whereNull('slug')->orWhere('slug', '')->get();
+                    $features = HallFeature::whereNull('slug')->orWhere('slug', '')->get();
                     $updated = 0;
 
                     foreach ($features as $feature) {
@@ -97,7 +100,7 @@ class ListHallFeatures extends ListRecords
                         // Ensure unique slug
                         $baseSlug = $slug;
                         $counter = 1;
-                        while (\App\Models\HallFeature::where('slug', $slug)->where('id', '!=', $feature->id)->exists()) {
+                        while (HallFeature::where('slug', $slug)->where('id', '!=', $feature->id)->exists()) {
                             $slug = $baseSlug . '-' . $counter;
                             $counter++;
                         }
@@ -122,36 +125,36 @@ class ListHallFeatures extends ListRecords
         return [
             'all' => Tab::make(__('hall-feature.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
-                ->badge(fn() => \App\Models\HallFeature::count()),
+                ->badge(fn() => HallFeature::count()),
 
             'active' => Tab::make(__('hall-feature.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\HallFeature::where('is_active', true)->count())
+                ->badge(fn() => HallFeature::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('hall-feature.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\HallFeature::where('is_active', false)->count())
+                ->badge(fn() => HallFeature::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'with_icons' => Tab::make(__('hall-feature.tabs.with_icon'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('icon')->where('icon', '!=', ''))
-                ->badge(fn() => \App\Models\HallFeature::whereNotNull('icon')->where('icon', '!=', '')->count())
+                ->badge(fn() => HallFeature::whereNotNull('icon')->where('icon', '!=', '')->count())
                 ->badgeColor('info'),
 
             'without_icons' => Tab::make(__('hall-feature.tabs.without_icon'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('icon')->orWhere('icon', ''))
-                ->badge(fn() => \App\Models\HallFeature::whereNull('icon')->orWhere('icon', '')->count())
+                ->badge(fn() => HallFeature::whereNull('icon')->orWhere('icon', '')->count())
                 ->badgeColor('warning'),
 
             'with_description' => Tab::make(__('hall-feature.tabs.with_description'))
                 ->icon('heroicon-o-document-text')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('description->en'))
-                ->badge(fn() => \App\Models\HallFeature::whereNotNull('description->en')->count())
+                ->badge(fn() => HallFeature::whereNotNull('description->en')->count())
                 ->badgeColor('purple'),
 
             'popular' => Tab::make(__('hall-feature.tabs.most_used'))
@@ -164,7 +167,7 @@ class ListHallFeatures extends ListRecords
 
     protected function exportFeatures(): void
     {
-        $features = \App\Models\HallFeature::withCount('halls')->get();
+        $features = HallFeature::withCount('halls')->get();
 
         $filename = 'hall_features_' . now()->format('Y_m_d_His') . '.csv';
         $path = storage_path('app/public/exports/' . $filename);
@@ -213,7 +216,7 @@ class ListHallFeatures extends ListRecords
             ->body('Hall features exported successfully.')
             ->persistent()
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label('Download File')
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

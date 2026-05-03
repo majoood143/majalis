@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\View\Composers\PageNavigationComposer;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -79,7 +80,7 @@ class AppServiceProvider extends ServiceProvider
         // Register view composers for navigation
         View::composer(
             ['layouts.header', 'layouts.footer'],
-            \App\View\Composers\PageNavigationComposer::class
+            PageNavigationComposer::class
         );
     }
 }

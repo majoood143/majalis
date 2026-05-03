@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\HallOwnerResource\Pages;
 
+use App\Models\HallOwner;
 use App\Filament\Admin\Resources\HallOwnerResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -38,7 +39,7 @@ class CreateHallOwner extends CreateRecord
 
         // Validate commercial registration uniqueness
         if (isset($data['commercial_registration'])) {
-            $exists = \App\Models\HallOwner::where('commercial_registration', $data['commercial_registration'])
+            $exists = HallOwner::where('commercial_registration', $data['commercial_registration'])
                 ->exists();
 
             if ($exists) {
@@ -55,7 +56,7 @@ class CreateHallOwner extends CreateRecord
 
         // Validate user is not already an owner
         if (isset($data['user_id'])) {
-            $exists = \App\Models\HallOwner::where('user_id', $data['user_id'])->exists();
+            $exists = HallOwner::where('user_id', $data['user_id'])->exists();
 
             if ($exists) {
                 Notification::make()

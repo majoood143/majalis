@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use App\Models\Booking;
 use App\Models\Hall;
@@ -42,7 +45,7 @@ class BookingController extends BaseController
      * Show the booking form for a specific hall
      *
      * @param Hall $hall
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function create(Hall $hall)
     {
@@ -82,7 +85,7 @@ class BookingController extends BaseController
      *
      * @param Request $request
      * @param Hall $hall
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(Request $request, Hall $hall)
     {
@@ -207,7 +210,7 @@ class BookingController extends BaseController
      * Show booking success page
      *
      * @param string $bookingNumber
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function success(string $bookingNumber)
     {
@@ -227,7 +230,7 @@ class BookingController extends BaseController
     /**
      * Show user's bookings list
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index()
     {
@@ -247,7 +250,7 @@ class BookingController extends BaseController
      * Show specific booking details
      *
      * @param Booking $booking
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function show(Booking $booking)
     {
@@ -269,7 +272,7 @@ class BookingController extends BaseController
      * Show payment page
      *
      * @param Booking $booking
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return View|RedirectResponse
      */
     public function payment(Booking $booking)
     {
@@ -306,41 +309,32 @@ class BookingController extends BaseController
     //     // Set locale
     //     $locale = request()->get('lang', session('locale', 'ar'));
     //     app()->setLocale($locale);
-
     //     // Validate payment method
     //     $request->validate([
     //         'payment_method' => 'required|in:online,bank_transfer,cash',
     //     ]);
-
     //     $paymentService = app(PaymentService::class);
-
     //     // Ensure user owns this booking
     //     if ($booking->user_id !== Auth::id()) {
     //         abort(403, 'Unauthorized access to booking');
     //     }
-
     //     // Check if already paid
     //     if ($booking->payment_status === 'paid') {
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //             ->with('info', __('halls.already_paid'));
     //     }
-
     //     try {
     //         $paymentMethod = $request->input('payment_method');
-
     //         // Initiate payment
     //         $paymentData = $paymentService->initiatePayment($booking, $paymentMethod);
-
     //         if (!$paymentData['success']) {
     //             return back()->with('error', __('halls.payment_failed'));
     //         }
-
     //         // For online payment, redirect to gateway
     //         if ($paymentMethod === 'online' && isset($paymentData['redirect_url'])) {
     //             return redirect($paymentData['redirect_url']);
     //         }
-
     //         // For cash or bank transfer, go directly to success page with pending status
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
@@ -350,11 +344,9 @@ class BookingController extends BaseController
     //             'booking_id' => $booking->id,
     //             'exception' => $e
     //         ]);
-
     //         return back()->with('error', __('halls.payment_failed') . ' ' . $e->getMessage());
     //     }
     // }
-
     /**
      * Process payment
      *
@@ -367,44 +359,35 @@ class BookingController extends BaseController
     //     // Set locale
     //     $locale = request()->get('lang', session('locale', 'ar'));
     //     app()->setLocale($locale);
-
     //     // Validate payment method
     //     $request->validate([
     //         'payment_method' => 'required|in:online,bank_transfer,cash',
     //     ]);
-
     //     $paymentService = app(PaymentService::class);
-
     //     // Ensure user owns this booking
     //     if ($booking->user_id !== Auth::id()) {
     //         abort(403, 'Unauthorized access to booking');
     //     }
-
     //     // Check if already paid
     //     if ($booking->payment_status === 'paid') {
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //             ->with('info', __('halls.already_paid'));
     //     }
-
     //     try {
     //         $paymentMethod = $request->input('payment_method');
-
     //         Log::info('Processing payment', [
     //             'booking_id' => $booking->id,
     //             'booking_number' => $booking->booking_number,
     //             'payment_method' => $paymentMethod,
     //             'amount' => $booking->total_amount,
     //         ]);
-
     //         // Initiate payment
     //         $paymentData = $paymentService->initiatePayment($booking, $paymentMethod);
-
     //         Log::info('Payment initiated', [
     //             'booking_id' => $booking->id,
     //             'payment_data' => $paymentData,
     //         ]);
-
     //         if (!$paymentData['success']) {
     //             Log::error('Payment initiation failed', [
     //                 'booking_id' => $booking->id,
@@ -412,14 +395,12 @@ class BookingController extends BaseController
     //             ]);
     //             return back()->with('error', __('halls.payment_failed'));
     //         }
-
     //         // For online payment, redirect to gateway
     //         if ($paymentMethod === 'online' && isset($paymentData['redirect_url'])) {
     //             Log::info('Redirecting to payment gateway', [
     //                 'booking_id' => $booking->id,
     //                 'redirect_url' => $paymentData['redirect_url'],
     //             ]);
-
     //             // Debug: Show the URL before redirect
     //             if (config('app.debug')) {
     //                 dd([
@@ -430,10 +411,8 @@ class BookingController extends BaseController
     //                     'payment_data' => $paymentData,
     //                 ]);
     //             }
-
     //             return redirect($paymentData['redirect_url']);
     //         }
-
     //         // For cash or bank transfer, go directly to success page with pending status
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
@@ -444,11 +423,9 @@ class BookingController extends BaseController
     //             'error' => $e->getMessage(),
     //             'trace' => $e->getTraceAsString(),
     //         ]);
-
     //         return back()->with('error', __('halls.payment_failed') . ' Error: ' . $e->getMessage());
     //     }
     // }
-
     /**
      * Process payment
      *
@@ -461,68 +438,54 @@ class BookingController extends BaseController
     //     // Set locale
     //     $locale = request()->get('lang', session('locale', 'ar'));
     //     app()->setLocale($locale);
-
     //     // Validate payment method
     //     $request->validate([
     //         'payment_method' => 'required|in:online,bank_transfer,cash',
     //     ]);
-
     //     $paymentService = app(PaymentService::class);
-
     //     // Ensure user owns this booking
     //     if ($booking->user_id !== Auth::id()) {
     //         abort(403, 'Unauthorized access to booking');
     //     }
-
     //     // Check if already paid
     //     if ($booking->payment_status === 'paid') {
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //             ->with('info', __('halls.already_paid'));
     //     }
-
     //     try {
     //         $paymentMethod = $request->input('payment_method');
-
     //         Log::info('Processing payment', [
     //             'booking_id' => $booking->id,
     //             'booking_number' => $booking->booking_number,
     //             'payment_method' => $paymentMethod,
     //             'amount' => $booking->total_amount,
     //         ]);
-
     //         // Initiate payment
     //         $paymentData = $paymentService->initiatePayment($booking, $paymentMethod);
-
     //         Log::info('Payment initiated', [
     //             'booking_id' => $booking->id,
     //             'payment_data' => $paymentData,
     //         ]);
-
     //         if (!$paymentData['success']) {
     //             Log::error('Payment initiation failed', [
     //                 'booking_id' => $booking->id,
     //                 'payment_data' => $paymentData,
     //             ]);
-
     //             // If online payment fails, offer alternative payment methods
     //             if ($paymentMethod === 'online') {
     //                 return back()->with('error', __('halls.payment_gateway_error') . ' ' . __('halls.try_alternative_payment'));
     //             }
-
     //             return back()->with('error', __('halls.payment_failed'));
     //         }
-
     //         // For online payment, redirect to gateway
     //         if ($paymentMethod === 'online' && isset($paymentData['redirect_url'])) {
     //             Log::info('Redirecting to payment gateway', [
     //                 'booking_id' => $booking->id,
     //                 'redirect_url' => $paymentData['redirect_url'],
     //             ]);
-
     //             return redirect($paymentData['redirect_url']);
     //         }
-
     //         // For cash or bank transfer, go directly to success page with pending status
     //         // Generate PDF even if payment is pending
     //         try {
@@ -531,7 +494,6 @@ class BookingController extends BaseController
     //         } catch (Exception $e) {
     //             Log::warning('PDF generation failed: ' . $e->getMessage());
     //         }
-
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //             ->with('success', __('halls.booking_success_pending_payment'));
@@ -541,14 +503,12 @@ class BookingController extends BaseController
     //             'error' => $e->getMessage(),
     //             'trace' => $e->getTraceAsString(),
     //         ]);
-
     //         // For online payment failures, redirect to success with pending payment
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //             ->with('warning', __('halls.payment_gateway_unavailable') . ' ' . __('halls.booking_confirmed_payment_pending'));
     //     }
     // }
-
     /**
      * Handle successful payment callback
      */
@@ -556,36 +516,28 @@ class BookingController extends BaseController
     // {
     //     $locale = request()->get('lang', session('locale', 'ar'));
     //     app()->setLocale($locale);
-
     //     // Ensure user owns this booking
     //     if ($booking->user_id !== Auth::id()) {
     //         abort(403);
     //     }
-
     //     try {
     //         $paymentService = app(PaymentService::class);
     //         $pdfService = app(BookingPdfService::class);
-
     //         // Get the latest payment for this booking
     //         $payment = $booking->latestPayment;
-
     //         if ($payment && $payment->isPending() && $payment->transaction_id) {
     //             // Verify payment with Thawani
     //             $verification = $paymentService->verifyPayment($payment);
-
     //             if ($verification['success'] && $verification['is_paid']) {
     //                 // Process successful payment
     //                 $paymentService->processSuccessfulPayment($payment, $verification['data']);
-
     //                 // Generate PDF
     //                 $pdfService->generateConfirmation($booking);
-
     //                 return redirect()
     //                     ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //                     ->with('success', __('halls.payment_successful'));
     //             }
     //         }
-
     //         // If payment is already processed or verification failed
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
@@ -594,13 +546,11 @@ class BookingController extends BaseController
     //         Log::error('Payment success handling failed: ' . $e->getMessage(), [
     //             'booking_id' => $booking->id,
     //         ]);
-
     //         return redirect()
     //             ->route('customer.booking.success', ['bookingNumber' => $booking->booking_number, 'lang' => $locale])
     //             ->with('warning', __('halls.payment_verification_pending'));
     //     }
     // }
-
     /**
      * Handle cancelled payment
      */
@@ -608,7 +558,6 @@ class BookingController extends BaseController
     // {
     //     $locale = request()->get('lang', session('locale', 'ar'));
     //     app()->setLocale($locale);
-
     //     // Mark latest payment as cancelled
     //     $payment = $booking->latestPayment;
     //     if ($payment && $payment->isPending()) {
@@ -616,12 +565,10 @@ class BookingController extends BaseController
     //             'status' => Payment::STATUS_CANCELLED,
     //         ]);
     //     }
-
     //     return redirect()
     //         ->route('customer.booking.payment', ['booking' => $booking->id, 'lang' => $locale])
     //         ->with('error', __('halls.payment_cancelled'));
     // }
-
     /**
      * Process payment for booking
      *
@@ -629,7 +576,7 @@ class BookingController extends BaseController
      *
      * @param Request $request
      * @param Booking $booking
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function processPayment(Request $request, Booking $booking)
     {
@@ -717,7 +664,7 @@ class BookingController extends BaseController
      *    handlePaymentSuccess() already handles the full flow
      *
      * @param Booking $booking
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function paymentSuccess(Booking $booking)
     {
@@ -824,7 +771,7 @@ class BookingController extends BaseController
 
                         // Generate PDF if service available
                         try {
-                            $pdfService = app(\App\Services\BookingPdfService::class);
+                            $pdfService = app(BookingPdfService::class);
                             $pdfService->generateConfirmation($booking->fresh());
 
                             Log::info('Booking confirmation PDF generated', [
@@ -937,7 +884,7 @@ class BookingController extends BaseController
      * Handle cancelled payment
      *
      * @param Booking $booking
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function paymentCancel(Booking $booking)
     {
@@ -960,7 +907,7 @@ class BookingController extends BaseController
 
         if ($payment && ($payment->isPending() || $payment->isProcessing())) {
             $payment->update([
-                'status' => \App\Models\Payment::STATUS_CANCELLED,
+                'status' => Payment::STATUS_CANCELLED,
                 'failure_reason' => 'Payment cancelled by customer',
                 'failed_at' => now(),
             ]);
@@ -982,7 +929,7 @@ class BookingController extends BaseController
      *
      * @param Request $request
      * @param Booking $booking
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function cancel(Request $request, Booking $booking)
     {
@@ -1037,7 +984,7 @@ class BookingController extends BaseController
      * Check availability via AJAX
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function checkAvailability(Request $request)
     {
@@ -1102,7 +1049,7 @@ class BookingController extends BaseController
      * Show booking cancellation page
      *
      * @param Booking $booking
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function cancelled(Booking $booking)
     {
@@ -1126,7 +1073,7 @@ class BookingController extends BaseController
      * Retry payment for a booking
      *
      * @param Booking $booking
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function retryPayment(Booking $booking)
     {
@@ -1166,7 +1113,7 @@ class BookingController extends BaseController
 
         // Otherwise, create a new payment session
         try {
-            $paymentService = app(\App\Services\PaymentService::class);
+            $paymentService = app(PaymentService::class);
             $result = $paymentService->initiatePayment($booking, 'online');
 
             if ($result['success'] && isset($result['redirect_url'])) {
@@ -1178,8 +1125,8 @@ class BookingController extends BaseController
                 return redirect($result['redirect_url']);
             }
 
-            throw new \Exception($result['message'] ?? 'Failed to initiate payment');
-        } catch (\Exception $e) {
+            throw new Exception($result['message'] ?? 'Failed to initiate payment');
+        } catch (Exception $e) {
             Log::error('Payment retry failed', [
                 'booking_id' => $booking->id,
                 'error' => $e->getMessage(),

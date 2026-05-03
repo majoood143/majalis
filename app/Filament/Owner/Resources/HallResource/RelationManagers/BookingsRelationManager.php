@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\RelationManagers;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
+use Filament\Actions\ViewAction;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use App\Models\HallAvailability;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -34,7 +45,7 @@ class BookingsRelationManager extends RelationManager
             ->recordTitleAttribute('booking_number')
             ->defaultSort('booking_date', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label(__('owner.bookings.number'))
                     ->searchable()
                     ->sortable()
@@ -42,30 +53,30 @@ class BookingsRelationManager extends RelationManager
                     ->weight('bold')
                     ->color('primary'),
 
-                Tables\Columns\TextColumn::make('booking_date')
+                TextColumn::make('booking_date')
                     ->label(__('owner.bookings.date'))
                     ->date('d M Y')
                     ->sortable()
                     ->description(fn ($record): string => __("owner.slots.{$record->time_slot}")),
 
-                Tables\Columns\TextColumn::make('customer_name')
+                TextColumn::make('customer_name')
                     ->label(__('owner.bookings.customer'))
                     ->searchable()
                     ->description(fn ($record): string => $record->customer_phone ?? ''),
 
-                Tables\Columns\TextColumn::make('number_of_guests')
+                TextColumn::make('number_of_guests')
                     ->label(__('owner.bookings.guests'))
                     ->numeric()
                     ->alignCenter()
                     ->icon('heroicon-o-users'),
 
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(__('owner.bookings.total'))
                     ->money('OMR')
                     ->sortable()
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('payment_status')
+                TextColumn::make('payment_status')
                     ->label(__('owner.bookings.payment'))
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => __("owner.payment.{$state}"))
@@ -77,7 +88,7 @@ class BookingsRelationManager extends RelationManager
                         default => 'warning',
                     }),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('owner.bookings.status'))
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => __("owner.status.{$state}"))
@@ -89,14 +100,14 @@ class BookingsRelationManager extends RelationManager
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('owner.bookings.booked_at'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('owner.bookings.status'))
                     ->options([
                         'pending' => __('owner.status.pending'),
@@ -105,7 +116,7 @@ class BookingsRelationManager extends RelationManager
                         'cancelled' => __('owner.status.cancelled'),
                     ]),
 
-                Tables\Filters\SelectFilter::make('payment_status')
+                SelectFilter::make('payment_status')
                     ->label(__('owner.bookings.payment'))
                     ->options([
                         'pending' => __('owner.payment.pending'),
@@ -114,15 +125,15 @@ class BookingsRelationManager extends RelationManager
                         'refunded' => __('owner.payment.refunded'),
                     ]),
 
-                Tables\Filters\Filter::make('upcoming')
+                Filter::make('upcoming')
                     ->label(__('owner.bookings.upcoming'))
                     ->query(fn (Builder $query): Builder => $query->where('booking_date', '>=', now()->toDateString())),
 
-                Tables\Filters\Filter::make('date_range')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')
+                Filter::make('date_range')
+                    ->schema([
+                        DatePicker::make('from')
                             ->label(__('owner.bookings.from_date')),
-                        Forms\Components\DatePicker::make('until')
+                        DatePicker::make('until')
                             ->label(__('owner.bookings.until_date')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -131,13 +142,13 @@ class BookingsRelationManager extends RelationManager
                             ->when($data['until'], fn (Builder $q, $date) => $q->whereDate('booking_date', '<=', $date));
                     }),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make()
+            ->recordActions([
+                ViewAction::make()
                     ->modalHeading(fn ($record): string => __('owner.bookings.view_title', ['number' => $record->booking_number])),
 
-                Tables\Actions\ActionGroup::make([
+                ActionGroup::make([
                     // Confirm Booking
-                    Tables\Actions\Action::make('confirm')
+                    Action::make('confirm')
                         ->label(__('owner.bookings.confirm'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -156,7 +167,7 @@ class BookingsRelationManager extends RelationManager
                         }),
 
                     // Mark as Completed
-                    Tables\Actions\Action::make('complete')
+                    Action::make('complete')
                         ->label(__('owner.bookings.complete'))
                         ->icon('heroicon-o-check-badge')
                         ->color('info')
@@ -177,13 +188,13 @@ class BookingsRelationManager extends RelationManager
                         }),
 
                     // Cancel Booking
-                    Tables\Actions\Action::make('cancel')
+                    Action::make('cancel')
                         ->label(__('owner.bookings.cancel'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->form([
-                            Forms\Components\Textarea::make('cancellation_reason')
+                        ->schema([
+                            Textarea::make('cancellation_reason')
                                 ->label(__('owner.bookings.cancellation_reason'))
                                 ->required()
                                 ->maxLength(500),
@@ -197,7 +208,7 @@ class BookingsRelationManager extends RelationManager
                             ]);
 
                             // Free up the availability slot
-                            \App\Models\HallAvailability::where('hall_id', $record->hall_id)
+                            HallAvailability::where('hall_id', $record->hall_id)
                                 ->where('date', $record->booking_date)
                                 ->where('time_slot', $record->time_slot)
                                 ->where('reason', 'booked')
@@ -210,7 +221,7 @@ class BookingsRelationManager extends RelationManager
                         }),
 
                     // Contact Customer
-                    Tables\Actions\Action::make('contact')
+                    Action::make('contact')
                         ->label(__('owner.bookings.contact'))
                         ->icon('heroicon-o-phone')
                         ->color('gray')
@@ -218,9 +229,9 @@ class BookingsRelationManager extends RelationManager
                         ->openUrlInNewTab(),
                 ])->icon('heroicon-m-ellipsis-vertical'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\BulkAction::make('confirm_selected')
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('confirm_selected')
                         ->label(__('owner.bookings.confirm_selected'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')

@@ -2,13 +2,15 @@
 
 namespace App\Filament\Admin\Resources\TicketResource\Pages;
 
+use Filament\Actions\CreateAction;
+use App\Filament\Admin\Resources\TicketResource\Widgets\TicketStatsOverview;
+use Filament\Schemas\Components\Tabs\Tab;
 use App\Filament\Admin\Resources\TicketResource;
 use App\Models\Ticket;
 use App\Models\TicketStatus;
 use App\Models\TicketPriority;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,7 +21,7 @@ class ListTickets extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->label(__('ticket_admin.new_ticket')),
         ];
@@ -28,7 +30,7 @@ class ListTickets extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            TicketResource\Widgets\TicketStatsOverview::class,
+            TicketStatsOverview::class,
         ];
     }
 

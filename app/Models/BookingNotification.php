@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use App\Enums\NotificationEvent;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * BookingNotification Model
@@ -32,11 +34,11 @@ use Spatie\Activitylog\LogOptions;
  * @property string $status
  * @property string|null $error_message
  * @property int $retry_count
- * @property \Carbon\Carbon|null $sent_at
- * @property \Carbon\Carbon|null $read_at
- * @property \Carbon\Carbon|null $clicked_at
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property Carbon|null $sent_at
+ * @property Carbon|null $read_at
+ * @property Carbon|null $clicked_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  *
  * @property-read Booking $booking
  * @property-read User|null $user
@@ -347,13 +349,12 @@ class BookingNotification extends Model
     // =========================================================
     // SCOPES
     // =========================================================
-
     /**
      * Scope to filter by status.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param NotificationStatus|string $status
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeStatus($query, NotificationStatus|string $status)
     {
@@ -364,9 +365,9 @@ class BookingNotification extends Model
     /**
      * Scope to filter by type.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param NotificationType|string $type
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeType($query, NotificationType|string $type)
     {
@@ -377,9 +378,9 @@ class BookingNotification extends Model
     /**
      * Scope to filter by event.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param NotificationEvent|string $event
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeEvent($query, NotificationEvent|string $event)
     {
@@ -390,8 +391,8 @@ class BookingNotification extends Model
     /**
      * Scope to get pending notifications.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePending($query)
     {
@@ -401,8 +402,8 @@ class BookingNotification extends Model
     /**
      * Scope to get failed notifications that can be retried.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeRetryable($query)
     {
@@ -414,8 +415,8 @@ class BookingNotification extends Model
     /**
      * Scope to get unread notifications.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeUnread($query)
     {

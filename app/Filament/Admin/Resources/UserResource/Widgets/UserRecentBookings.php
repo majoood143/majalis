@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\UserResource\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\Action;
 use App\Filament\Admin\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\User;
@@ -30,29 +32,29 @@ class UserRecentBookings extends BaseWidget
         return $table
             ->query($this->getTableQuery())
             ->columns([
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label('Booking #')
                     ->searchable()
                     ->copyable()
                     ->weight('bold')
                     ->url(fn(Booking $record): string => BookingResource::getUrl('view', ['record' => $record])),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label('Hall')
                     ->searchable()
                     ->limit(30),
 
-                Tables\Columns\TextColumn::make('booking_date')
+                TextColumn::make('booking_date')
                     ->label('Date')
                     ->date('d M Y')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label('Time Slot')
                     ->badge()
                     ->color('primary'),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -63,7 +65,7 @@ class UserRecentBookings extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('payment_status')
+                TextColumn::make('payment_status')
                     ->label('Payment')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -74,7 +76,7 @@ class UserRecentBookings extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label('Amount')
                     ->money('OMR', 3)
                     ->sortable(),
@@ -82,8 +84,8 @@ class UserRecentBookings extends BaseWidget
             ->defaultSort('booking_date', 'desc')
             ->paginated([5, 10, 25])
             ->defaultPaginationPageOption(5)
-            ->actions([
-                Tables\Actions\Action::make('view')
+            ->recordActions([
+                Action::make('view')
                     ->url(fn(Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
                     ->icon('heroicon-m-eye')
                     ->label('View'),

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\HallCategoryResource\Pages;
 
+use App\Models\HallCategory;
 use App\Filament\Admin\Resources\HallCategoryResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -30,7 +31,7 @@ class CreateHallCategory extends CreateRecord
             $slug = Str::slug($data['name']['en']);
             $base = $slug;
             $counter = 1;
-            while (\App\Models\HallCategory::where('slug', $slug)->exists()) {
+            while (HallCategory::where('slug', $slug)->exists()) {
                 $slug = $base . '-' . $counter++;
             }
             $data['slug'] = $slug;

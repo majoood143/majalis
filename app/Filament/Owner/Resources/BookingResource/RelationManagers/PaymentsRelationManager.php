@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\BookingResource\RelationManagers;
 
+use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Support\Enums\TextSize;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\ViewAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
@@ -31,7 +36,7 @@ class PaymentsRelationManager extends RelationManager
     /**
      * Get the title.
      */
-    public static function getTitle(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): string
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('relation-managers.payments.title');
     }
@@ -39,7 +44,7 @@ class PaymentsRelationManager extends RelationManager
     /**
      * The icon for the navigation.
      */
-    protected static ?string $icon = 'heroicon-o-credit-card';
+    protected static string | \BackedEnum | null $icon = 'heroicon-o-credit-card';
 
     /**
      * Determine if the user can create records.
@@ -52,7 +57,7 @@ class PaymentsRelationManager extends RelationManager
     /**
      * Determine if the user can edit records.
      */
-    public function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    public function canEdit(Model $record): bool
     {
         return false;
     }
@@ -60,7 +65,7 @@ class PaymentsRelationManager extends RelationManager
     /**
      * Determine if the user can delete records.
      */
-    public function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    public function canDelete(Model $record): bool
     {
         return false;
     }
@@ -74,24 +79,24 @@ class PaymentsRelationManager extends RelationManager
             ->recordTitleAttribute('payment_reference')
             ->columns([
                 // Payment Reference
-                Tables\Columns\TextColumn::make('payment_reference')
+                TextColumn::make('payment_reference')
                     ->label(__('relation-managers.payments.columns.reference'))
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->copyMessage(__('relation-managers.payments.messages.reference_copied'))
                     ->weight(FontWeight::Medium)
-                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
+                    ->size(TextSize::Small),
 
                 // Amount
-                Tables\Columns\TextColumn::make('amount')
+                TextColumn::make('amount')
                     ->label(__('relation-managers.payments.columns.amount'))
                     ->money('OMR')
                     ->sortable()
                     ->weight(FontWeight::Bold),
 
                 // Payment Method
-                Tables\Columns\TextColumn::make('payment_method')
+                TextColumn::make('payment_method')
                     ->label(__('relation-managers.payments.columns.method'))
                     ->badge()
                     ->formatStateUsing(fn(?string $state): string => $state
@@ -113,7 +118,7 @@ class PaymentsRelationManager extends RelationManager
                     }),
 
                 // Status
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('relation-managers.payments.columns.status'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => __("common.payment_status.{$state}"))
@@ -137,7 +142,7 @@ class PaymentsRelationManager extends RelationManager
                     }),
 
                 // Paid At
-                Tables\Columns\TextColumn::make('paid_at')
+                TextColumn::make('paid_at')
                     ->label(__('relation-managers.payments.columns.paid_at'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
@@ -156,7 +161,7 @@ class PaymentsRelationManager extends RelationManager
                  *
                  * @see https://filamentphp.com/docs/3.x/tables/columns/getting-started#conditional-formatting
                  */
-                Tables\Columns\TextColumn::make('refund_amount')
+                TextColumn::make('refund_amount')
                     ->label(__('relation-managers.payments.columns.refund'))
                     ->money('OMR')
                     ->color('danger')
@@ -176,7 +181,7 @@ class PaymentsRelationManager extends RelationManager
                     }),
 
                 // Transaction ID (external)
-                Tables\Columns\TextColumn::make('transaction_id')
+                TextColumn::make('transaction_id')
                     ->label(__('relation-managers.payments.columns.transaction_id'))
                     ->searchable()
                     ->copyable()
@@ -184,14 +189,14 @@ class PaymentsRelationManager extends RelationManager
                     ->placeholder(__('common.na')),
 
                 // Created At
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('relation-managers.payments.columns.created'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('relation-managers.payments.filters.status'))
                     ->options([
                         'pending' => __('common.payment_status.pending'),
@@ -202,7 +207,7 @@ class PaymentsRelationManager extends RelationManager
                         'refunded' => __('common.payment_status.refunded'),
                     ]),
 
-                Tables\Filters\SelectFilter::make('payment_method')
+                SelectFilter::make('payment_method')
                     ->label(__('relation-managers.payments.filters.payment_method'))
                     ->options([
                         'online' => __('common.payment_methods.online'),
@@ -214,13 +219,13 @@ class PaymentsRelationManager extends RelationManager
             ->headerActions([
                 // Owners cannot add payments
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make()
+            ->recordActions([
+                ViewAction::make()
                     ->iconButton()
                     ->modalHeading(fn($record) => __('relation-managers.payments.messages.view_payment', ['ref' => $record->payment_reference]))
                     ->modalWidth('lg'),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 // No bulk actions for owners
             ])
             ->defaultSort('created_at', 'desc')

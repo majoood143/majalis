@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use Exception;
 use App\Mail\BookingReminderMail;
 use App\Models\Booking;
 use Illuminate\Console\Command;
@@ -180,7 +181,7 @@ class TestBookingEmail extends Command
             
             return Command::SUCCESS;
             
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('');
             $this->error('❌ FAILED TO SEND EMAIL');
             $this->error('');

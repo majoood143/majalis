@@ -2,6 +2,9 @@
 
 namespace App\Filament\Admin\Resources\HallAvailabilityResource\Pages;
 
+use Carbon\Carbon;
+use App\Models\HallAvailability;
+use App\Models\Booking;
 use App\Filament\Admin\Resources\HallAvailabilityResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -40,7 +43,7 @@ class CreateHallAvailability extends CreateRecord
         $data['is_available'] = $data['is_available'] ?? true;
 
         // Validate date is not in the past
-        if (isset($data['date']) && \Carbon\Carbon::parse($data['date'])->isPast()) {
+        if (isset($data['date']) && Carbon::parse($data['date'])->isPast()) {
             Notification::make()
                 ->danger()
                 ->title(__('hall-availability.errors.invalid_date'))
@@ -52,7 +55,7 @@ class CreateHallAvailability extends CreateRecord
         }
 
         // Check for duplicate slot
-        $exists = \App\Models\HallAvailability::where('hall_id', $data['hall_id'])
+        $exists = HallAvailability::where('hall_id', $data['hall_id'])
             ->where('date', $data['date'])
             ->where('time_slot', $data['time_slot'])
             ->exists();
@@ -154,7 +157,7 @@ class CreateHallAvailability extends CreateRecord
         // Adjust based on your actual booking structure
 
         // Example:
-        $bookingsCount = \App\Models\Booking::where('hall_id', $data['hall_id'])
+        $bookingsCount = Booking::where('hall_id', $data['hall_id'])
             ->whereDate('booking_date', $data['date'])
             ->where('time_slot', $data['time_slot'])
             ->whereIn('status', ['pending', 'confirmed'])
@@ -182,7 +185,7 @@ class CreateHallAvailability extends CreateRecord
         // You might want to automatically cancel them or notify the admin
 
         // Example:
-        $pendingBookings = \App\Models\Booking::where('hall_id', $this->record->hall_id)
+        $pendingBookings = Booking::where('hall_id', $this->record->hall_id)
             ->whereDate('booking_date', $this->record->date)
             ->where('time_slot', $this->record->time_slot)
             ->where('status', 'pending')

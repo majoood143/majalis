@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages;
 
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\ServiceFeeSettingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -28,7 +29,7 @@ class EditServiceFeeSetting extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

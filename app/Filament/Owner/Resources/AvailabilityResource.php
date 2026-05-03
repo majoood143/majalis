@@ -4,6 +4,27 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Owner\Resources\AvailabilityResource\Pages\ListAvailabilities;
+use App\Filament\Owner\Resources\AvailabilityResource\Pages\CreateAvailability;
+use App\Filament\Owner\Resources\AvailabilityResource\Pages\EditAvailability;
+use App\Filament\Owner\Resources\AvailabilityResource\Pages\AvailabilityCalendar;
 use App\Filament\Owner\Resources\AvailabilityResource\Pages;
 use App\Models\Hall;
 use App\Models\HallAvailability;
@@ -45,7 +66,7 @@ class AvailabilityResource extends OwnerResource
     /**
      * The navigation icon.
      */
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calendar-days';
 
     /**
      * The navigation group.
@@ -134,18 +155,18 @@ class AvailabilityResource extends OwnerResource
     /**
      * Configure the form for creating/editing availability.
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
         $user = Auth::user();
 
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('owner.availability_resource.sections.slot_info'))
+        return $schema
+            ->components([
+                Section::make(__('owner.availability_resource.sections.slot_info'))
                     ->description(__('owner.availability_resource.sections.slot_info_desc'))
                     ->columns(2)
                     ->schema([
                         // Hall Selection (owner's halls only)
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('owner.availability_resource.fields.hall'))
                             ->relationship(
                                 name: 'hall',
@@ -159,7 +180,7 @@ class AvailabilityResource extends OwnerResource
                             ->native(false),
 
                         // Date
-                        Forms\Components\DatePicker::make('date')
+                        DatePicker::make('date')
                             ->label(__('owner.availability_resource.fields.date'))
                             ->required()
                             ->native(false)
@@ -168,7 +189,7 @@ class AvailabilityResource extends OwnerResource
                             ->closeOnDateSelection(),
 
                         // Time Slot
-                        Forms\Components\Select::make('time_slot')
+                        Select::make('time_slot')
                             ->label(__('owner.availability_resource.fields.time_slot'))
                             ->required()
                             ->options([
@@ -180,24 +201,24 @@ class AvailabilityResource extends OwnerResource
                             ->native(false),
 
                         // Available Status
-                        Forms\Components\Toggle::make('is_available')
+                        Toggle::make('is_available')
                             ->label(__('owner.availability_resource.fields.is_available'))
                             ->default(true)
                             ->live()
-                            ->afterStateUpdated(function (Forms\Set $set, bool $state) {
+                            ->afterStateUpdated(function (Set $set, bool $state) {
                                 if ($state) {
                                     $set('reason', null);
                                 }
                             }),
                     ]),
 
-                Forms\Components\Section::make(__('owner.availability_resource.sections.blocking'))
+                Section::make(__('owner.availability_resource.sections.blocking'))
                     ->description(__('owner.availability_resource.sections.blocking_desc'))
                     ->columns(2)
-                    ->visible(fn (Forms\Get $get): bool => !$get('is_available'))
+                    ->visible(fn (Get $get): bool => !$get('is_available'))
                     ->schema([
                         // Block Reason
-                        Forms\Components\Select::make('reason')
+                        Select::make('reason')
                             ->label(__('owner.availability_resource.fields.reason'))
                             ->options([
                                 'blocked' => __('owner.availability.reasons.blocked'),
@@ -211,18 +232,18 @@ class AvailabilityResource extends OwnerResource
                             ->native(false),
 
                         // Notes
-                        Forms\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->label(__('owner.availability_resource.fields.notes'))
                             ->rows(2)
                             ->maxLength(500)
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make(__('owner.availability_resource.sections.pricing'))
+                Section::make(__('owner.availability_resource.sections.pricing'))
                     ->description(__('owner.availability_resource.sections.pricing_desc'))
                     ->collapsed()
                     ->schema([
-                        Forms\Components\TextInput::make('custom_price')
+                        TextInput::make('custom_price')
                             ->label(__('owner.availability_resource.fields.custom_price'))
                             ->numeric()
                             ->minValue(0)
@@ -245,7 +266,7 @@ class AvailabilityResource extends OwnerResource
             ->striped()
             ->columns([
                 // Hall Name
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('owner.availability_resource.columns.hall'))
                     ->formatStateUsing(fn ($record) => $record->hall->getTranslation('name', app()->getLocale()))
                     ->searchable()
@@ -253,7 +274,7 @@ class AvailabilityResource extends OwnerResource
                     ->toggleable(),
 
                 // Date
-                Tables\Columns\TextColumn::make('date')
+                TextColumn::make('date')
                     ->label(__('owner.availability_resource.columns.date'))
                     ->date('D, d M Y')
                     ->sortable()
@@ -266,7 +287,7 @@ class AvailabilityResource extends OwnerResource
                     }),
 
                 // Time Slot
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label(__('owner.availability_resource.columns.time_slot'))
                     ->formatStateUsing(fn (string $state): string => __("owner.slots.{$state}"))
                     ->badge()
@@ -279,7 +300,7 @@ class AvailabilityResource extends OwnerResource
                     }),
 
                 // Status
-                Tables\Columns\IconColumn::make('is_available')
+                IconColumn::make('is_available')
                     ->label(__('owner.availability_resource.columns.status'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -289,7 +310,7 @@ class AvailabilityResource extends OwnerResource
                     ->alignCenter(),
 
                 // Reason (if blocked)
-                Tables\Columns\TextColumn::make('reason')
+                TextColumn::make('reason')
                     ->label(__('owner.availability_resource.columns.reason'))
                     ->formatStateUsing(fn (?string $state): string => $state ? __("owner.availability.reasons.{$state}") : '-')
                     ->badge()
@@ -303,14 +324,14 @@ class AvailabilityResource extends OwnerResource
                     ->toggleable(),
 
                 // Custom Price
-                Tables\Columns\TextColumn::make('custom_price')
+                TextColumn::make('custom_price')
                     ->label(__('owner.availability_resource.columns.price'))
                     ->money('OMR')
                     ->placeholder(__('owner.availability_resource.placeholders.default_price'))
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 // Notes
-                Tables\Columns\TextColumn::make('notes')
+                TextColumn::make('notes')
                     ->label(__('owner.availability_resource.columns.notes'))
                     ->limit(30)
                     ->tooltip(fn ($record): ?string => $record->notes)
@@ -362,11 +383,11 @@ class AvailabilityResource extends OwnerResource
 
                 // Date Range Filter
                 Filter::make('date_range')
-                    ->form([
-                        Forms\Components\DatePicker::make('from_date')
+                    ->schema([
+                        DatePicker::make('from_date')
                             ->label(__('owner.availability_resource.filters.from_date'))
                             ->native(false),
-                        Forms\Components\DatePicker::make('to_date')
+                        DatePicker::make('to_date')
                             ->label(__('owner.availability_resource.filters.to_date'))
                             ->native(false),
                     ])
@@ -403,9 +424,9 @@ class AvailabilityResource extends OwnerResource
                     ])),
             ])
             ->filtersFormColumns(3)
-            ->actions([
+            ->recordActions([
                 // Quick Toggle Action
-                Tables\Actions\Action::make('toggle')
+                Action::make('toggle')
                     ->label(fn ($record): string => $record->is_available
                         ? __('owner.availability_resource.actions.block')
                         : __('owner.availability_resource.actions.unblock'))
@@ -428,20 +449,20 @@ class AvailabilityResource extends OwnerResource
                             ->send();
                     }),
 
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->slideOver(),
 
-                Tables\Actions\DeleteAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+            ->toolbarActions([
+                BulkActionGroup::make([
                     // Bulk Block
-                    Tables\Actions\BulkAction::make('block_selected')
+                    BulkAction::make('block_selected')
                         ->label(__('owner.availability_resource.bulk.block'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->form([
-                            Forms\Components\Select::make('reason')
+                        ->schema([
+                            Select::make('reason')
                                 ->label(__('owner.availability_resource.fields.reason'))
                                 ->options([
                                     'blocked' => __('owner.availability.reasons.blocked'),
@@ -453,7 +474,7 @@ class AvailabilityResource extends OwnerResource
                                 ])
                                 ->default('blocked')
                                 ->required(),
-                            Forms\Components\Textarea::make('notes')
+                            Textarea::make('notes')
                                 ->label(__('owner.availability_resource.fields.notes'))
                                 ->rows(2),
                         ])
@@ -475,7 +496,7 @@ class AvailabilityResource extends OwnerResource
                         ->deselectRecordsAfterCompletion(),
 
                     // Bulk Unblock
-                    Tables\Actions\BulkAction::make('unblock_selected')
+                    BulkAction::make('unblock_selected')
                         ->label(__('owner.availability_resource.bulk.unblock'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -498,12 +519,12 @@ class AvailabilityResource extends OwnerResource
                         ->deselectRecordsAfterCompletion(),
 
                     // Bulk Set Custom Price
-                    Tables\Actions\BulkAction::make('set_price')
+                    BulkAction::make('set_price')
                         ->label(__('owner.availability_resource.bulk.set_price'))
                         ->icon('heroicon-o-currency-dollar')
                         ->color('warning')
-                        ->form([
-                            Forms\Components\TextInput::make('custom_price')
+                        ->schema([
+                            TextInput::make('custom_price')
                                 ->label(__('owner.availability_resource.fields.custom_price'))
                                 ->numeric()
                                 ->minValue(0)
@@ -522,7 +543,7 @@ class AvailabilityResource extends OwnerResource
                         ->deselectRecordsAfterCompletion(),
 
                     // Bulk Clear Custom Price
-                    Tables\Actions\BulkAction::make('clear_price')
+                    BulkAction::make('clear_price')
                         ->label(__('owner.availability_resource.bulk.clear_price'))
                         ->icon('heroicon-o-x-mark')
                         ->color('gray')
@@ -537,14 +558,14 @@ class AvailabilityResource extends OwnerResource
                         })
                         ->deselectRecordsAfterCompletion(),
 
-                    Tables\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->emptyStateHeading(__('owner.availability_resource.empty.heading'))
             ->emptyStateDescription(__('owner.availability_resource.empty.description'))
             ->emptyStateIcon('heroicon-o-calendar')
             ->emptyStateActions([
-                Tables\Actions\Action::make('generate')
+                Action::make('generate')
                     ->label(__('owner.availability_resource.empty.action'))
                     ->icon('heroicon-o-plus')
                     ->url(fn () => static::getUrl('create')),
@@ -557,10 +578,10 @@ class AvailabilityResource extends OwnerResource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAvailabilities::route('/'),
-            'create' => Pages\CreateAvailability::route('/create'),
-            'edit' => Pages\EditAvailability::route('/{record}/edit'),
-            'calendar' => Pages\AvailabilityCalendar::route('/calendar'),
+            'index' => ListAvailabilities::route('/'),
+            'create' => CreateAvailability::route('/create'),
+            'edit' => EditAvailability::route('/{record}/edit'),
+            'calendar' => AvailabilityCalendar::route('/calendar'),
         ];
     }
 }

@@ -2,10 +2,19 @@
 
 namespace App\Filament\Admin\Resources\HallAvailabilityResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use App\Models\Hall;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use App\Models\HallAvailability;
+use Filament\Schemas\Components\Tabs\Tab;
 use App\Filament\Admin\Resources\HallAvailabilityResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Carbon\Carbon;
@@ -20,37 +29,37 @@ class ListHallAvailabilities extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary')
                 ->label(__('hall-availability.list_actions.create')),
 
-            Actions\Action::make('bulkBlock')
+            Action::make('bulkBlock')
                 ->label(__('hall-availability.list_actions.bulk_block'))
                 ->icon('heroicon-o-lock-closed')
                 ->color('danger')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('hall-availability.hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\DatePicker::make('start_date')
+                    DatePicker::make('start_date')
                         ->label(__('hall-availability.bulk_block_modal.start_date'))
                         ->required()
                         ->native(false)
                         ->minDate(now()),
 
-                    \Filament\Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label(__('hall-availability.bulk_block_modal.end_date'))
                         ->required()
                         ->native(false)
                         ->minDate(now())
                         ->afterOrEqual('start_date'),
 
-                    \Filament\Forms\Components\CheckboxList::make('time_slots')
+                    CheckboxList::make('time_slots')
                         ->label(__('hall-availability.bulk_block_modal.time_slots'))
                         ->options([
                             'morning' => __('hall-availability.bulk_block_modal.time_slot_options.morning'),
@@ -61,7 +70,7 @@ class ListHallAvailabilities extends ListRecords
                         ->required()
                         ->columns(2),
 
-                    \Filament\Forms\Components\Select::make('reason')
+                    Select::make('reason')
                         ->label(__('hall-availability.bulk_block_modal.block_reason'))
                         ->options([
                             'maintenance' => __('hall-availability.reasons.maintenance'),
@@ -71,7 +80,7 @@ class ListHallAvailabilities extends ListRecords
                         ])
                         ->required(),
 
-                    \Filament\Forms\Components\Textarea::make('notes')
+                    Textarea::make('notes')
                         ->label(__('hall-availability.notes'))
                         ->rows(3),
                 ])
@@ -79,32 +88,32 @@ class ListHallAvailabilities extends ListRecords
                     $this->bulkBlockDates($data);
                 }),
 
-            Actions\Action::make('generateAvailability')
+            Action::make('generateAvailability')
                 ->label(__('hall-availability.list_actions.generate_availability'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('success')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('hall-availability.hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\DatePicker::make('start_date')
+                    DatePicker::make('start_date')
                         ->label(__('hall-availability.generate_availability_modal.start_date'))
                         ->required()
                         ->native(false)
                         ->default(now()),
 
-                    \Filament\Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label(__('hall-availability.generate_availability_modal.end_date'))
                         ->required()
                         ->native(false)
                         ->default(now()->addMonths(3))
                         ->afterOrEqual('start_date'),
 
-                    \Filament\Forms\Components\CheckboxList::make('time_slots')
+                    CheckboxList::make('time_slots')
                         ->label(__('hall-availability.generate_availability_modal.time_slots_to_generate'))
                         ->options([
                             'morning' => __('hall-availability.time_slots_short.morning'),
@@ -116,7 +125,7 @@ class ListHallAvailabilities extends ListRecords
                         ->required()
                         ->columns(2),
 
-                    \Filament\Forms\Components\Toggle::make('skip_existing')
+                    Toggle::make('skip_existing')
                         ->label(__('hall-availability.generate_availability_modal.skip_existing'))
                         ->helperText(__('hall-availability.generate_availability_modal.skip_existing_helper'))
                         ->default(true),
@@ -125,24 +134,24 @@ class ListHallAvailabilities extends ListRecords
                     $this->generateAvailability($data);
                 }),
 
-            Actions\Action::make('exportCalendar')
+            Action::make('exportCalendar')
                 ->label(__('hall-availability.list_actions.export_calendar'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('hall-availability.export_calendar_modal.hall_optional'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\DatePicker::make('start_date')
+                    DatePicker::make('start_date')
                         ->label(__('hall-availability.export_calendar_modal.start_date'))
                         ->required()
                         ->native(false)
                         ->default(now()),
 
-                    \Filament\Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label(__('hall-availability.export_calendar_modal.end_date'))
                         ->required()
                         ->native(false)
@@ -153,7 +162,7 @@ class ListHallAvailabilities extends ListRecords
                     $this->exportCalendar($data);
                 }),
 
-            Actions\Action::make('cleanupPast')
+            Action::make('cleanupPast')
                 ->label(__('hall-availability.list_actions.cleanup_past'))
                 ->icon('heroicon-o-trash')
                 ->color('warning')
@@ -161,7 +170,7 @@ class ListHallAvailabilities extends ListRecords
                 ->modalHeading(__('hall-availability.cleanup_modal.heading'))
                 ->modalDescription(__('hall-availability.cleanup_modal.description'))
                 ->action(function () {
-                    $deleted = \App\Models\HallAvailability::where('date', '<', now()->toDateString())->delete();
+                    $deleted = HallAvailability::where('date', '<', now()->toDateString())->delete();
 
                     Notification::make()
                         ->success()
@@ -179,24 +188,24 @@ class ListHallAvailabilities extends ListRecords
         return [
             'all' => Tab::make(__('hall-availability.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
-                ->badge(fn() => \App\Models\HallAvailability::count()),
+                ->badge(fn() => HallAvailability::count()),
 
             'available' => Tab::make(__('hall-availability.tabs.available'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_available', true))
-                ->badge(fn() => \App\Models\HallAvailability::where('is_available', true)->count())
+                ->badge(fn() => HallAvailability::where('is_available', true)->count())
                 ->badgeColor('success'),
 
             'blocked' => Tab::make(__('hall-availability.tabs.blocked'))
                 ->icon('heroicon-o-lock-closed')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_available', false))
-                ->badge(fn() => \App\Models\HallAvailability::where('is_available', false)->count())
+                ->badge(fn() => HallAvailability::where('is_available', false)->count())
                 ->badgeColor('danger'),
 
             'today' => Tab::make(__('hall-availability.tabs.today'))
                 ->icon('heroicon-o-calendar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereDate('date', now()))
-                ->badge(fn() => \App\Models\HallAvailability::whereDate('date', now())->count())
+                ->badge(fn() => HallAvailability::whereDate('date', now())->count())
                 ->badgeColor('info'),
 
             'this_week' => Tab::make(__('hall-availability.tabs.this_week'))
@@ -205,7 +214,7 @@ class ListHallAvailabilities extends ListRecords
                     now()->startOfWeek(),
                     now()->endOfWeek()
                 ]))
-                ->badge(fn() => \App\Models\HallAvailability::whereBetween('date', [
+                ->badge(fn() => HallAvailability::whereBetween('date', [
                     now()->startOfWeek(),
                     now()->endOfWeek()
                 ])->count())
@@ -215,7 +224,7 @@ class ListHallAvailabilities extends ListRecords
                 ->icon('heroicon-o-calendar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereMonth('date', now()->month)
                     ->whereYear('date', now()->year))
-                ->badge(fn() => \App\Models\HallAvailability::whereMonth('date', now()->month)
+                ->badge(fn() => HallAvailability::whereMonth('date', now()->month)
                     ->whereYear('date', now()->year)
                     ->count())
                 ->badgeColor('primary'),
@@ -223,19 +232,19 @@ class ListHallAvailabilities extends ListRecords
             'custom_pricing' => Tab::make(__('hall-availability.tabs.custom_pricing'))
                 ->icon('heroicon-o-currency-dollar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('custom_price'))
-                ->badge(fn() => \App\Models\HallAvailability::whereNotNull('custom_price')->count())
+                ->badge(fn() => HallAvailability::whereNotNull('custom_price')->count())
                 ->badgeColor('warning'),
 
             'maintenance' => Tab::make(__('hall-availability.tabs.maintenance'))
                 ->icon('heroicon-o-wrench-screwdriver')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('reason', 'maintenance'))
-                ->badge(fn() => \App\Models\HallAvailability::where('reason', 'maintenance')->count())
+                ->badge(fn() => HallAvailability::where('reason', 'maintenance')->count())
                 ->badgeColor('orange'),
 
             'past' => Tab::make(__('hall-availability.tabs.past'))
                 ->icon('heroicon-o-archive-box')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('date', '<', now()))
-                ->badge(fn() => \App\Models\HallAvailability::where('date', '<', now())->count())
+                ->badge(fn() => HallAvailability::where('date', '<', now())->count())
                 ->badgeColor('gray'),
         ];
     }
@@ -249,7 +258,7 @@ class ListHallAvailabilities extends ListRecords
 
         while ($startDate->lte($endDate)) {
             foreach ($data['time_slots'] as $timeSlot) {
-                $availability = \App\Models\HallAvailability::updateOrCreate(
+                $availability = HallAvailability::updateOrCreate(
                     [
                         'hall_id' => $data['hall_id'],
                         'date' => $startDate->toDateString(),
@@ -296,7 +305,7 @@ class ListHallAvailabilities extends ListRecords
 
         while ($startDate->lte($endDate)) {
             foreach ($data['time_slots'] as $timeSlot) {
-                $exists = \App\Models\HallAvailability::where('hall_id', $data['hall_id'])
+                $exists = HallAvailability::where('hall_id', $data['hall_id'])
                     ->where('date', $startDate->toDateString())
                     ->where('time_slot', $timeSlot)
                     ->exists();
@@ -306,7 +315,7 @@ class ListHallAvailabilities extends ListRecords
                     continue;
                 }
 
-                \App\Models\HallAvailability::updateOrCreate(
+                HallAvailability::updateOrCreate(
                     [
                         'hall_id' => $data['hall_id'],
                         'date' => $startDate->toDateString(),
@@ -340,7 +349,7 @@ class ListHallAvailabilities extends ListRecords
 
     protected function exportCalendar(array $data): void
     {
-        $query = \App\Models\HallAvailability::with('hall')
+        $query = HallAvailability::with('hall')
             ->whereBetween('date', [$data['start_date'], $data['end_date']]);
 
         if (isset($data['hall_id'])) {
@@ -392,7 +401,7 @@ class ListHallAvailabilities extends ListRecords
             ->body(__('hall-availability.notifications.calendar_exported'))
             ->persistent()
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('hall-availability.notifications.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

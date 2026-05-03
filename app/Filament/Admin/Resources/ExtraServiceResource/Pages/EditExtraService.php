@@ -2,6 +2,15 @@
 
 namespace App\Filament\Admin\Resources\ExtraServiceResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Select;
+use App\Models\Hall;
+use Filament\Forms\Components\FileUpload;
+use Filament\Actions\DeleteAction;
+use App\Models\Booking;
 use App\Filament\Admin\Resources\ExtraServiceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -19,7 +28,7 @@ class EditExtraService extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? __('extra-service.page_actions.deactivate') : __('extra-service.page_actions.activate'))
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -55,7 +64,7 @@ class EditExtraService extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleRequired')
+            Action::make('toggleRequired')
                 ->label(fn() => $this->record->is_required ? __('extra-service.page_actions.make_optional') : __('extra-service.page_actions.make_required'))
                 ->icon(fn() => $this->record->is_required ? 'heroicon-o-x-mark' : 'heroicon-o-star')
                 ->color(fn() => $this->record->is_required ? 'gray' : 'warning')
@@ -87,7 +96,7 @@ class EditExtraService extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewBookings')
+            Action::make('viewBookings')
                 ->label(__('extra-service.page_actions.view_bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
@@ -97,7 +106,7 @@ class EditExtraService extends EditRecord
                     ]
                 ])),
 
-            Actions\Action::make('calculateRevenue')
+            Action::make('calculateRevenue')
                 ->label(__('extra-service.page_actions.calculate_revenue'))
                 ->icon('heroicon-o-calculator')
                 ->color('success')
@@ -109,12 +118,12 @@ class EditExtraService extends EditRecord
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel(__('extra-service.page_actions.close')),
 
-            Actions\Action::make('updatePrice')
+            Action::make('updatePrice')
                 ->label(__('extra-service.page_actions.update_price'))
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('new_price')
+                ->schema([
+                    TextInput::make('new_price')
                         ->label(__('extra-service.page_actions.new_price'))
                         ->numeric()
                         ->required()
@@ -123,11 +132,11 @@ class EditExtraService extends EditRecord
                         ->minValue(0)
                         ->default(fn() => $this->record->price),
 
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Textarea::make('reason')
                         ->label(__('extra-service.page_actions.reason_for_price_change'))
                         ->rows(3),
 
-                    \Filament\Forms\Components\Toggle::make('apply_to_pending')
+                    Toggle::make('apply_to_pending')
                         ->label(__('extra-service.page_actions.apply_to_pending'))
                         ->helperText(__('extra-service.page_actions.apply_to_pending_helper'))
                         ->default(false),
@@ -163,20 +172,20 @@ class EditExtraService extends EditRecord
                     Cache::tags(['services', 'hall_' . $this->record->hall_id])->flush();
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label(__('extra-service.page_actions.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
-                ->form([
-                    \Filament\Forms\Components\Select::make('target_hall_id')
+                ->schema([
+                    Select::make('target_hall_id')
                         ->label(__('extra-service.page_actions.target_hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->default($this->record->hall_id)
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\Toggle::make('copy_image')
+                    Toggle::make('copy_image')
                         ->label(__('extra-service.page_actions.copy_image'))
                         ->default(true),
                 ])
@@ -204,20 +213,20 @@ class EditExtraService extends EditRecord
                         ->title(__('extra-service.notifications.service_duplicated_title'))
                         ->body(__('extra-service.notifications.service_duplicated_body'))
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label(__('extra-service.page_actions.edit_duplicate'))
                                 ->url(ExtraServiceResource::getUrl('edit', ['record' => $newService->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\Action::make('replaceImage')
+            Action::make('replaceImage')
                 ->label(__('extra-service.page_actions.replace_image'))
                 ->icon('heroicon-o-photo')
                 ->color('info')
                 ->visible(fn() => $this->record->image !== null)
-                ->form([
-                    \Filament\Forms\Components\FileUpload::make('new_image')
+                ->schema([
+                    FileUpload::make('new_image')
                         ->label(__('extra-service.page_actions.new_image'))
                         ->image()
                         ->required()
@@ -239,8 +248,8 @@ class EditExtraService extends EditRecord
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     // Check if service is used in any bookings
                     // Adjust this based on your actual relationship structure
                     // if ($this->record->bookings()->exists()) {
@@ -467,7 +476,7 @@ class EditExtraService extends EditRecord
 
     protected function getRevenueStats(): array
     {
-        $bookings = \App\Models\Booking::whereHas('extraServices', function ($q) {
+        $bookings = Booking::whereHas('extraServices', function ($q) {
             $q->where('extra_service_id', $this->record->id);
         })
             ->whereIn('status', ['confirmed', 'completed'])

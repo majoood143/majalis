@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Http\Response;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Support\Facades\View;
@@ -26,14 +27,14 @@ class PdfGeneratorService
      * @param array $data Data to pass to the view
      * @param string $filename Output filename
      * @param bool $download Whether to download or display inline
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function generateFromView(
         string $view,
         array $data = [],
         string $filename = 'document.pdf',
         bool $download = true
-    ): \Illuminate\Http\Response {
+    ): Response {
         // Configure PDF options for Arabic support
         $options = new Options();
         $options->set('isRemoteEnabled', true);

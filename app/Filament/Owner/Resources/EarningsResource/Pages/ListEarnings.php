@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\EarningsResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\CheckboxList;
+use App\Filament\Owner\Resources\EarningsResource\Widgets\EarningsSummaryWidget;
+use Exception;
+use Illuminate\Support\Facades\Log;
 use App\Filament\Owner\Resources\EarningsResource;
 use App\Models\Booking;
 use App\Models\Hall;
@@ -83,29 +92,29 @@ class ListEarnings extends ListRecords
     {
         return [
             // Generate PDF Report
-            Actions\Action::make('generateReport')
+            Action::make('generateReport')
                 ->label(__('owner.earnings.generate_report'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
-                ->form([
-                    \Filament\Forms\Components\Section::make(__('owner.earnings.report_period'))
+                ->schema([
+                    Section::make(__('owner.earnings.report_period'))
                         ->schema([
-                            \Filament\Forms\Components\Grid::make(2)
+                            Grid::make(2)
                                 ->schema([
-                                    \Filament\Forms\Components\DatePicker::make('from_date')
+                                    DatePicker::make('from_date')
                                         ->label(__('owner.earnings.from_date'))
                                         ->default(now()->startOfMonth())
                                         ->required()
                                         ->native(false),
 
-                                    \Filament\Forms\Components\DatePicker::make('to_date')
+                                    DatePicker::make('to_date')
                                         ->label(__('owner.earnings.to_date'))
                                         ->default(now())
                                         ->required()
                                         ->native(false),
                                 ]),
 
-                            \Filament\Forms\Components\Select::make('hall_id')
+                            Select::make('hall_id')
                                 ->label(__('owner.earnings.select_hall'))
                                 ->options(fn (): array => Hall::where('owner_id', Auth::id())
                                     ->get()
@@ -117,7 +126,7 @@ class ListEarnings extends ListRecords
                                     ->toArray())
                                 ->placeholder(__('owner.earnings.all_halls')),
 
-                            \Filament\Forms\Components\CheckboxList::make('include')
+                            CheckboxList::make('include')
                                 ->label(__('owner.earnings.include_in_report'))
                                 ->options([
                                     'summary' => __('owner.earnings.summary'),
@@ -134,29 +143,29 @@ class ListEarnings extends ListRecords
                 }),
 
             // Export to Excel (CSV)
-            Actions\Action::make('exportExcel')
+            Action::make('exportExcel')
                 ->label(__('owner.earnings.export_excel'))
                 ->icon('heroicon-o-table-cells')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\Section::make(__('owner.earnings.export_settings'))
+                ->schema([
+                    Section::make(__('owner.earnings.export_settings'))
                         ->schema([
-                            \Filament\Forms\Components\Grid::make(2)
+                            Grid::make(2)
                                 ->schema([
-                                    \Filament\Forms\Components\DatePicker::make('from_date')
+                                    DatePicker::make('from_date')
                                         ->label(__('owner.earnings.from_date'))
                                         ->default(now()->startOfMonth())
                                         ->required()
                                         ->native(false),
 
-                                    \Filament\Forms\Components\DatePicker::make('to_date')
+                                    DatePicker::make('to_date')
                                         ->label(__('owner.earnings.to_date'))
                                         ->default(now())
                                         ->required()
                                         ->native(false),
                                 ]),
 
-                            \Filament\Forms\Components\Select::make('hall_id')
+                            Select::make('hall_id')
                                 ->label(__('owner.earnings.select_hall'))
                                 ->options(fn (): array => Hall::where('owner_id', Auth::id())
                                     ->get()
@@ -168,7 +177,7 @@ class ListEarnings extends ListRecords
                                     ->toArray())
                                 ->placeholder(__('owner.earnings.all_halls')),
 
-                            \Filament\Forms\Components\CheckboxList::make('columns')
+                            CheckboxList::make('columns')
                                 ->label(__('owner.earnings.include_columns'))
                                 ->options([
                                     'booking_number' => __('owner.earnings.columns.booking_number'),
@@ -203,32 +212,32 @@ class ListEarnings extends ListRecords
     /**
      * Get tabs for period filtering.
      *
-     * @return array<string, Tab>
+     * @return array<string, \Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
         $user = Auth::user();
 
         return [
-            'all' => Tab::make(__('owner.earnings.tab_all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.earnings.tab_all'))
                 ->icon('heroicon-m-banknotes')
                 ->badge(fn (): int => $this->getTabCount('all')),
 
-            'this_month' => Tab::make(__('owner.earnings.tab_this_month'))
+            'this_month' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.earnings.tab_this_month'))
                 ->icon('heroicon-m-calendar')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->whereMonth('booking_date', now()->month)
                     ->whereYear('booking_date', now()->year))
                 ->badge(fn (): int => $this->getTabCount('this_month')),
 
-            'last_month' => Tab::make(__('owner.earnings.tab_last_month'))
+            'last_month' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.earnings.tab_last_month'))
                 ->icon('heroicon-m-calendar-days')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->whereMonth('booking_date', now()->subMonth()->month)
                     ->whereYear('booking_date', now()->subMonth()->year))
                 ->badge(fn (): int => $this->getTabCount('last_month')),
 
-            'this_year' => Tab::make(__('owner.earnings.tab_this_year'))
+            'this_year' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.earnings.tab_this_year'))
                 ->icon('heroicon-m-chart-bar')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->whereYear('booking_date', now()->year))
@@ -244,7 +253,7 @@ class ListEarnings extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            EarningsResource\Widgets\EarningsSummaryWidget::class,
+            EarningsSummaryWidget::class,
         ];
     }
 
@@ -419,15 +428,15 @@ class ListEarnings extends ListRecords
                     'earnings' => number_format($stats['net_earnings'], 3),
                 ]))
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('owner.actions.download'))
                         ->url(Storage::disk('public')->url($filepath))
                         ->openUrlInNewTab(),
                 ])
                 ->persistent()
                 ->send();
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Earnings report generation failed', [
+        } catch (Exception $e) {
+            Log::error('Earnings report generation failed', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
             ]);
@@ -545,7 +554,7 @@ class ListEarnings extends ListRecords
             fclose($file);
 
             // Log the export
-            \Illuminate\Support\Facades\Log::info('Owner earnings exported', [
+            Log::info('Owner earnings exported', [
                 'user_id' => $user->id,
                 'count' => $bookings->count(),
                 'date_range' => [$fromDate, $toDate],
@@ -562,15 +571,15 @@ class ListEarnings extends ListRecords
                     'total' => number_format($totals['net_earnings'], 3),
                 ]))
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('owner.actions.download'))
                         ->url(Storage::disk('public')->url($exportPath . '/' . $filename))
                         ->openUrlInNewTab(),
                 ])
                 ->persistent()
                 ->send();
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Owner earnings export failed', [
+        } catch (Exception $e) {
+            Log::error('Owner earnings export failed', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

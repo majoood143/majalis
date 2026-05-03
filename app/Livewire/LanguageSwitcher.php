@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Illuminate\View\View;
 use Livewire\Component;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -58,7 +59,7 @@ class LanguageSwitcher extends Component
     /**
      * Render the component
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function render()
     {

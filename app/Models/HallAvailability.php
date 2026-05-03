@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * HallAvailability Model
@@ -27,7 +29,7 @@ use Spatie\Activitylog\LogOptions;
  *
  * @property int         $id
  * @property int         $hall_id
- * @property \Carbon\Carbon $date
+ * @property Carbon $date
  * @property string      $time_slot      (morning|afternoon|evening|full_day)
  * @property bool        $is_available
  * @property string|null $reason         (blocked|booked|maintenance|holiday|private_event|renovation|other)
@@ -95,12 +97,11 @@ class HallAvailability extends Model
     // =========================================================================
     // SCOPES
     // =========================================================================
-
     /**
      * Scope: only unavailable (blocked/booked/maintenance) slots.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeUnavailable($query)
     {
@@ -110,8 +111,8 @@ class HallAvailability extends Model
     /**
      * Scope: only available slots.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeAvailable($query)
     {
@@ -121,9 +122,9 @@ class HallAvailability extends Model
     /**
      * Scope: filter by specific date.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $date
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForDate($query, string $date)
     {
@@ -133,9 +134,9 @@ class HallAvailability extends Model
     /**
      * Scope: filter by time slot.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $slot
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForSlot($query, string $slot)
     {
@@ -145,8 +146,8 @@ class HallAvailability extends Model
     /**
      * Scope: only records with a custom price.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeWithCustomPrice($query)
     {
@@ -156,8 +157,8 @@ class HallAvailability extends Model
     /**
      * Scope: only future (today or later) dates.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeFuture($query)
     {
@@ -167,8 +168,8 @@ class HallAvailability extends Model
     /**
      * Scope: only slots marked as booked.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeBooked($query)
     {

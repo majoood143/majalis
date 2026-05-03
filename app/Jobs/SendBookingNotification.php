@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use Exception;
+use Throwable;
 use App\Models\Booking;
 use App\Services\NotificationService;
 use Illuminate\Bus\Queueable;
@@ -45,7 +47,7 @@ class SendBookingNotification implements ShouldQueue
                 'booking_id' => $this->booking->id,
                 'type' => $this->notificationType
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Booking notification job failed', [
                 'booking_id' => $this->booking->id,
                 'type' => $this->notificationType,
@@ -59,7 +61,7 @@ class SendBookingNotification implements ShouldQueue
     /**
      * Handle a job failure.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error('Booking notification job failed permanently', [
             'booking_id' => $this->booking->id,

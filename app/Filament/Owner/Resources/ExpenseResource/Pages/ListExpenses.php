@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\ExpenseResource\Pages;
 
+use Filament\Actions\CreateAction;
+use App\Filament\Owner\Resources\ExpenseResource\Widgets\ExpenseStatsWidget;
 use App\Enums\ExpensePaymentStatus;
 use App\Enums\ExpenseType;
 use App\Filament\Owner\Resources\ExpenseResource;
@@ -44,7 +46,7 @@ class ListExpenses extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(fn() => app()->getLocale() === 'ar' ? 'إضافة مصروف' : 'Add Expense'),
         ];
     }
@@ -57,7 +59,7 @@ class ListExpenses extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            ExpenseResource\Widgets\ExpenseStatsWidget::class,
+            ExpenseStatsWidget::class,
         ];
     }
 
@@ -73,30 +75,30 @@ class ListExpenses extends ListRecords
 
         return [
             // All Expenses
-            'all' => Tab::make(app()->getLocale() === 'ar' ? 'الكل' : 'All')
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'الكل' : 'All')
                 ->badge($baseQuery()->count())
                 ->badgeColor('gray'),
 
             // Booking Expenses
-            'booking' => Tab::make(app()->getLocale() === 'ar' ? 'مصروفات الحجوزات' : 'Booking')
+            'booking' => \Filament\Schemas\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'مصروفات الحجوزات' : 'Booking')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('booking_id'))
                 ->badge($baseQuery()->whereNotNull('booking_id')->count())
                 ->badgeColor('info'),
 
             // Operational Expenses
-            'operational' => Tab::make(app()->getLocale() === 'ar' ? 'تشغيلية' : 'Operational')
+            'operational' => \Filament\Schemas\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'تشغيلية' : 'Operational')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('expense_type', ExpenseType::Operational))
                 ->badge($baseQuery()->where('expense_type', ExpenseType::Operational)->count())
                 ->badgeColor('warning'),
 
             // Recurring Expenses
-            'recurring' => Tab::make(app()->getLocale() === 'ar' ? 'متكررة' : 'Recurring')
+            'recurring' => \Filament\Schemas\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'متكررة' : 'Recurring')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_recurring', true))
                 ->badge($baseQuery()->where('is_recurring', true)->count())
                 ->badgeColor('success'),
 
             // Pending Payment
-            'pending' => Tab::make(app()->getLocale() === 'ar' ? 'في الانتظار' : 'Pending Payment')
+            'pending' => \Filament\Schemas\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'في الانتظار' : 'Pending Payment')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereIn('payment_status', [
                     ExpensePaymentStatus::Pending,
                     ExpensePaymentStatus::Partial,

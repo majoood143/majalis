@@ -31,7 +31,7 @@ class PayoutStatsWidget extends BaseWidget
      *
      * @var string|null
      */
-    protected static ?string $pollingInterval = '60s';
+    protected ?string $pollingInterval = '60s';
 
     /**
      * Number of columns for the widget grid.

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Admin\Resources\HallImageResource\Pages;
 
+use Filament\Actions\Action;
+use RuntimeException;
+use Exception;
 use App\Filament\Admin\Resources\HallImageResource;
 use App\Services\ImageOptimizationService;
 use Filament\Actions;
@@ -20,14 +23,14 @@ class EditHallImage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('viewImage')
+            Action::make('viewImage')
                 ->label('View Full Image')
                 ->icon('heroicon-o-eye')
                 ->color('info')
                 //->url(fn () => Storage::disk('public')->url($this->record->image_path))
                 ->openUrlInNewTab(),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn () => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn () => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn () => $this->record->is_active ? 'warning' : 'success')
@@ -45,7 +48,7 @@ class EditHallImage extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleFeatured')
+            Action::make('toggleFeatured')
                 ->label(fn () => $this->record->is_featured ? 'Unmark Featured' : 'Mark as Featured')
                 ->icon(fn () => $this->record->is_featured ? 'heroicon-o-star' : 'heroicon-o-star')
                 ->color(fn () => $this->record->is_featured ? 'gray' : 'warning')
@@ -63,7 +66,7 @@ class EditHallImage extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('optimizeImage')
+            Action::make('optimizeImage')
                 ->label('Optimize Image')
                 ->icon('heroicon-o-sparkles')
                 ->color('warning')
@@ -74,7 +77,7 @@ class EditHallImage extends EditRecord
                     $this->optimizeImage();
                 }),
 
-            Actions\Action::make('regenerateThumbnail')
+            Action::make('regenerateThumbnail')
                 ->label('Regenerate Thumbnail')
                 ->icon('heroicon-o-photo')
                 ->color('info')
@@ -95,7 +98,7 @@ class EditHallImage extends EditRecord
                         ->body('The image and its files have been deleted.')
                 ),
 
-            Actions\Action::make('viewHistory')
+            Action::make('viewHistory')
                 ->label('View History')
                 ->icon('heroicon-o-clock')
                 ->color('gray')
@@ -219,7 +222,7 @@ class EditHallImage extends EditRecord
             $result    = $optimizer->compress($this->record->image_path);
 
             if (isset($result['error'])) {
-                throw new \RuntimeException($result['error']);
+                throw new RuntimeException($result['error']);
             }
 
             $this->extractImageMetadata($this->record);
@@ -232,7 +235,7 @@ class EditHallImage extends EditRecord
                 ->title('Image Optimized')
                 ->body("Saved {$percent}% (" . $optimizer->formatBytes($saved) . ")")
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->danger()
                 ->title('Optimization Failed')
@@ -252,7 +255,7 @@ class EditHallImage extends EditRecord
                 $image->update(['thumbnail_path' => $thumbnailPath]);
                 Log::info('Thumbnail generated for image: ' . $image->id);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Thumbnail generation failed: ' . $e->getMessage());
         }
     }
@@ -277,7 +280,7 @@ class EditHallImage extends EditRecord
                     ]);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to extract image metadata: ' . $e->getMessage());
         }
     }

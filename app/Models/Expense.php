@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use App\Enums\ExpensePaymentMethod;
 use App\Enums\ExpensePaymentStatus;
 use App\Enums\ExpenseStatus;
@@ -27,8 +29,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
 use Carbon\Carbon;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Expense Model
@@ -49,17 +51,17 @@ use Spatie\Activitylog\LogOptions;
  * @property string $payment_method
  * @property string $payment_status
  * @property string|null $payment_reference
- * @property \Carbon\Carbon $expense_date
- * @property \Carbon\Carbon|null $due_date
- * @property \Carbon\Carbon|null $paid_at
+ * @property Carbon $expense_date
+ * @property Carbon|null $due_date
+ * @property Carbon|null $paid_at
  * @property string|null $vendor_name
  * @property string|null $vendor_phone
  * @property string|null $vendor_email
  * @property array|null $attachments
  * @property bool $is_recurring
  * @property string|null $recurring_frequency
- * @property \Carbon\Carbon|null $recurring_start_date
- * @property \Carbon\Carbon|null $recurring_end_date
+ * @property Carbon|null $recurring_start_date
+ * @property Carbon|null $recurring_end_date
  * @property int $recurring_count
  * @property int|null $parent_expense_id
  * @property string $status
@@ -67,10 +69,10 @@ use Spatie\Activitylog\LogOptions;
  * @property string|null $rejection_reason
  * @property int|null $created_by
  * @property int|null $approved_by
- * @property \Carbon\Carbon|null $approved_at
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
- * @property \Carbon\Carbon|null $deleted_at
+ * @property Carbon|null $approved_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  *
  * @property-read User $owner
  * @property-read Hall|null $hall
@@ -335,13 +337,12 @@ class Expense extends Model
     | SCOPES
     |--------------------------------------------------------------------------
     */
-
     /**
      * Scope to expenses for a specific owner
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $ownerId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForOwner($query, int $ownerId)
     {
@@ -351,9 +352,9 @@ class Expense extends Model
     /**
      * Scope to expenses for a specific hall
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $hallId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForHall($query, int $hallId)
     {
@@ -363,9 +364,9 @@ class Expense extends Model
     /**
      * Scope to expenses for a specific booking
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $bookingId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForBooking($query, int $bookingId)
     {
@@ -375,8 +376,8 @@ class Expense extends Model
     /**
      * Scope to approved expenses only
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeApproved($query)
     {
@@ -386,8 +387,8 @@ class Expense extends Model
     /**
      * Scope to paid expenses only
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePaid($query)
     {
@@ -397,8 +398,8 @@ class Expense extends Model
     /**
      * Scope to pending payment expenses
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePendingPayment($query)
     {
@@ -411,9 +412,9 @@ class Expense extends Model
     /**
      * Scope to filter by expense type
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param ExpenseType $type
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeOfType($query, ExpenseType $type)
     {
@@ -423,8 +424,8 @@ class Expense extends Model
     /**
      * Scope to booking-linked expenses
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeBookingExpenses($query)
     {
@@ -434,8 +435,8 @@ class Expense extends Model
     /**
      * Scope to general expenses (not linked to booking)
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeGeneralExpenses($query)
     {
@@ -445,10 +446,10 @@ class Expense extends Model
     /**
      * Scope to filter by date range
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string|Carbon $startDate
      * @param string|Carbon|null $endDate
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeInDateRange($query, $startDate, $endDate = null)
     {
@@ -464,9 +465,9 @@ class Expense extends Model
     /**
      * Scope to filter by category
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $categoryId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeInCategory($query, int $categoryId)
     {
@@ -476,8 +477,8 @@ class Expense extends Model
     /**
      * Scope to recurring expenses
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeRecurring($query)
     {
@@ -487,8 +488,8 @@ class Expense extends Model
     /**
      * Scope to order by expense date descending
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeLatest($query)
     {
@@ -688,9 +689,9 @@ class Expense extends Model
     /**
      * Get attachments as collection
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
-    public function getAttachmentsCollection(): \Illuminate\Support\Collection
+    public function getAttachmentsCollection(): Collection
     {
         return collect($this->attachments ?? []);
     }

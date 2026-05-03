@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use Exception;
 use App\Models\Booking;
 use App\Services\BookingPdfService;
 use Illuminate\Bus\Queueable;
@@ -195,7 +196,7 @@ class CustomerBookingConfirmationNotification extends Notification implements Sh
                     'expected_path' => $fullPath,
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // PDF attachment is non-critical — send email without it
             Log::warning('Failed to attach PDF to confirmation email (email will still be sent)', [
                 'booking_id' => $booking->id,

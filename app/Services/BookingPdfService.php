@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -62,9 +63,9 @@ class BookingPdfService
      * Always regenerates with mPDF to guarantee Arabic renders correctly.
      *
      * @param Booking $booking
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return StreamedResponse
      */
-    public function download(Booking $booking): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function download(Booking $booking): StreamedResponse
     {
         $booking->load(['hall.city.region', 'extraServices', 'user']);
 

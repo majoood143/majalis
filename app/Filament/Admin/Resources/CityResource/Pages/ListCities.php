@@ -2,10 +2,14 @@
 
 namespace App\Filament\Admin\Resources\CityResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\City;
+use Filament\Notifications\Notification;
 use App\Filament\Admin\Resources\CityResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListCities extends ListRecords
@@ -15,12 +19,12 @@ class ListCities extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary')
                 ->label(__('city.list_actions.create')),
 
-            Actions\Action::make('exportCities')
+            Action::make('exportCities')
                 ->label(__('city.list_actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -37,37 +41,37 @@ class ListCities extends ListRecords
         return [
             'all' => Tab::make(__('city.tabs.all'))
                 ->icon('heroicon-o-building-office-2')
-                ->badge(fn() => \App\Models\City::count()),
+                ->badge(fn() => City::count()),
 
             'active' => Tab::make(__('city.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\City::where('is_active', true)->count())
+                ->badge(fn() => City::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('city.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\City::where('is_active', false)->count())
+                ->badge(fn() => City::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'with_halls' => Tab::make(__('city.tabs.with_halls'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('halls'))
-                ->badge(fn() => \App\Models\City::has('halls')->count())
+                ->badge(fn() => City::has('halls')->count())
                 ->badgeColor('info'),
 
             'without_halls' => Tab::make(__('city.tabs.without_halls'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->doesntHave('halls'))
-                ->badge(fn() => \App\Models\City::doesntHave('halls')->count())
+                ->badge(fn() => City::doesntHave('halls')->count())
                 ->badgeColor('warning'),
         ];
     }
 
     protected function exportCities(): void
     {
-        $cities = \App\Models\City::with('region')->get();
+        $cities = City::with('region')->get();
 
         $filename = 'cities_export_' . now()->format('Y_m_d_His') . '.csv';
         $path = storage_path('app/public/exports/' . $filename);
@@ -114,13 +118,13 @@ class ListCities extends ListRecords
         fclose($file);
 
         // Notify user
-        \Filament\Notifications\Notification::make()
+        Notification::make()
             ->title(__('city.notifications.export_successful'))
             ->success()
             ->body(__('city.notifications.export_body', ['filename' => $filename]))
             ->persistent()
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('city.notifications.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

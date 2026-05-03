@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use App\Filament\Owner\Resources\HallResource;
 use App\Models\Hall;
 use App\Models\HallAvailability;
@@ -46,7 +52,7 @@ class ManageHallAvailability extends Page implements HasForms
      *
      * @var string
      */
-    protected static string $view = 'filament.owner.resources.manage-hall-availability';
+    protected string $view = 'filament.owner.resources.manage-hall-availability';
 
     /**
      * The hall record.
@@ -144,13 +150,13 @@ class ManageHallAvailability extends Page implements HasForms
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('back')
+            Action::make('back')
                 ->label(__('owner.availability.actions.back'))
                 ->url(HallResource::getUrl('edit', ['record' => $this->record]))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray'),
 
-            Actions\Action::make('regenerate')
+            Action::make('regenerate')
                 ->label(__('owner.availability.actions.regenerate'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
@@ -505,14 +511,14 @@ class ManageHallAvailability extends Page implements HasForms
     /**
      * Get the form for bulk operations.
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('owner.availability.bulk_operations'))
+        return $schema
+            ->components([
+                Section::make(__('owner.availability.bulk_operations'))
                     ->columns(2)
                     ->schema([
-                        Forms\Components\CheckboxList::make('selectedSlots')
+                        CheckboxList::make('selectedSlots')
                             ->label(__('owner.availability.time_slots'))
                             ->options([
                                 'morning' => __('owner.slots.morning'),
@@ -523,7 +529,7 @@ class ManageHallAvailability extends Page implements HasForms
                             ->default(['morning', 'afternoon', 'evening', 'full_day'])
                             ->columns(2),
 
-                        Forms\Components\Select::make('blockReason')
+                        Select::make('blockReason')
                             ->label(__('owner.availability.block_reason'))
                             ->options([
                                 'blocked' => __('owner.availability.reasons.blocked'),
@@ -535,7 +541,7 @@ class ManageHallAvailability extends Page implements HasForms
                             ])
                             ->default('blocked'),
 
-                        Forms\Components\TextInput::make('customPriceInput')
+                        TextInput::make('customPriceInput')
                             ->label(__('owner.availability.custom_price'))
                             ->numeric()
                             ->minValue(0)

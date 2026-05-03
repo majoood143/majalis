@@ -1,8 +1,8 @@
 <?php
 
-use Vormkracht10\FilamentMails\Resources\EventResource;
-use Vormkracht10\FilamentMails\Resources\MailResource;
-use Vormkracht10\FilamentMails\Resources\SuppressionResource;
+use Backstage\Mails\Resources\EventResource;
+use Backstage\Mails\Resources\MailResource;
+use Backstage\Mails\Resources\SuppressionResource;
 
 return [
     'resources' => [
@@ -13,5 +13,6 @@ return [
 
     'navigation' => [
         'group' => null,
+        'sort' => null,
     ],
 ];

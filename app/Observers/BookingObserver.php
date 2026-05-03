@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use Throwable;
 use App\Models\Booking;
 use App\Models\HallAvailability;
 use Illuminate\Support\Facades\Log;
@@ -142,7 +143,7 @@ class BookingObserver
                 'time_slot'      => $booking->time_slot,
                 'slots_marked'   => $slotsToMark,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Log error but don't break the booking flow
             Log::error('Failed to sync HallAvailability on booking creation', [
                 'booking_id' => $booking->id,
@@ -187,7 +188,7 @@ class BookingObserver
                     'slots_released' => $updated,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Failed to sync HallAvailability on booking cancellation', [
                 'booking_id' => $booking->id,
                 'error'      => $e->getMessage(),

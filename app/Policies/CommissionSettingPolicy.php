@@ -1,108 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\CommissionSetting;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CommissionSettingPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_commission::setting');
+        return $authUser->can('ViewAny:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, CommissionSetting $commissionSetting): bool
+    public function view(AuthUser $authUser, CommissionSetting $commissionSetting): bool
     {
-        return $user->can('view_commission::setting');
+        return $authUser->can('View:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('create_commission::setting');
+        return $authUser->can('Create:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, CommissionSetting $commissionSetting): bool
+    public function update(AuthUser $authUser, CommissionSetting $commissionSetting): bool
     {
-        return $user->can('update_commission::setting');
+        return $authUser->can('Update:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, CommissionSetting $commissionSetting): bool
+    public function delete(AuthUser $authUser, CommissionSetting $commissionSetting): bool
     {
-        return $user->can('delete_commission::setting');
+        return $authUser->can('Delete:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return $user->can('delete_any_commission::setting');
+        return $authUser->can('DeleteAny:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can permanently delete.
-     */
-    public function forceDelete(User $user, CommissionSetting $commissionSetting): bool
+    public function restore(AuthUser $authUser, CommissionSetting $commissionSetting): bool
     {
-        return $user->can('force_delete_commission::setting');
+        return $authUser->can('Restore:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(AuthUser $authUser, CommissionSetting $commissionSetting): bool
     {
-        return $user->can('force_delete_any_commission::setting');
+        return $authUser->can('ForceDelete:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, CommissionSetting $commissionSetting): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_commission::setting');
+        return $authUser->can('ForceDeleteAny:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_any_commission::setting');
+        return $authUser->can('RestoreAny:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, CommissionSetting $commissionSetting): bool
+    public function replicate(AuthUser $authUser, CommissionSetting $commissionSetting): bool
     {
-        return $user->can('replicate_commission::setting');
+        return $authUser->can('Replicate:CommissionSetting');
     }
 
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('reorder_commission::setting');
+        return $authUser->can('Reorder:CommissionSetting');
     }
+
 }

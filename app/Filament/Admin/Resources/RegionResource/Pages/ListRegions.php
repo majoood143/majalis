@@ -2,10 +2,13 @@
 
 namespace App\Filament\Admin\Resources\RegionResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\Region;
 use App\Filament\Admin\Resources\RegionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 
@@ -16,12 +19,12 @@ class ListRegions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary')
                 ->label(__('region.list_actions.create')),
 
-            Actions\Action::make('exportRegions')
+            Action::make('exportRegions')
                 ->label(__('region.list_actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -34,31 +37,31 @@ class ListRegions extends ListRecords
         return [
             'all' => Tab::make(__('region.tabs.all'))
                 ->icon('heroicon-o-map')
-                ->badge(fn() => \App\Models\Region::count()),
+                ->badge(fn() => Region::count()),
 
             'active' => Tab::make(__('region.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\Region::where('is_active', true)->count())
+                ->badge(fn() => Region::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('region.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\Region::where('is_active', false)->count())
+                ->badge(fn() => Region::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'with_cities' => Tab::make(__('region.tabs.with_cities'))
                 ->icon('heroicon-o-building-office')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('cities'))
-                ->badge(fn() => \App\Models\Region::has('cities')->count())
+                ->badge(fn() => Region::has('cities')->count())
                 ->badgeColor('info'),
         ];
     }
 
     protected function exportRegions(): void
     {
-        $regions = \App\Models\Region::withCount('cities')->get();
+        $regions = Region::withCount('cities')->get();
 
         $filename = 'regions_export_' . now()->format('Y_m_d_His') . '.csv';
         $path = storage_path('app/public/exports/' . $filename);
@@ -99,7 +102,7 @@ class ListRegions extends ListRecords
             ->success()
             ->title(__('region.notifications.export_successful'))
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('region.notifications.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

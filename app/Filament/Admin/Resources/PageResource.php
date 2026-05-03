@@ -4,6 +4,30 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use App\Filament\Admin\Resources\PageResource\Pages\ListPages;
+use App\Filament\Admin\Resources\PageResource\Pages\CreatePage;
+use App\Filament\Admin\Resources\PageResource\Pages\EditPage;
 use App\Filament\Admin\Resources\PageResource\Pages;
 use App\Models\Page;
 use Filament\Forms;
@@ -13,7 +37,6 @@ use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 /**
@@ -26,9 +49,9 @@ class PageResource extends Resource
 {
     protected static ?string $model = Page::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Content Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'Content Management';
 
     protected static ?int $navigationSort = 1;
 
@@ -37,16 +60,16 @@ class PageResource extends Resource
         return __('admin.pages.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Main Content Section
-                Forms\Components\Section::make(__('admin.pages.section_main_content'))
+                Section::make(__('admin.pages.section_main_content'))
                     ->description(__('admin.pages.section_main_content_desc'))
                     ->schema([
                         // Slug field
-                        Forms\Components\TextInput::make('slug')
+                        TextInput::make('slug')
                             ->label(__('admin.pages.slug'))
                             ->required()
                             ->maxLength(255)
@@ -54,7 +77,7 @@ class PageResource extends Resource
                             ->alphaDash()
                             ->helperText(__('admin.pages.slug_helper'))
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                 // Auto-generate slug from English title if empty
                                 if (empty($state) && filled($get('title_en'))) {
                                     $set('slug', Str::slug($get('title_en')));
@@ -62,12 +85,12 @@ class PageResource extends Resource
                             }),
 
                         // English Title
-                        Forms\Components\TextInput::make('title_en')
+                        TextInput::make('title_en')
                             ->label(__('admin.pages.title_en'))
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                 // Auto-generate slug if empty
                                 if (empty($get('slug')) && filled($state)) {
                                     $set('slug', Str::slug($state));
@@ -75,7 +98,7 @@ class PageResource extends Resource
                             }),
 
                         // Arabic Title
-                        Forms\Components\TextInput::make('title_ar')
+                        TextInput::make('title_ar')
                             ->label(__('admin.pages.title_ar'))
                             ->required()
                             ->maxLength(255)
@@ -84,9 +107,9 @@ class PageResource extends Resource
                     ->columns(2),
 
                 // English Content Section
-                Forms\Components\Section::make(__('admin.pages.section_content_en'))
+                Section::make(__('admin.pages.section_content_en'))
                     ->schema([
-                        Forms\Components\RichEditor::make('content_en')
+                        RichEditor::make('content_en')
                             ->label(__('admin.pages.content_en'))
                             ->required()
                             ->columnSpanFull()
@@ -107,9 +130,9 @@ class PageResource extends Resource
                     ->collapsible(),
 
                 // Arabic Content Section
-                Forms\Components\Section::make(__('admin.pages.section_content_ar'))
+                Section::make(__('admin.pages.section_content_ar'))
                     ->schema([
-                        Forms\Components\RichEditor::make('content_ar')
+                        RichEditor::make('content_ar')
                             ->label(__('admin.pages.content_ar'))
                             ->required()
                             ->columnSpanFull()
@@ -131,29 +154,29 @@ class PageResource extends Resource
                     ->collapsible(),
 
                 // SEO Section
-                Forms\Components\Section::make(__('admin.pages.section_seo'))
+                Section::make(__('admin.pages.section_seo'))
                     ->description(__('admin.pages.section_seo_desc'))
                     ->schema([
                         // English SEO
-                        Forms\Components\TextInput::make('meta_title_en')
+                        TextInput::make('meta_title_en')
                             ->label(__('admin.pages.meta_title_en'))
                             ->maxLength(60)
                             ->helperText(__('admin.pages.meta_title_helper')),
 
-                        Forms\Components\Textarea::make('meta_description_en')
+                        Textarea::make('meta_description_en')
                             ->label(__('admin.pages.meta_description_en'))
                             ->maxLength(160)
                             ->rows(3)
                             ->helperText(__('admin.pages.meta_description_helper')),
 
                         // Arabic SEO
-                        Forms\Components\TextInput::make('meta_title_ar')
+                        TextInput::make('meta_title_ar')
                             ->label(__('admin.pages.meta_title_ar'))
                             ->maxLength(60)
                             ->extraAttributes(['dir' => 'rtl'])
                             ->helperText(__('admin.pages.meta_title_helper')),
 
-                        Forms\Components\Textarea::make('meta_description_ar')
+                        Textarea::make('meta_description_ar')
                             ->label(__('admin.pages.meta_description_ar'))
                             ->maxLength(160)
                             ->rows(3)
@@ -165,26 +188,26 @@ class PageResource extends Resource
                     ->collapsed(),
 
                 // Settings Section
-                Forms\Components\Section::make(__('admin.pages.section_display_settings'))
+                Section::make(__('admin.pages.section_display_settings'))
                     ->schema([
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('admin.pages.is_active'))
                             ->default(true)
                             ->helperText(__('admin.pages.is_active_helper')),
 
-                        Forms\Components\TextInput::make('order')
+                        TextInput::make('order')
                             ->label(__('admin.pages.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0)
                             ->helperText(__('admin.pages.order_helper')),
 
-                        Forms\Components\Toggle::make('show_in_header')
+                        Toggle::make('show_in_header')
                             ->label(__('admin.pages.show_in_header'))
                             ->default(false)
                             ->helperText(__('admin.pages.show_in_header_helper')),
 
-                        Forms\Components\Toggle::make('show_in_footer')
+                        Toggle::make('show_in_footer')
                             ->label(__('admin.pages.show_in_footer'))
                             ->default(true)
                             ->helperText(__('admin.pages.show_in_footer_helper')),
@@ -197,19 +220,19 @@ class PageResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title_en')
+                TextColumn::make('title_en')
                     ->label(__('admin.pages.title_en'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('title_ar')
+                TextColumn::make('title_ar')
                     ->label(__('admin.pages.title_ar'))
                     ->searchable()
                     ->sortable()
                     ->extraAttributes(['dir' => 'rtl']),
 
-                Tables\Columns\TextColumn::make('slug')
+                TextColumn::make('slug')
                     ->label(__('admin.pages.slug'))
                     ->searchable()
                     ->sortable()
@@ -217,68 +240,68 @@ class PageResource extends Resource
                     ->badge()
                     ->color('gray'),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('admin.pages.is_active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('order')
+                TextColumn::make('order')
                     ->label(__('admin.pages.order'))
                     ->numeric()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('show_in_header')
+                IconColumn::make('show_in_header')
                     ->label(__('admin.pages.header'))
                     ->boolean(),
 
-                Tables\Columns\IconColumn::make('show_in_footer')
+                IconColumn::make('show_in_footer')
                     ->label(__('admin.pages.footer'))
                     ->boolean(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('admin.pages.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->label(__('admin.pages.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('admin.pages.filter_status'))
                     ->placeholder(__('admin.pages.filter_all'))
                     ->trueLabel(__('admin.pages.filter_active'))
                     ->falseLabel(__('admin.pages.filter_inactive')),
 
-                Tables\Filters\TernaryFilter::make('show_in_footer')
+                TernaryFilter::make('show_in_footer')
                     ->label(__('admin.pages.show_in_footer')),
 
-                Tables\Filters\TernaryFilter::make('show_in_header')
+                TernaryFilter::make('show_in_header')
                     ->label(__('admin.pages.show_in_header')),
 
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
-                ActionGroup::make([
+            ->recordActions([
+                \Filament\Actions\ActionGroup::make([
 
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-                Tables\Actions\RestoreAction::make(),
-                Tables\Actions\ForceDeleteAction::make(),
-                ActivityLogTimelineTableAction::make('Activities'),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
 
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('order');
@@ -294,9 +317,9 @@ class PageResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPages::route('/'),
-            'create' => Pages\CreatePage::route('/create'),
-            'edit' => Pages\EditPage::route('/{record}/edit'),
+            'index' => ListPages::route('/'),
+            'create' => CreatePage::route('/create'),
+            'edit' => EditPage::route('/{record}/edit'),
         ];
     }
 }

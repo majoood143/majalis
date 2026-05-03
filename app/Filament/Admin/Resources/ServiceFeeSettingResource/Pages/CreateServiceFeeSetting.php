@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages;
 
+use App\Models\ServiceFeeSetting;
 use App\Filament\Admin\Resources\ServiceFeeSettingResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -132,7 +133,7 @@ class CreateServiceFeeSetting extends CreateRecord
      */
     protected function checkForOverlaps(Model $record): void
     {
-        $query = \App\Models\ServiceFeeSetting::where('is_active', true)
+        $query = ServiceFeeSetting::where('is_active', true)
             ->where('id', '!=', $record->id);
 
         // Match scope

@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Translatable\HasTranslations;
 use Carbon\Carbon;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * SeasonalPricing Model
@@ -30,8 +30,8 @@ use Spatie\Activitylog\LogOptions;
  * @property int $hall_id
  * @property array $name Translatable
  * @property string $type seasonal|holiday|weekend|special_event|early_bird|last_minute
- * @property \Carbon\Carbon $start_date
- * @property \Carbon\Carbon $end_date
+ * @property Carbon $start_date
+ * @property Carbon $end_date
  * @property bool $is_recurring
  * @property string|null $recurrence_type weekly|yearly|null
  * @property array|null $days_of_week

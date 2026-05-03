@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\FeatureResource\Pages;
 
+use Filament\Actions\Action;
 use App\Filament\Owner\Resources\FeatureResource;
 use App\Models\Hall;
 use App\Models\HallFeature;
@@ -30,7 +31,7 @@ class ManageHallFeatures extends Page
     /**
      * The view for this page.
      */
-    protected static string $view = 'filament.owner.resources.feature-resource.pages.manage-hall-features';
+    protected string $view = 'filament.owner.resources.feature-resource.pages.manage-hall-features';
 
     /**
      * Selected hall ID for single-hall mode.
@@ -94,13 +95,13 @@ class ManageHallFeatures extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('back')
+            Action::make('back')
                 ->label(__('owner.features.actions.back_to_list'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => FeatureResource::getUrl('index')),
 
-            Actions\Action::make('save_all')
+            Action::make('save_all')
                 ->label(__('owner.features.actions.save_changes'))
                 ->icon('heroicon-o-check')
                 ->color('success')

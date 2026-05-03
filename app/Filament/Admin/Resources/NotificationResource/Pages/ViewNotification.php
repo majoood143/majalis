@@ -2,10 +2,14 @@
 
 namespace App\Filament\Admin\Resources\NotificationResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use App\Filament\Admin\Resources\NotificationResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists\Infolist;
 use Filament\Infolists;
 
 class ViewNotification extends ViewRecord
@@ -15,7 +19,7 @@ class ViewNotification extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('markAsRead')
+            Action::make('markAsRead')
                 ->label(__('notification.actions.mark_as_read'))
                 ->visible(fn() => !$this->record->read_at)
                 ->action(function () {
@@ -23,30 +27,30 @@ class ViewNotification extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make(__('notification.infolist.details_section'))
+                Section::make(__('notification.infolist.details_section'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('type')
+                        TextEntry::make('type')
                             ->label(__('notification.infolist.type'))
                             ->formatStateUsing(fn($state) => class_basename($state)),
-                        Infolists\Components\TextEntry::make('notifiable.name')
+                        TextEntry::make('notifiable.name')
                             ->label(__('notification.infolist.user')),
-                        Infolists\Components\TextEntry::make('data.title')
+                        TextEntry::make('data.title')
                             ->label(__('notification.infolist.title')),
-                        Infolists\Components\TextEntry::make('data.body')
+                        TextEntry::make('data.body')
                             ->label(__('notification.infolist.message'))
                             ->columnSpanFull(),
-                        Infolists\Components\TextEntry::make('created_at')
+                        TextEntry::make('created_at')
                             ->label(__('notification.infolist.created_at'))
                             ->dateTime(),
-                        Infolists\Components\TextEntry::make('read_at')
+                        TextEntry::make('read_at')
                             ->label(__('notification.infolist.read_at'))
                             ->dateTime()
                             ->placeholder(__('notification.infolist.unread_placeholder')),

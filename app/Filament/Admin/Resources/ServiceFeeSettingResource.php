@@ -4,6 +4,26 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages\ListServiceFeeSettings;
+use App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages\CreateServiceFeeSetting;
+use App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages\EditServiceFeeSetting;
 use App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages;
 use App\Models\ServiceFeeSetting;
 use App\Models\Hall;
@@ -15,7 +35,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Get;
 use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 /**
  * Filament Resource: Service Fee Settings
@@ -29,7 +48,7 @@ class ServiceFeeSettingResource extends Resource
 {
     protected static ?string $model = ServiceFeeSetting::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-receipt-percent';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-receipt-percent';
 
     /**
      * Group under "Financial" navigation (same as Commission Settings).
@@ -60,18 +79,18 @@ class ServiceFeeSettingResource extends Resource
     // Form Definition
     // ─────────────────────────────────────────────────────────
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
 
                 // ── Section 1: Fee Scope ──
-                Forms\Components\Section::make(__('service-fee.fee_scope'))
+                Section::make(__('service-fee.fee_scope'))
                     ->description(__('service-fee.scope_description'))
                     ->schema([
 
                         // Hall selector (optional — leave blank for owner/global)
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('service-fee.hall'))
                             ->options(function (): array {
                                 return Hall::query()
@@ -90,7 +109,7 @@ class ServiceFeeSettingResource extends Resource
                             ->helperText(__('service-fee.hall_helper')),
 
                         // Owner selector (optional — leave blank for global)
-                        Forms\Components\Select::make('owner_id')
+                        Select::make('owner_id')
                             ->label(__('service-fee.owner'))
                             ->options(function (): array {
                                 return User::role('hall_owner')
@@ -105,7 +124,7 @@ class ServiceFeeSettingResource extends Resource
                             ->helperText(__('service-fee.owner_helper')),
 
                         // Priority info placeholder
-                        Forms\Components\Placeholder::make('scope_note')
+                        Placeholder::make('scope_note')
                             ->label(__('service-fee.scope_note_title'))
                             ->content(__('service-fee.scope_note'))
                             ->columnSpanFull(),
@@ -113,20 +132,20 @@ class ServiceFeeSettingResource extends Resource
                     ])->columns(2),
 
                 // ── Section 2: Fee Details ──
-                Forms\Components\Section::make(__('service-fee.fee_details'))
+                Section::make(__('service-fee.fee_details'))
                     ->schema([
 
                         // Bilingual name
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('service-fee.name_en'))
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('service-fee.name_ar'))
                             ->maxLength(255),
 
                         // Fee type: percentage or fixed
-                        Forms\Components\Select::make('fee_type')
+                        Select::make('fee_type')
                             ->options([
                                 'percentage' => __('service-fee.percentage'),
                                 'fixed'      => __('service-fee.fixed'),
@@ -137,28 +156,28 @@ class ServiceFeeSettingResource extends Resource
                             ->default('percentage'),
 
                         // Fee value with dynamic suffix
-                        Forms\Components\TextInput::make('fee_value')
+                        TextInput::make('fee_value')
                             ->label(__('service-fee.fee_value'))
                             ->numeric()
                             ->required()
                             ->step(0.01)
                             ->minValue(0)
                             ->maxValue(
-                                fn(Get $get): float =>
+                                fn(\Filament\Schemas\Components\Utilities\Get $get): float =>
                                 $get('fee_type') === 'percentage' ? 100.00 : 99999.99
                             )
-                            ->suffix(fn(Get $get): string =>
+                            ->suffix(fn(\Filament\Schemas\Components\Utilities\Get $get): string =>
                                 $get('fee_type') === 'percentage' ? '%' : 'OMR'
                             )
                             ->live(debounce: 500),
 
                         // Bilingual description
-                        Forms\Components\Textarea::make('description.en')
+                        Textarea::make('description.en')
                             ->label(__('service-fee.description_en'))
                             ->rows(2)
                             ->maxLength(1000),
 
-                        Forms\Components\Textarea::make('description.ar')
+                        Textarea::make('description.ar')
                             ->label(__('service-fee.description_ar'))
                             ->rows(2)
                             ->maxLength(1000),
@@ -166,21 +185,21 @@ class ServiceFeeSettingResource extends Resource
                     ])->columns(2),
 
                 // ── Section 3: Validity Period ──
-                Forms\Components\Section::make(__('service-fee.validity_period'))
+                Section::make(__('service-fee.validity_period'))
                     ->schema([
 
-                        Forms\Components\DatePicker::make('effective_from')
+                        DatePicker::make('effective_from')
                             ->label(__('service-fee.effective_from'))
                             ->helperText(__('service-fee.effective_from_helper'))
                             ->native(false),
 
-                        Forms\Components\DatePicker::make('effective_to')
+                        DatePicker::make('effective_to')
                             ->label(__('service-fee.effective_to'))
                             ->helperText(__('service-fee.effective_to_helper'))
                             ->native(false)
                             ->after('effective_from'),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('service-fee.is_active'))
                             ->default(true)
                             ->columnSpanFull(),
@@ -199,7 +218,7 @@ class ServiceFeeSettingResource extends Resource
             ->columns([
 
                 // Scope badge (Global / Owner / Hall)
-                Tables\Columns\TextColumn::make('scope')
+                TextColumn::make('scope')
                     ->label(__('service-fee.scope'))
                     ->state(function (ServiceFeeSetting $record): string {
                         if ($record->hall_id) {
@@ -223,7 +242,7 @@ class ServiceFeeSettingResource extends Resource
                     ->sortable(false),
 
                 // Fee type badge
-                Tables\Columns\TextColumn::make('fee_type')
+                TextColumn::make('fee_type')
                     ->label(__('service-fee.fee_type'))
                     ->formatStateUsing(function ($state) {
                         return $state->value === 'percentage'
@@ -239,7 +258,7 @@ class ServiceFeeSettingResource extends Resource
                     ->sortable(),
 
                 // Fee value (formatted)
-                Tables\Columns\TextColumn::make('fee_value')
+                TextColumn::make('fee_value')
                     ->label(__('service-fee.value'))
                     ->formatStateUsing(function ($record) {
                         return $record->fee_type->value === 'percentage'
@@ -249,13 +268,13 @@ class ServiceFeeSettingResource extends Resource
                     ->sortable(),
 
                 // Effective date range
-                Tables\Columns\TextColumn::make('effective_from')
+                TextColumn::make('effective_from')
                     ->label(__('service-fee.effective_from'))
                     ->date()
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('effective_to')
+                TextColumn::make('effective_to')
                     ->label(__('service-fee.effective_to'))
                     ->date()
                     ->sortable()
@@ -263,12 +282,12 @@ class ServiceFeeSettingResource extends Resource
                     ->placeholder(__('Indefinite')),
 
                 // Active toggle
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('service-fee.is_active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('service-fee.created_at'))
                     ->dateTime()
                     ->sortable()
@@ -277,22 +296,22 @@ class ServiceFeeSettingResource extends Resource
 
             // ── Filters ──
             ->filters([
-                Tables\Filters\SelectFilter::make('fee_type')
+                SelectFilter::make('fee_type')
                     ->label(__('service-fee.fee_type'))
                     ->options([
                         'percentage' => __('service-fee.percentage'),
                         'fixed'      => __('service-fee.fixed'),
                     ]),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('service-fee.filters.active'))
                     ->boolean()
                     ->native(false),
 
-                Tables\Filters\Filter::make('scope')
+                Filter::make('scope')
                     ->label(__('service-fee.scope'))
-                    ->form([
-                        Forms\Components\Select::make('scope_type')
+                    ->schema([
+                        Select::make('scope_type')
                             ->label(__('service-fee.filters.scope_type'))
                             ->options([
                                 'global' => __('service-fee.filters.global'),
@@ -309,20 +328,20 @@ class ServiceFeeSettingResource extends Resource
             ])
 
             // ── Row Actions ──
-            ->actions([
-                ActionGroup::make([
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                \Filament\Actions\ActionGroup::make([
+                EditAction::make()
                     ->label(__('service-fee.edit')),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->label(__('service-fee.delete')),
-                ActivityLogTimelineTableAction::make('Activities'),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
             ])
 
             // ── Bulk Actions ──
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
 
@@ -341,9 +360,9 @@ class ServiceFeeSettingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListServiceFeeSettings::route('/'),
-            'create' => Pages\CreateServiceFeeSetting::route('/create'),
-            'edit'   => Pages\EditServiceFeeSetting::route('/{record}/edit'),
+            'index'  => ListServiceFeeSettings::route('/'),
+            'create' => CreateServiceFeeSetting::route('/create'),
+            'edit'   => EditServiceFeeSetting::route('/{record}/edit'),
         ];
     }
 }

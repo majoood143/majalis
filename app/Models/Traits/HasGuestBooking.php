@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Traits;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\User;
 use App\Models\GuestSession;
 use Illuminate\Support\Str;
@@ -31,8 +33,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  *
  * @property bool $is_guest_booking
  * @property string|null $guest_token
- * @property \Carbon\Carbon|null $guest_token_expires_at
- * @property \Carbon\Carbon|null $account_created_at
+ * @property Carbon|null $guest_token_expires_at
+ * @property Carbon|null $account_created_at
  */
 trait HasGuestBooking
 {
@@ -80,12 +82,11 @@ trait HasGuestBooking
     // =========================================================================
     // SCOPES
     // =========================================================================
-
     /**
      * Scope to filter only guest bookings.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeGuestBookings($query)
     {
@@ -95,8 +96,8 @@ trait HasGuestBooking
     /**
      * Scope to filter only registered user bookings.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeRegisteredBookings($query)
     {
@@ -106,9 +107,9 @@ trait HasGuestBooking
     /**
      * Scope to filter guest bookings by email.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $email
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeGuestByEmail($query, string $email)
     {
@@ -119,8 +120,8 @@ trait HasGuestBooking
     /**
      * Scope to filter guest bookings with active tokens.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeWithActiveGuestToken($query)
     {
@@ -134,8 +135,8 @@ trait HasGuestBooking
     /**
      * Scope to filter unlinked guest bookings (not converted to user).
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeUnlinkedGuest($query)
     {

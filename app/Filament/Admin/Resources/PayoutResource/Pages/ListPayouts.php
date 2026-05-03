@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PayoutResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Actions\CreateAction;
+use Exception;
+use App\Filament\Admin\Widgets\PayoutStatsWidget;
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource;
 use App\Models\Booking;
@@ -44,12 +50,12 @@ class ListPayouts extends ListRecords
     {
         return [
             // Generate Payouts Action
-            Actions\Action::make('generate_payouts')
+            Action::make('generate_payouts')
                 ->label(__('admin.payout.actions.generate'))
                 ->icon('heroicon-o-calculator')
                 ->color('warning')
-                ->form([
-                    Forms\Components\Select::make('owner_id')
+                ->schema([
+                    Select::make('owner_id')
                         ->label(__('admin.payout.fields.owner'))
                         ->options(function () {
                             return User::whereHas('hallOwner')
@@ -62,7 +68,7 @@ class ListPayouts extends ListRecords
                         ->nullable() // Add this
                         ->default(null), // Add this
 
-                    Forms\Components\DatePicker::make('period_start')
+                    DatePicker::make('period_start')
                         ->label(__('admin.payout.fields.period_start'))
                         ->required()
                         ->native(false)
@@ -70,7 +76,7 @@ class ListPayouts extends ListRecords
                         ->maxDate(now())
                         ->default(now()->startOfMonth()),
 
-                    Forms\Components\DatePicker::make('period_end')
+                    DatePicker::make('period_end')
                         ->label(__('admin.payout.fields.period_end'))
                         ->required()
                         ->native(false)
@@ -138,23 +144,23 @@ class ListPayouts extends ListRecords
             //     }),
 
             // // Export Action
-            Actions\Action::make('export')
+            Action::make('export')
                 ->label(__('admin.payout.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
-                ->form([
-                    Forms\Components\Select::make('status')
+                ->schema([
+                    Select::make('status')
                         ->label(__('admin.payout.filters.status'))
                         ->options(PayoutStatus::toSelectArray())
                         ->placeholder(__('admin.payout.all_statuses')),
 
-                    Forms\Components\DatePicker::make('from_date')
+                    DatePicker::make('from_date')
                         ->label(__('admin.payout.filters.from')),
 
-                    Forms\Components\DatePicker::make('to_date')
+                    DatePicker::make('to_date')
                         ->label(__('admin.payout.filters.to')),
 
-                    Forms\Components\Select::make('format')
+                    Select::make('format')
                         ->label(__('admin.payout.export.format'))
                         ->options([
                             'csv' => 'CSV',
@@ -172,7 +178,7 @@ class ListPayouts extends ListRecords
                 }),
 
             // Create New Payout
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(__('admin.payout.actions.create'))
                 ->icon('heroicon-o-plus'),
         ];
@@ -297,7 +303,7 @@ class ListPayouts extends ListRecords
             try {
                 OwnerPayout::createForPeriod($owner->id, $periodStart, $periodEnd);
                 $generated++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Failed to generate payout', [
                     'owner_id' => $owner->id,
                     'period' => [$periodStart, $periodEnd],
@@ -317,11 +323,11 @@ class ListPayouts extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('admin.payout.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.payout.tabs.all'))
                 ->badge(OwnerPayout::count())
                 ->badgeColor('gray'),
 
-            'pending' => Tab::make(__('admin.payout.tabs.pending'))
+            'pending' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.payout.tabs.pending'))
                 ->badge(OwnerPayout::where('status', PayoutStatus::PENDING)->count())
                 ->badgeColor('warning')
                 ->icon('heroicon-o-clock')
@@ -329,7 +335,7 @@ class ListPayouts extends ListRecords
                     $query->where('status', PayoutStatus::PENDING)
                 ),
 
-            'processing' => Tab::make(__('admin.payout.tabs.processing'))
+            'processing' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.payout.tabs.processing'))
                 ->badge(OwnerPayout::where('status', PayoutStatus::PROCESSING)->count())
                 ->badgeColor('info')
                 ->icon('heroicon-o-arrow-path')
@@ -337,7 +343,7 @@ class ListPayouts extends ListRecords
                     $query->where('status', PayoutStatus::PROCESSING)
                 ),
 
-            'completed' => Tab::make(__('admin.payout.tabs.completed'))
+            'completed' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.payout.tabs.completed'))
                 ->badge(OwnerPayout::where('status', PayoutStatus::COMPLETED)->count())
                 ->badgeColor('success')
                 ->icon('heroicon-o-check-circle')
@@ -345,7 +351,7 @@ class ListPayouts extends ListRecords
                     $query->where('status', PayoutStatus::COMPLETED)
                 ),
 
-            'on_hold' => Tab::make(__('admin.payout.tabs.on_hold'))
+            'on_hold' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.payout.tabs.on_hold'))
                 ->badge(OwnerPayout::where('status', PayoutStatus::ON_HOLD)->count())
                 ->badgeColor('warning')
                 ->icon('heroicon-o-pause-circle')
@@ -353,7 +359,7 @@ class ListPayouts extends ListRecords
                     $query->where('status', PayoutStatus::ON_HOLD)
                 ),
 
-            'failed' => Tab::make(__('admin.payout.tabs.failed'))
+            'failed' => \Filament\Schemas\Components\Tabs\Tab::make(__('admin.payout.tabs.failed'))
                 ->badge(OwnerPayout::where('status', PayoutStatus::FAILED)->count())
                 ->badgeColor('danger')
                 ->icon('heroicon-o-x-circle')
@@ -371,7 +377,7 @@ class ListPayouts extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Filament\Admin\Widgets\PayoutStatsWidget::class,
+            PayoutStatsWidget::class,
         ];
     }
 }

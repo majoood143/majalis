@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Traits;
 
+use Illuminate\Support\HtmlString;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -161,10 +162,10 @@ trait HasGuestBookingFilamentFields
                             $badge .= '<br><small class="text-gray-500">' . __('Account created') . ': ' . $record->account_created_at->format('M j, Y H:i') . '</small>';
                         }
 
-                        return new \Illuminate\Support\HtmlString($badge);
+                        return new HtmlString($badge);
                     }
 
-                    return new \Illuminate\Support\HtmlString(
+                    return new HtmlString(
                         '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">' . __('guest.badge_registered') . '</span>'
                     );
                 })
@@ -180,7 +181,7 @@ trait HasGuestBookingFilamentFields
                     $url = route('guest.booking.show', ['guest_token' => $record->guest_token]);
                     $tokenShort = substr($record->guest_token, 0, 16) . '...';
 
-                    return new \Illuminate\Support\HtmlString(
+                    return new HtmlString(
                         '<div class="space-y-1">' .
                         '<code class="text-xs bg-gray-100 px-2 py-1 rounded">' . $tokenShort . '</code>' .
                         '<br><a href="' . $url . '" target="_blank" class="text-sm text-primary-600 hover:underline">' . __('View Guest Booking Page') . ' →</a>' .

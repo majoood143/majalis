@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Actions;
+use Illuminate\Support\Collection;
+use Filament\Support\Enums\Width;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -37,21 +45,21 @@ class Reports extends Page implements HasForms
      *
      * @var string
      */
-    protected static string $view = 'filament.admin.pages.reports';
+    protected string $view = 'filament.admin.pages.reports';
 
     /**
      * The navigation icon.
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar-square';
 
     /**
      * The navigation group.
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Analytics';
+    protected static string | \UnitEnum | null $navigationGroup = 'Analytics';
 
     public static function getModelLabel(): string
     {
@@ -154,16 +162,16 @@ class Reports extends Page implements HasForms
     /**
      * Define the filter form.
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(4)
+        return $schema
+            ->components([
+                Grid::make(4)
                     ->schema([
-                        Forms\Components\DatePicker::make('startDate')
+                        DatePicker::make('startDate')
                             ->label(__('admin.reports.filters.start_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
@@ -171,7 +179,7 @@ class Reports extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn () => $this->loadData()),
 
-                        Forms\Components\DatePicker::make('endDate')
+                        DatePicker::make('endDate')
                             ->label(__('admin.reports.filters.end_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
@@ -179,7 +187,7 @@ class Reports extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn () => $this->loadData()),
 
-                        Forms\Components\Select::make('preset')
+                        Select::make('preset')
                             ->label(__('admin.reports.filters.preset'))
                             ->options([
                                 'today' => __('admin.reports.presets.today'),
@@ -195,8 +203,8 @@ class Reports extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn ($state) => $this->applyPreset($state)),
 
-                        Forms\Components\Actions::make([
-                            Forms\Components\Actions\Action::make('refresh')
+                        Actions::make([
+                            Action::make('refresh')
                                 ->label(__('admin.reports.actions.refresh'))
                                 ->icon('heroicon-o-arrow-path')
                                 ->action(fn () => $this->loadData()),
@@ -321,10 +329,10 @@ class Reports extends Page implements HasForms
     /**
      * Get top performing halls.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     #[Computed]
-    public function topHalls(): \Illuminate\Support\Collection
+    public function topHalls(): Collection
     {
         $service = app(ReportService::class);
 
@@ -338,10 +346,10 @@ class Reports extends Page implements HasForms
     /**
      * Get top performing owners.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     #[Computed]
-    public function topOwners(): \Illuminate\Support\Collection
+    public function topOwners(): Collection
     {
         $service = app(ReportService::class);
 
@@ -402,8 +410,8 @@ class Reports extends Page implements HasForms
                 ->label(__('admin.reports.actions.export_csv'))
                 ->icon('heroicon-o-table-cells')
                 ->color('success')
-                ->form([
-                    Forms\Components\Select::make('report_type')
+                ->schema([
+                    Select::make('report_type')
                         ->label(__('admin.reports.export.type'))
                         ->options([
                             'summary' => __('admin.reports.export.summary'),
@@ -438,7 +446,7 @@ class Reports extends Page implements HasForms
      * Export report as CSV.
      *
      * @param string $reportType
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return StreamedResponse
      */
     public function exportCSV(string $reportType)
     {
@@ -554,10 +562,10 @@ class Reports extends Page implements HasForms
     /**
      * Get max content width.
      *
-     * @return MaxWidth
+     * @return Width
      */
-    public function getMaxContentWidth(): MaxWidth
+    public function getMaxContentWidth(): Width
     {
-        return MaxWidth::Full;
+        return Width::Full;
     }
 }

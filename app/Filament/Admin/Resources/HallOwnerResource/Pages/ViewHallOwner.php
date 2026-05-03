@@ -2,6 +2,13 @@
 
 namespace App\Filament\Admin\Resources\HallOwnerResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Actions\DeleteAction;
+use Exception;
 use App\Filament\Admin\Resources\HallOwnerResource;
 use App\Filament\Admin\Resources\HallOwnerResource\Widgets\HallOwnerStatsOverview;
 use App\Filament\Admin\Resources\HallOwnerResource\Widgets\HallOwnerRecentBookings;
@@ -24,17 +31,17 @@ class ViewHallOwner extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make()
+            EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary'),
 
-            Actions\Action::make('verify')
+            Action::make('verify')
                 ->label(fn() => $this->record->is_verified ? 'Unverify' : 'Verify')
                 ->icon(fn() => $this->record->is_verified ? 'heroicon-o-x-circle' : 'heroicon-o-check-badge')
                 ->color(fn() => $this->record->is_verified ? 'warning' : 'success')
                 ->requiresConfirmation()
-                ->form(fn() => !$this->record->is_verified ? [
-                    \Filament\Forms\Components\Textarea::make('verification_notes')
+                ->schema(fn() => !$this->record->is_verified ? [
+                    Textarea::make('verification_notes')
                         ->label('Verification Notes')
                         ->rows(3),
                 ] : [])
@@ -53,7 +60,7 @@ class ViewHallOwner extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'danger' : 'success')
@@ -70,7 +77,7 @@ class ViewHallOwner extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewHalls')
+            Action::make('viewHalls')
                 ->label('View Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
@@ -82,16 +89,16 @@ class ViewHallOwner extends ViewRecord
                     ]
                 ])),
 
-            Actions\Action::make('sendNotification')
+            Action::make('sendNotification')
                 ->label('Send Notification')
                 ->icon('heroicon-o-bell')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('subject')
+                ->schema([
+                    TextInput::make('subject')
                         ->required()
                         ->maxLength(255),
 
-                    \Filament\Forms\Components\Textarea::make('message')
+                    Textarea::make('message')
                         ->required()
                         ->rows(5),
                 ])
@@ -113,18 +120,18 @@ class ViewHallOwner extends ViewRecord
             //             ->title('Report Generated')
             //             ->send();
             //     }),
-            Actions\Action::make('generateReport')
+            Action::make('generateReport')
                 ->label('Generate Owner Report')
                 ->icon('heroicon-o-document-chart-bar')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('from_date')
+                ->schema([
+                    DatePicker::make('from_date')
                         ->label('From Date')
                         ->default(now()->startOfMonth())
                         ->native(false)
                         ->required(),
 
-                    \Filament\Forms\Components\DatePicker::make('to_date')
+                    DatePicker::make('to_date')
                         ->label('To Date')
                         ->default(now())
                         ->native(false)
@@ -134,8 +141,8 @@ class ViewHallOwner extends ViewRecord
                     $this->generateOwnerReport($data);
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     if ($this->record->halls()->count() > 0) {
                         Notification::make()
                             ->danger()
@@ -334,13 +341,13 @@ class ViewHallOwner extends ViewRecord
                 ->body('Hall owner performance report has been created.')
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label('Download Report')
                         ->url(asset('storage/' . $filepath))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to generate owner report', [
                 'owner_id' => $this->record->id,
                 'error' => $e->getMessage(),

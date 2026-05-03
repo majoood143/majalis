@@ -4,6 +4,24 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\RelationManagers;
 
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
 use App\Models\Hall;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -28,17 +46,17 @@ class AvailabilitiesRelationManager extends RelationManager
         return __('owner.relation.availabilities');
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\DatePicker::make('date')
+        return $schema
+            ->components([
+                DatePicker::make('date')
                     ->label(__('owner.availability.date'))
                     ->required()
                     ->native(false)
                     ->minDate(now()),
 
-                Forms\Components\Select::make('time_slot')
+                Select::make('time_slot')
                     ->label(__('owner.availability.time_slot'))
                     ->required()
                     ->options([
@@ -48,11 +66,11 @@ class AvailabilitiesRelationManager extends RelationManager
                         'full_day' => __('owner.slots.full_day'),
                     ]),
 
-                Forms\Components\Toggle::make('is_available')
+                Toggle::make('is_available')
                     ->label(__('owner.availability.is_available'))
                     ->default(true),
 
-                Forms\Components\Select::make('reason')
+                Select::make('reason')
                     ->label(__('owner.availability.reason'))
                     ->options([
                         'blocked' => __('owner.availability.reasons.blocked'),
@@ -62,9 +80,9 @@ class AvailabilitiesRelationManager extends RelationManager
                         'renovation' => __('owner.availability.reasons.renovation'),
                         'other' => __('owner.availability.reasons.other'),
                     ])
-                    ->visible(fn (Forms\Get $get): bool => !$get('is_available')),
+                    ->visible(fn (Get $get): bool => !$get('is_available')),
 
-                Forms\Components\TextInput::make('custom_price')
+                TextInput::make('custom_price')
                     ->label(__('owner.availability.custom_price'))
                     ->numeric()
                     ->minValue(0)
@@ -79,17 +97,17 @@ class AvailabilitiesRelationManager extends RelationManager
             ->recordTitleAttribute('date')
             ->defaultSort('date', 'asc')
             ->columns([
-                Tables\Columns\TextColumn::make('date')
+                TextColumn::make('date')
                     ->label(__('owner.availability.date'))
                     ->date('d M Y')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label(__('owner.availability.time_slot'))
                     ->formatStateUsing(fn (string $state): string => __("owner.slots.{$state}"))
                     ->badge(),
 
-                Tables\Columns\IconColumn::make('is_available')
+                IconColumn::make('is_available')
                     ->label(__('owner.availability.status'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -97,7 +115,7 @@ class AvailabilitiesRelationManager extends RelationManager
                     ->trueColor('success')
                     ->falseColor('danger'),
 
-                Tables\Columns\TextColumn::make('reason')
+                TextColumn::make('reason')
                     ->label(__('owner.availability.reason'))
                     ->formatStateUsing(fn (?string $state): string => $state ? __("owner.availability.reasons.{$state}") : '-')
                     ->badge()
@@ -107,13 +125,13 @@ class AvailabilitiesRelationManager extends RelationManager
                         default => 'danger',
                     }),
 
-                Tables\Columns\TextColumn::make('custom_price')
+                TextColumn::make('custom_price')
                     ->label(__('owner.availability.custom_price'))
                     ->money('OMR')
                     ->placeholder('-'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('time_slot')
+                SelectFilter::make('time_slot')
                     ->label(__('owner.availability.time_slot'))
                     ->options([
                         'morning' => __('owner.slots.morning'),
@@ -122,20 +140,20 @@ class AvailabilitiesRelationManager extends RelationManager
                         'full_day' => __('owner.slots.full_day'),
                     ]),
 
-                Tables\Filters\TernaryFilter::make('is_available')
+                TernaryFilter::make('is_available')
                     ->label(__('owner.availability.status')),
 
-                Tables\Filters\Filter::make('future')
+                Filter::make('future')
                     ->label(__('owner.availability.future_only'))
                     ->query(fn (Builder $query): Builder => $query->where('date', '>=', now()->toDateString()))
                     ->default(),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('toggle')
+            ->recordActions([
+                EditAction::make(),
+                Action::make('toggle')
                     ->label(fn ($record): string => $record->is_available 
                         ? __('owner.availability.block') 
                         : __('owner.availability.unblock'))
@@ -156,23 +174,23 @@ class AvailabilitiesRelationManager extends RelationManager
                                 : __('owner.availability.notifications.blocked'))
                             ->send();
                     }),
-                Tables\Actions\DeleteAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\BulkAction::make('block')
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('block')
                         ->label(__('owner.availability.block_selected'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->action(fn ($records) => $records->each->update(['is_available' => false, 'reason' => 'blocked'])),
                     
-                    Tables\Actions\BulkAction::make('unblock')
+                    BulkAction::make('unblock')
                         ->label(__('owner.availability.unblock_selected'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->action(fn ($records) => $records->each->update(['is_available' => true, 'reason' => null])),
                     
-                    Tables\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

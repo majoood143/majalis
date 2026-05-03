@@ -4,6 +4,33 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\TextSize;
+use Filament\Infolists\Components\KeyValueEntry;
+use App\Filament\Admin\Resources\PayoutResource\Pages\ListPayouts;
+use App\Filament\Admin\Resources\PayoutResource\Pages\CreatePayout;
+use App\Filament\Admin\Resources\PayoutResource\Pages\ViewPayout;
+use App\Filament\Admin\Resources\PayoutResource\Pages\EditPayout;
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource\Pages;
 use App\Models\OwnerPayout;
@@ -21,7 +48,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 /**
@@ -49,14 +75,14 @@ class PayoutResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
 
     /**
      * The navigation group for this resource.
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Finance';
+    protected static string | \UnitEnum | null $navigationGroup = 'Finance';
 
     public static function getModelLabel(): string
     {
@@ -126,21 +152,21 @@ class PayoutResource extends Resource
     /**
      * Define the form schema for creating/editing payouts.
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Main Information Section
-                Forms\Components\Section::make(__('admin.payout.sections.main'))
+                Section::make(__('admin.payout.sections.main'))
                     ->description(__('admin.payout.sections.main_desc'))
                     ->schema([
-                        Forms\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
                                 // Payout Number (auto-generated)
-                                Forms\Components\TextInput::make('payout_number')
+                                TextInput::make('payout_number')
                                     ->label(__('admin.payout.fields.payout_number'))
                                     ->disabled()
                                     ->dehydrated(false)
@@ -148,7 +174,7 @@ class PayoutResource extends Resource
                                     ->helperText(__('admin.payout.auto_generated_help')),
 
                                 // Owner Selection
-                                Forms\Components\Select::make('owner_id')
+                                Select::make('owner_id')
                                     ->label(__('admin.payout.fields.owner'))
                                     ->relationship('owner', 'name')
                                     ->searchable()
@@ -167,9 +193,9 @@ class PayoutResource extends Resource
                             ]),
 
                         // Period Selection
-                        Forms\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Forms\Components\DatePicker::make('period_start')
+                                DatePicker::make('period_start')
                                     ->label(__('admin.payout.fields.period_start'))
                                     ->required()
                                     ->native(false)
@@ -177,21 +203,21 @@ class PayoutResource extends Resource
                                     ->maxDate(now())
                                     ->live()
                                     ->afterStateUpdated(
-                                        fn(Forms\Set $set, $state) =>
+                                        fn(Set $set, $state) =>
                                         $set('period_end', $state)
                                     ),
 
-                                Forms\Components\DatePicker::make('period_end')
+                                DatePicker::make('period_end')
                                     ->label(__('admin.payout.fields.period_end'))
                                     ->required()
                                     ->native(false)
                                     ->displayFormat('d M Y')
-                                    ->minDate(fn(Forms\Get $get) => $get('period_start'))
+                                    ->minDate(fn(Get $get) => $get('period_start'))
                                     ->maxDate(now()),
                             ]),
 
                         // Status
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label(__('admin.payout.fields.status'))
                             ->options(PayoutStatus::toSelectArray())
                             ->default(PayoutStatus::PENDING->value)
@@ -202,12 +228,12 @@ class PayoutResource extends Resource
                     ->columns(1),
 
                 // Financial Details Section
-                Forms\Components\Section::make(__('admin.payout.sections.financial'))
+                Section::make(__('admin.payout.sections.financial'))
                     ->description(__('admin.payout.sections.financial_desc'))
                     ->schema([
-                        Forms\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Forms\Components\TextInput::make('gross_revenue')
+                                TextInput::make('gross_revenue')
                                     ->label(__('admin.payout.fields.gross_revenue'))
                                     ->numeric()
                                     ->prefix('OMR')
@@ -216,11 +242,11 @@ class PayoutResource extends Resource
                                     ->step(0.001)
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(
-                                        fn(Forms\Set $set, Forms\Get $get) =>
+                                        fn(Set $set, Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
-                                Forms\Components\TextInput::make('commission_amount')
+                                TextInput::make('commission_amount')
                                     ->label(__('admin.payout.fields.commission'))
                                     ->numeric()
                                     ->prefix('OMR')
@@ -229,11 +255,11 @@ class PayoutResource extends Resource
                                     ->step(0.001)
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(
-                                        fn(Forms\Set $set, Forms\Get $get) =>
+                                        fn(Set $set, Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
-                                Forms\Components\TextInput::make('commission_rate')
+                                TextInput::make('commission_rate')
                                     ->label(__('admin.payout.fields.commission_rate'))
                                     ->numeric()
                                     ->suffix('%')
@@ -242,9 +268,9 @@ class PayoutResource extends Resource
                                     ->maxValue(100),
                             ]),
 
-                        Forms\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Forms\Components\TextInput::make('adjustments')
+                                TextInput::make('adjustments')
                                     ->label(__('admin.payout.fields.adjustments'))
                                     ->numeric()
                                     ->prefix('OMR')
@@ -253,17 +279,17 @@ class PayoutResource extends Resource
                                     ->helperText(__('admin.payout.adjustments_help'))
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(
-                                        fn(Forms\Set $set, Forms\Get $get) =>
+                                        fn(Set $set, Get $get) =>
                                         self::calculateNetPayout($set, $get)
                                     ),
 
-                                Forms\Components\TextInput::make('bookings_count')
+                                TextInput::make('bookings_count')
                                     ->label(__('admin.payout.fields.bookings_count'))
                                     ->numeric()
                                     ->default(0)
                                     ->integer(),
 
-                                Forms\Components\TextInput::make('net_payout')
+                                TextInput::make('net_payout')
                                     ->label(__('admin.payout.fields.net_payout'))
                                     ->numeric()
                                     ->prefix('OMR')
@@ -279,12 +305,12 @@ class PayoutResource extends Resource
                     ->collapsible(),
 
                 // Payment Details Section
-                Forms\Components\Section::make(__('admin.payout.sections.payment'))
+                Section::make(__('admin.payout.sections.payment'))
                     ->description(__('admin.payout.sections.payment_desc'))
                     ->schema([
-                        Forms\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Forms\Components\Select::make('payment_method')
+                                Select::make('payment_method')
                                     ->label(__('admin.payout.fields.payment_method'))
                                     ->options([
                                         'bank_transfer' => __('admin.payout.methods.bank_transfer'),
@@ -294,14 +320,14 @@ class PayoutResource extends Resource
                                     ])
                                     ->native(false),
 
-                                Forms\Components\TextInput::make('transaction_reference')
+                                TextInput::make('transaction_reference')
                                     ->label(__('admin.payout.fields.transaction_reference'))
                                     ->maxLength(100)
                                     ->placeholder(__('admin.payout.transaction_placeholder')),
                             ]),
 
                         // Bank Details (JSON)
-                        Forms\Components\KeyValue::make('bank_details')
+                        KeyValue::make('bank_details')
                             ->label(__('admin.payout.fields.bank_details'))
                             ->keyLabel(__('admin.payout.bank.field'))
                             ->valueLabel(__('admin.payout.bank.value'))
@@ -313,19 +339,19 @@ class PayoutResource extends Resource
                     ->collapsed(),
 
                 // Notes Section
-                Forms\Components\Section::make(__('admin.payout.sections.notes'))
+                Section::make(__('admin.payout.sections.notes'))
                     ->schema([
-                        Forms\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->label(__('admin.payout.fields.notes'))
                             ->rows(3)
                             ->maxLength(1000)
                             ->columnSpanFull(),
 
-                        Forms\Components\Textarea::make('failure_reason')
+                        Textarea::make('failure_reason')
                             ->label(__('admin.payout.fields.failure_reason'))
                             ->rows(2)
                             ->maxLength(500)
-                            ->visible(fn(Forms\Get $get) => $get('status') === PayoutStatus::FAILED->value)
+                            ->visible(fn(Get $get) => $get('status') === PayoutStatus::FAILED->value)
                             ->columnSpanFull(),
                     ])
                     ->collapsible()
@@ -336,11 +362,11 @@ class PayoutResource extends Resource
     /**
      * Calculate net payout from form values.
      *
-     * @param Forms\Set $set
-     * @param Forms\Get $get
+     * @param Set $set
+     * @param Get $get
      * @return void
      */
-    protected static function calculateNetPayout(Forms\Set $set, Forms\Get $get): void
+    protected static function calculateNetPayout(Set $set, Get $get): void
     {
         $gross = (float) ($get('gross_revenue') ?? 0);
         $commission = (float) ($get('commission_amount') ?? 0);
@@ -367,7 +393,7 @@ class PayoutResource extends Resource
         return $table
             ->columns([
                 // Payout Number
-                Tables\Columns\TextColumn::make('payout_number')
+                TextColumn::make('payout_number')
                     ->label(__('admin.payout.fields.payout_number'))
                     ->searchable()
                     ->sortable()
@@ -376,7 +402,7 @@ class PayoutResource extends Resource
                     ->color('primary'),
 
                 // Owner
-                Tables\Columns\TextColumn::make('owner.name')
+                TextColumn::make('owner.name')
                     ->label(__('admin.payout.fields.owner'))
                     ->searchable()
                     ->sortable()
@@ -386,7 +412,7 @@ class PayoutResource extends Resource
                     ),
 
                 // Period
-                Tables\Columns\TextColumn::make('period_start')
+                TextColumn::make('period_start')
                     ->label(__('admin.payout.fields.period'))
                     ->formatStateUsing(
                         fn(OwnerPayout $record): string =>
@@ -395,21 +421,21 @@ class PayoutResource extends Resource
                     ->sortable(),
 
                 // Bookings Count
-                Tables\Columns\TextColumn::make('bookings_count')
+                TextColumn::make('bookings_count')
                     ->label(__('admin.payout.fields.bookings'))
                     ->alignCenter()
                     ->badge()
                     ->color('gray'),
 
                 // Gross Revenue
-                Tables\Columns\TextColumn::make('gross_revenue')
+                TextColumn::make('gross_revenue')
                     ->label(__('admin.payout.fields.gross'))
                     ->money('OMR')
                     ->sortable()
                     ->alignEnd(),
 
                 // Commission
-                Tables\Columns\TextColumn::make('commission_amount')
+                TextColumn::make('commission_amount')
                     ->label(__('admin.payout.fields.commission'))
                     ->money('OMR')
                     ->sortable()
@@ -417,7 +443,7 @@ class PayoutResource extends Resource
                     ->color('danger'),
 
                 // Net Payout
-                Tables\Columns\TextColumn::make('net_payout')
+                TextColumn::make('net_payout')
                     ->label(__('admin.payout.fields.net'))
                     ->money('OMR')
                     ->sortable()
@@ -426,7 +452,7 @@ class PayoutResource extends Resource
                     ->color('success'),
 
                 // Status
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('admin.payout.fields.status'))
                     ->badge()
                     ->formatStateUsing(fn(PayoutStatus $state): string => $state->getLabel())
@@ -434,7 +460,7 @@ class PayoutResource extends Resource
                     ->icon(fn(PayoutStatus $state): string => $state->getIcon()),
 
                 // Processed Date
-                Tables\Columns\TextColumn::make('completed_at')
+                TextColumn::make('completed_at')
                     ->label(__('admin.payout.fields.completed_at'))
                     ->dateTime('d M Y H:i')
                     ->sortable()
@@ -442,7 +468,7 @@ class PayoutResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 // Created Date
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('admin.payout.fields.created_at'))
                     ->dateTime('d M Y')
                     ->sortable()
@@ -450,26 +476,26 @@ class PayoutResource extends Resource
             ])
             ->filters([
                 // Status Filter
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('admin.payout.filters.status'))
                     ->options(PayoutStatus::toSelectArray())
                     ->multiple()
                     ->preload(),
 
                 // Owner Filter
-                Tables\Filters\SelectFilter::make('owner_id')
+                SelectFilter::make('owner_id')
                     ->label(__('admin.payout.filters.owner'))
                     ->relationship('owner', 'name')
                     ->searchable()
                     ->preload(),
 
                 // Period Filter
-                Tables\Filters\Filter::make('period')
+                Filter::make('period')
                     ->label(__('admin.payout.filters.period'))
-                    ->form([
-                        Forms\Components\DatePicker::make('from')
+                    ->schema([
+                        DatePicker::make('from')
                             ->label(__('admin.payout.filters.from')),
-                        Forms\Components\DatePicker::make('to')
+                        DatePicker::make('to')
                             ->label(__('admin.payout.filters.to')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -487,35 +513,35 @@ class PayoutResource extends Resource
                     }),
 
                 // Pending Payouts
-                Tables\Filters\TernaryFilter::make('pending_only')
+                TernaryFilter::make('pending_only')
                     ->label(__('admin.payout.filters.pending_only'))
                     ->queries(
                         true: fn(Builder $query) => $query->where('status', PayoutStatus::PENDING),
                         false: fn(Builder $query) => $query->whereNot('status', PayoutStatus::PENDING),
                     ),
             ])
-            ->actions([
+            ->recordActions([
 
                 // View Action
-                Tables\Actions\ViewAction::make()
+                ViewAction::make()
                     ->iconButton(),
 
                 // Edit Action
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->iconButton()
                     ->visible(
                         fn(OwnerPayout $record): bool =>
                         !$record->status->isTerminal()
                     ),
 
-                ActionGroup::make([
+                \Filament\Actions\ActionGroup::make([
 
 
 
 
 
                     // Process Action
-                    Tables\Actions\Action::make('process')
+                    Action::make('process')
                         ->label(__('admin.payout.actions.process'))
                         ->icon('heroicon-o-play')
                         ->color('info')
@@ -539,12 +565,12 @@ class PayoutResource extends Resource
                         }),
 
                     // Complete Action
-                    Tables\Actions\Action::make('complete')
+                    Action::make('complete')
                         ->label(__('admin.payout.actions.complete'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
-                        ->form([
-                            Forms\Components\Select::make('payment_method')
+                        ->schema([
+                            Select::make('payment_method')
                                 ->label(__('admin.payout.fields.payment_method'))
                                 ->options([
                                     'bank_transfer' => __('admin.payout.methods.bank_transfer'),
@@ -555,7 +581,7 @@ class PayoutResource extends Resource
                                 ->required()
                                 ->native(false),
 
-                            Forms\Components\TextInput::make('transaction_reference')
+                            TextInput::make('transaction_reference')
                                 ->label(__('admin.payout.fields.transaction_reference'))
                                 ->required()
                                 ->maxLength(100),
@@ -581,12 +607,12 @@ class PayoutResource extends Resource
                         }),
 
                     // Mark Failed Action
-                    Tables\Actions\Action::make('fail')
+                    Action::make('fail')
                         ->label(__('admin.payout.actions.fail'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
-                        ->form([
-                            Forms\Components\Textarea::make('failure_reason')
+                        ->schema([
+                            Textarea::make('failure_reason')
                                 ->label(__('admin.payout.fields.failure_reason'))
                                 ->required()
                                 ->rows(3)
@@ -606,12 +632,12 @@ class PayoutResource extends Resource
                         }),
 
                     // Hold Action
-                    Tables\Actions\Action::make('hold')
+                    Action::make('hold')
                         ->label(__('admin.payout.actions.hold'))
                         ->icon('heroicon-o-pause-circle')
                         ->color('warning')
-                        ->form([
-                            Forms\Components\Textarea::make('reason')
+                        ->schema([
+                            Textarea::make('reason')
                                 ->label(__('admin.payout.fields.hold_reason'))
                                 ->rows(2)
                                 ->maxLength(500),
@@ -627,14 +653,14 @@ class PayoutResource extends Resource
                         }),
 
                     // Cancel Action
-                    Tables\Actions\Action::make('cancel')
+                    Action::make('cancel')
                         ->label(__('admin.payout.actions.cancel'))
                         ->icon('heroicon-o-no-symbol')
                         ->color('gray')
                         ->requiresConfirmation()
                         ->modalHeading(__('admin.payout.modal.cancel_title'))
-                        ->form([
-                            Forms\Components\Textarea::make('reason')
+                        ->schema([
+                            Textarea::make('reason')
                                 ->label(__('admin.payout.fields.cancel_reason'))
                                 ->rows(2)
                                 ->maxLength(500),
@@ -647,13 +673,13 @@ class PayoutResource extends Resource
                                     ->send();
                             }
                         }),
-                    ActivityLogTimelineTableAction::make('Activities'),
+                    // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+            ->toolbarActions([
+                BulkActionGroup::make([
                     // Bulk Process
-                    Tables\Actions\BulkAction::make('bulk_process')
+                    BulkAction::make('bulk_process')
                         ->label(__('admin.payout.bulk.process'))
                         ->icon('heroicon-o-play')
                         ->color('info')
@@ -676,13 +702,13 @@ class PayoutResource extends Resource
                         }),
 
                     // Bulk Cancel
-                    Tables\Actions\BulkAction::make('bulk_cancel')
+                    BulkAction::make('bulk_cancel')
                         ->label(__('admin.payout.bulk.cancel'))
                         ->icon('heroicon-o-no-symbol')
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->form([
-                            Forms\Components\Textarea::make('reason')
+                        ->schema([
+                            Textarea::make('reason')
                                 ->label(__('admin.payout.fields.cancel_reason'))
                                 ->rows(2),
                         ])
@@ -702,7 +728,7 @@ class PayoutResource extends Resource
                                 ->send();
                         }),
 
-                    Tables\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
@@ -713,84 +739,84 @@ class PayoutResource extends Resource
     /**
      * Define the infolist schema for viewing payouts.
      *
-     * @param Infolist $infolist
-     * @return Infolist
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
+        return $schema
+            ->components([
                 // Header Section
-                Infolists\Components\Section::make()
+                Section::make()
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('payout_number')
+                                TextEntry::make('payout_number')
                                     ->label(__('admin.payout.fields.payout_number'))
                                     ->weight(FontWeight::Bold)
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                                    ->size(TextSize::Large)
                                     ->copyable(),
 
-                                Infolists\Components\TextEntry::make('status')
+                                TextEntry::make('status')
                                     ->label(__('admin.payout.fields.status'))
                                     ->badge()
                                     ->formatStateUsing(fn(PayoutStatus $state): string => $state->getLabel())
                                     ->color(fn(PayoutStatus $state): string => $state->getColor()),
 
-                                Infolists\Components\TextEntry::make('created_at')
+                                TextEntry::make('created_at')
                                     ->label(__('admin.payout.fields.created_at'))
                                     ->dateTime('d M Y H:i'),
                             ]),
                     ]),
 
                 // Owner Information
-                Infolists\Components\Section::make(__('admin.payout.sections.owner_info'))
+                Section::make(__('admin.payout.sections.owner_info'))
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('owner.name')
+                                TextEntry::make('owner.name')
                                     ->label(__('admin.payout.fields.owner_name')),
 
-                                Infolists\Components\TextEntry::make('owner.email')
+                                TextEntry::make('owner.email')
                                     ->label(__('admin.payout.fields.owner_email'))
                                     ->copyable(),
 
-                                Infolists\Components\TextEntry::make('hallOwner.business_name')
+                                TextEntry::make('hallOwner.business_name')
                                     ->label(__('admin.payout.fields.business_name'))
                                     ->placeholder('—'),
 
-                                Infolists\Components\TextEntry::make('hallOwner.bank_name')
+                                TextEntry::make('hallOwner.bank_name')
                                     ->label(__('admin.payout.fields.bank_name'))
                                     ->placeholder('—'),
                             ]),
                     ]),
 
                 // Period & Financial
-                Infolists\Components\Section::make(__('admin.payout.sections.financial'))
+                Section::make(__('admin.payout.sections.financial'))
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('period_string')
+                                TextEntry::make('period_string')
                                     ->label(__('admin.payout.fields.period')),
 
-                                Infolists\Components\TextEntry::make('bookings_count')
+                                TextEntry::make('bookings_count')
                                     ->label(__('admin.payout.fields.bookings_count'))
                                     ->badge()
                                     ->color('info'),
                             ]),
 
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('gross_revenue')
+                                TextEntry::make('gross_revenue')
                                     ->label(__('admin.payout.fields.gross_revenue'))
                                     ->money('OMR'),
 
-                                Infolists\Components\TextEntry::make('commission_amount')
+                                TextEntry::make('commission_amount')
                                     ->label(__('admin.payout.fields.commission'))
                                     ->money('OMR')
                                     ->color('danger'),
 
-                                Infolists\Components\TextEntry::make('adjustments')
+                                TextEntry::make('adjustments')
                                     ->label(__('admin.payout.fields.adjustments'))
                                     ->money('OMR')
                                     ->color(
@@ -798,15 +824,15 @@ class PayoutResource extends Resource
                                         $state > 0 ? 'success' : ($state < 0 ? 'danger' : 'gray')
                                     ),
 
-                                Infolists\Components\TextEntry::make('net_payout')
+                                TextEntry::make('net_payout')
                                     ->label(__('admin.payout.fields.net_payout'))
                                     ->money('OMR')
                                     ->weight(FontWeight::Bold)
                                     ->color('success')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
+                                    ->size(TextSize::Large),
                             ]),
 
-                        Infolists\Components\TextEntry::make('commission_rate')
+                        TextEntry::make('commission_rate')
                             ->label(__('admin.payout.fields.commission_rate'))
                             ->formatStateUsing(
                                 fn($state): string =>
@@ -815,49 +841,49 @@ class PayoutResource extends Resource
                     ]),
 
                 // Payment Details
-                Infolists\Components\Section::make(__('admin.payout.sections.payment'))
+                Section::make(__('admin.payout.sections.payment'))
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('payment_method')
+                                TextEntry::make('payment_method')
                                     ->label(__('admin.payout.fields.payment_method'))
                                     ->badge()
                                     ->placeholder('—'),
 
-                                Infolists\Components\TextEntry::make('transaction_reference')
+                                TextEntry::make('transaction_reference')
                                     ->label(__('admin.payout.fields.transaction_reference'))
                                     ->copyable()
                                     ->placeholder('—'),
                             ]),
 
-                        Infolists\Components\KeyValueEntry::make('bank_details')
+                        KeyValueEntry::make('bank_details')
                             ->label(__('admin.payout.fields.bank_details'))
                             ->visible(fn($record) => !empty($record->bank_details)),
                     ])
                     ->collapsible(),
 
                 // Timestamps
-                Infolists\Components\Section::make(__('admin.payout.sections.timestamps'))
+                Section::make(__('admin.payout.sections.timestamps'))
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('processed_at')
+                                TextEntry::make('processed_at')
                                     ->label(__('admin.payout.fields.processed_at'))
                                     ->dateTime('d M Y H:i')
                                     ->placeholder('—'),
 
-                                Infolists\Components\TextEntry::make('completed_at')
+                                TextEntry::make('completed_at')
                                     ->label(__('admin.payout.fields.completed_at'))
                                     ->dateTime('d M Y H:i')
                                     ->placeholder('—'),
 
-                                Infolists\Components\TextEntry::make('failed_at')
+                                TextEntry::make('failed_at')
                                     ->label(__('admin.payout.fields.failed_at'))
                                     ->dateTime('d M Y H:i')
                                     ->placeholder('—'),
                             ]),
 
-                        Infolists\Components\TextEntry::make('processor.name')
+                        TextEntry::make('processor.name')
                             ->label(__('admin.payout.fields.processed_by'))
                             ->placeholder('—'),
                     ])
@@ -865,14 +891,14 @@ class PayoutResource extends Resource
                     ->collapsed(),
 
                 // Notes & Failure Reason
-                Infolists\Components\Section::make(__('admin.payout.sections.notes'))
+                Section::make(__('admin.payout.sections.notes'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('notes')
+                        TextEntry::make('notes')
                             ->label(__('admin.payout.fields.notes'))
                             ->placeholder(__('admin.payout.no_notes'))
                             ->columnSpanFull(),
 
-                        Infolists\Components\TextEntry::make('failure_reason')
+                        TextEntry::make('failure_reason')
                             ->label(__('admin.payout.fields.failure_reason'))
                             ->color('danger')
                             ->visible(fn($record) => $record->status === PayoutStatus::FAILED)
@@ -903,10 +929,10 @@ class PayoutResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPayouts::route('/'),
-            'create' => Pages\CreatePayout::route('/create'),
-            'view' => Pages\ViewPayout::route('/{record}'),
-            'edit' => Pages\EditPayout::route('/{record}/edit'),
+            'index' => ListPayouts::route('/'),
+            'create' => CreatePayout::route('/create'),
+            'view' => ViewPayout::route('/{record}'),
+            'edit' => EditPayout::route('/{record}/edit'),
         ];
     }
 

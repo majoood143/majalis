@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ViewColumn;
+use Filament\Actions\Action;
 use App\Models\Hall;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -55,13 +59,13 @@ class HallPerformanceWidget extends BaseWidget
                     ->withAvg('reviews', 'rating')
             )
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('owner.halls.name'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     //->label(__('owner.halls.status'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -69,36 +73,36 @@ class HallPerformanceWidget extends BaseWidget
                     ->trueColor('success')
                     ->falseColor('danger'),
 
-                Tables\Columns\TextColumn::make('total_bookings')
+                TextColumn::make('total_bookings')
                     ->label(__('owner.halls.total_bookings'))
                     ->sortable()
                     ->alignCenter(),
 
-                Tables\Columns\TextColumn::make('this_month_bookings')
+                TextColumn::make('this_month_bookings')
                     ->label(__('owner.halls.this_month'))
                     ->sortable()
                     ->alignCenter()
                     ->badge()
                     ->color('info'),
 
-                Tables\Columns\TextColumn::make('total_revenue')
+                TextColumn::make('total_revenue')
                     ->label(__('owner.halls.revenue'))
                     ->money('OMR')
                     ->sortable()
                     ->weight('bold')
                     ->color('success'),
 
-                Tables\Columns\ViewColumn::make('occupancy_rate')
+                ViewColumn::make('occupancy_rate')
                     ->label(__('owner.halls.occupancy'))
                     ->view('filament.owner.widgets.occupancy-rate')
                     ->alignCenter(),
 
-                Tables\Columns\TextColumn::make('reviews_avg_rating')
+                TextColumn::make('reviews_avg_rating')
                     ->label(__('owner.halls.rating'))
                     ->formatStateUsing(fn($state) => $state ? number_format($state, 1) . ' ⭐' : '-')
                     ->alignCenter(),
 
-                Tables\Columns\TextColumn::make('next_booking')
+                TextColumn::make('next_booking')
                     ->label(__('owner.halls.next_booking'))
                     ->getStateUsing(function ($record) {
                         $nextBooking = $record->bookings()
@@ -114,8 +118,8 @@ class HallPerformanceWidget extends BaseWidget
                     ->badge()
                     ->color('warning'),
             ])
-            ->actions([
-                Tables\Actions\Action::make('manage')
+            ->recordActions([
+                Action::make('manage')
                     ->label(__('owner.actions.manage'))
                     ->icon('heroicon-m-cog')
                     ->url(fn($record) => route('filament.owner.resources.halls.edit', $record))

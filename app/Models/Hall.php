@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
 use App\Enums\TimeSlot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,8 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 
 /**
@@ -660,11 +662,10 @@ class Hall extends Model
     }
 
     // ==================== FEATURE METHODS ====================
-
     /**
      * Get list of active features for this hall.
      *
-     * @return \Illuminate\Support\Collection<HallFeature>
+     * @return Collection<HallFeature>
      */
     public function getFeaturesList()
     {
@@ -789,7 +790,7 @@ class Hall extends Model
         return $avg ? round($avg, 1) : null;
     }
 
-    public function hallTypes(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function hallTypes(): BelongsToMany
     {
         return $this->belongsToMany(HallType::class, 'hall_hall_type')->withTimestamps();
     }

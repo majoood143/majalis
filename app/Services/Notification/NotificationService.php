@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Notification;
 
+use Throwable;
 use App\Enums\NotificationEvent;
 use App\Enums\NotificationStatus;
 use App\Enums\NotificationType;
@@ -62,7 +63,7 @@ class NotificationService
                         // Dispatch to queue
                         $this->dispatchNotification($notification);
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Log::error('Failed to create notification', [
                         'booking_id' => $booking->id,
                         'event' => $event->value,

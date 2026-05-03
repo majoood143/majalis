@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use RuntimeException;
+use Throwable;
+use Illuminate\Http\Response;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\OwnerPayout;
@@ -104,9 +107,9 @@ class DashboardExportService
      * @param int $ownerId The owner's user ID
      * @param Carbon $startDate Report start date
      * @param Carbon $endDate Report end date
-     * @return \Illuminate\Http\Response
+     * @return Response
      *
-     * @throws \RuntimeException If owner user cannot be resolved
+     * @throws RuntimeException If owner user cannot be resolved
      */
     public function exportOwnerDashboardPDF(
         int $ownerId,
@@ -137,7 +140,7 @@ class DashboardExportService
                 'auth_id' => Auth::id(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 __('Could not resolve owner. Please try again.')
             );
         }
@@ -220,7 +223,7 @@ class DashboardExportService
      *
      * @param Carbon $startDate
      * @param Carbon $endDate
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function exportAdminDashboardPDF(Carbon $startDate, Carbon $endDate)
     {
@@ -334,7 +337,7 @@ class DashboardExportService
             if ($filamentUser instanceof User) {
                 return $filamentUser;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Filament not available in this context, continue to fallback
         }
 

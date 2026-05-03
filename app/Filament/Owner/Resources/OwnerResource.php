@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources;
 
+use App\Models\Hall;
+use App\Models\Booking;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -67,7 +69,7 @@ abstract class OwnerResource extends Resource
         }
 
         // Pattern 5: If model IS Hall
-        if ($model instanceof \App\Models\Hall) {
+        if ($model instanceof Hall) {
             return $query->where("{$table}.owner_id", $user->id);
         }
 
@@ -183,7 +185,7 @@ abstract class OwnerResource extends Resource
         }
 
         // For Hall model itself
-        if ($record instanceof \App\Models\Hall) {
+        if ($record instanceof Hall) {
             return $record->owner_id === $user->id;
         }
 
@@ -243,10 +245,10 @@ abstract class OwnerResource extends Resource
         return [
             'total_halls' => $user->halls()->count(),
             'active_halls' => $user->halls()->where('is_active', true)->count(),
-            'total_bookings' => \App\Models\Booking::whereHas('hall', function ($q) use ($user) {
+            'total_bookings' => Booking::whereHas('hall', function ($q) use ($user) {
                 $q->where('owner_id', $user->id);
             })->count(),
-            'pending_bookings' => \App\Models\Booking::whereHas('hall', function ($q) use ($user) {
+            'pending_bookings' => Booking::whereHas('hall', function ($q) use ($user) {
                 $q->where('owner_id', $user->id);
             })->where('status', 'pending')->count(),
         ];

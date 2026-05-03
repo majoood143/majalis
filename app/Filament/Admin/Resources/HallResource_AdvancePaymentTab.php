@@ -8,22 +8,27 @@
  *
  * Insert this as a new Tab after the "Pricing" tab and before "Contact" tab
  */
-
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms;
 
 // =============================================
 // TAB: ADVANCE PAYMENT SETTINGS
 // =============================================
-Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
+Tab::make(__('advance_payment.advance_payment'))
     ->icon('heroicon-o-currency-dollar')
     ->schema([
 
-        Forms\Components\Section::make(__('advance_payment.advance_payment_settings'))
+        Section::make(__('advance_payment.advance_payment_settings'))
             ->description(__('advance_payment.advance_payment_explanation'))
             ->schema([
 
                 // Enable/Disable Toggle
-                Forms\Components\Toggle::make('allows_advance_payment')
+                Toggle::make('allows_advance_payment')
                     ->label(__('advance_payment.allows_advance_payment'))
                     ->helperText(__('advance_payment.allows_advance_payment_help'))
                     ->reactive()
@@ -31,7 +36,7 @@ Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
                     ->columnSpanFull(),
 
                 // Advance Payment Type Selection
-                Forms\Components\Radio::make('advance_payment_type')
+                Radio::make('advance_payment_type')
                     ->label(__('advance_payment.advance_payment_type'))
                     ->helperText(__('advance_payment.advance_payment_type_help'))
                     ->options([
@@ -45,7 +50,7 @@ Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
                     ->required(fn ($get) => $get('allows_advance_payment')),
 
                 // Fixed Amount Field
-                Forms\Components\TextInput::make('advance_payment_amount')
+                TextInput::make('advance_payment_amount')
                     ->label(__('advance_payment.advance_payment_amount'))
                     ->helperText(__('advance_payment.advance_payment_amount_help'))
                     ->numeric()
@@ -59,7 +64,7 @@ Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
                     ->reactive(),
 
                 // Percentage Field
-                Forms\Components\TextInput::make('advance_payment_percentage')
+                TextInput::make('advance_payment_percentage')
                     ->label(__('advance_payment.advance_payment_percentage'))
                     ->helperText(__('advance_payment.advance_payment_percentage_help'))
                     ->numeric()
@@ -74,7 +79,7 @@ Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
                     ->reactive(),
 
                 // Minimum Advance Payment
-                Forms\Components\TextInput::make('minimum_advance_payment')
+                TextInput::make('minimum_advance_payment')
                     ->label(__('advance_payment.minimum_advance_payment'))
                     ->helperText(__('advance_payment.minimum_advance_payment_help'))
                     ->numeric()
@@ -87,11 +92,11 @@ Forms\Components\Tabs\Tab::make(__('advance_payment.advance_payment'))
             ])->columns(2)->collapsible(),
 
         // Preview Section
-        Forms\Components\Section::make(__('advance_payment.advance_payment_preview'))
+        Section::make(__('advance_payment.advance_payment_preview'))
             ->description(__('advance_payment.advance_payment_preview_help'))
             ->schema([
 
-                Forms\Components\Placeholder::make('advance_preview')
+                Placeholder::make('advance_preview')
                     ->label('')
                     ->content(function ($get, $record) {
                         // Get advance payment settings

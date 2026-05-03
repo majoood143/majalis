@@ -2,26 +2,40 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\UserResource\Pages\ListUsers;
+use App\Filament\Admin\Resources\UserResource\Pages\CreateUser;
+use App\Filament\Admin\Resources\UserResource\Pages\EditUser;
+use App\Filament\Admin\Resources\UserResource\Pages\ViewUser;
 use App\Filament\Admin\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Actions\ActionGroup as ActionsActionGroup;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'User Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'User Management';
 
     protected static ?int $navigationSort = 1;
 
@@ -40,25 +54,25 @@ class UserResource extends Resource
         return __('user.resource.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('user.form.sections.user_information'))
+        return $schema
+            ->components([
+                Section::make(__('user.form.sections.user_information'))
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label(__('user.form.name'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('email')
+                        TextInput::make('email')
                             ->label(__('user.form.email'))
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('password')
+                        TextInput::make('password')
                             ->label(__('user.form.password'))
                             ->password()
                             ->dehydrateStateUsing(fn($state) => Hash::make($state))
@@ -67,7 +81,7 @@ class UserResource extends Resource
                             ->maxLength(255)
                             ->helperText(__('user.form.password_helper')),
 
-                        Forms\Components\Select::make('role')
+                        Select::make('role')
                             ->label(__('user.form.role'))
                             ->options([
                                 'admin' => __('user.roles.admin'),
@@ -77,19 +91,19 @@ class UserResource extends Resource
                             ->required(),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('user.form.sections.contact_information'))
+                Section::make(__('user.form.sections.contact_information'))
                     ->schema([
-                        Forms\Components\TextInput::make('phone')
+                        TextInput::make('phone')
                             ->label(__('user.form.phone'))
                             ->tel()
                             ->maxLength(20),
 
-                        Forms\Components\TextInput::make('phone_country_code')
+                        TextInput::make('phone_country_code')
                             ->label(__('user.form.phone_country_code'))
                             ->default('+968')
                             ->maxLength(5),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('user.form.is_active'))
                             ->default(true)
                             ->inline(false),
@@ -101,45 +115,45 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('user.table.name'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->label(__('user.table.email'))
                     ->searchable()
                     ->copyable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('role')
+                TextColumn::make('role')
                     ->label(__('user.table.role'))
                     ->badge()
                     ->sortable(),
                     //->formatStateUsing(fn($state) => __('user.roles.' . $state)),
 
-                Tables\Columns\TextColumn::make('phone')
+                TextColumn::make('phone')
                     ->label(__('user.table.phone'))
                     ->searchable(),
 
-                Tables\Columns\IconColumn::make('email_verified_at')
+                IconColumn::make('email_verified_at')
                     ->label(__('user.table.verified'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('user.table.active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('user.table.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('role')
+                SelectFilter::make('role')
                     ->label(__('user.filters.role'))
                     ->options([
                         'admin' => __('user.roles.admin'),
@@ -147,14 +161,14 @@ class UserResource extends Resource
                         'customer' => __('user.roles.customer'),
                     ]),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('user.filters.active'))
                     ->boolean()
                     ->trueLabel(__('user.filters.active_true'))
                     ->falseLabel(__('user.filters.active_false'))
                     ->native(false),
 
-                Tables\Filters\TernaryFilter::make('email_verified_at')
+                TernaryFilter::make('email_verified_at')
                     ->label(__('user.filters.email_verified'))
                     ->boolean()
                     ->trueLabel(__('user.filters.verified_true'))
@@ -165,19 +179,19 @@ class UserResource extends Resource
                     )
                     ->native(false),
             ])
-            ->actions([
-                ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+            ->recordActions([
+                ActionsActionGroup::make([
+                    EditAction::make()
                         ->label(__('user.actions.edit')),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label(__('user.actions.delete')),
-                ActivityLogTimelineTableAction::make('Activities'),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
 
                 ])
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->label(__('user.actions.delete_bulk')),
                 ]),
             ]);
@@ -193,10 +207,10 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
-            'view' => Pages\ViewUser::route('/{record}'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
+            'view' => ViewUser::route('/{record}'),
         ];
     }
 

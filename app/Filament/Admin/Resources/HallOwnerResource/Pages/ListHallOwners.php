@@ -2,10 +2,20 @@
 
 namespace App\Filament\Admin\Resources\HallOwnerResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\HallOwner;
+use Exception;
+use App\Models\Hall;
+use App\Models\Booking;
 use App\Filament\Admin\Resources\HallOwnerResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +32,11 @@ class ListHallOwners extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('exportOwners')
+            Action::make('exportOwners')
                 ->label(__('hall-owner.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -36,15 +46,15 @@ class ListHallOwners extends ListRecords
                 ->modalDescription(__('hall-owner.actions.export_modal_description'))
                 ->modalSubmitActionLabel(__('hall-owner.actions.export')),
 
-            Actions\Action::make('bulkVerify')
+            Action::make('bulkVerify')
                 ->label(__('hall-owner.actions.bulk_verify'))
                 ->icon('heroicon-o-check-badge')
                 ->color('success')
                 ->requiresConfirmation()
                 ->modalHeading(__('hall-owner.actions.bulk_verify_modal_heading'))
                 ->modalDescription(__('hall-owner.actions.bulk_verify_modal_description'))
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('notes')
+                ->schema([
+                    Textarea::make('notes')
                         ->label(__('hall-owner.fields.notes'))
                         ->rows(3),
                 ])
@@ -52,12 +62,12 @@ class ListHallOwners extends ListRecords
                     $this->bulkVerifyOwners($data);
                 }),
 
-            Actions\Action::make('sendBulkNotification')
+            Action::make('sendBulkNotification')
                 ->label(__('hall-owner.actions.send_notification'))
                 ->icon('heroicon-o-bell')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\Select::make('filter')
+                ->schema([
+                    Select::make('filter')
                         ->label(__('hall-owner.fields.filter'))
                         ->options([
                             'all' => __('hall-owner.options.all'),
@@ -68,12 +78,12 @@ class ListHallOwners extends ListRecords
                         ->default('verified')
                         ->required(),
 
-                    \Filament\Forms\Components\TextInput::make('subject')
+                    TextInput::make('subject')
                         ->label(__('hall-owner.fields.subject'))
                         ->required()
                         ->maxLength(255),
 
-                    \Filament\Forms\Components\Textarea::make('message')
+                    Textarea::make('message')
                         ->label(__('hall-owner.fields.message'))
                         ->required()
                         ->rows(5),
@@ -82,18 +92,18 @@ class ListHallOwners extends ListRecords
                     $this->sendBulkNotification($data);
                 }),
 
-            Actions\Action::make('generateReport')
+            Action::make('generateReport')
                 ->label(__('hall-owner.actions.generate_report'))
                 ->icon('heroicon-o-document-chart-bar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('from_date')
+                ->schema([
+                    DatePicker::make('from_date')
                         ->label(__('hall-owner.fields.from_date'))
                         ->default(now()->startOfMonth())
                         ->native(false)
                         ->required(),
 
-                    \Filament\Forms\Components\DatePicker::make('to_date')
+                    DatePicker::make('to_date')
                         ->label(__('hall-owner.fields.to_date'))
                         ->default(now())
                         ->native(false)
@@ -110,48 +120,48 @@ class ListHallOwners extends ListRecords
         return [
             'all' => Tab::make(__('hall-owner.tabs.all'))
                 ->icon('heroicon-o-users')
-                ->badge(fn() => \App\Models\HallOwner::count()),
+                ->badge(fn() => HallOwner::count()),
 
             'pending_verification' => Tab::make(__('hall-owner.tabs.pending_verification'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_verified', false))
-                ->badge(fn() => \App\Models\HallOwner::where('is_verified', false)->count())
+                ->badge(fn() => HallOwner::where('is_verified', false)->count())
                 ->badgeColor('warning'),
 
             'verified' => Tab::make(__('hall-owner.tabs.verified'))
                 ->icon('heroicon-o-check-badge')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_verified', true))
-                ->badge(fn() => \App\Models\HallOwner::where('is_verified', true)->count())
+                ->badge(fn() => HallOwner::where('is_verified', true)->count())
                 ->badgeColor('success'),
 
             'active' => Tab::make(__('hall-owner.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\HallOwner::where('is_active', true)->count())
+                ->badge(fn() => HallOwner::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('hall-owner.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\HallOwner::where('is_active', false)->count())
+                ->badge(fn() => HallOwner::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'custom_commission' => Tab::make(__('hall-owner.tabs.custom_commission'))
                 ->icon('heroicon-o-currency-dollar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('commission_value'))
-                ->badge(fn() => \App\Models\HallOwner::whereNotNull('commission_value')->count())
+                ->badge(fn() => HallOwner::whereNotNull('commission_value')->count())
                 ->badgeColor('info'),
 
             'with_halls' => Tab::make(__('hall-owner.tabs.with_halls'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->has('halls'))
-                ->badge(fn() => \App\Models\HallOwner::has('halls')->count())
+                ->badge(fn() => HallOwner::has('halls')->count())
                 ->badgeColor('purple'),
 
             'without_halls' => Tab::make(__('hall-owner.tabs.without_halls'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->doesntHave('halls'))
-                ->badge(fn() => \App\Models\HallOwner::doesntHave('halls')->count())
+                ->badge(fn() => HallOwner::doesntHave('halls')->count())
                 ->badgeColor('gray'),
 
             'incomplete_documents' => Tab::make(__('hall-owner.tabs.incomplete_documents'))
@@ -161,7 +171,7 @@ class ListHallOwners extends ListRecords
                         ->orWhereNull('tax_certificate')
                         ->orWhereNull('identity_document');
                 }))
-                ->badge(fn() => \App\Models\HallOwner::where(function ($q) {
+                ->badge(fn() => HallOwner::where(function ($q) {
                     $q->whereNull('commercial_registration_document')
                         ->orWhereNull('tax_certificate')
                         ->orWhereNull('identity_document');
@@ -175,7 +185,7 @@ class ListHallOwners extends ListRecords
         DB::beginTransaction();
 
         try {
-            $owners = \App\Models\HallOwner::with('user')->get();
+            $owners = HallOwner::with('user')->get();
 
             $filename = 'hall_owners_' . now()->format('Y_m_d_His') . '.csv';
             $path = storage_path('app/public/exports/' . $filename);
@@ -241,14 +251,14 @@ class ListHallOwners extends ListRecords
                 ->body(__('hall-owner.notifications.export_success_body'))
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('hall-owner.actions.download'))
                         ->url(asset('storage/exports/' . $filename))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -264,7 +274,7 @@ class ListHallOwners extends ListRecords
         DB::beginTransaction();
 
         try {
-            $owners = \App\Models\HallOwner::where('is_verified', false)->get();
+            $owners = HallOwner::where('is_verified', false)->get();
             $verifiedCount = 0;
 
             foreach ($owners as $owner) {
@@ -282,7 +292,7 @@ class ListHallOwners extends ListRecords
 
             $this->redirect(static::getUrl());
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -298,7 +308,7 @@ class ListHallOwners extends ListRecords
         DB::beginTransaction();
 
         try {
-            $query = \App\Models\HallOwner::query();
+            $query = HallOwner::query();
 
             match ($data['filter']) {
                 'verified' => $query->where('is_verified', true),
@@ -324,7 +334,7 @@ class ListHallOwners extends ListRecords
                 ->body(__('hall-owner.notifications.notification_sent_body', ['count' => $sentCount]))
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()
@@ -344,14 +354,14 @@ class ListHallOwners extends ListRecords
             $toDate = $data['to_date'];
 
             // Get all hall owners with their relationships
-            $owners = \App\Models\HallOwner::with(['user', 'halls'])->get();
+            $owners = HallOwner::with(['user', 'halls'])->get();
 
             // Get all halls
-            $allHalls = \App\Models\Hall::all();
+            $allHalls = Hall::all();
             $hallIds = $allHalls->pluck('id');
 
             // Get all bookings in date range
-            $allBookings = \App\Models\Booking::whereIn('hall_id', $hallIds)
+            $allBookings = Booking::whereIn('hall_id', $hallIds)
                 ->whereBetween('booking_date', [$fromDate, $toDate])
                 ->with(['hall', 'user'])
                 ->get();
@@ -383,7 +393,7 @@ class ListHallOwners extends ListRecords
 
             // Owner performance details
             $ownerPerformance = $owners->map(function ($owner) use ($allBookings) {
-                $ownerHalls = \App\Models\Hall::where('owner_id', $owner->user_id)->get();
+                $ownerHalls = Hall::where('owner_id', $owner->user_id)->get();
                 $ownerHallIds = $ownerHalls->pluck('id');
                 $ownerBookings = $allBookings->whereIn('hall_id', $ownerHallIds);
 
@@ -437,14 +447,14 @@ class ListHallOwners extends ListRecords
                 ->title(__('hall-owner.notifications.report_generated'))
                 ->body(__('hall-owner.notifications.report_generated_body'))
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('hall-owner.actions.download_report'))
                         ->url(asset('storage/' . $path))
                         ->openUrlInNewTab(),
                 ])
                 ->persistent()
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('All owners report generation failed', [

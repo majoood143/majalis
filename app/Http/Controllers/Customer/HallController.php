@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
+use Illuminate\Support\Collection;
 use App\Http\Controllers\Controller;
 use App\Models\Hall;
 use App\Models\City;
@@ -359,15 +360,14 @@ class HallController extends Controller
     // ──────────────────────────────────────────────────────────
     //  PRIVATE HELPERS
     // ──────────────────────────────────────────────────────────
-
     /**
      * Apply secondary sort order to results.
      * Available halls always remain on top.
      *
-     * @param  \Illuminate\Support\Collection $halls
+     * @param Collection $halls
      * @param  string                         $sort
      * @param  string|null                    $timeSlot
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     private function applySortOrder($halls, string $sort, ?string $timeSlot = null)
     {

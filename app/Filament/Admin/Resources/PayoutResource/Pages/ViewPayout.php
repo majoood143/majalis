@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PayoutResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Exception;
+use Filament\Forms\Components\Textarea;
+use Filament\Actions\DeleteAction;
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource;
 use App\Services\PayoutReceiptService;
@@ -41,11 +48,11 @@ class ViewPayout extends ViewRecord
     {
         return [
             // Edit Action
-            Actions\EditAction::make()
+            EditAction::make()
                 ->visible(fn () => !$this->record->status->isTerminal()),
 
             // Process Action
-            Actions\Action::make('process')
+            Action::make('process')
                 ->label(__('admin.payout.actions.process'))
                 ->icon('heroicon-o-play')
                 ->color('info')
@@ -77,13 +84,13 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Complete Action - WITH PDF GENERATION
-            Actions\Action::make('complete')
+            Action::make('complete')
                 ->label(__('admin.payout.actions.complete'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->size('lg')
-                ->form([
-                    Forms\Components\Select::make('payment_method')
+                ->schema([
+                    Select::make('payment_method')
                         ->label(__('admin.payout.fields.payment_method'))
                         ->options([
                             'bank_transfer' => __('admin.payout.methods.bank_transfer'),
@@ -95,7 +102,7 @@ class ViewPayout extends ViewRecord
                         ->native(false)
                         ->default($this->record->payment_method),
 
-                    Forms\Components\TextInput::make('transaction_reference')
+                    TextInput::make('transaction_reference')
                         ->label(__('admin.payout.fields.transaction_reference'))
                         ->required()
                         ->maxLength(100)
@@ -136,7 +143,7 @@ class ViewPayout extends ViewRecord
                                 ->success()
                                 ->send();
 
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             // Log error but don't fail the completion
                             Log::error('Failed to generate payout receipt', [
                                 'payout_id' => $this->record->id,
@@ -171,12 +178,12 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Mark Failed Action
-            Actions\Action::make('fail')
+            Action::make('fail')
                 ->label(__('admin.payout.actions.fail'))
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
-                ->form([
-                    Forms\Components\Textarea::make('failure_reason')
+                ->schema([
+                    Textarea::make('failure_reason')
                         ->label(__('admin.payout.fields.failure_reason'))
                         ->required()
                         ->rows(3)
@@ -198,12 +205,12 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Hold Action
-            Actions\Action::make('hold')
+            Action::make('hold')
                 ->label(__('admin.payout.actions.hold'))
                 ->icon('heroicon-o-pause-circle')
                 ->color('warning')
-                ->form([
-                    Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label(__('admin.payout.fields.hold_reason'))
                         ->rows(2)
                         ->maxLength(500)
@@ -224,15 +231,15 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Cancel Action
-            Actions\Action::make('cancel')
+            Action::make('cancel')
                 ->label(__('admin.payout.actions.cancel'))
                 ->icon('heroicon-o-no-symbol')
                 ->color('gray')
                 ->requiresConfirmation()
                 ->modalHeading(__('admin.payout.modal.cancel_title'))
                 ->modalDescription(__('admin.payout.modal.cancel_desc'))
-                ->form([
-                    Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label(__('admin.payout.fields.cancel_reason'))
                         ->rows(2)
                         ->maxLength(500),
@@ -250,7 +257,7 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Download Receipt Action
-            Actions\Action::make('downloadReceipt')
+            Action::make('downloadReceipt')
                 ->label(__('admin.reports.actions.download_receipt'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
@@ -275,7 +282,7 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Regenerate Receipt Action
-            Actions\Action::make('regenerateReceipt')
+            Action::make('regenerateReceipt')
                 ->label(__('admin.reports.actions.regenerate_receipt'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
@@ -296,7 +303,7 @@ class ViewPayout extends ViewRecord
                             ->send();
 
                         $this->refreshFormData(['receipt_path']);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Log::error('Failed to regenerate payout receipt', [
                             'payout_id' => $this->record->id,
                             'error' => $e->getMessage(),
@@ -311,7 +318,7 @@ class ViewPayout extends ViewRecord
                 }),
 
             // Delete Action
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->visible(fn () => !$this->record->status->isTerminal()),
         ];
     }

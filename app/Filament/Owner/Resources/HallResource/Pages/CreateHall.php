@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\Pages;
 
+use App\Enums\UserRole;
 use App\Filament\Owner\Resources\HallResource;
 use App\Models\User;
 use App\Notifications\HallCreatedAdminNotification;
@@ -80,7 +81,7 @@ class CreateHall extends CreateRecord
         $owner->notify(new HallCreatedOwnerNotification($hall, $owner));
 
         // Notify all admins
-        $admins = User::where('role', \App\Enums\UserRole::ADMIN)->get();
+        $admins = User::where('role', UserRole::ADMIN)->get();
         NotificationFacade::send($admins, new HallCreatedAdminNotification($hall, $owner));
     }
 

@@ -2,6 +2,13 @@
 
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Actions\DeleteAction;
+use App\Enums\UserRole;
+use App\Models\Hall;
 use App\Filament\Admin\Resources\HallResource;
 use App\Models\User;
 use App\Services\ImageOptimizationService;
@@ -23,11 +30,11 @@ class EditHall extends EditRecord
     {
         return [
             
-            Actions\ViewAction::make()
+            ViewAction::make()
                 ->icon('heroicon-o-eye')
                 ->color('info'),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'danger' : 'success')
@@ -45,7 +52,7 @@ class EditHall extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleFeatured')
+            Action::make('toggleFeatured')
                 ->label(fn() => $this->record->is_featured ? 'Unmark Featured' : 'Mark Featured')
                 ->icon('heroicon-o-star')
                 ->color(fn() => $this->record->is_featured ? 'gray' : 'warning')
@@ -63,7 +70,7 @@ class EditHall extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewBookings')
+            Action::make('viewBookings')
                 ->label('View Bookings')
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
@@ -72,7 +79,7 @@ class EditHall extends EditRecord
                     'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
                 ])),
 
-            Actions\Action::make('manageAvailability')
+            Action::make('manageAvailability')
                 ->label('Manage Availability')
                 ->icon('heroicon-o-calendar')
                 ->color('info')
@@ -80,7 +87,7 @@ class EditHall extends EditRecord
                     'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
                 ])),
 
-            Actions\Action::make('manageImages')
+            Action::make('manageImages')
                 ->label('Manage Images')
                 ->icon('heroicon-o-photo')
                 ->color('info')
@@ -88,7 +95,7 @@ class EditHall extends EditRecord
                     'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
                 ])),
 
-            Actions\Action::make('manageServices')
+            Action::make('manageServices')
                 ->label('Extra Services')
                 ->icon('heroicon-o-gift')
                 ->color('success')
@@ -96,12 +103,12 @@ class EditHall extends EditRecord
                     'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
                 ])),
 
-            Actions\Action::make('updatePricing')
+            Action::make('updatePricing')
                 ->label('Update Pricing')
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('new_price')
+                ->schema([
+                    TextInput::make('new_price')
                         ->label('New Base Price')
                         ->numeric()
                         ->required()
@@ -109,7 +116,7 @@ class EditHall extends EditRecord
                         ->step(0.001)
                         ->default(fn() => $this->record->price_per_slot),
 
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Textarea::make('reason')
                         ->label('Reason for Change')
                         ->rows(3),
                 ])
@@ -135,7 +142,7 @@ class EditHall extends EditRecord
                         ->send();
                 }),
 
-            Actions\Action::make('regenerateSlug')
+            Action::make('regenerateSlug')
                 ->label('Regenerate Slug')
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
@@ -154,7 +161,7 @@ class EditHall extends EditRecord
                         ->send();
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate Hall')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -183,15 +190,15 @@ class EditHall extends EditRecord
                         ->success()
                         ->title('Hall Duplicated')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('View Duplicate')
                                 ->url(HallResource::getUrl('edit', ['record' => $newHall->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     // Check for active bookings
                     $activeBookings = $this->record->bookings()
                         ->whereIn('status', ['pending', 'confirmed'])
@@ -226,7 +233,7 @@ class EditHall extends EditRecord
                     $this->notifyAdmins($this->record, 'deleted');
                 }),
 
-            Actions\Action::make('viewHistory')
+            Action::make('viewHistory')
                 ->label('View History')
                 ->icon('heroicon-o-clock')
                 ->color('gray')
@@ -383,7 +390,7 @@ class EditHall extends EditRecord
             'deleted' => "Deleted by {$actor}",
         ];
 
-        $admins = User::where('role', \App\Enums\UserRole::ADMIN)->get();
+        $admins = User::where('role', UserRole::ADMIN)->get();
 
         $notification = Notification::make()
             ->title($titles[$event])
@@ -404,7 +411,7 @@ class EditHall extends EditRecord
         $baseSlug = $slug;
         $counter = 1;
 
-        $query = \App\Models\Hall::where('slug', $slug);
+        $query = Hall::where('slug', $slug);
         if ($ignoreId) {
             $query->where('id', '!=', $ignoreId);
         }
@@ -413,7 +420,7 @@ class EditHall extends EditRecord
             $slug = $baseSlug . '-' . $counter;
             $counter++;
 
-            $query = \App\Models\Hall::where('slug', $slug);
+            $query = Hall::where('slug', $slug);
             if ($ignoreId) {
                 $query->where('id', '!=', $ignoreId);
             }

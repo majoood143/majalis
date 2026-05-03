@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Mpdf\Mpdf;
 use Mpdf\Config\FontVariables;
 use Mpdf\Config\ConfigVariables;
@@ -207,9 +208,9 @@ class PdfExportService
      * Stream the PDF as a download response.
      *
      * @param string $filename The download filename (e.g. 'report.pdf')
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return StreamedResponse
      */
-    public function download(string $filename): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function download(string $filename): StreamedResponse
     {
         return response()->streamDownload(
             fn() => print($this->mpdf->Output('', 'S')),

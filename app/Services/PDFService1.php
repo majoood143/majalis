@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Payment;
 use App\Models\Booking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +32,7 @@ class PDFService1
      *
      * @param Booking $booking
      * @return string  Storage path to the generated PDF
-     * @throws \Exception
+     * @throws Exception
      */
     public function generateBookingInvoice(Booking $booking): string
     {
@@ -114,7 +115,7 @@ class PDFService1
 
             // Verify the file was actually written.
             if (! Storage::disk('local')->exists($filename)) {
-                throw new \Exception('PDF file was not created on disk.');
+                throw new Exception('PDF file was not created on disk.');
             }
 
             // ----------------------------------------------------------------
@@ -125,7 +126,7 @@ class PDFService1
             $booking->refresh();
 
             if (empty($booking->invoice_path)) {
-                throw new \Exception('Invoice path was not saved to the database.');
+                throw new Exception('Invoice path was not saved to the database.');
             }
 
             Log::info('Invoice generated successfully', [
@@ -136,7 +137,7 @@ class PDFService1
 
             return $filename;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Invoice generation failed', [
                 'booking_id' => $booking->id,
                 'error'      => $e->getMessage(),
@@ -318,10 +319,10 @@ class PDFService1
     /**
      * Generate payment receipt PDF
      *
-     * @param \App\Models\Payment $payment
+     * @param Payment $payment
      * @return string Filename of generated PDF
      */
-    public function generatePaymentReceipt(\App\Models\Payment $payment): string
+    public function generatePaymentReceipt(Payment $payment): string
     {
         // Load relationships
         $payment->load('booking.hall');
@@ -337,7 +338,7 @@ class PDFService1
         }
 
         // Generate PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.payment-receipt', [
+        $pdf = Pdf::loadView('pdf.payment-receipt', [
             'payment' => $payment,
             'booking' => $payment->booking,
             'hall'    => $payment->booking?->hall,

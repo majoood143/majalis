@@ -2,6 +2,10 @@
 
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
+use App\Enums\UserRole;
+use Carbon\Carbon;
+use App\Models\HallAvailability;
+use App\Models\Hall;
 use App\Filament\Admin\Resources\HallResource;
 use App\Models\User;
 use App\Services\ImageOptimizationService;
@@ -224,7 +228,7 @@ class CreateHall extends CreateRecord
             'deleted' => "Deleted by {$actor}",
         ];
 
-        $admins = User::where('role', \App\Enums\UserRole::ADMIN)->get();
+        $admins = User::where('role', UserRole::ADMIN)->get();
 
         $notification = Notification::make()
             ->title($titles[$event])
@@ -241,15 +245,15 @@ class CreateHall extends CreateRecord
 
     protected function generateInitialAvailability($hall, ?string $fromDate = null, ?string $toDate = null): void
     {
-        $startDate = $fromDate ? \Carbon\Carbon::parse($fromDate) : now();
-        $endDate   = $toDate   ? \Carbon\Carbon::parse($toDate)   : now()->addMonths(3);
+        $startDate = $fromDate ? Carbon::parse($fromDate) : now();
+        $endDate   = $toDate   ? Carbon::parse($toDate)   : now()->addMonths(3);
         $createdCount = 0;
 
         $currentDate = $startDate->copy();
 
         while ($currentDate->lte($endDate)) {
             foreach (['morning', 'afternoon', 'evening', 'full_day'] as $timeSlot) {
-                \App\Models\HallAvailability::create([
+                HallAvailability::create([
                     'hall_id' => $hall->id,
                     'date' => $currentDate->toDateString(),
                     'time_slot' => $timeSlot,
@@ -277,7 +281,7 @@ class CreateHall extends CreateRecord
         $baseSlug = $slug;
         $counter = 1;
 
-        while (\App\Models\Hall::where('slug', $slug)->exists()) {
+        while (Hall::where('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }

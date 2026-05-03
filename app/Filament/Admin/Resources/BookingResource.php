@@ -2,6 +2,41 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
+use Exception;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Toggle;
+use App\Jobs\SendBookingInvoiceEmail;
+use Filament\Forms\Components\CheckboxList;
+use App\Jobs\SendBookingReminder;
+use App\Jobs\SendReviewRequest;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use App\Filament\Admin\Resources\BookingResource\Pages\ListBookings;
+use App\Filament\Admin\Resources\BookingResource\Pages\CreateBooking;
+use App\Filament\Admin\Resources\BookingResource\Pages\ViewBooking;
+use App\Filament\Admin\Resources\BookingResource\Pages\EditBooking;
 use App\Filament\Admin\Resources\BookingResource\Pages;
 use App\Models\Booking;
 use App\Models\Hall;
@@ -12,21 +47,14 @@ use App\Models\ExtraService;
 use App\Services\CommissionService;
 use App\Services\InvoiceService;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
-use Filament\Infolists\Infolist;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
 use App\Filament\Traits\HasTranslations;
-use Filament\Tables\Actions\Action;
 use App\Filament\Components\GuestBookingComponents;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 
@@ -57,9 +85,9 @@ class BookingResource extends Resource
 
     protected static ?string $model = Booking::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Booking Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'Booking Management';
 
     protected static ?int $navigationSort = 1;
 
@@ -68,12 +96,12 @@ class BookingResource extends Resource
 
 
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Hall Selection Section with Region & City Filters
-                Forms\Components\Section::make(__('booking.sections.hall_selection.title'))
+                Section::make(__('booking.sections.hall_selection.title'))
                     ->description(__('booking.sections.hall_selection.description'))
                     ->schema([
                         // Forms\Components\Select::make('region_id')
@@ -92,14 +120,14 @@ class BookingResource extends Resource
                         //     })
                         //     ->helperText(__('booking.fields.region_id.helper')),
 
-                        Forms\Components\Select::make('region_id')
+                        Select::make('region_id')
                             ->label(__('booking.fields.region_id.label'))
                             ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->live()
                             // ✅ FIX: Hydrate region_id from hall relationship when editing
-                            ->afterStateHydrated(function (Forms\Components\Select $component, ?string $state, ?Booking $record) {
+                            ->afterStateHydrated(function (Select $component, ?string $state, ?Booking $record) {
                                 // Only hydrate if no state is set and we have a record with a hall
                                 if ($state === null && $record?->hall?->city?->region_id) {
                                     $component->state($record->hall->city->region_id);
@@ -141,7 +169,7 @@ class BookingResource extends Resource
                         //     ->disabled(fn(Get $get): bool => !$get('region_id'))
                         //     ->helperText(__('booking.fields.region_id.helper')),
 
-                        Forms\Components\Select::make('city_id')
+                        Select::make('city_id')
                             ->label(__('booking.fields.city_id.label'))
                             ->options(function (Get $get, ?Booking $record): Collection {
                                 $regionId = $get('region_id');
@@ -164,7 +192,7 @@ class BookingResource extends Resource
                             ->preload()
                             ->live()
                             // ✅ FIX: Hydrate city_id from hall relationship when editing
-                            ->afterStateHydrated(function (Forms\Components\Select $component, ?string $state, ?Booking $record) {
+                            ->afterStateHydrated(function (Select $component, ?string $state, ?Booking $record) {
                                 // Only hydrate if no state is set and we have a record with a hall
                                 if ($state === null && $record?->hall?->city_id) {
                                     $component->state($record->hall->city_id);
@@ -180,7 +208,7 @@ class BookingResource extends Resource
                             ->disabled(fn(Get $get, ?Booking $record): bool => !$get('region_id') && !$record?->hall_id)
                             ->helperText(__('booking.fields.city_id.helper')),
 
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('booking.fields.hall_id.label'))
                             ->options(
                                 fn(Get $get): Collection => Hall::query()
@@ -236,23 +264,23 @@ class BookingResource extends Resource
                     ->collapsible(),
 
                 // Booking Details Section
-                Forms\Components\Section::make(__('booking.sections.booking_details.title'))
+                Section::make(__('booking.sections.booking_details.title'))
                     ->schema([
-                        Forms\Components\TextInput::make('booking_number')
+                        TextInput::make('booking_number')
                             ->label(__('booking.fields.booking_number.label'))
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn($context) => $context === 'edit')
                             ->columnSpan(1),
 
-                        Forms\Components\Select::make('user_id')
+                        Select::make('user_id')
                             ->relationship('user', 'name')
                             ->required()
                             ->searchable()
                             ->preload()
                             ->columnSpan(1),
 
-                        Forms\Components\DatePicker::make('booking_date')
+                        DatePicker::make('booking_date')
                             ->label(__('booking.fields.booking_date.label'))
                             ->required()
                             ->native(false)
@@ -296,7 +324,7 @@ class BookingResource extends Resource
                         //     ->helperText(fn(Get $get) => static::getTimeSlotHelperText($get('hall_id'), $get('booking_date')))
                         //     ->columnSpan(1),
 
-                        Forms\Components\Select::make('time_slot')
+                        Select::make('time_slot')
                             ->label(__('booking.fields.time_slot.label'))
                             // ✅ FIX: Pass current booking ID to exclude from "booked" filter when editing
                             ->options(fn(Get $get, ?Booking $record): array => static::getAvailableTimeSlots(
@@ -315,7 +343,7 @@ class BookingResource extends Resource
                             ->helperText(fn(Get $get) => static::getTimeSlotHelperText($get('hall_id'), $get('booking_date')))
                             ->columnSpan(1),
 
-                        Forms\Components\TextInput::make('number_of_guests')
+                        TextInput::make('number_of_guests')
                             ->label(__('booking.fields.number_of_guests.label'))
                             ->numeric()
                             ->required()
@@ -339,26 +367,26 @@ class BookingResource extends Resource
                     ])->columns(2),
 
                 // Customer Information Section
-                Forms\Components\Section::make(__('booking.sections.customer_details'))
+                Section::make(__('booking.sections.customer_details'))
                     ->schema([
-                        Forms\Components\TextInput::make('customer_name')
+                        TextInput::make('customer_name')
                             ->label(__('booking.fields.customer_name.label'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('customer_email')
+                        TextInput::make('customer_email')
                             ->label(__('booking.fields.customer_email.label'))
                             ->email()
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('customer_phone')
+                        TextInput::make('customer_phone')
                             ->label(__('booking.fields.customer_phone.label'))
                             ->tel()
                             ->required()
                             ->maxLength(20),
 
-                        Forms\Components\Textarea::make('customer_notes')
+                        Textarea::make('customer_notes')
                             ->label(__('booking.fields.customer_notes.label'))
                             ->rows(3)
                             ->columnSpanFull()
@@ -367,13 +395,13 @@ class BookingResource extends Resource
 
                 // Extra Services Section
                 // Extra Services Section
-                Forms\Components\Section::make(__('booking.sections.extra_services'))
+                Section::make(__('booking.sections.extra_services'))
                     ->description(__('booking.sections.extra_services_description'))
                     ->schema([
-                        Forms\Components\Repeater::make('extra_services')
+                        Repeater::make('extra_services')
                             ->label('')
                             ->schema([
-                                Forms\Components\Select::make('service_id')
+                                Select::make('service_id')
                                     ->label(__('booking.fields.service_id.label'))
                                     ->options(fn(Get $get) => static::getExtraServicesOptions($get('../../hall_id')))
                                     ->required()
@@ -398,7 +426,7 @@ class BookingResource extends Resource
                                     })
                                     ->columnSpan(2),
 
-                                Forms\Components\TextInput::make('quantity')
+                                TextInput::make('quantity')
                                     ->label(__('booking.fields.quantity.label'))
                                     ->numeric()
                                     ->required()
@@ -414,7 +442,7 @@ class BookingResource extends Resource
                                     })
                                     ->columnSpan(1),
 
-                                Forms\Components\TextInput::make('unit_price')
+                                TextInput::make('unit_price')
                                     ->label(__('booking.fields.unit_price.label'))
                                     ->numeric()
                                     ->prefix('OMR')
@@ -422,7 +450,7 @@ class BookingResource extends Resource
                                     ->readOnly()
                                     ->columnSpan(1),
 
-                                Forms\Components\TextInput::make('total_price')
+                                TextInput::make('total_price')
                                     ->label(__('booking.fields.total_price.label'))
                                     ->numeric()
                                     ->prefix('OMR')
@@ -431,8 +459,8 @@ class BookingResource extends Resource
                                     ->columnSpan(1),
 
                                 // Hidden fields for data storage
-                                Forms\Components\Hidden::make('service_name'),
-                                Forms\Components\Hidden::make('unit'),
+                                Hidden::make('service_name'),
+                                Hidden::make('unit'),
                             ])
                             ->columns(5)
                             ->defaultItems(0)
@@ -455,9 +483,9 @@ class BookingResource extends Resource
                     ->collapsible()
                     ->collapsed(fn(Get $get): bool => !$get('hall_id')),
                 // Pricing Section
-                Forms\Components\Section::make(__('booking.sections.pricing_breakdown'))
+                Section::make(__('booking.sections.pricing_breakdown'))
                     ->schema([
-                        Forms\Components\TextInput::make('hall_price')
+                        TextInput::make('hall_price')
                             ->label(__('booking.fields.hall_price.label'))
                             ->numeric()
                             ->prefix('OMR')
@@ -470,7 +498,7 @@ class BookingResource extends Resource
                             ))
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
-                        Forms\Components\TextInput::make('services_price')
+                        TextInput::make('services_price')
                             ->label(__('booking.fields.services_price.label'))
                             ->numeric()
                             ->prefix('OMR')
@@ -480,7 +508,7 @@ class BookingResource extends Resource
                             ->live()
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
-                        Forms\Components\TextInput::make('subtotal')
+                        TextInput::make('subtotal')
                             ->label(__('booking.fields.subtotal.label'))
                             ->numeric()
                             ->prefix('OMR')
@@ -488,7 +516,7 @@ class BookingResource extends Resource
                             ->readOnly()
                             ->extraAttributes(['class' => 'text-lg font-semibold']),
 
-                        Forms\Components\TextInput::make('commission_amount')
+                        TextInput::make('commission_amount')
                             ->label(__('booking.fields.commission_amount.label'))
                             ->numeric()
                             ->prefix('OMR')
@@ -496,7 +524,7 @@ class BookingResource extends Resource
                             ->live()
                             ->afterStateUpdated(fn(Set $set, Get $get) => static::calculateAllTotals($set, $get)),
 
-                        Forms\Components\TextInput::make('total_amount')
+                        TextInput::make('total_amount')
                             ->label(__('booking.fields.total_amount.label'))
                             ->numeric()
                             ->prefix('OMR')
@@ -504,7 +532,7 @@ class BookingResource extends Resource
                             ->readOnly()
                             ->extraAttributes(['class' => 'text-xl font-bold text-green-600']),
 
-                        Forms\Components\TextInput::make('owner_payout')
+                        TextInput::make('owner_payout')
                             ->label(__('booking.fields.owner_payout.label'))
                             ->numeric()
                             ->prefix('OMR')
@@ -513,16 +541,16 @@ class BookingResource extends Resource
                             ->extraAttributes(['class' => 'text-lg']),
 
                         // Hidden fields to persist commission meta-data
-                        Forms\Components\Hidden::make('commission_type'),
-                        Forms\Components\Hidden::make('commission_value'),
+                        Hidden::make('commission_type'),
+                        Hidden::make('commission_value'),
                     ])->columns(3)
                     ->collapsible(),
 
                 // ✅ NEW: Advance Payment Details Section
-                Forms\Components\Section::make(__('booking.sections.advance_payment_details'))
+                Section::make(__('booking.sections.advance_payment_details'))
                     ->description(__('booking.sections.advance_payment_details_description'))
                     ->schema([
-                        Forms\Components\Select::make('payment_type')
+                        Select::make('payment_type')
                             ->label(__('advance_payment.payment_type'))
                             ->options([
                                 'full' => __('advance_payment.payment_type_full'),
@@ -533,7 +561,7 @@ class BookingResource extends Resource
                             ->dehydrated()
                             ->helperText(__('booking.sections.payment_type_helper')),
 
-                        Forms\Components\TextInput::make('advance_amount')
+                        TextInput::make('advance_amount')
                             ->label(__('advance_payment.advance_amount'))
                             ->numeric()
                             ->prefix('OMR')
@@ -542,7 +570,7 @@ class BookingResource extends Resource
                             ->visible(fn(Get $get) => $get('payment_type') === 'advance')
                             ->helperText('Amount paid upfront'),
 
-                        Forms\Components\TextInput::make('balance_due')
+                        TextInput::make('balance_due')
                             ->label(__('advance_payment.balance_due'))
                             ->numeric()
                             ->prefix('OMR')
@@ -551,14 +579,14 @@ class BookingResource extends Resource
                             ->visible(fn(Get $get) => $get('payment_type') === 'advance')
                             ->helperText('Amount to be paid before event'),
 
-                        Forms\Components\DateTimePicker::make('balance_paid_at')
+                        DateTimePicker::make('balance_paid_at')
                             ->label(__('advance_payment.balance_paid_at'))
                             ->disabled()
                             ->dehydrated()
                             ->visible(fn(Get $get) => $get('payment_type') === 'advance')
                             ->helperText('When balance was paid'),
 
-                        Forms\Components\Placeholder::make('advance_payment_note')
+                        Placeholder::make('advance_payment_note')
                             ->label('')
                             ->content(fn(Get $get) => $get('payment_type') === 'advance'
                                 ? '⚠️ Advance payment booking. Customer paid ' . number_format((float)($get('advance_amount') ?? 0), 3) . ' OMR upfront. Balance of ' . number_format((float)($get('balance_due') ?? 0), 3) . ' OMR must be paid before the event.'
@@ -570,9 +598,9 @@ class BookingResource extends Resource
                     ->collapsed(fn(Get $get) => $get('payment_type') !== 'advance'),
 
                 // Event Details Section
-                Forms\Components\Section::make(__('booking.infolist.event_details'))
+                Section::make(__('booking.infolist.event_details'))
                     ->schema([
-                        Forms\Components\Select::make('event_type')
+                        Select::make('event_type')
                             ->label(__('booking.fields.event_type.label'))
                             ->options([
                                 'wedding' => 'Wedding',
@@ -585,7 +613,7 @@ class BookingResource extends Resource
                             ])
                             ->searchable(),
 
-                        Forms\Components\Textarea::make('event_details')
+                        Textarea::make('event_details')
                             ->label(__('booking.infolist.event_details'))
                             ->rows(3)
                             ->columnSpanFull()
@@ -595,9 +623,9 @@ class BookingResource extends Resource
                     ->collapsed(),
 
                 // Status Section (Only visible when editing)
-                Forms\Components\Section::make(__('booking.fields.status.label'))
+                Section::make(__('booking.fields.status.label'))
                     ->schema([
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label(__('booking.fields.status.label'))
                             ->options([
                                 'pending' => __('booking.statuses.pending'),
@@ -608,7 +636,7 @@ class BookingResource extends Resource
                             ->default('pending')
                             ->required(),
 
-                        Forms\Components\Select::make('payment_status')
+                        Select::make('payment_status')
                             ->label(__('booking.fields.payment_status.label'))
                             ->options([
                                 'pending' => 'Pending',
@@ -831,7 +859,7 @@ class BookingResource extends Resource
             if (is_callable($get)) {
                 try {
                     return $get($key);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     return null;
                 }
             }
@@ -935,22 +963,22 @@ class BookingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label(static::columnLabel('booking_number'))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(static::columnLabel('hall'))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('customer_name')
+                TextColumn::make('customer_name')
                     ->label(static::columnLabel('customer_name'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('booking_date')
+                TextColumn::make('booking_date')
                     ->label(static::columnLabel('booking_date'))
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label(static::columnLabel('time_slot'))
                     ->badge()
                     ->colors([
@@ -970,7 +998,7 @@ class BookingResource extends Resource
                         }
                     )
                     ->sortable(),
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(static::columnLabel('total_amount'))
 
                     ->money('OMR')
@@ -981,7 +1009,7 @@ class BookingResource extends Resource
                             : null
                     )
                     ->weight('bold'),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(static::columnLabel('status'))
                     ->badge()
                     ->colors([
@@ -995,7 +1023,7 @@ class BookingResource extends Resource
                         fn(string $state): string =>
                         __('booking.statuses.' . $state)
                     ),
-                Tables\Columns\TextColumn::make('payment_status')
+                TextColumn::make('payment_status')
                     ->label(static::columnLabel('payment_status'))
                     ->badge()
                     ->searchable()
@@ -1011,7 +1039,7 @@ class BookingResource extends Resource
                         fn(string $state): string =>
                         __('booking.statuses.' . $state)
                     ),
-                Tables\Columns\TextColumn::make('payment_type')
+                TextColumn::make('payment_type')
                     ->label(__('advance_payment.payment_type'))
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -1024,18 +1052,18 @@ class BookingResource extends Resource
                         __('advance_payment.payment_type_' . $state)
                     ),
 
-                Tables\Columns\TextColumn::make('advance_amount')
+                TextColumn::make('advance_amount')
                     ->label(__('advance_payment.advance_paid'))
                     ->money('OMR', 3)
                     ->visible(fn($record) => $record && $record->isAdvancePayment()),
 
-                Tables\Columns\TextColumn::make('balance_due')
+                TextColumn::make('balance_due')
                     ->label(__('advance_payment.balance_due'))
                     ->money('OMR', 3)
                     ->color(fn($record) => $record && $record->isBalancePending() ? 'danger' : 'success')
                     ->visible(fn($record) => $record && $record->isAdvancePayment()),
 
-                Tables\Columns\IconColumn::make('balance_paid')
+                IconColumn::make('balance_paid')
                     ->label(__('advance_payment.balance_payment_status'))
                     ->boolean()
                     ->getStateUsing(fn($record) => $record->balance_paid_at !== null)
@@ -1052,23 +1080,23 @@ class BookingResource extends Resource
                 GuestBookingComponents::bookingTypeFilter(),
 
                 // Booking status filter
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('booking.fields.status.label'))
-                    ->options(\App\Enums\BookingStatus::options())
+                    ->options(BookingStatus::options())
                     ->multiple(),
 
                 // Payment status filter
-                Tables\Filters\SelectFilter::make('payment_status')
+                SelectFilter::make('payment_status')
                     ->label(__('booking.fields.payment_status.label'))
                     ->options(
-                        collect(\App\Enums\PaymentStatus::cases())
+                        collect(PaymentStatus::cases())
                             ->mapWithKeys(fn($s) => [$s->value => $s->label()])
                             ->toArray()
                     )
                     ->multiple(),
 
                 // Time slot filter
-                Tables\Filters\SelectFilter::make('time_slot')
+                SelectFilter::make('time_slot')
                     ->label(__('booking.fields.time_slot.label'))
                     ->options([
                         'morning' => __('Morning'),
@@ -1077,18 +1105,18 @@ class BookingResource extends Resource
                     ])
                     ->multiple(),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    ViewAction::make(),
+                    EditAction::make(),
                     // In your BookingResource table or view page
-                    Tables\Actions\Action::make('mark_balance_paid')
+                    Action::make('mark_balance_paid')
                         ->label(__('advance_payment.mark_balance_as_paid'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->visible(fn(Booking $record) => $record->isBalancePending())
-                        ->form([
-                            Forms\Components\Select::make('payment_method')
+                        ->schema([
+                            Select::make('payment_method')
                                 ->label(__('advance_payment.balance_payment_method'))
                                 ->options([
                                     'bank_transfer' => __('advance_payment.bank_transfer'),
@@ -1097,12 +1125,12 @@ class BookingResource extends Resource
                                 ])
                                 ->required(),
 
-                            Forms\Components\TextInput::make('reference')
+                            TextInput::make('reference')
                                 ->label(__('advance_payment.balance_payment_reference'))
                                 ->placeholder('Transaction ID or Receipt Number')
                                 ->maxLength(255),
 
-                            Forms\Components\DateTimePicker::make('paid_at')
+                            DateTimePicker::make('paid_at')
                                 ->label(__('Payment Date'))
                                 ->default(now())
                                 ->required(),
@@ -1126,7 +1154,7 @@ class BookingResource extends Resource
                         }),
 
                     // ✅ PDF Invoice Download Actions
-                    Tables\Actions\Action::make('download_advance_invoice')
+                    Action::make('download_advance_invoice')
                         ->label(__('Advance Invoice PDF'))
                         ->icon('heroicon-o-document-text')
                         ->color('warning')
@@ -1147,7 +1175,7 @@ class BookingResource extends Resource
                                         'Content-Disposition' => 'attachment; filename="advance-invoice-' . $record->booking_number . '.pdf"',
                                     ]
                                 );
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Notification::make()
                                     ->danger()
                                     ->title('PDF Generation Failed')
@@ -1158,7 +1186,7 @@ class BookingResource extends Resource
                         })
                         ->requiresConfirmation(false),
 
-                    Tables\Actions\Action::make('download_balance_invoice')
+                    Action::make('download_balance_invoice')
                         ->label(__('Balance Due PDF'))
                         ->icon('heroicon-o-exclamation-triangle')
                         ->color('danger')
@@ -1181,7 +1209,7 @@ class BookingResource extends Resource
                                         'Content-Disposition' => 'attachment; filename="balance-invoice-' . $record->booking_number . '.pdf"',
                                     ]
                                 );
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Notification::make()
                                     ->danger()
                                     ->title('PDF Generation Failed')
@@ -1192,7 +1220,7 @@ class BookingResource extends Resource
                         })
                         ->requiresConfirmation(false),
 
-                    Tables\Actions\Action::make('download_receipt')
+                    Action::make('download_receipt')
                         ->label(__('Full Receipt PDF'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -1212,7 +1240,7 @@ class BookingResource extends Resource
                                         'Content-Disposition' => 'attachment; filename="receipt-' . $record->booking_number . '.pdf"',
                                     ]
                                 );
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Notification::make()
                                     ->danger()
                                     ->title('PDF Generation Failed')
@@ -1232,7 +1260,7 @@ class BookingResource extends Resource
                      * Downloads the booking invoice PDF for confirmed/completed bookings.
                      * Uses the InvoiceService to generate a professional invoice.
                      */
-                    Tables\Actions\Action::make('download_invoice')
+                    Action::make('download_invoice')
                         ->label(__('booking.actions.download_invoice'))
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('primary')
@@ -1251,7 +1279,7 @@ class BookingResource extends Resource
                                     "invoice-{$record->booking_number}.pdf",
                                     ['Content-Type' => 'application/pdf']
                                 );
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Notification::make()
                                     ->danger()
                                     ->title(__('booking.notifications.pdf_generation_failed'))
@@ -1267,7 +1295,7 @@ class BookingResource extends Resource
                      * Opens invoice in new tab for printing.
                      * Uses a dedicated print route with print-optimized CSS.
                      */
-                    Tables\Actions\Action::make('print_invoice')
+                    Action::make('print_invoice')
                         ->label(__('booking.actions.print_invoice'))
                         ->icon('heroicon-o-printer')
                         ->color('gray')
@@ -1288,7 +1316,7 @@ class BookingResource extends Resource
                      * Sends invoice PDF to customer email with customizable message.
                      * Queues the email job for better performance.
                      */
-                    Tables\Actions\Action::make('send_invoice_email')
+                    Action::make('send_invoice_email')
                         ->label(__('booking.actions.send_invoice_email'))
                         ->icon('heroicon-o-envelope')
                         ->color('info')
@@ -1298,14 +1326,14 @@ class BookingResource extends Resource
                                 $record->payment_status === 'paid' &&
                                 !empty($record->customer_email)
                         )
-                        ->form([
-                            Forms\Components\TextInput::make('email')
+                        ->schema([
+                            TextInput::make('email')
                                 ->label(__('booking.form.recipient_email'))
                                 ->email()
                                 ->required()
                                 ->default(fn(Booking $record): string => $record->customer_email ?? ''),
 
-                            Forms\Components\TextInput::make('subject')
+                            TextInput::make('subject')
                                 ->label(__('booking.form.email_subject'))
                                 ->required()
                                 ->default(
@@ -1313,20 +1341,20 @@ class BookingResource extends Resource
                                     __('booking.email.invoice_subject', ['number' => $record->booking_number])
                                 ),
 
-                            Forms\Components\Textarea::make('message')
+                            Textarea::make('message')
                                 ->label(__('booking.form.email_message'))
                                 ->rows(4)
                                 ->default(__('booking.email.invoice_default_message'))
                                 ->helperText(__('booking.form.email_message_helper')),
 
-                            Forms\Components\Toggle::make('attach_pdf')
+                            Toggle::make('attach_pdf')
                                 ->label(__('booking.form.attach_pdf'))
                                 ->default(true),
                         ])
                         ->action(function (Booking $record, array $data) {
                             try {
                                 // Dispatch email job (recommended for production)
-                                \App\Jobs\SendBookingInvoiceEmail::dispatch(
+                                SendBookingInvoiceEmail::dispatch(
                                     $record,
                                     $data['email'],
                                     $data['subject'],
@@ -1341,7 +1369,7 @@ class BookingResource extends Resource
                                         'email' => $data['email']
                                     ]))
                                     ->send();
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Notification::make()
                                     ->danger()
                                     ->title(__('booking.notifications.email_failed'))
@@ -1361,7 +1389,7 @@ class BookingResource extends Resource
                      *
                      * Transitions pending booking to confirmed status.
                      */
-                    Tables\Actions\Action::make('confirm_booking')
+                    Action::make('confirm_booking')
                         ->label(__('booking.actions.confirm'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -1383,7 +1411,7 @@ class BookingResource extends Resource
                      *
                      * Cancels booking with reason and optional refund calculation.
                      */
-                    Tables\Actions\Action::make('cancel_booking')
+                    Action::make('cancel_booking')
                         ->label(__('booking.actions.cancel'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
@@ -1393,8 +1421,8 @@ class BookingResource extends Resource
                         )
                         ->requiresConfirmation()
                         ->modalHeading(__('booking.modals.cancel_booking'))
-                        ->form([
-                            Forms\Components\Textarea::make('reason')
+                        ->schema([
+                            Textarea::make('reason')
                                 ->label(__('booking.form.cancellation_reason'))
                                 ->required()
                                 ->rows(3)
@@ -1414,7 +1442,7 @@ class BookingResource extends Resource
                      *
                      * Marks confirmed booking as completed (post-event).
                      */
-                    Tables\Actions\Action::make('complete_booking')
+                    Action::make('complete_booking')
                         ->label(__('booking.actions.complete'))
                         ->icon('heroicon-o-check-badge')
                         ->color('info')
@@ -1444,7 +1472,7 @@ class BookingResource extends Resource
                      *
                      * Sends booking reminder to customer.
                      */
-                    Tables\Actions\Action::make('send_reminder')
+                    Action::make('send_reminder')
                         ->label(__('booking.actions.send_reminder'))
                         ->icon('heroicon-o-bell-alert')
                         ->color('warning')
@@ -1454,8 +1482,8 @@ class BookingResource extends Resource
                                 $record->booking_date->isFuture() &&
                                 $record->booking_date->diffInDays(now()) <= 7
                         )
-                        ->form([
-                            Forms\Components\CheckboxList::make('channels')
+                        ->schema([
+                            CheckboxList::make('channels')
                                 ->label(__('booking.form.notification_channels'))
                                 ->options([
                                     'email' => __('booking.form.channel_email'),
@@ -1464,14 +1492,14 @@ class BookingResource extends Resource
                                 ->default(['email'])
                                 ->required(),
 
-                            Forms\Components\Textarea::make('custom_message')
+                            Textarea::make('custom_message')
                                 ->label(__('booking.form.custom_message'))
                                 ->rows(3)
                                 ->placeholder(__('booking.form.custom_message_placeholder')),
                         ])
                         ->action(function (Booking $record, array $data) {
                             // Dispatch reminder notification job
-                            \App\Jobs\SendBookingReminder::dispatch(
+                            SendBookingReminder::dispatch(
                                 $record,
                                 $data['channels'],
                                 $data['custom_message'] ?? null
@@ -1489,7 +1517,7 @@ class BookingResource extends Resource
                      *
                      * Quick links to call or WhatsApp customer.
                      */
-                    Tables\Actions\Action::make('contact_customer')
+                    Action::make('contact_customer')
                         ->label(__('booking.actions.contact_customer'))
                         ->icon('heroicon-o-phone')
                         ->color('gray')
@@ -1513,12 +1541,12 @@ class BookingResource extends Resource
                      *
                      * Allows adding internal notes to the booking.
                      */
-                    Tables\Actions\Action::make('add_admin_note')
+                    Action::make('add_admin_note')
                         ->label(__('booking.actions.add_note'))
                         ->icon('heroicon-o-pencil-square')
                         ->color('gray')
-                        ->form([
-                            Forms\Components\Textarea::make('admin_notes')
+                        ->schema([
+                            Textarea::make('admin_notes')
                                 ->label(__('booking.form.admin_notes'))
                                 ->rows(4)
                                 ->default(fn(Booking $record): ?string => $record->admin_notes)
@@ -1539,7 +1567,7 @@ class BookingResource extends Resource
                      *
                      * Creates a new booking with same details (for repeat customers).
                      */
-                    Tables\Actions\Action::make('duplicate_booking')
+                    Action::make('duplicate_booking')
                         ->label(__('booking.actions.duplicate'))
                         ->icon('heroicon-o-document-duplicate')
                         ->color('gray')
@@ -1550,8 +1578,8 @@ class BookingResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading(__('booking.modals.duplicate_booking'))
                         ->modalDescription(__('booking.modals.duplicate_booking_description'))
-                        ->form([
-                            Forms\Components\DatePicker::make('new_booking_date')
+                        ->schema([
+                            DatePicker::make('new_booking_date')
                                 ->label(__('booking.form.new_booking_date'))
                                 ->required()
                                 ->minDate(now()->addDay())
@@ -1593,7 +1621,7 @@ class BookingResource extends Resource
                                     'number' => $newBooking->booking_number
                                 ]))
                                 ->actions([
-                                    \Filament\Notifications\Actions\Action::make('view')
+                                    Action::make('view')
                                         ->label(__('booking.actions.view_new_booking'))
                                         ->url(BookingResource::getUrl('view', ['record' => $newBooking]))
                                 ])
@@ -1605,7 +1633,7 @@ class BookingResource extends Resource
                      *
                      * Sends review request to customer after completed booking.
                      */
-                    Tables\Actions\Action::make('request_review')
+                    Action::make('request_review')
                         ->label(__('booking.actions.request_review'))
                         ->icon('heroicon-o-star')
                         ->color('warning')
@@ -1618,29 +1646,21 @@ class BookingResource extends Resource
                         ->modalHeading(__('booking.modals.request_review'))
                         ->modalDescription(__('booking.modals.request_review_description'))
                         ->action(function (Booking $record) {
-                            \App\Jobs\SendReviewRequest::dispatch($record);
+                            SendReviewRequest::dispatch($record);
 
                             Notification::make()
                                 ->success()
                                 ->title(__('booking.notifications.review_request_sent'))
                                 ->send();
                         }),
-                    ActivityLogTimelineTableAction::make('Activities')
-                        ->timelineIcons([
-                            'created' => 'heroicon-m-check-badge',
-                            'updated' => 'heroicon-m-pencil-square',
-                        ])
-                        ->timelineIconColors([
-                            'created' => 'info',
-                            'updated' => 'warning',
-                        ]),
+                    // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent
 
                 ])
             ])
             ->defaultSort('created_at', 'desc')
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -1650,74 +1670,74 @@ class BookingResource extends Resource
      *
      * Displays comprehensive booking information including advance payment details
      */
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
+        return $schema
+            ->components([
                 // Hall & Customer Information
-                Infolists\Components\Section::make('Booking Information')
+                Section::make('Booking Information')
                     ->schema([
-                        Infolists\Components\TextEntry::make('booking_number')
+                        TextEntry::make('booking_number')
                             ->label('Booking Number')
                             ->badge()
                             ->color('primary')
                             ->size('lg'),
 
-                        Infolists\Components\TextEntry::make('hall.name')
+                        TextEntry::make('hall.name')
                             ->label('Hall'),
 
-                        Infolists\Components\TextEntry::make('customer_name')
+                        TextEntry::make('customer_name')
                             ->label('Customer Name'),
 
-                        Infolists\Components\TextEntry::make('customer_phone')
+                        TextEntry::make('customer_phone')
                             ->label('Customer Phone'),
 
-                        Infolists\Components\TextEntry::make('booking_date')
+                        TextEntry::make('booking_date')
                             ->label('Date')
                             ->date(),
 
-                        Infolists\Components\TextEntry::make('time_slot')
+                        TextEntry::make('time_slot')
                             ->label('Time Slot')
                             ->badge(),
 
-                        Infolists\Components\TextEntry::make('status')
+                        TextEntry::make('status')
                             ->badge(),
 
-                        Infolists\Components\TextEntry::make('payment_status')
+                        TextEntry::make('payment_status')
                             ->badge(),
                     ])
                     ->columns(2),
 
                 // Pricing Information
-                Infolists\Components\Section::make('Pricing Details')
+                Section::make('Pricing Details')
                     ->schema([
-                        Infolists\Components\TextEntry::make('hall_price')
+                        TextEntry::make('hall_price')
                             ->label('Hall Price')
                             ->money('OMR', 3),
 
-                        Infolists\Components\TextEntry::make('services_price')
+                        TextEntry::make('services_price')
                             ->label('Services Total')
                             ->money('OMR', 3),
 
-                        Infolists\Components\TextEntry::make('subtotal')
+                        TextEntry::make('subtotal')
                             ->label('Subtotal')
                             ->money('OMR', 3),
 
-                        Infolists\Components\TextEntry::make('commission_amount')
+                        TextEntry::make('commission_amount')
                             ->label('Commission Amount')
                             ->money('OMR', 3),
 
-                        Infolists\Components\TextEntry::make('platform_fee')
+                        TextEntry::make('platform_fee')
                             ->label('Platform Fee')
                             ->money('OMR', 3),
 
-                        Infolists\Components\TextEntry::make('discount_amount')
+                        TextEntry::make('discount_amount')
                             ->label('Promo Discount')
                             ->money('OMR', 3)
                             ->color('success')
                             ->visible(fn($record) => $record->promo_code_id !== null),
 
-                        Infolists\Components\TextEntry::make('total_amount')
+                        TextEntry::make('total_amount')
                             ->label('Total Amount')
                             ->money('OMR', 3)
                             ->weight('bold')
@@ -1727,21 +1747,21 @@ class BookingResource extends Resource
                     ->columns(3),
 
                 // Promo Code Section
-                Infolists\Components\Section::make('Promo Code')
+                Section::make('Promo Code')
                     ->schema([
-                        Infolists\Components\TextEntry::make('promoCode.code')
+                        TextEntry::make('promoCode.code')
                             ->label('Code')
                             ->badge()
                             ->color('success'),
 
-                        Infolists\Components\TextEntry::make('promoCode.name')
+                        TextEntry::make('promoCode.name')
                             ->label('Promo Name'),
 
-                        Infolists\Components\TextEntry::make('promo_discount_label')
+                        TextEntry::make('promo_discount_label')
                             ->label('Discount')
                             ->getStateUsing(fn($record) => $record->promoCode?->discount_label),
 
-                        Infolists\Components\TextEntry::make('discount_amount')
+                        TextEntry::make('discount_amount')
                             ->label('Amount Saved')
                             ->money('OMR', 3)
                             ->color('success')
@@ -1751,12 +1771,12 @@ class BookingResource extends Resource
                     ->visible(fn($record) => $record->promo_code_id !== null),
 
                 // ✅ Advance Payment Section
-                Infolists\Components\Section::make('Advance Payment Details')
+                Section::make('Advance Payment Details')
                     ->description(fn($record) => $record->isAdvancePayment()
                         ? 'This booking requires advance payment. Customer must pay balance before the event.'
                         : 'This is a full payment booking.')
                     ->schema([
-                        Infolists\Components\TextEntry::make('payment_type')
+                        TextEntry::make('payment_type')
                             ->label(__('advance_payment.payment_type'))
                             ->badge()
                             ->color(fn(string $state): string => match ($state) {
@@ -1770,7 +1790,7 @@ class BookingResource extends Resource
                             )
                             ->size('lg'),
 
-                        Infolists\Components\TextEntry::make('advance_amount')
+                        TextEntry::make('advance_amount')
                             ->label(__('advance_payment.advance_paid'))
                             ->money('OMR', 3)
                             ->visible(fn($record) => $record->isAdvancePayment())
@@ -1778,7 +1798,7 @@ class BookingResource extends Resource
                             ->weight('bold')
                             ->size('lg'),
 
-                        Infolists\Components\TextEntry::make('balance_due')
+                        TextEntry::make('balance_due')
                             ->label(__('advance_payment.balance_due'))
                             ->money('OMR', 3)
                             ->visible(fn($record) => $record->isAdvancePayment())
@@ -1786,13 +1806,13 @@ class BookingResource extends Resource
                             ->weight('bold')
                             ->size('lg'),
 
-                        Infolists\Components\TextEntry::make('balance_paid_at')
+                        TextEntry::make('balance_paid_at')
                             ->label(__('advance_payment.balance_paid_at'))
                             ->dateTime()
                             ->visible(fn($record) => $record->isAdvancePayment() && $record->balance_paid_at)
                             ->color('success'),
 
-                        Infolists\Components\TextEntry::make('balance_payment_status')
+                        TextEntry::make('balance_payment_status')
                             ->label(__('advance_payment.balance_payment_status'))
                             ->badge()
                             ->visible(fn($record) => $record->isAdvancePayment())
@@ -1831,13 +1851,13 @@ class BookingResource extends Resource
                 // Extra Services Section
                 // FIX: Since extraServices() is a HasMany to BookingExtraService model,
                 // fields are directly on the model (not pivot). Use service_name, quantity, etc.
-                Infolists\Components\Section::make('Extra Services')
+                Section::make('Extra Services')
                     ->schema([
-                        Infolists\Components\RepeatableEntry::make('extraServices')
+                        RepeatableEntry::make('extraServices')
                             ->label('')
                             ->schema([
                                 // FIX: service_name is a JSON/array field, needs formatting
-                                Infolists\Components\TextEntry::make('service_name')
+                                TextEntry::make('service_name')
                                     ->label(__('booking.fields.service_id.label'))
                                     ->formatStateUsing(function ($state): string {
                                         // Handle JSON string
@@ -1856,14 +1876,14 @@ class BookingResource extends Resource
                                     }),
 
                                 // FIX: Direct field access — no "pivot." prefix needed
-                                Infolists\Components\TextEntry::make('quantity')
+                                TextEntry::make('quantity')
                                     ->label(__('booking.fields.quantity.label')),
 
-                                Infolists\Components\TextEntry::make('unit_price')
+                                TextEntry::make('unit_price')
                                     ->label(__('booking.fields.unit_price.label'))
                                     ->money('OMR', 3),
 
-                                Infolists\Components\TextEntry::make('total_price')
+                                TextEntry::make('total_price')
                                     ->label(__('booking.fields.total_price.label'))
                                     ->money('OMR', 3)
                                     ->weight('bold'),
@@ -1874,13 +1894,13 @@ class BookingResource extends Resource
                     ->collapsible(),
 
                 // Event Details
-                Infolists\Components\Section::make(__('booking.infolist.event_details'))
+                Section::make(__('booking.infolist.event_details'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('event_type')
+                        TextEntry::make('event_type')
                             ->label('Event Type')
                             ->badge(),
 
-                        Infolists\Components\TextEntry::make('event_details')
+                        TextEntry::make('event_details')
                             ->label('Event Details')
                             ->columnSpanFull(),
                     ])
@@ -1900,10 +1920,10 @@ class BookingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListBookings::route('/'),
-            'create' => Pages\CreateBooking::route('/create'),
-            'view' => Pages\ViewBooking::route('/{record}'),
-            'edit' => Pages\EditBooking::route('/{record}/edit'),
+            'index' => ListBookings::route('/'),
+            'create' => CreateBooking::route('/create'),
+            'view' => ViewBooking::route('/{record}'),
+            'edit' => EditBooking::route('/{record}/edit'),
         ];
     }
 

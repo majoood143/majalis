@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
+use App\Models\Hall;
+use App\Services\CommissionService;
+use Filament\Actions\Action;
 use Exception;
 use Throwable;
 use App\Models\Booking;
@@ -63,7 +66,7 @@ class CreateBooking extends CreateRecord
      *
      * @param array $data Form data
      * @return array Mutated data
-     * @throws \Exception If validation fails (halts process)
+     * @throws Exception If validation fails (halts process)
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -89,7 +92,7 @@ class CreateBooking extends CreateRecord
             }
 
             // Validate hall capacity
-            $hall = \App\Models\Hall::find($data['hall_id']);
+            $hall = Hall::find($data['hall_id']);
             if ($hall) {
                 if ($data['number_of_guests'] < $hall->capacity_min) {
                     Notification::make()
@@ -120,13 +123,13 @@ class CreateBooking extends CreateRecord
 
             // ✅ Recalculate commission server-side before saving to ensure it's always applied.
             // This overrides any stale/zero form state that may not have been updated live.
-            $hall = \App\Models\Hall::find($data['hall_id'] ?? null);
+            $hall = Hall::find($data['hall_id'] ?? null);
             if ($hall) {
                 $hallPrice     = (float) ($data['hall_price'] ?? 0);
                 $servicesPrice = (float) ($data['services_price'] ?? 0);
                 $subtotal      = $hallPrice + $servicesPrice;
 
-                $feeData = app(\App\Services\CommissionService::class)->calculateFees($hall, $subtotal);
+                $feeData = app(CommissionService::class)->calculateFees($hall, $subtotal);
 
                 $data['commission_amount'] = $feeData['commission_amount'];
                 $data['commission_type']   = $feeData['commission_type'];
@@ -182,7 +185,7 @@ class CreateBooking extends CreateRecord
      *
      * @param array $data Validated form data
      * @return Model Created booking record
-     * @throws \Exception If slot becomes unavailable during creation
+     * @throws Exception If slot becomes unavailable during creation
      */
     protected function handleRecordCreation(array $data): Model
     {
@@ -230,7 +233,7 @@ class CreateBooking extends CreateRecord
                 // ✅ NEW: Calculate advance payment if hall allows it
                 // This must happen AFTER creating the booking and attaching services
                 // so that total_amount is correctly calculated
-                $hall = \App\Models\Hall::find($record->hall_id);
+                $hall = Hall::find($record->hall_id);
                 if ($hall && $hall->allows_advance_payment) {
                     // Calculate advance payment based on hall settings
                     $record->calculateAdvancePayment();
@@ -453,7 +456,7 @@ class CreateBooking extends CreateRecord
                 'booking_number' => $booking->booking_number,
                 'customer_email' => $booking->customer_email,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log error but don't fail the booking creation
             Log::error('Failed to send booking created email', [
                 'booking_id' => $booking->id,
@@ -475,7 +478,7 @@ class CreateBooking extends CreateRecord
     /**
      * Disable the create another button to prevent accidental duplicate submissions
      */
-    protected function getCreateAnotherFormAction(): \Filament\Actions\Action
+    protected function getCreateAnotherFormAction(): Action
     {
         return parent::getCreateAnotherFormAction()
             ->disabled();
@@ -484,7 +487,7 @@ class CreateBooking extends CreateRecord
     /**
      * Add confirmation before creating to prevent accidental clicks
      */
-    protected function getCreateFormAction(): \Filament\Actions\Action
+    protected function getCreateFormAction(): Action
     {
         return parent::getCreateFormAction()
             ->requiresConfirmation()
