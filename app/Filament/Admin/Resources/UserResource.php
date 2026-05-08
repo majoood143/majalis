@@ -108,7 +108,8 @@ class UserResource extends Resource
                             ->default(true)
                             ->inline(false),
                     ])->columns(3),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

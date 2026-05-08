@@ -468,7 +468,7 @@ class ViewBooking extends ViewRecord
      */
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 /**
                  * Basic Booking Details Section
@@ -754,7 +754,7 @@ class ViewBooking extends ViewRecord
                                     ->icon('heroicon-o-document-text'),
                             ]),
                     ])
-                    ->columns(3)
+                    //->columns(3)
                     ->visible(fn() => $this->record->payment_type !== null)
                     ->collapsible()
                     ->collapsed(fn() => !$this->record->isAdvancePayment()),
@@ -805,19 +805,7 @@ class ViewBooking extends ViewRecord
                  * @requires   Filament 3.3, Laravel 12, PHP 8.4.12
                  */
 
-                // ============================================================================
-                // INSTRUCTIONS
-                // ============================================================================
-                //
-                // Add this section AFTER the "Advance Payment Details" section (around line 651)
-                // and BEFORE the "Extra Services" section (around line 660).
-                //
-                // Look for this line in your ViewBooking.php:
-                //   ->collapsed(fn() => !$this->record->isAdvancePayment()),
-                //
-                // And add the Payment Transactions section right after it.
-                // ============================================================================
-
+              
                 /**
                  * Payment Transactions Section
                  *
@@ -1155,6 +1143,7 @@ class ViewBooking extends ViewRecord
                     ])
                     ->collapsed()
                     ->visible(fn() => !empty($this->record->admin_notes)),
-            ]);
+            ])
+            ->columns(1);
     }
 }

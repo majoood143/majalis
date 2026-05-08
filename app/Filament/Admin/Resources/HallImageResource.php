@@ -153,7 +153,8 @@ class HallImageResource extends Resource
                             ->label(__('hall-image.is_featured'))
                             ->inline(false),
                     ])->columns(3),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

@@ -23,6 +23,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 use App\Filament\Admin\Resources\HallOwnerResource\Pages\ListHallOwners;
 use App\Filament\Admin\Resources\HallOwnerResource\Pages\CreateHallOwner;
 use App\Filament\Admin\Resources\HallOwnerResource\Pages\ViewHallOwner;
@@ -87,6 +88,15 @@ class HallOwnerResource extends Resource
                                 TextInput::make('business_name_ar')
                                     ->label(__('hall-owner.fields.business_name_ar'))
                                     ->maxLength(255),
+
+                                FileUpload::make('logo')
+                                    ->label(__('hall-owner.fields.logo'))
+                                    ->disk('public')
+                                    ->directory('logos/hall-owners')
+                                    ->image()
+                                    ->imageEditor()
+                                    ->maxSize(2048)
+                                    ->columnSpanFull(),
 
                                 TextInput::make('commercial_registration')
                                     ->label(__('hall-owner.fields.commercial_registration'))
@@ -321,6 +331,12 @@ class HallOwnerResource extends Resource
             ->components([
                 Section::make(__('hall-owner.infolist.business_information'))
                     ->schema([
+                        ImageEntry::make('logo')
+                            ->label(__('hall-owner.fields.logo'))
+                            ->disk('public')
+                            ->height(80)
+                            ->circular()
+                            ->columnSpanFull(),
                         TextEntry::make('user.name')
                             ->label(__('hall-owner.infolist.owner')),
                         TextEntry::make('business_name')

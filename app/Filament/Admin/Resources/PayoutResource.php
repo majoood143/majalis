@@ -356,7 +356,8 @@ class PayoutResource extends Resource
                     ])
                     ->collapsible()
                     ->collapsed(),
-            ]);
+            ])
+            ->columns(1);
     }
 
     /**
@@ -906,7 +907,8 @@ class PayoutResource extends Resource
                     ])
                     ->collapsible()
                     ->collapsed(),
-            ]);
+            ])
+            ->columns(1);
     }
 
     /**

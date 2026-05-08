@@ -122,7 +122,7 @@ class ViewHallAvailability extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 // Slot Information Section
                 Section::make(__('hall-availability.view_page.slot_information'))
@@ -354,7 +354,8 @@ class ViewHallAvailability extends ViewRecord
                     ])
                     ->icon('heroicon-o-server')
                     ->collapsed(),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public function getTitle(): string

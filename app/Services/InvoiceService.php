@@ -6,7 +6,6 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Http\Response;
-use Barryvdh\DomPDF\PDF;
 use App\Models\Booking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;

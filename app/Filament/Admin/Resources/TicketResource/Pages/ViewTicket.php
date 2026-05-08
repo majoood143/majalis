@@ -211,7 +211,7 @@ class ViewTicket extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make(__('ticket_admin.view_section_overview'))
                     ->schema([
@@ -359,6 +359,7 @@ class ViewTicket extends ViewRecord
                     ])
                     ->visible(fn ($record) => $record->rating || $record->feedback)
                     ->collapsible(),
-            ]);
+            ])
+            ->columns(1);
     }
 }

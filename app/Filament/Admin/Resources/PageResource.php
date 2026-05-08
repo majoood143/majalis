@@ -213,7 +213,8 @@ class PageResource extends Resource
                             ->helperText(__('admin.pages.show_in_footer_helper')),
                     ])
                     ->columns(4),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

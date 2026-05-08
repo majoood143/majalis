@@ -53,6 +53,7 @@ return [
         'from_date' => 'From Date',
         'to_date' => 'To Date',
         'rejection_reason' => 'Rejection Reason',
+        'logo' => 'Logo',
     ],
 
     // Options

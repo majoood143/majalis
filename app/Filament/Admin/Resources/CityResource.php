@@ -29,11 +29,14 @@ use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
+use UnitEnum;
 
 
 class CityResource extends Resource
 {
     protected static ?string $model = City::class;
+
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office';
 
@@ -129,7 +132,8 @@ class CityResource extends Resource
                             ->default(true)
                             ->inline(false),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
@@ -185,6 +189,7 @@ class CityResource extends Resource
                 SelectFilter::make('region_id')
                     ->label(__('city.filters.region'))
                     ->relationship('region', 'name')
+                    ->getOptionLabelFromRecordUsing(fn (Region $record) => $record->name)
                     ->searchable()
                     ->preload(),
 
@@ -201,7 +206,7 @@ class CityResource extends Resource
                         ->label(__('city.table_actions.edit')),
                     DeleteAction::make()
                         ->label(__('city.table_actions.delete')),
-                ViewAction::make(),
+                    ViewAction::make(),
                 // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ]),
             ])

@@ -22,6 +22,7 @@ class HallOwner extends Model
         'user_id',
         'business_name',
         'business_name_ar',
+        'logo',
         'commercial_registration',
         'tax_number',
         'business_phone',

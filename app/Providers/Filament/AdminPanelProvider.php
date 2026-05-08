@@ -34,6 +34,8 @@ use Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Illuminate\Support\Facades\Blade;
 use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
+use WallaceMartinss\FilamentEvolution\FilamentEvolutionPlugin;
+
 
 
 
@@ -43,7 +45,9 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->id('admin')
+            ->default()
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->profile()
             ->colors([
@@ -98,6 +102,7 @@ class AdminPanelProvider extends PanelProvider
                 GtagPlugin::make(),
                 FilamentEnvEditorPlugin::make()
                     ->viewPage(EnvEditor::class),
+            FilamentEvolutionPlugin::make(),
             //\MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
             //KnowledgeBasePlugin::make(),
 

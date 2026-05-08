@@ -170,7 +170,7 @@ class ViewExtraService extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make(__('extra-service.infolist.service_overview'))
                     ->schema([
@@ -411,7 +411,8 @@ class ViewExtraService extends ViewRecord
                     ->icon('heroicon-o-clock')
                     ->collapsed()
                     ->visible(fn() => class_exists(Activity::class)),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public function getTitle(): string

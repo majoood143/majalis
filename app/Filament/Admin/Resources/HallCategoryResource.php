@@ -99,7 +99,8 @@ class HallCategoryResource extends Resource implements HasShieldPermissions
                             ->label(__('hall-category.description_ar'))
                             ->rows(3),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

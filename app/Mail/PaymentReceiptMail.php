@@ -49,8 +49,13 @@ class PaymentReceiptMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $ref = $this->payment->payment_reference;
+        if (is_array($ref)) {
+            $ref = $ref[app()->getLocale()] ?? $ref['ar'] ?? $ref['en'] ?? 'N/A';
+        }
+
         return new Envelope(
-            subject: 'Payment Receipt - ' . $this->payment->payment_reference,
+            subject: 'Payment Receipt - ' . ($ref ?? 'N/A'),
         );
     }
 
@@ -70,7 +75,12 @@ class PaymentReceiptMail extends Mailable
                 'payment' => $this->payment,
                 'booking' => $this->payment->booking,
                 'hall' => $this->payment->booking?->hall,
-                'customerName' => $this->payment->booking?->customer_name ?? 'Valued Customer',
+                'customerName' => (function ($name) {
+                    if (is_array($name)) {
+                        return $name[app()->getLocale()] ?? $name['ar'] ?? $name['en'] ?? 'Valued Customer';
+                    }
+                    return $name ?? 'Valued Customer';
+                })($this->payment->booking?->customer_name),
             ],
         );
     }
@@ -85,16 +95,28 @@ class PaymentReceiptMail extends Mailable
         // Load relationships if not loaded
         $this->payment->load('booking.hall');
 
+        // Setting::get() returns JSON-decoded values which may be arrays.
+        // Resolve them to plain strings here so the PDF view never receives an array.
+        $locale = app()->getLocale();
+        $str = function (mixed $v, string $fallback) use ($locale): string {
+            if (is_array($v)) {
+                $v = $v[$locale] ?? $v['ar'] ?? $v['en'] ?? $fallback;
+            }
+            if (is_string($v) && $v !== '') return $v;
+            if (is_numeric($v)) return (string) $v;
+            return $fallback;
+        };
+
         // Generate PDF content at send time (not in constructor)
         $pdfContent = Pdf::loadView('pdf.payment-receipt', [
             'payment'         => $this->payment,
             'booking'         => $this->payment->booking,
             'hall'            => $this->payment->booking?->hall,
             'generatedDate'   => now(),
-            'platformName'    => Setting::get('general', 'site_name', 'Majalis'),
-            'platformPhone'   => Setting::get('contact', 'phone', '+968 9999 9999'),
-            'platformEmail'   => Setting::get('contact', 'email', 'info@majalis.om'),
-            'platformAddress' => Setting::get('contact', 'address', 'Muscat, Oman'),
+            'platformName'    => $str(Setting::get('general', 'site_name'), 'Majalis'),
+            'platformPhone'   => $str(Setting::get('contact', 'phone'), '+968 9999 9999'),
+            'platformEmail'   => $str(Setting::get('contact', 'email'), 'info@majalis.om'),
+            'platformAddress' => $str(Setting::get('contact', 'address'), 'Muscat, Oman'),
         ])->output();
 
         $filename = 'receipt_' . $this->payment->payment_reference . '.pdf';

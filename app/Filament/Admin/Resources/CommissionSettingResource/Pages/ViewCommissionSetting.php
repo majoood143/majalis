@@ -124,7 +124,7 @@ class ViewCommissionSetting extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('Commission Scope')
                     ->schema([
@@ -389,7 +389,8 @@ class ViewCommissionSetting extends ViewRecord
                     ->icon('heroicon-o-clock')
                     ->collapsed()
                     ->visible(fn() => class_exists(Activity::class)),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public function getTitle(): string

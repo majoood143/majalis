@@ -134,7 +134,8 @@ class HallAvailabilityResource extends Resource
                             ->step(0.001)
                             ->helperText(__('hall-availability.custom_price_helper')),
                     ]),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

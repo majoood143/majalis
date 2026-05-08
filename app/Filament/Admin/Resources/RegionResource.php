@@ -114,7 +114,8 @@ class RegionResource extends Resource
                             ->default(true)
                             ->inline(false),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

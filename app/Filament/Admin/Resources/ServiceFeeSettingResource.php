@@ -205,7 +205,8 @@ class ServiceFeeSettingResource extends Resource
                             ->columnSpanFull(),
 
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     // ─────────────────────────────────────────────────────────

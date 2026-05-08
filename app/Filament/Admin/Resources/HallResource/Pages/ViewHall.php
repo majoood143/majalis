@@ -196,7 +196,7 @@ class ViewHall extends ViewRecord
      */
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 // =============================================
                 // SECTION: Hall Overview

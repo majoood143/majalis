@@ -14,9 +14,7 @@ use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Spatie\Activitylog\Models\Activity;
 use App\Filament\Admin\Resources\CityResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists;
 use Filament\Notifications\Notification;
 
 class ViewCity extends ViewRecord
@@ -117,7 +115,7 @@ class ViewCity extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('City Information')
                     ->schema([
@@ -154,12 +152,12 @@ class ViewCity extends ViewRecord
                             ->schema([
                                 TextEntry::make('description.en')
                                     ->label('Description (English)')
-                                    ->default('No description provided')
+                                    ->placeholder('No description provided')
                                     ->columnSpanFull(),
 
                                 TextEntry::make('description.ar')
                                     ->label('Description (Arabic)')
-                                    ->default('لا يوجد وصف')
+                                    ->placeholder('لا يوجد وصف')
                                     ->columnSpanFull(),
                             ]),
                     ])
@@ -179,13 +177,13 @@ class ViewCity extends ViewRecord
 
                                 TextEntry::make('latitude')
                                     ->label('Latitude')
-                                    ->default('Not set')
+                                    ->placeholder('Not set')
                                     ->icon('heroicon-o-globe-alt')
                                     ->copyable(),
 
                                 TextEntry::make('longitude')
                                     ->label('Longitude')
-                                    ->default('Not set')
+                                    ->placeholder('Not set')
                                     ->icon('heroicon-o-globe-alt')
                                     ->copyable(),
                             ]),
@@ -268,7 +266,8 @@ class ViewCity extends ViewRecord
                     ->icon('heroicon-o-clock')
                     ->collapsed()
                     ->visible(fn () => class_exists(Activity::class)),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public function getTitle(): string

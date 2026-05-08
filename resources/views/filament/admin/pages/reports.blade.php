@@ -6,7 +6,7 @@
 
     {{-- Tab Navigation --}}
     <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
-        <nav class="-mb-px flex space-x-8 rtl:space-x-reverse" aria-label="Tabs">
+        <nav class="flex -mb-px space-x-8 rtl:space-x-reverse" aria-label="Tabs">
             @foreach ([
                 'overview' => ['icon' => 'heroicon-o-squares-2x2', 'label' => __('admin.reports.tabs.overview')],
                 'revenue' => ['icon' => 'heroicon-o-currency-dollar', 'label' => __('admin.reports.tabs.revenue')],
@@ -21,8 +21,8 @@
                             ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                             : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
                 >
-                    <x-dynamic-component
-                        :component="$data['icon']"
+                    <x-filament::icon
+                        :icon="$data['icon']"
                         class="ltr:-ml-0.5 ltr:mr-2 rtl:-mr-0.5 rtl:ml-2 h-5 w-5
                             {{ $activeTab === $tab ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500' }}"
                     />
@@ -41,8 +41,8 @@
                 {{-- Total Revenue --}}
                 <x-filament::section>
                     <div class="flex items-center gap-4">
-                        <div class="rounded-full bg-success-100 p-3 dark:bg-success-500/20">
-                            <x-heroicon-o-banknotes class="h-6 w-6 text-success-600 dark:text-success-400" />
+                        <div class="p-3 rounded-full bg-success-100 dark:bg-success-500/20">
+                            <x-filament::icon icon="heroicon-o-banknotes" class="w-6 h-6 text-success-600 dark:text-success-400" />
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -58,8 +58,8 @@
                 {{-- Total Commission --}}
                 <x-filament::section>
                     <div class="flex items-center gap-4">
-                        <div class="rounded-full bg-primary-100 p-3 dark:bg-primary-500/20">
-                            <x-heroicon-o-currency-dollar class="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                        <div class="p-3 rounded-full bg-primary-100 dark:bg-primary-500/20">
+                            <x-filament::icon icon="heroicon-o-currency-dollar" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -75,8 +75,8 @@
                 {{-- Total Bookings --}}
                 <x-filament::section>
                     <div class="flex items-center gap-4">
-                        <div class="rounded-full bg-info-100 p-3 dark:bg-info-500/20">
-                            <x-heroicon-o-calendar-days class="h-6 w-6 text-info-600 dark:text-info-400" />
+                        <div class="p-3 rounded-full bg-info-100 dark:bg-info-500/20">
+                            <x-filament::icon icon="heroicon-o-calendar-days" class="w-6 h-6 text-info-600 dark:text-info-400" />
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -92,8 +92,8 @@
                 {{-- Pending Payouts --}}
                 <x-filament::section>
                     <div class="flex items-center gap-4">
-                        <div class="rounded-full bg-warning-100 p-3 dark:bg-warning-500/20">
-                            <x-heroicon-o-clock class="h-6 w-6 text-warning-600 dark:text-warning-400" />
+                        <div class="p-3 rounded-full bg-warning-100 dark:bg-warning-500/20">
+                            <x-filament::icon icon="heroicon-o-clock" class="w-6 h-6 text-warning-600 dark:text-warning-400" />
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -120,7 +120,7 @@
                     ['label' => __('admin.reports.stats.active_halls'), 'value' => $this->dashboardStats['total_halls'], 'color' => 'info'],
                     ['label' => __('admin.reports.stats.verified_owners'), 'value' => $this->dashboardStats['total_owners'], 'color' => 'gray'],
                 ] as $stat)
-                    <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+                    <div class="p-4 bg-white shadow-sm rounded-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                         <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>
                         <p class="mt-1 text-xl font-semibold text-{{ $stat['color'] }}-600 dark:text-{{ $stat['color'] }}-400">
                             {{ number_format($stat['value']) }}
@@ -211,8 +211,8 @@
                             <div>
                                 <div class="flex items-center justify-between mb-1">
                                     <div class="flex items-center gap-2">
-                                        <x-dynamic-component
-                                            :component="$item['icon']"
+                                        <x-filament::icon
+                                            :icon="$item['icon']"
                                             class="h-5 w-5 text-{{ $item['color'] }}-500"
                                         />
                                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -221,7 +221,7 @@
                                     </div>
                                     <span class="text-sm text-gray-500">{{ $count }} ({{ $percentage }}%)</span>
                                 </div>
-                                <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+                                <div class="w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700">
                                     <div
                                         class="h-2 rounded-full bg-{{ $item['color'] }}-500"
                                         style="width: {{ $percentage }}%"
@@ -244,10 +244,10 @@
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="py-2 text-left font-medium text-gray-500 dark:text-gray-400">#</th>
-                                    <th class="py-2 text-left font-medium text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.hall') }}</th>
-                                    <th class="py-2 text-right font-medium text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.bookings') }}</th>
-                                    <th class="py-2 text-right font-medium text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.revenue') }}</th>
+                                    <th class="py-2 font-medium text-left text-gray-500 dark:text-gray-400">#</th>
+                                    <th class="py-2 font-medium text-left text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.hall') }}</th>
+                                    <th class="py-2 font-medium text-right text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.bookings') }}</th>
+                                    <th class="py-2 font-medium text-right text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.revenue') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -259,7 +259,7 @@
                                         <td class="py-2 text-gray-500">{{ $index + 1 }}</td>
                                         <td class="py-2 font-medium text-gray-900 dark:text-white">{{ $hallName }}</td>
                                         <td class="py-2 text-right text-gray-600 dark:text-gray-400">{{ $hall->bookings_count }}</td>
-                                        <td class="py-2 text-right font-semibold text-success-600 dark:text-success-400">
+                                        <td class="py-2 font-semibold text-right text-success-600 dark:text-success-400">
                                             {{ number_format((float) $hall->total_revenue, 3) }} OMR
                                         </td>
                                     </tr>
@@ -282,10 +282,10 @@
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="py-2 text-left font-medium text-gray-500 dark:text-gray-400">#</th>
-                                    <th class="py-2 text-left font-medium text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.owner') }}</th>
-                                    <th class="py-2 text-right font-medium text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.halls') }}</th>
-                                    <th class="py-2 text-right font-medium text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.revenue') }}</th>
+                                    <th class="py-2 font-medium text-left text-gray-500 dark:text-gray-400">#</th>
+                                    <th class="py-2 font-medium text-left text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.owner') }}</th>
+                                    <th class="py-2 font-medium text-right text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.halls') }}</th>
+                                    <th class="py-2 font-medium text-right text-gray-500 dark:text-gray-400">{{ __('admin.reports.table.revenue') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -297,7 +297,7 @@
                                             <div class="text-xs text-gray-500">{{ $owner->business_name }}</div>
                                         </td>
                                         <td class="py-2 text-right text-gray-600 dark:text-gray-400">{{ $owner->halls_count }}</td>
-                                        <td class="py-2 text-right font-semibold text-success-600 dark:text-success-400">
+                                        <td class="py-2 font-semibold text-right text-success-600 dark:text-success-400">
                                             {{ number_format((float) $owner->total_revenue, 3) }} OMR
                                         </td>
                                     </tr>

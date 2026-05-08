@@ -1,0 +1,871 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/Owner/**/*';
+@source '../../../../resources/views/filament/owner/**/*';
+@source '../../../../app/Filament/Pages/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* ============================================================
+   MAJALIS OWNER — Custom Filament v4 Theme
+   Brand: #B9916D (warm gold/copper)
+   Sidebar: deep slate-teal (distinct from admin charcoal)
+   Font: Cairo (Arabic RTL support)
+   ============================================================ */
+
+@theme {
+    /* ── Typography ──────────────────────────────────────────── */
+    --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+
+    /* ── Brand Palette (primary = #B9916D) ───────────────────── */
+    --color-primary-50:  #fdf6f0;
+    --color-primary-100: #f8e9da;
+    --color-primary-200: #f0d0b5;
+    --color-primary-300: #e5b38a;
+    --color-primary-400: #d19565;
+    --color-primary-500: #b9916d;
+    --color-primary-600: #a57a57;
+    --color-primary-700: #8a6245;
+    --color-primary-800: #6f4d36;
+    --color-primary-900: #5a3d2b;
+    --color-primary-950: #3d2519;
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    --sidebar-width:           17rem;
+    --collapsed-sidebar-width: 4rem;
+
+    /* ── Border radius ───────────────────────────────────────── */
+    --radius-sm:  0.375rem;
+    --radius-md:  0.5rem;
+    --radius-lg:  0.75rem;
+    --radius-xl:  1rem;
+    --radius-2xl: 1.25rem;
+
+    /* ── Shadows ─────────────────────────────────────────────── */
+    --shadow-card:       0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.10), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    --shadow-modal:      0 20px 60px 0 rgb(0 0 0 / 0.18);
+}
+
+/* ============================================================
+   DESIGN TOKENS — LIGHT MODE
+   ============================================================ */
+:root {
+    /* Sidebar — deep slate-teal (distinct from admin warm charcoal) */
+    /* --fi-sidebar-bg:              #0e1e2b; */
+    --fi-sidebar-item-color:      rgba(255, 255, 255, 0.68);
+    --fi-sidebar-item-hover-bg:   rgba(185, 145, 109, 0.13);
+    --fi-sidebar-item-active-bg:  rgba(185, 145, 109, 0.22);
+    --fi-sidebar-item-active-color: #e8c9a8;
+
+    /* Top bar */
+    --fi-topbar-bg:     #ffffff;
+    --fi-topbar-border: #e8e2da;
+
+    /* Page background */
+    --fi-page-bg: #f5f3f0;
+
+    /* Card surface */
+    --fi-card-bg:     #ffffff;
+    --fi-card-border: #ece8e2;
+
+    /* Focus ring */
+    --fi-focus-ring: rgba(185, 145, 109, 0.35);
+}
+
+/* ============================================================
+   DESIGN TOKENS — DARK MODE
+   ============================================================ */
+.dark {
+    --fi-sidebar-bg:               #091521;
+    --fi-sidebar-item-color:       rgba(255, 255, 255, 0.60);
+    --fi-sidebar-item-hover-bg:    rgba(185, 145, 109, 0.11);
+    --fi-sidebar-item-active-bg:   rgba(185, 145, 109, 0.20);
+    --fi-sidebar-item-active-color:#e8c9a8;
+    --fi-topbar-bg:                #111b26;
+    --fi-topbar-border:            rgba(255, 255, 255, 0.06);
+    --fi-page-bg:                  #0b1420;
+    --fi-card-bg:                  #112030;
+    --fi-card-border:              rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.fi-sidebar {
+    background-color: var(--fi-sidebar-bg) !important;
+}
+
+.fi-sidebar-header {
+    background-color: var(--fi-sidebar-bg) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 1.25rem 1rem;
+}
+
+.fi-sidebar-footer {
+    background-color: var(--fi-sidebar-bg) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fi-sidebar-item-button {
+    color: var(--fi-sidebar-item-color) !important;
+    border-radius: var(--radius-lg) !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.fi-sidebar-item-button:hover {
+    background-color: var(--fi-sidebar-item-hover-bg) !important;
+    color: #ffffff !important;
+}
+
+.fi-active .fi-sidebar-item-button,
+.fi-sidebar-item-button[aria-current='page'] {
+    background-color: var(--fi-sidebar-item-active-bg) !important;
+    color: var(--fi-sidebar-item-active-color) !important;
+    font-weight: 600;
+}
+
+.fi-sidebar-group-label {
+    color: rgba(185, 145, 109, 0.55) !important;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.fi-sidebar::-webkit-scrollbar       { width: 4px; }
+.fi-sidebar::-webkit-scrollbar-track { background: transparent; }
+.fi-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(185, 145, 109, 0.28);
+    border-radius: 2px;
+}
+.fi-sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(185, 145, 109, 0.5);
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.fi-topbar {
+    background-color: var(--fi-topbar-bg) !important;
+    border-bottom: 1px solid var(--fi-topbar-border) !important;
+    box-shadow: 0 1px 4px 0 rgb(0 0 0 / 0.04);
+}
+
+/* ============================================================
+   PAGE / LAYOUT
+   ============================================================ */
+.fi-main {
+    background-color: var(--fi-page-bg) !important;
+}
+
+.fi-page-header-heading {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   WIDGETS & CARDS
+   ============================================================ */
+.fi-wi-stats-overview-stat {
+    background-color: var(--fi-card-bg) !important;
+    border: 1px solid var(--fi-card-border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease;
+}
+
+.fi-wi-stats-overview-stat:hover {
+    box-shadow: var(--shadow-card-hover);
+}
+
+.fi-wi-stats-overview-stat-value {
+    font-weight: 800;
+    font-size: 1.75rem;
+    color: var(--color-primary-600);
+}
+
+.dark .fi-wi-stats-overview-stat-value {
+    color: var(--color-primary-400);
+}
+
+.fi-wi-stats-overview-stat-icon {
+    background-color: var(--color-primary-50) !important;
+    color: var(--color-primary-600) !important;
+}
+
+.dark .fi-wi-stats-overview-stat-icon {
+    background-color: rgba(185, 145, 109, 0.14) !important;
+    color: var(--color-primary-400) !important;
+}
+
+.fi-wi-section,
+.fi-section {
+    background-color: var(--fi-card-bg) !important;
+    border: 1px solid var(--fi-card-border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-card);
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.fi-ta-table {
+    border-radius: var(--radius-xl) !important;
+    overflow: hidden;
+}
+
+.fi-ta-header-cell {
+    background-color: #f4f1ed !important;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #6b5c4c !important;
+}
+
+.dark .fi-ta-header-cell {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(232, 201, 168, 0.65) !important;
+}
+
+.fi-ta-row:hover td {
+    background-color: #fdf8f4 !important;
+}
+
+.dark .fi-ta-row:hover td {
+    background-color: rgba(185, 145, 109, 0.06) !important;
+}
+
+.fi-ta-row-selected td {
+    background-color: #fef0e3 !important;
+}
+
+.dark .fi-ta-row-selected td {
+    background-color: rgba(185, 145, 109, 0.12) !important;
+}
+
+/* ============================================================
+   FORMS & INPUTS
+   ============================================================ */
+.fi-input,
+.fi-select-input,
+.fi-textarea {
+    border-radius: var(--radius-lg) !important;
+    border-color: #ddd5c9 !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fi-input:focus,
+.fi-select-input:focus,
+.fi-textarea:focus {
+    border-color: var(--color-primary-500) !important;
+    box-shadow: 0 0 0 3px var(--fi-focus-ring) !important;
+    outline: none;
+}
+
+.dark .fi-input,
+.dark .fi-select-input,
+.dark .fi-textarea {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.fi-fo-field-wrp-label {
+    font-weight: 600;
+    color: #3d3028;
+}
+
+.dark .fi-fo-field-wrp-label {
+    color: rgba(255, 255, 255, 0.80);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.fi-btn-primary {
+    background-color: var(--color-primary-500) !important;
+    border-color: var(--color-primary-500) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: var(--radius-lg) !important;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.fi-btn-primary:hover {
+    background-color: var(--color-primary-600) !important;
+    border-color: var(--color-primary-600) !important;
+    transform: translateY(-1px);
+}
+
+.fi-btn-primary:active {
+    transform: translateY(0);
+}
+
+.fi-btn-secondary,
+.fi-btn-outlined,
+.fi-btn-danger {
+    border-radius: var(--radius-lg) !important;
+    font-weight: 600;
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.fi-badge {
+    border-radius: var(--radius-md) !important;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+.fi-modal-window {
+    border-radius: var(--radius-2xl) !important;
+    box-shadow: var(--shadow-modal) !important;
+}
+
+.fi-modal-header {
+    border-bottom: 1px solid var(--fi-card-border);
+    padding: 1.25rem 1.5rem;
+}
+
+.fi-modal-footer {
+    border-top: 1px solid var(--fi-card-border);
+    padding: 1rem 1.5rem;
+    background-color: #faf8f6;
+}
+
+.dark .fi-modal-footer {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+.fi-no-notification {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 8px 24px 0 rgb(0 0 0 / 0.12) !important;
+    border: 1px solid var(--fi-card-border) !important;
+}
+
+.fi-no-notification-title {
+    font-weight: 700;
+}
+
+/* ============================================================
+   DROPDOWN MENUS
+   ============================================================ */
+.fi-dropdown-panel {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 8px 24px 0 rgb(0 0 0 / 0.10) !important;
+    border: 1px solid var(--fi-card-border) !important;
+    overflow: hidden;
+}
+
+.fi-dropdown-list-item-button:hover {
+    background-color: #fdf6f0 !important;
+}
+
+.dark .fi-dropdown-list-item-button:hover {
+    background-color: rgba(185, 145, 109, 0.10) !important;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.fi-tabs-tab[aria-selected='true'] {
+    border-bottom-color: var(--color-primary-500) !important;
+    color: var(--color-primary-600) !important;
+    font-weight: 600;
+}
+
+.dark .fi-tabs-tab[aria-selected='true'] {
+    border-bottom-color: var(--color-primary-400) !important;
+    color: var(--color-primary-400) !important;
+}
+
+/* ============================================================
+   SECTION HEADINGS
+   ============================================================ */
+.fi-section-header-heading {
+    font-weight: 700;
+    color: #1a140f;
+}
+
+.dark .fi-section-header-heading {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.fi-pagination-item-button[aria-current='page'] {
+    background-color: var(--color-primary-500) !important;
+    border-color: var(--color-primary-500) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* ============================================================
+   INFOLIST ENTRIES
+   ============================================================ */
+.fi-in-entry-wrp-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8a7060 !important;
+}
+
+.dark .fi-in-entry-wrp-label {
+    color: rgba(185, 145, 109, 0.60) !important;
+}
+
+/* ============================================================
+   FILTER INDICATORS
+   ============================================================ */
+.fi-ta-filters-indicator-badge {
+    background-color: var(--color-primary-500) !important;
+    color: #ffffff !important;
+}
+
+/* ============================================================
+   RTL / ARABIC LAYOUT
+   ============================================================ */
+[dir='rtl'] .fi-sidebar {
+    border-right: none;
+    border-left: 1px solid var(--fi-card-border);
+}
+
+[dir='rtl'] .fi-sidebar-nav-item-icon {
+    margin-right: 0;
+    margin-left: 0.625rem;
+}
+
+[dir='rtl'] .fi-topbar-breadcrumbs {
+    direction: rtl;
+}
+
+/* ============================================================
+   FULL CALENDAR — Tailwind v4 compatible
+   (replaces fullcalendar-custom.css, no theme() calls)
+   ============================================================ */
+
+/* ── Base variables ──────────────────────────────────────── */
+.fc {
+    --fc-border-color:       #e5e7eb;
+    --fc-page-bg-color:      #ffffff;
+    --fc-neutral-bg-color:   #f9fafb;
+    --fc-today-bg-color:     #fdf6f0;
+    --fc-highlight-color:    #f8e9da;
+    --fc-non-business-color: #f3f4f6;
+    --fc-event-selected-overlay-color: rgba(185, 145, 109, 0.15);
+}
+
+.dark .fc {
+    --fc-border-color:       rgba(255, 255, 255, 0.10);
+    --fc-page-bg-color:      var(--fi-card-bg);
+    --fc-neutral-bg-color:   rgba(255, 255, 255, 0.04);
+    --fc-today-bg-color:     rgba(185, 145, 109, 0.08);
+    --fc-highlight-color:    rgba(185, 145, 109, 0.15);
+    --fc-non-business-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Header toolbar ─────────────────────────────────────── */
+.fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+}
+
+.dark .fc .fc-toolbar {
+    background: var(--fi-card-bg);
+    border: 1px solid var(--fi-card-border);
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    font-family: 'Cairo', sans-serif;
+}
+
+.dark .fc .fc-toolbar-title {
+    color: rgba(255, 255, 255, 0.90);
+}
+
+/* ── Toolbar buttons ────────────────────────────────────── */
+.fc .fc-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--radius-lg);
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    font-family: 'Cairo', sans-serif;
+}
+
+.dark .fc .fc-button {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.80);
+}
+
+.fc .fc-button:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.dark .fc .fc-button:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+    background: var(--color-primary-600);
+    border-color: var(--color-primary-600);
+    color: #ffffff;
+}
+
+.fc .fc-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--fi-focus-ring);
+}
+
+.fc .fc-today-button {
+    background: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.fc .fc-today-button:hover {
+    background: var(--color-primary-600);
+    border-color: var(--color-primary-600);
+}
+
+.fc .fc-today-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Grid ───────────────────────────────────────────────── */
+.fc .fc-scrollgrid {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    border: 1px solid var(--fc-border-color);
+}
+
+.fc .fc-scrollgrid-section > td {
+    border: none;
+}
+
+.fc .fc-col-header-cell {
+    padding: 0.75rem;
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: 'Cairo', sans-serif;
+}
+
+.dark .fc .fc-col-header-cell {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(232, 201, 168, 0.70);
+}
+
+.fc .fc-daygrid-day {
+    transition: background-color 0.15s ease;
+}
+
+.fc .fc-daygrid-day:hover {
+    background-color: var(--fc-highlight-color);
+}
+
+.fc .fc-daygrid-day-number {
+    padding: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-family: 'Cairo', sans-serif;
+}
+
+.dark .fc .fc-daygrid-day-number {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Today highlight ────────────────────────────────────── */
+.fc .fc-day-today {
+    background-color: var(--fc-today-bg-color) !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+    background: var(--color-primary-600);
+    color: #ffffff;
+    border-radius: 9999px;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.25rem;
+}
+
+/* ── Weekend / Omani calendar ───────────────────────────── */
+.fc .fc-day-sat,
+.fc .fc-day-fri {
+    background-color: rgba(251, 146, 60, 0.04);
+}
+
+.dark .fc .fc-day-sat,
+.dark .fc .fc-day-fri {
+    background-color: rgba(251, 146, 60, 0.08);
+}
+
+.fc .fc-day-past {
+    opacity: 0.60;
+}
+
+.fc .fc-day-past .fc-daygrid-day-number {
+    color: #9ca3af;
+}
+
+/* ── Events ─────────────────────────────────────────────── */
+.fc .fc-event {
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    font-family: 'Cairo', sans-serif;
+}
+
+.fc .fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.fc .fc-event-title {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fc .fc-event-time {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+.fc .fc-event.available   { background-color: #22c55e; }
+.fc .fc-event.blocked     { background-color: #ef4444; }
+.fc .fc-event.booked      { background-color: #3b82f6; }
+.fc .fc-event.maintenance { background-color: #f59e0b; }
+.fc .fc-event.past        { background-color: #9ca3af; }
+
+/* ── "More events" link ─────────────────────────────────── */
+.fc .fc-daygrid-more-link {
+    color: var(--color-primary-600);
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.fc .fc-daygrid-more-link:hover {
+    color: var(--color-primary-700);
+    text-decoration: underline;
+}
+
+/* ── Time grid ──────────────────────────────────────────── */
+.fc .fc-timegrid-slot {
+    height: 2.5rem;
+}
+
+.fc .fc-timegrid-slot-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-family: 'Cairo', sans-serif;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+    border-color: #ef4444;
+    border-width: 2px;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: #ef4444;
+}
+
+/* ── List view ──────────────────────────────────────────── */
+.fc .fc-list {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.fc .fc-list-day-cushion {
+    background: #f3f4f6;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+}
+
+.dark .fc .fc-list-day-cushion {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.80);
+}
+
+.fc .fc-list-event {
+    cursor: pointer;
+}
+
+.fc .fc-list-event:hover td {
+    background: var(--fc-highlight-color);
+}
+
+.fc .fc-list-event-dot {
+    border-radius: 9999px;
+}
+
+/* ── Popover ────────────────────────────────────────────── */
+.fc .fc-popover {
+    border-radius: var(--radius-xl);
+    box-shadow: 0 10px 30px 0 rgb(0 0 0 / 0.12);
+    border: 1px solid var(--fc-border-color);
+    overflow: hidden;
+}
+
+.fc .fc-popover-header {
+    background: #f3f4f6;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+}
+
+.dark .fc .fc-popover-header {
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.fc .fc-popover-body {
+    padding: 0.5rem;
+}
+
+/* ── Selection highlight ────────────────────────────────── */
+.fc .fc-highlight {
+    background: rgba(185, 145, 109, 0.18);
+    border-radius: var(--radius-md);
+}
+
+/* ── Mobile responsive ──────────────────────────────────── */
+@media (max-width: 640px) {
+    .fc .fc-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .fc .fc-button {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .fc .fc-col-header-cell {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.625rem;
+    }
+
+    .fc .fc-daygrid-day-number {
+        padding: 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    .fc .fc-event {
+        font-size: 0.625rem;
+        padding: 0.0625rem 0.25rem;
+    }
+
+    .fc .fc-daygrid-event {
+        margin: 1px 2px;
+    }
+
+    .fc .fc-event-time {
+        display: none;
+    }
+
+    .fc .fc-daygrid-more-link {
+        font-size: 0.625rem;
+    }
+}
+
+/* ── RTL FullCalendar ───────────────────────────────────── */
+[dir='rtl'] .fc .fc-toolbar {
+    flex-direction: row-reverse;
+}
+
+[dir='rtl'] .fc .fc-toolbar-chunk {
+    flex-direction: row-reverse;
+}
+
+[dir='rtl'] .fc .fc-button-group > .fc-button:first-child {
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+[dir='rtl'] .fc .fc-button-group > .fc-button:last-child {
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+/* ── Print ──────────────────────────────────────────────── */
+@media print {
+    .fc .fc-toolbar {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .fc .fc-button {
+        display: none;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.5rem;
+    }
+
+    .fc .fc-event {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* ── Loading skeleton ───────────────────────────────────── */
+.fc .fc-loading-skeleton {
+    animation: fc-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fc-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+}
+
+[x-cloak] { display: none !important; }

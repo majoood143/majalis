@@ -104,22 +104,6 @@ class BookingResource extends Resource
                 Section::make(__('booking.sections.hall_selection.title'))
                     ->description(__('booking.sections.hall_selection.description'))
                     ->schema([
-                        // Forms\Components\Select::make('region_id')
-                        //     ->label(__('booking.fields.region_id.label'))
-                        //     ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
-                        //     ->searchable()
-                        //     ->preload()
-                        //     ->live()
-                        //     ->afterStateUpdated(function (Set $set) {
-                        //         // Reset dependent fields when region changes
-                        //         $set('city_id', null);
-                        //         $set('hall_id', null);
-                        //         $set('booking_date', null);
-                        //         $set('time_slot', null);
-                        //         $set('hall_price', 0);
-                        //     })
-                        //     ->helperText(__('booking.fields.region_id.helper')),
-
                         Select::make('region_id')
                             ->label(__('booking.fields.region_id.label'))
                             ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
@@ -142,32 +126,6 @@ class BookingResource extends Resource
                                 $set('hall_price', 0);
                             })
                             ->helperText(__('booking.fields.region_id.helper')),
-
-                        // Forms\Components\Select::make('city_id')
-                        //     ->label(__('booking.fields.city_id.label'))
-                        //     ->options(
-                        //         fn(Get $get): Collection => City::query()
-                        //             ->when(
-                        //                 $get('region_id'),
-                        //                 fn($query, $regionId) =>
-                        //                 $query->where('region_id', $regionId)
-                        //             )
-                        //             ->where('is_active', true)
-                        //             ->ordered()
-                        //             ->pluck('name', 'id')
-                        //     )
-                        //     ->searchable()
-                        //     ->preload()
-                        //     ->live()
-                        //     ->afterStateUpdated(function (Set $set) {
-                        //         // Reset dependent fields when city changes
-                        //         $set('hall_id', null);
-                        //         $set('booking_date', null);
-                        //         $set('time_slot', null);
-                        //         $set('hall_price', 0);
-                        //     })
-                        //     ->disabled(fn(Get $get): bool => !$get('region_id'))
-                        //     ->helperText(__('booking.fields.region_id.helper')),
 
                         Select::make('city_id')
                             ->label(__('booking.fields.city_id.label'))
@@ -307,22 +265,7 @@ class BookingResource extends Resource
                             ->helperText(fn(Get $get) => static::getDateHelperText($get('hall_id'), $get('booking_date')))
                             ->columnSpan(1),
 
-                        // Forms\Components\Select::make('time_slot')
-                        //     ->label(__('booking.fields.time_slot.label'))
-                        //     ->options(fn(Get $get): array => static::getAvailableTimeSlots(
-                        //         $get('hall_id'),
-                        //         $get('booking_date')
-                        //     ))
-                        //     ->required()
-                        //     ->live()
-                        //     ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
-                        //         if ($state && $get('hall_id') && $get('booking_date')) {
-                        //             static::updateHallPrice($set, $get('hall_id'), $get('booking_date'), $state);
-                        //         }
-                        //     })
-                        //     ->disabled(fn(Get $get): bool => !$get('booking_date'))
-                        //     ->helperText(fn(Get $get) => static::getTimeSlotHelperText($get('hall_id'), $get('booking_date')))
-                        //     ->columnSpan(1),
+
 
                         Select::make('time_slot')
                             ->label(__('booking.fields.time_slot.label'))
@@ -1822,31 +1765,7 @@ class BookingResource extends Resource
                     ->columns(3)
                     ->visible(fn($record) => $record->payment_type !== null),
 
-                // Extra Services
-                // Infolists\Components\Section::make('Extra Services')
-                //     ->schema([
-                //         Infolists\Components\RepeatableEntry::make('extraServices')
-                //             ->label('')
-                //             ->schema([
-                //                 Infolists\Components\TextEntry::make('name')
-                //                     ->label(__('booking.fields.service_id.label')),
 
-                //                 Infolists\Components\TextEntry::make('pivot.quantity')
-                //                     ->label(__('booking.fields.quantity.label')),
-
-                //                 Infolists\Components\TextEntry::make('pivot.unit_price')
-                //                     ->label(__('booking.fields.unit_price.label'))
-                //                     ->money('OMR', 3),
-
-                //                 Infolists\Components\TextEntry::make('pivot.total_price')
-                //                     ->label(__('booking.fields.total_price.label'))
-                //                     ->money('OMR', 3)
-                //                     ->weight('bold'),
-                //             ])
-                //             ->columns(4),
-                //     ])
-                //     ->visible(fn($record) => $record->extraServices->count() > 0)
-                //     ->collapsible(),
 
                 // Extra Services Section
                 // FIX: Since extraServices() is a HasMany to BookingExtraService model,

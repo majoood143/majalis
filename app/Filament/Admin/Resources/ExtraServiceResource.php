@@ -179,7 +179,8 @@ class ExtraServiceResource extends Resource
                             ->helperText(__('extra-service.is_required_helper'))
                             ->inline(false),
                     ])->columns(3),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

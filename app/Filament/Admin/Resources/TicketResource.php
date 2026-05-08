@@ -238,7 +238,8 @@ class TicketResource extends Resource
                     ->columns(3)
                     ->collapsed()
                     ->visible(fn ($record) => $record !== null),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table

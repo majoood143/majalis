@@ -1,0 +1,535 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/Admin/**/*';
+@source '../../../../resources/views/filament/admin/**/*';
+@source '../../../../app/Filament/Pages/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+
+/* Add these lines for Filament Evolution */
+@source '../../../../vendor/wallacemartinss/filament-whatsapp-conector/resources/views/**/*';
+@source '../../../../vendor/wallacemartinss/filament-whatsapp-conector/src/**/*';
+
+/* ============================================================
+   MAJALIS ADMIN — Custom Filament v4 Theme
+   Brand: #B9916D (warm gold/copper)
+   Font: Cairo (Arabic RTL support)
+   ============================================================ */
+
+@theme {
+
+    /* ── Typography ──────────────────────────────────────────── */
+    --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+
+    /* ── Brand Palette (primary = #B9916D) ───────────────────── */
+    --color-primary-50:  #fdf6f0;
+    --color-primary-100: #f8e9da;
+    --color-primary-200: #f0d0b5;
+    --color-primary-300: #e5b38a;
+    --color-primary-400: #d19565;
+    --color-primary-500: #b9916d;
+    --color-primary-600: #a57a57;
+    --color-primary-700: #8a6245;
+    --color-primary-800: #6f4d36;
+    --color-primary-900: #5a3d2b;
+    --color-primary-950: #3d2519;
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    --sidebar-width:            17rem;
+    --collapsed-sidebar-width:  4rem;
+
+    /* ── Border radius ───────────────────────────────────────── */
+    --radius-sm:  0.375rem;
+    --radius-md:  0.5rem;
+    --radius-lg:  0.75rem;
+    --radius-xl:  1rem;
+    --radius-2xl: 1.25rem;
+
+    /* ── Spacing scale additions ─────────────────────────────── */
+    --spacing-18: 4.5rem;
+    --spacing-88: 22rem;
+
+    /* ── Shadows ─────────────────────────────────────────────── */
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+}
+
+/* ============================================================
+   LIGHT MODE — CSS custom-property overrides
+   ============================================================ */
+:root {
+    /* Sidebar background – deep warm charcoal */
+    /* --fi-sidebar-bg: #1e1a17; */
+
+    /* Sidebar item colours */
+    --fi-sidebar-item-color:         rgba(255, 255, 255, 0.72);
+    --fi-sidebar-item-hover-bg:      rgba(185, 145, 109, 0.14);
+    --fi-sidebar-item-active-bg:     rgba(185, 145, 109, 0.22);
+    --fi-sidebar-item-active-color:  #e8c9a8;
+
+    /* Top bar */
+    --fi-topbar-bg: #ffffff;
+
+    /* Page background */
+    --fi-page-bg: #f7f5f2;
+
+    /* Card / widget surface */
+    --fi-card-bg: #ffffff;
+    --fi-card-border: #ece8e2;
+
+    /* Focus ring */
+    --fi-focus-ring-color: #b9916d;
+}
+
+/* ============================================================
+   DARK MODE overrides
+   ============================================================ */
+.dark {
+    --fi-sidebar-bg:                #16120f;
+    --fi-sidebar-item-color:        rgba(255, 255, 255, 0.65);
+    --fi-sidebar-item-hover-bg:     rgba(185, 145, 109, 0.12);
+    --fi-sidebar-item-active-bg:    rgba(185, 145, 109, 0.20);
+    --fi-sidebar-item-active-color: #e8c9a8;
+    --fi-topbar-bg:                 #1c1814;
+    --fi-page-bg:                   #121009;
+    --fi-card-bg:                   #1e1a15;
+    --fi-card-border:               #2e2820;
+}
+
+/* ============================================================
+   RTL / Arabic layout support
+   ============================================================ */
+[dir='rtl'] .fi-sidebar {
+    border-right: none;
+    border-left: 1px solid var(--fi-card-border);
+}
+
+[dir='rtl'] .fi-sidebar-nav-item-icon {
+    margin-right: 0;
+    margin-left: 0.625rem;
+}
+
+[dir='rtl'] .fi-topbar-breadcrumbs {
+    direction: rtl;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.fi-sidebar {
+    background-color: var(--fi-sidebar-bg) !important;
+}
+
+.fi-sidebar-header {
+    background-color: var(--fi-sidebar-bg) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 1.25rem 1rem;
+}
+
+/* Brand logo area */
+.fi-sidebar-header .fi-logo {
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+}
+
+/* Nav items */
+.fi-sidebar-item-button {
+    color: var(--fi-sidebar-item-color) !important;
+    border-radius: var(--radius-lg) !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.fi-sidebar-item-button:hover {
+    background-color: var(--fi-sidebar-item-hover-bg) !important;
+    color: #ffffff !important;
+}
+
+.fi-active .fi-sidebar-item-button,
+.fi-sidebar-item-button[aria-current='page'] {
+    background-color: var(--fi-sidebar-item-active-bg) !important;
+    color: var(--fi-sidebar-item-active-color) !important;
+    font-weight: 600;
+}
+
+/* Group labels */
+.fi-sidebar-group-label {
+    color: rgba(185, 145, 109, 0.6) !important;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+/* Sidebar footer */
+.fi-sidebar-footer {
+    background-color: var(--fi-sidebar-bg) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.fi-topbar {
+    background-color: var(--fi-topbar-bg) !important;
+    border-bottom: 1px solid var(--fi-card-border) !important;
+    box-shadow: 0 1px 4px 0 rgb(0 0 0 / 0.04);
+}
+
+.dark .fi-topbar {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ============================================================
+   PAGE / LAYOUT
+   ============================================================ */
+.fi-main {
+    background-color: var(--fi-page-bg) !important;
+}
+
+.dark .fi-main {
+    background-color: var(--fi-page-bg) !important;
+}
+
+/* Page header title */
+.fi-page-header-heading {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   WIDGETS & CARDS
+   ============================================================ */
+.fi-wi-stats-overview-stat {
+    background-color: var(--fi-card-bg) !important;
+    border: 1px solid var(--fi-card-border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease;
+}
+
+.fi-wi-stats-overview-stat:hover {
+    box-shadow: var(--shadow-card-hover);
+}
+
+/* Stat value */
+.fi-wi-stats-overview-stat-value {
+    font-weight: 800;
+    font-size: 1.75rem;
+    color: var(--color-primary-600);
+}
+
+.dark .fi-wi-stats-overview-stat-value {
+    color: var(--color-primary-400);
+}
+
+/* Stat icon ring */
+.fi-wi-stats-overview-stat-icon {
+    background-color: var(--color-primary-50) !important;
+    color: var(--color-primary-600) !important;
+}
+
+.dark .fi-wi-stats-overview-stat-icon {
+    background-color: rgba(185, 145, 109, 0.15) !important;
+    color: var(--color-primary-400) !important;
+}
+
+/* Generic section widget */
+.fi-wi-section,
+.fi-section {
+    background-color: var(--fi-card-bg) !important;
+    border: 1px solid var(--fi-card-border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-card);
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.fi-ta-table {
+    border-radius: var(--radius-xl) !important;
+    overflow: hidden;
+}
+
+.fi-ta-header-cell {
+    background-color: #f9f7f4 !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6b5c4c !important;
+}
+
+.dark .fi-ta-header-cell {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(232, 201, 168, 0.7) !important;
+}
+
+.fi-ta-row:hover td {
+    background-color: #fdf8f4 !important;
+}
+
+.dark .fi-ta-row:hover td {
+    background-color: rgba(185, 145, 109, 0.06) !important;
+}
+
+/* Row selected highlight */
+.fi-ta-row-selected td {
+    background-color: #fef0e3 !important;
+}
+
+.dark .fi-ta-row-selected td {
+    background-color: rgba(185, 145, 109, 0.12) !important;
+}
+
+/* ============================================================
+   FORMS & INPUTS
+   ============================================================ */
+.fi-input,
+.fi-select-input,
+.fi-textarea {
+    border-radius: var(--radius-lg) !important;
+    border-color: #ddd5c9 !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fi-input:focus,
+.fi-select-input:focus,
+.fi-textarea:focus {
+    border-color: var(--color-primary-500) !important;
+    box-shadow: 0 0 0 3px rgba(185, 145, 109, 0.2) !important;
+    outline: none;
+}
+
+.dark .fi-input,
+.dark .fi-select-input,
+.dark .fi-textarea {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Field labels */
+.fi-fo-field-wrp-label {
+    font-weight: 600;
+    color: #3d3028;
+}
+
+.dark .fi-fo-field-wrp-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+/* Primary button */
+.fi-btn-primary {
+    background-color: var(--color-primary-500) !important;
+    border-color: var(--color-primary-500) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: var(--radius-lg) !important;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.fi-btn-primary:hover {
+    background-color: var(--color-primary-600) !important;
+    border-color: var(--color-primary-600) !important;
+    transform: translateY(-1px);
+}
+
+.fi-btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Secondary / outlined buttons */
+.fi-btn-secondary,
+.fi-btn-outlined {
+    border-radius: var(--radius-lg) !important;
+    font-weight: 500;
+}
+
+/* Danger button */
+.fi-btn-danger {
+    border-radius: var(--radius-lg) !important;
+    font-weight: 600;
+}
+
+/* ============================================================
+   BADGES & STATUS INDICATORS
+   ============================================================ */
+.fi-badge {
+    border-radius: var(--radius-md) !important;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+.fi-modal-window {
+    border-radius: var(--radius-2xl) !important;
+    box-shadow: 0 20px 60px 0 rgb(0 0 0 / 0.18) !important;
+}
+
+.fi-modal-header {
+    border-bottom: 1px solid var(--fi-card-border);
+    padding: 1.25rem 1.5rem;
+}
+
+.fi-modal-footer {
+    border-top: 1px solid var(--fi-card-border);
+    padding: 1rem 1.5rem;
+    background-color: #faf8f6;
+}
+
+.dark .fi-modal-footer {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+.fi-no-notification {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 8px 24px 0 rgb(0 0 0 / 0.12) !important;
+    border: 1px solid var(--fi-card-border) !important;
+}
+
+.fi-no-notification-title {
+    font-weight: 700;
+}
+
+/* ============================================================
+   DROPDOWN MENUS
+   ============================================================ */
+.fi-dropdown-panel {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 8px 24px 0 rgb(0 0 0 / 0.1) !important;
+    border: 1px solid var(--fi-card-border) !important;
+    overflow: hidden;
+}
+
+.fi-dropdown-list-item-button:hover {
+    background-color: #fdf6f0 !important;
+}
+
+.dark .fi-dropdown-list-item-button:hover {
+    background-color: rgba(185, 145, 109, 0.1) !important;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.fi-tabs-tab[aria-selected='true'] {
+    border-bottom-color: var(--color-primary-500) !important;
+    color: var(--color-primary-600) !important;
+    font-weight: 600;
+}
+
+.dark .fi-tabs-tab[aria-selected='true'] {
+    border-bottom-color: var(--color-primary-400) !important;
+    color: var(--color-primary-400) !important;
+}
+
+/* ============================================================
+   SECTION HEADINGS
+   ============================================================ */
+.fi-section-header-heading {
+    font-weight: 700;
+    color: #2d2420;
+}
+
+.dark .fi-section-header-heading {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ============================================================
+   SCROLLBAR STYLING (webkit)
+   ============================================================ */
+.fi-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.fi-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.fi-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(185, 145, 109, 0.3);
+    border-radius: 2px;
+}
+
+.fi-sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(185, 145, 109, 0.55);
+}
+
+/* ============================================================
+   AVATAR / USER MENU
+   ============================================================ */
+.fi-user-avatar {
+    ring-color: var(--color-primary-400) !important;
+}
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+.fi-global-search-field input {
+    border-radius: var(--radius-lg) !important;
+    background-color: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.fi-global-search-field input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.fi-global-search-field input:focus {
+    background-color: rgba(255, 255, 255, 0.11);
+    border-color: rgba(185, 145, 109, 0.5);
+    box-shadow: 0 0 0 2px rgba(185, 145, 109, 0.2);
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.fi-pagination-item-button[aria-current='page'] {
+    background-color: var(--color-primary-500) !important;
+    border-color: var(--color-primary-500) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* ============================================================
+   LOADING INDICATOR
+   ============================================================ */
+[x-cloak] { display: none !important; }
+
+.fi-loading-indicator {
+    color: var(--color-primary-500);
+}
+
+/* ============================================================
+   INFOLIST ENTRIES
+   ============================================================ */
+.fi-in-entry-wrp-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8a7060 !important;
+}
+
+.dark .fi-in-entry-wrp-label {
+    color: rgba(185, 145, 109, 0.65) !important;
+}
+
+/* ============================================================
+   FILTER INDICATORS
+   ============================================================ */
+.fi-ta-filters-indicator-badge {
+    background-color: var(--color-primary-500) !important;
+    color: #ffffff !important;
+}

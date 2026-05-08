@@ -861,7 +861,8 @@ class PaymentResource extends Resource
                             ->label(__('payment.fields.refund_reason')),
                     ])
                     ->visible(fn($record) => $record->isRefunded()),
-            ]);
+            ])
+            ->columns(1);
     }
 
     /**
