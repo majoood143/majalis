@@ -40,7 +40,7 @@ class KnowledgeBasePanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ])
-            ->plugin(KnowledgeBasePlugin::make());
+            ]);
+            // ->plugin(KnowledgeBasePlugin::make());
     }
 }
