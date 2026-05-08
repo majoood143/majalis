@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\CityResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\CityResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -18,7 +20,7 @@ class EditCity extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('viewHalls')
+            Action::make('viewHalls')
                 ->label('View Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
@@ -29,7 +31,7 @@ class EditCity extends EditRecord
                 ]))
                 ->visible(fn() => $this->record->halls()->count() > 0),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -49,8 +51,8 @@ class EditCity extends EditRecord
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     // Check if city has halls
                     if ($this->record->halls()->count() > 0) {
                         Notification::make()
@@ -70,7 +72,7 @@ class EditCity extends EditRecord
                         ->body('The city has been deleted successfully.')
                 ),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -88,14 +90,14 @@ class EditCity extends EditRecord
                         ->title('City Duplicated')
                         ->body('The city has been duplicated successfully.')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('View Duplicate')
                                 ->url(CityResource::getUrl('edit', ['record' => $newCity->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\Action::make('viewTimeline')
+            Action::make('viewTimeline')
                 ->label('Activity Log')
                 ->icon('heroicon-o-clock')
                 ->color('gray')

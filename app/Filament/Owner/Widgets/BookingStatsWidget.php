@@ -15,7 +15,7 @@ class BookingStatsWidget extends ChartWidget
     /**
      * Widget heading
      */
-    protected static ?string $heading = 'Booking Statistics';
+    protected ?string $heading = 'Booking Statistics';
 
     /**
      * Widget column span
@@ -30,7 +30,7 @@ class BookingStatsWidget extends ChartWidget
     /**
      * Widget max height
      */
-    protected static ?string $maxHeight = '300px';
+    protected ?string $maxHeight = '300px';
 
     /**
      * Chart type

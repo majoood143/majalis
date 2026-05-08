@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\FeatureResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use App\Filament\Owner\Resources\FeatureResource;
 use App\Models\Hall;
 use App\Models\HallFeature;
@@ -58,31 +62,31 @@ class ListFeatures extends ListRecords
     {
         return [
             // Manage Hall Features
-            Actions\Action::make('manage')
+            Action::make('manage')
                 ->label(__('owner.features.actions.manage_halls'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('primary')
                 ->url(fn () => FeatureResource::getUrl('manage')),
 
             // Request New Feature
-            Actions\Action::make('request')
+            Action::make('request')
                 ->label(__('owner.features.actions.request_feature'))
                 ->icon('heroicon-o-light-bulb')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\TextInput::make('name_en')
+                ->schema([
+                    TextInput::make('name_en')
                         ->label(__('owner.features.fields.feature_name_en'))
                         ->required()
                         ->maxLength(100)
                         ->placeholder('e.g., Swimming Pool'),
 
-                    \Filament\Forms\Components\TextInput::make('name_ar')
+                    TextInput::make('name_ar')
                         ->label(__('owner.features.fields.feature_name_ar'))
                         ->required()
                         ->maxLength(100)
                         ->placeholder('مثال: مسبح'),
 
-                    \Filament\Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label(__('owner.features.fields.description'))
                         ->rows(3)
                         ->placeholder(__('owner.features.placeholders.describe_feature')),
@@ -91,7 +95,7 @@ class ListFeatures extends ListRecords
                     // In a real app, this would create a feature request for admin review
                     // For now, just show a success notification
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->success()
                         ->title(__('owner.features.notifications.request_sent'))
                         ->body(__('owner.features.notifications.request_sent_body'))
@@ -107,7 +111,7 @@ class ListFeatures extends ListRecords
     /**
      * Get tabs for filtering.
      *
-     * @return array<Tab>
+     * @return array<\Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
@@ -123,23 +127,23 @@ class ListFeatures extends ListRecords
             ->toArray();
 
         return [
-            'all' => Tab::make(__('owner.features.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.features.tabs.all'))
                 ->badge(HallFeature::where('is_active', true)->count())
                 ->badgeColor('primary'),
 
-            'added' => Tab::make(__('owner.features.tabs.added'))
+            'added' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.features.tabs.added'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('id', $ownerFeatureIds))
                 ->badge(count($ownerFeatureIds))
                 ->badgeColor('success')
                 ->icon('heroicon-o-check-circle'),
 
-            'not_added' => Tab::make(__('owner.features.tabs.not_added'))
+            'not_added' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.features.tabs.not_added'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereNotIn('id', $ownerFeatureIds))
                 ->badge(HallFeature::where('is_active', true)->whereNotIn('id', $ownerFeatureIds)->count())
                 ->badgeColor('gray')
                 ->icon('heroicon-o-plus-circle'),
 
-            'popular' => Tab::make(__('owner.features.tabs.popular'))
+            'popular' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.features.tabs.popular'))
                 ->modifyQueryUsing(function (Builder $query) {
                     // Get most commonly used features
                     $popularIds = [];

@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Customer;
 
+use App\Services\CommissionService;
+use Throwable;
+use App\Models\HallAvailability;
+use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\GuestSession;
@@ -489,7 +494,7 @@ class GuestBookingController extends Controller
 
             // Resolve commission (owner-side only — not added to customer total)
             // Priority: Hall-specific > Owner-specific > Global
-            $commissionService = app(\App\Services\CommissionService::class);
+            $commissionService = app(CommissionService::class);
             $feeData = $commissionService->calculateFees($hall, $subtotal);
 
             $platformFee      = 0.00; // Commission is NOT a customer-facing fee
@@ -1394,7 +1399,7 @@ class GuestBookingController extends Controller
                     'booking_id' => $freshBooking->id,
                     'email'      => $freshBooking->customer_email,
                 ]);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::warning('Guest confirmation email failed (non-critical)', [
                     'booking_id' => $booking->id,
                     'error'      => $e->getMessage(),
@@ -1656,7 +1661,7 @@ class GuestBookingController extends Controller
      * This allows the frontend to show which slots are still available.
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function checkAvailability(Request $request)
     {
@@ -1690,7 +1695,7 @@ class GuestBookingController extends Controller
 
             // Get the overridden price for this specific slot if one exists.
             // Priority: HallAvailability.custom_price (date+slot specific) > Hall.pricing_override (slot type) > Hall.price_per_slot
-            $availabilityRecord = \App\Models\HallAvailability::where('hall_id', $hall->id)
+            $availabilityRecord = HallAvailability::where('hall_id', $hall->id)
                 ->where('date', $date)
                 ->where('time_slot', $timeSlot)
                 ->first();
@@ -1808,7 +1813,7 @@ class GuestBookingController extends Controller
      * Download booking PDF (for guests).
      *
      * @param string $guestToken
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|RedirectResponse
+     * @return StreamedResponse|RedirectResponse
      */
     public function downloadPdf(string $guestToken)
     {
@@ -1821,7 +1826,7 @@ class GuestBookingController extends Controller
         }
 
         // Use existing PDF service
-        $pdfService = app(\App\Services\BookingPdfService::class);
+        $pdfService = app(BookingPdfService::class);
 
         return $pdfService->download($booking);
     }

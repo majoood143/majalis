@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ExtraServiceResource\Pages;
 
+use App\Models\ExtraService;
 use App\Filament\Admin\Resources\ExtraServiceResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -65,7 +66,7 @@ class CreateExtraService extends CreateRecord
         }
 
         // Check for duplicate service names in the same hall
-        $exists = \App\Models\ExtraService::where('hall_id', $data['hall_id'])
+        $exists = ExtraService::where('hall_id', $data['hall_id'])
             ->where(function ($query) use ($data) {
                 $query->where('name->en', $data['name']['en'])
                     ->orWhere('name->ar', $data['name']['ar']);

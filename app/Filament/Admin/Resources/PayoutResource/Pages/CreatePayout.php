@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PayoutResource\Pages;
 
+use Filament\Actions\Action;
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource;
 use App\Models\Booking;
@@ -100,7 +101,7 @@ class CreatePayout extends CreateRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('calculate')
+            Action::make('calculate')
                 ->label(__('admin.payout.actions.calculate'))
                 ->icon('heroicon-o-calculator')
                 ->color('warning')

@@ -18,7 +18,7 @@ class PendingActionsWidget extends Widget
     /**
      * Widget view
      */
-    protected static string $view = 'filament.owner.widgets.pending-actions';
+    protected string $view = 'filament.owner.widgets.pending-actions';
 
     /**
      * Widget column span

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\PricingResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use App\Filament\Owner\Resources\PricingResource;
 use App\Models\Hall;
 use Filament\Actions;
@@ -61,7 +63,7 @@ class EditPricing extends EditRecord
     {
         return [
             // Toggle Active
-            Actions\Action::make('toggle')
+            Action::make('toggle')
                 ->label(fn (): string => $this->record->is_active
                     ? __('owner.pricing.actions.deactivate')
                     : __('owner.pricing.actions.activate'))
@@ -83,7 +85,7 @@ class EditPricing extends EditRecord
                 }),
 
             // Duplicate
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label(__('owner.pricing.actions.duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -104,7 +106,7 @@ class EditPricing extends EditRecord
                     $this->redirect(PricingResource::getUrl('edit', ['record' => $newRule->id]));
                 }),
 
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

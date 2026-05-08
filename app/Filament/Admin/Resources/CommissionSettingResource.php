@@ -2,26 +2,45 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\CommissionSettingResource\Pages\ListCommissionSettings;
+use App\Filament\Admin\Resources\CommissionSettingResource\Pages\CreateCommissionSetting;
+use App\Filament\Admin\Resources\CommissionSettingResource\Pages\EditCommissionSetting;
 use App\Filament\Admin\Resources\CommissionSettingResource\Pages;
 use App\Models\CommissionSetting;
 use App\Models\Hall;
 use App\Models\User;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Get;
 use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 class CommissionSettingResource extends Resource
 {
     protected static ?string $model = CommissionSetting::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-calculator';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calculator';
 
     public static function getNavigationGroup(): ?string
     {
@@ -45,11 +64,11 @@ class CommissionSettingResource extends Resource
         return __('commission-setting.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('commission-setting.commission_scope'))
+        return $schema
+            ->components([
+                Section::make(__('commission-setting.commission_scope'))
                     ->description(__('commission-setting.scope_description'))
                     ->schema([
                         // Forms\Components\Select::make('hall_id')
@@ -59,7 +78,7 @@ class CommissionSettingResource extends Resource
                         //     ->preload()
                         //     ->helperText(__('commission-setting.hall_helper')),
 
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('commission-setting.hall'))
                             ->options(function (): array {
                                 return Hall::query()
@@ -78,7 +97,7 @@ class CommissionSettingResource extends Resource
                             ->preload()
                             ->helperText(__('commission-setting.hall_helper')),
 
-                        Forms\Components\Select::make('owner_id')
+                        Select::make('owner_id')
                             ->label(__('commission-setting.owner'))
                             ->options(User::where('role', 'hall_owner')->pluck('name', 'id'))
                             ->searchable()
@@ -90,20 +109,20 @@ class CommissionSettingResource extends Resource
                         //     ->content(__('commission-setting.scope_note'))
                         //     ->columnSpanFull(),
 
-                        Forms\Components\Placeholder::make('scope_note')
+                        Placeholder::make('scope_note')
                             ->label('')
                             ->content(fn(): string => '💡 ' . __('commission-setting.scope_note'))
                             ->columnSpanFull(),
 
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('commission-setting.commission_details'))
+                Section::make(__('commission-setting.commission_details'))
                     ->schema([
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('commission-setting.name_en'))
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('commission-setting.name_ar'))
                             ->maxLength(255),
 
@@ -116,7 +135,7 @@ class CommissionSettingResource extends Resource
                         //     ->required()
                         //     ->reactive(),
 
-                        Forms\Components\Select::make('commission_type')
+                        Select::make('commission_type')
                             ->options([
                                 'percentage' => __('commission-setting.percentage'),
                                 'fixed' => __('commission-setting.fixed'),
@@ -137,55 +156,56 @@ class CommissionSettingResource extends Resource
                         //         fn($set, $get, $state) =>
                         //         $set('commission_value', $state)
                         //     ),
-                        Forms\Components\TextInput::make('commission_value')
+                        TextInput::make('commission_value')
                             ->label(__('commission-setting.commission_value'))
                             ->numeric()
                             ->required()
                             ->step(0.01)
                             ->minValue(0)
                             ->maxValue(
-                                fn(Forms\Get $get): float =>
+                                fn(Get $get): float =>
                                 $get('commission_type') === 'percentage' ? 100 : 999999
                             )
                             ->suffix(
-                                fn(Forms\Get $get): string =>
+                                fn(Get $get): string =>
                                 $get('commission_type') === 'percentage' ? '%' : 'OMR'
                             ),
 
-                        Forms\Components\Textarea::make('description.en')
+                        Textarea::make('description.en')
                             ->label(__('commission-setting.description_en'))
                             ->rows(3),
 
-                        Forms\Components\Textarea::make('description.ar')
+                        Textarea::make('description.ar')
                             ->label(__('commission-setting.description_ar'))
                             ->rows(3),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('commission-setting.validity_period'))
+                Section::make(__('commission-setting.validity_period'))
                     ->schema([
-                        Forms\Components\DatePicker::make('effective_from')
+                        DatePicker::make('effective_from')
                             ->label(__('commission-setting.effective_from'))
                             ->native(false)
                             ->helperText(__('commission-setting.effective_from_helper')),
 
-                        Forms\Components\DatePicker::make('effective_to')
+                        DatePicker::make('effective_to')
                             ->label(__('commission-setting.effective_to'))
                             ->native(false)
                             ->helperText(__('commission-setting.effective_to_helper')),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('commission-setting.is_active'))
                             ->default(true)
                             ->inline(false),
                     ])->columns(3),
-            ]);
+            ])
+             ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('commission-setting.scope'))
                     ->badge()
                     ->color(fn($record): string => match (true) {
@@ -202,7 +222,7 @@ class CommissionSettingResource extends Resource
                         return __('commission-setting.global');
                     }),
 
-                Tables\Columns\TextColumn::make('commission_type')
+                TextColumn::make('commission_type')
                     ->label(__('commission-setting.commission_type'))
                     ->badge()
                     ->formatStateUsing(function ($state) {
@@ -217,7 +237,7 @@ class CommissionSettingResource extends Resource
                     })
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('commission_value')
+                TextColumn::make('commission_value')
                     ->label(__('commission-setting.value'))
                     ->formatStateUsing(function ($record) {
                         return $record->commission_type->value === 'percentage'
@@ -226,47 +246,47 @@ class CommissionSettingResource extends Resource
                     })
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('effective_from')
+                TextColumn::make('effective_from')
                     ->label(__('commission-setting.effective_from'))
                     ->date()
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('effective_to')
+                TextColumn::make('effective_to')
                     ->label(__('commission-setting.effective_to'))
                     ->date()
                     ->sortable()
                     ->toggleable()
                     ->placeholder(__('Indefinite')),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('commission-setting.is_active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('commission-setting.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('commission_type')
+                SelectFilter::make('commission_type')
                     ->label(__('commission-setting.commission_type'))
                     ->options([
                         'percentage' => __('commission-setting.percentage'),
                         'fixed' => __('commission-setting.fixed'),
                     ]),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('commission-setting.filters.active'))
                     ->boolean()
                     ->native(false),
 
-                Tables\Filters\Filter::make('scope')
+                Filter::make('scope')
                     ->label(__('commission-setting.scope'))
-                    ->form([
-                        Forms\Components\Select::make('scope_type')
+                    ->schema([
+                        Select::make('scope_type')
                             ->label(__('commission-setting.filters.scope_type'))
                             ->options([
                                 'global' => __('commission-setting.filters.global'),
@@ -281,21 +301,21 @@ class CommissionSettingResource extends Resource
                             ->when($data['scope_type'] === 'hall', fn($q) => $q->whereNotNull('hall_id'));
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
 
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->label(__('commission-setting.edit')),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->label(__('commission-setting.delete')),
-                Tables\Actions\ViewAction::make(),
-                ActivityLogTimelineTableAction::make('Activities'),
+                ViewAction::make(),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
 
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -311,9 +331,9 @@ class CommissionSettingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCommissionSettings::route('/'),
-            'create' => Pages\CreateCommissionSetting::route('/create'),
-            'edit' => Pages\EditCommissionSetting::route('/{record}/edit'),
+            'index' => ListCommissionSettings::route('/'),
+            'create' => CreateCommissionSetting::route('/create'),
+            'edit' => EditCommissionSetting::route('/{record}/edit'),
         ];
     }
 }

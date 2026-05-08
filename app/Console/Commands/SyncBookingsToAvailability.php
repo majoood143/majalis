@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use Throwable;
 use App\Models\Booking;
 use App\Models\HallAvailability;
 use Illuminate\Console\Command;
@@ -114,7 +115,7 @@ class SyncBookingsToAvailability extends Command
 
                     $synced++;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $errors++;
                 $this->newLine();
                 $this->error("Error syncing booking #{$booking->booking_number}: {$e->getMessage()}");

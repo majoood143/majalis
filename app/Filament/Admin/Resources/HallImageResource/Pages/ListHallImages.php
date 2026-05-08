@@ -2,10 +2,18 @@
 
 namespace App\Filament\Admin\Resources\HallImageResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use App\Models\Hall;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\HallImage;
+use Exception;
 use App\Filament\Admin\Resources\HallImageResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -22,23 +30,23 @@ class ListHallImages extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('bulkUpload')
+            Action::make('bulkUpload')
                 ->label(__('hall-image.actions.bulk_upload'))
                 ->icon('heroicon-o-cloud-arrow-up')
                 ->color('success')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('hall-image.form_fields.hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\Select::make('type')
+                    Select::make('type')
                         ->label(__('hall-image.form_fields.type'))
                         ->options([
                             'gallery' => 'Gallery Image',
@@ -49,7 +57,7 @@ class ListHallImages extends ListRecords
                         ->default('gallery')
                         ->required(),
 
-                    \Filament\Forms\Components\FileUpload::make('images')
+                    FileUpload::make('images')
                         ->label(__('hall-image.actions.select_images'))
                         ->image()
                         ->multiple()
@@ -58,7 +66,7 @@ class ListHallImages extends ListRecords
                         ->maxFiles(20)
                         ->imageEditor(),
 
-                    \Filament\Forms\Components\Toggle::make('generate_thumbnails')
+                    Toggle::make('generate_thumbnails')
                         ->label(__('hall-image.form_fields.generate_thumbnails'))
                         ->default(true),
                 ])
@@ -66,7 +74,7 @@ class ListHallImages extends ListRecords
                     $this->bulkUploadImages($data);
                 }),
 
-            Actions\Action::make('optimizeImages')
+            Action::make('optimizeImages')
                 ->label(__('hall-image.actions.optimize_images'))
                 ->icon('heroicon-o-sparkles')
                 ->color('warning')
@@ -77,7 +85,7 @@ class ListHallImages extends ListRecords
                     $this->optimizeAllImages();
                 }),
 
-            Actions\Action::make('generateThumbnails')
+            Action::make('generateThumbnails')
                 ->label(__('hall-image.actions.generate_thumbnails'))
                 ->icon('heroicon-o-photo')
                 ->color('info')
@@ -88,7 +96,7 @@ class ListHallImages extends ListRecords
                     $this->generateMissingThumbnails();
                 }),
 
-            Actions\Action::make('cleanupOrphaned')
+            Action::make('cleanupOrphaned')
                 ->label(__('hall-image.actions.clanup_orphaned'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')
@@ -99,14 +107,14 @@ class ListHallImages extends ListRecords
                     $this->cleanupOrphanedFiles();
                 }),
 
-            Actions\Action::make('exportGallery')
+            Action::make('exportGallery')
                 ->label(__('hall-image.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label('Hall (Optional)')
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->searchable()
                         ->preload(),
                 ])
@@ -121,60 +129,60 @@ class ListHallImages extends ListRecords
         return [
             'all' => Tab::make(__('hall-image.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
-                ->badge(fn() => \App\Models\HallImage::count()),
+                ->badge(fn() => HallImage::count()),
 
             'gallery' => Tab::make(__('hall-image.tabs.gallery'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('type', 'gallery'))
-                ->badge(fn() => \App\Models\HallImage::where('type', 'gallery')->count())
+                ->badge(fn() => HallImage::where('type', 'gallery')->count())
                 ->badgeColor('info'),
 
             'featured' => Tab::make(__('hall-image.tabs.featured'))
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('type', 'featured'))
-                ->badge(fn() => \App\Models\HallImage::where('type', 'featured')->count())
+                ->badge(fn() => HallImage::where('type', 'featured')->count())
                 ->badgeColor('warning'),
 
             'floor_plans' => Tab::make(__('hall-image.tabs.floor_plans'))
                 ->icon('heroicon-o-map')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('type', 'floor_plan'))
-                ->badge(fn() => \App\Models\HallImage::where('type', 'floor_plan')->count())
+                ->badge(fn() => HallImage::where('type', 'floor_plan')->count())
                 ->badgeColor('purple'),
 
             '360_views' => Tab::make(__('hall-image.tabs.360_views'))
                 ->icon('heroicon-o-globe-alt')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('type', '360_view'))
-                ->badge(fn() => \App\Models\HallImage::where('type', '360_view')->count())
+                ->badge(fn() => HallImage::where('type', '360_view')->count())
                 ->badgeColor('success'),
 
             'is_featured' => Tab::make(__('hall-image.tabs.featured'))
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_featured', true))
-                ->badge(fn() => \App\Models\HallImage::where('is_featured', true)->count())
+                ->badge(fn() => HallImage::where('is_featured', true)->count())
                 ->badgeColor('warning'),
 
             'active' => Tab::make(__('hall-image.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\HallImage::where('is_active', true)->count())
+                ->badge(fn() => HallImage::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('hall-image.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\HallImage::where('is_active', false)->count())
+                ->badge(fn() => HallImage::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'with_thumbnails' => Tab::make(__('hall-image.tabs.with_thumbnails'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('thumbnail_path'))
-                ->badge(fn() => \App\Models\HallImage::whereNotNull('thumbnail_path')->count())
+                ->badge(fn() => HallImage::whereNotNull('thumbnail_path')->count())
                 ->badgeColor('success'),
 
             'without_thumbnails' => Tab::make(__('hall-image.tabs.without_thumbnails'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('thumbnail_path'))
-                ->badge(fn() => \App\Models\HallImage::whereNull('thumbnail_path')->count())
+                ->badge(fn() => HallImage::whereNull('thumbnail_path')->count())
                 ->badgeColor('gray'),
         ];
     }
@@ -185,7 +193,7 @@ class ListHallImages extends ListRecords
 
         foreach ($data['images'] as $index => $imagePath) {
             try {
-                $image = \App\Models\HallImage::create([
+                $image = HallImage::create([
                     'hall_id' => $data['hall_id'],
                     'type' => $data['type'],
                     'image_path' => $imagePath,
@@ -199,7 +207,7 @@ class ListHallImages extends ListRecords
                 }
 
                 $uploadedCount++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Bulk upload error: ' . $e->getMessage());
             }
         }
@@ -215,7 +223,7 @@ class ListHallImages extends ListRecords
 
     protected function optimizeAllImages(): void
     {
-        $images = \App\Models\HallImage::whereNotNull('image_path')->get();
+        $images = HallImage::whereNotNull('image_path')->get();
         $optimizedCount = 0;
 
         foreach ($images as $image) {
@@ -224,7 +232,7 @@ class ListHallImages extends ListRecords
                 // Example: using Intervention Image or similar package
 
                 $optimizedCount++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Image optimization error: ' . $e->getMessage());
             }
         }
@@ -238,7 +246,7 @@ class ListHallImages extends ListRecords
 
     protected function generateMissingThumbnails(): void
     {
-        $images = \App\Models\HallImage::whereNull('thumbnail_path')
+        $images = HallImage::whereNull('thumbnail_path')
             ->whereNotNull('image_path')
             ->get();
 
@@ -248,7 +256,7 @@ class ListHallImages extends ListRecords
             try {
                 $this->generateThumbnail($image);
                 $generatedCount++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Thumbnail generation error: ' . $e->getMessage());
             }
         }
@@ -281,7 +289,7 @@ class ListHallImages extends ListRecords
 
     protected function cleanupOrphanedFiles(): void
     {
-        $databaseFiles = \App\Models\HallImage::pluck('image_path')->toArray();
+        $databaseFiles = HallImage::pluck('image_path')->toArray();
         $storageFiles = Storage::disk('public')->files('halls/images');
 
         $deletedCount = 0;
@@ -302,7 +310,7 @@ class ListHallImages extends ListRecords
 
     protected function exportGallery(array $data): void
     {
-        $query = \App\Models\HallImage::with('hall');
+        $query = HallImage::with('hall');
 
         if (isset($data['hall_id'])) {
             $query->where('hall_id', $data['hall_id']);
@@ -365,7 +373,7 @@ class ListHallImages extends ListRecords
             ->body('Gallery exported successfully.')
             ->persistent()
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label('Download File')
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

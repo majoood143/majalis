@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Services\PaymentService;
@@ -104,7 +105,7 @@ class PaymentController extends Controller
                     'booking' => $booking->fresh(['hall']),
                     'status'  => ($result['success'] ?? false) ? 'paid' : 'pending',
                 ]);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Thawani verification threw exception', [
                     'booking_id' => $booking->id,
                     'session_id' => $sessionId,
@@ -117,7 +118,7 @@ class PaymentController extends Controller
                     'status'  => 'pending',
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Payment success handler failed', [
                 'booking_id' => $booking->id,
                 'error'      => $e->getMessage(),
@@ -187,7 +188,7 @@ class PaymentController extends Controller
             ]);
 
             return response()->json(['status' => 'success']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Webhook processing failed', [
                 'error' => $e->getMessage(),
             ]);

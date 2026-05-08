@@ -2,10 +2,10 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Hash;
 
 class EditProfile extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-user';
 
-    protected static string $view = 'filament.pages.edit-profile';
+    protected string $view = 'filament.pages.edit-profile';
 
     protected static ?int $navigationSort = 100;
 
@@ -44,10 +44,10 @@ class EditProfile extends Page
     /**
      * Define the form schema
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make(__('profile.profile_information'))
                     ->description(__('profile.update_your_profile_information'))
                     ->schema([

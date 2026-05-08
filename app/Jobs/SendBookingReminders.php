@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Exception;
 use App\Models\Booking;
 use App\Services\NotificationService;
 use Illuminate\Bus\Queueable;
@@ -38,7 +39,7 @@ class SendBookingReminders implements ShouldQueue
                 try {
                     $notificationService->sendBookingReminderNotification($booking);
                     $sent++;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error('Failed to send reminder', [
                         'booking_id' => $booking->id,
                         'error' => $e->getMessage()
@@ -50,7 +51,7 @@ class SendBookingReminders implements ShouldQueue
                 'total' => $bookings->count(),
                 'sent' => $sent
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Send booking reminders job failed', [
                 'error' => $e->getMessage()
             ]);

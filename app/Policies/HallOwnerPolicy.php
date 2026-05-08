@@ -1,108 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\HallOwner;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class HallOwnerPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_hall::owner');
+        return $authUser->can('ViewAny:HallOwner');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, HallOwner $hallOwner): bool
+    public function view(AuthUser $authUser, HallOwner $hallOwner): bool
     {
-        return $user->can('view_hall::owner');
+        return $authUser->can('View:HallOwner');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('create_hall::owner');
+        return $authUser->can('Create:HallOwner');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, HallOwner $hallOwner): bool
+    public function update(AuthUser $authUser, HallOwner $hallOwner): bool
     {
-        return $user->can('update_hall::owner');
+        return $authUser->can('Update:HallOwner');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, HallOwner $hallOwner): bool
+    public function delete(AuthUser $authUser, HallOwner $hallOwner): bool
     {
-        return $user->can('delete_hall::owner');
+        return $authUser->can('Delete:HallOwner');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return $user->can('delete_any_hall::owner');
+        return $authUser->can('DeleteAny:HallOwner');
     }
 
-    /**
-     * Determine whether the user can permanently delete.
-     */
-    public function forceDelete(User $user, HallOwner $hallOwner): bool
+    public function restore(AuthUser $authUser, HallOwner $hallOwner): bool
     {
-        return $user->can('force_delete_hall::owner');
+        return $authUser->can('Restore:HallOwner');
     }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(AuthUser $authUser, HallOwner $hallOwner): bool
     {
-        return $user->can('force_delete_any_hall::owner');
+        return $authUser->can('ForceDelete:HallOwner');
     }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, HallOwner $hallOwner): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_hall::owner');
+        return $authUser->can('ForceDeleteAny:HallOwner');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_any_hall::owner');
+        return $authUser->can('RestoreAny:HallOwner');
     }
 
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, HallOwner $hallOwner): bool
+    public function replicate(AuthUser $authUser, HallOwner $hallOwner): bool
     {
-        return $user->can('replicate_hall::owner');
+        return $authUser->can('Replicate:HallOwner');
     }
 
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('reorder_hall::owner');
+        return $authUser->can('Reorder:HallOwner');
     }
+
 }

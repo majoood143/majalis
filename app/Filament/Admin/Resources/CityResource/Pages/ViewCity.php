@@ -2,11 +2,19 @@
 
 namespace App\Filament\Admin\Resources\CityResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\TextSize;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ViewEntry;
+use Spatie\Activitylog\Models\Activity;
 use App\Filament\Admin\Resources\CityResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 
 class ViewCity extends ViewRecord
@@ -17,11 +25,11 @@ class ViewCity extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make()
+            EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary'),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn () => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn () => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn () => $this->record->is_active ? 'warning' : 'success')
@@ -44,7 +52,7 @@ class ViewCity extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewHalls')
+            Action::make('viewHalls')
                 ->label('View Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
@@ -55,7 +63,7 @@ class ViewCity extends ViewRecord
                 ]))
                 ->visible(fn () => $this->record->halls()->count() > 0),
 
-            Actions\Action::make('viewOnMap')
+            Action::make('viewOnMap')
                 ->label('View on Map')
                 ->icon('heroicon-o-map-pin')
                 ->color('success')
@@ -63,7 +71,7 @@ class ViewCity extends ViewRecord
                 ->openUrlInNewTab()
                 ->visible(fn () => $this->record->latitude && $this->record->longitude),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -81,15 +89,15 @@ class ViewCity extends ViewRecord
                         ->title('City Duplicated')
                         ->body('The city has been duplicated successfully.')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('View Duplicate')
                                 ->url(CityResource::getUrl('view', ['record' => $newCity->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     if ($this->record->halls()->count() > 0) {
                         Notification::make()
                             ->danger()
@@ -105,22 +113,22 @@ class ViewCity extends ViewRecord
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
-                Infolists\Components\Section::make('City Information')
+                Section::make('City Information')
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
+                                TextEntry::make('name')
                                     ->label('Name')
                                     ->formatStateUsing(fn ($record) => $record->name)
                                     ->badge()
                                     ->color('primary')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
+                                    ->size(TextSize::Large),
 
-                                Infolists\Components\TextEntry::make('code')
+                                TextEntry::make('code')
                                     ->label('City Code')
                                     ->badge()
                                     ->color('info')
@@ -129,53 +137,53 @@ class ViewCity extends ViewRecord
                                     ->copyMessageDuration(1500),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name.en')
+                                TextEntry::make('name.en')
                                     ->label('Name (English)')
                                     ->icon('heroicon-o-language'),
 
-                                Infolists\Components\TextEntry::make('name.ar')
+                                TextEntry::make('name.ar')
                                     ->label('Name (Arabic)')
                                     ->icon('heroicon-o-language'),
                             ]),
 
-                        Infolists\Components\Grid::make(1)
+                        Grid::make(1)
                             ->schema([
-                                Infolists\Components\TextEntry::make('description.en')
+                                TextEntry::make('description.en')
                                     ->label('Description (English)')
-                                    ->default('No description provided')
+                                    ->placeholder('No description provided')
                                     ->columnSpanFull(),
 
-                                Infolists\Components\TextEntry::make('description.ar')
+                                TextEntry::make('description.ar')
                                     ->label('Description (Arabic)')
-                                    ->default('لا يوجد وصف')
+                                    ->placeholder('لا يوجد وصف')
                                     ->columnSpanFull(),
                             ]),
                     ])
                     ->icon('heroicon-o-information-circle')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Location & Region')
+                Section::make('Location & Region')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('region.name')
+                                TextEntry::make('region.name')
                                     ->label('Region')
                                     ->formatStateUsing(fn ($record) => $record->region->name ?? 'N/A')
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-map'),
 
-                                Infolists\Components\TextEntry::make('latitude')
+                                TextEntry::make('latitude')
                                     ->label('Latitude')
-                                    ->default('Not set')
+                                    ->placeholder('Not set')
                                     ->icon('heroicon-o-globe-alt')
                                     ->copyable(),
 
-                                Infolists\Components\TextEntry::make('longitude')
+                                TextEntry::make('longitude')
                                     ->label('Longitude')
-                                    ->default('Not set')
+                                    ->placeholder('Not set')
                                     ->icon('heroicon-o-globe-alt')
                                     ->copyable(),
                             ]),
@@ -183,30 +191,30 @@ class ViewCity extends ViewRecord
                     ->icon('heroicon-o-map-pin')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Statistics')
+                Section::make('Statistics')
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('halls_count')
+                                TextEntry::make('halls_count')
                                     ->label('Total Halls')
                                     ->state(fn ($record) => $record->halls()->count())
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-building-storefront'),
 
-                                Infolists\Components\TextEntry::make('active_halls_count')
+                                TextEntry::make('active_halls_count')
                                     ->label('Active Halls')
                                     ->state(fn ($record) => $record->halls()->where('is_active', true)->count())
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-check-circle'),
 
-                                Infolists\Components\TextEntry::make('order')
+                                TextEntry::make('order')
                                     ->label('Display Order')
                                     ->badge()
                                     ->color('gray'),
 
-                                Infolists\Components\IconEntry::make('is_active')
+                                IconEntry::make('is_active')
                                     ->label('Status')
                                     ->boolean()
                                     ->trueIcon('heroicon-o-check-circle')
@@ -218,22 +226,22 @@ class ViewCity extends ViewRecord
                     ->icon('heroicon-o-chart-bar')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('System Information')
+                Section::make('System Information')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('id')
+                                TextEntry::make('id')
                                     ->label('City ID')
                                     ->badge()
                                     ->color('gray')
                                     ->copyable(),
 
-                                Infolists\Components\TextEntry::make('created_at')
+                                TextEntry::make('created_at')
                                     ->label('Created At')
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('updated_at')
+                                TextEntry::make('updated_at')
                                     ->label('Last Updated')
                                     ->dateTime('d M Y, h:i A')
                                     ->since()
@@ -243,9 +251,9 @@ class ViewCity extends ViewRecord
                     ->icon('heroicon-o-server')
                     ->collapsed(),
 
-                Infolists\Components\Section::make('Recent Activity')
+                Section::make('Recent Activity')
                     ->schema([
-                        Infolists\Components\ViewEntry::make('activity_log')
+                        ViewEntry::make('activity_log')
                             ->label('')
                             ->view('filament.infolists.components.activity-log', [
                                 'activities' => fn ($record) => activity()
@@ -257,8 +265,9 @@ class ViewCity extends ViewRecord
                     ])
                     ->icon('heroicon-o-clock')
                     ->collapsed()
-                    ->visible(fn () => class_exists(\Spatie\Activitylog\Models\Activity::class)),
-            ]);
+                    ->visible(fn () => class_exists(Activity::class)),
+            ])
+            ->columns(1);
     }
 
     public function getTitle(): string

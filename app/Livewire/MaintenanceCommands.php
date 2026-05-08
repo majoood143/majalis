@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use Exception;
+use App\Models\GuestSession;
 use Livewire\Component;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +94,7 @@ class MaintenanceCommands extends Component
                 Artisan::call($command, [], $out);
                 $this->output .= "✅ " . ($out->fetch() ?: "Done") . "\n\n";
                 $this->addToHistory($command, 'success', 0);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->output .= "❌ Error: " . $e->getMessage() . "\n\n";
                 $this->addToHistory($command, 'error', 0);
             }
@@ -128,7 +130,7 @@ class MaintenanceCommands extends Component
                 Artisan::call($cmd, [], $out);
                 $this->output .= "✅ " . ($out->fetch() ?: "Done") . "\n";
                 $this->addToHistory($cmd, 'success', 0);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->output .= "⚠️ " . $e->getMessage() . "\n";
             }
         }
@@ -150,7 +152,7 @@ class MaintenanceCommands extends Component
                 Artisan::call($command, [], $out);
                 $this->output .= "✅ " . ($out->fetch() ?: "Done") . "\n\n";
                 $this->addToHistory($command, 'success', 0);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->output .= "⚠️ Note: " . $e->getMessage() . "\n\n";
                 $this->addToHistory($command, 'warning', 0);
             }
@@ -169,7 +171,7 @@ class MaintenanceCommands extends Component
             $this->output = "🔗 Storage link created successfully!\nSymbolic link: public/storage → storage/app/public";
             $this->addToHistory('storage:link', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Storage link created', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error creating storage link: " . $e->getMessage();
             $this->addToHistory('storage:link', 'error', 0);
         }
@@ -200,7 +202,7 @@ class MaintenanceCommands extends Component
             $this->output = "⏰ Schedule executed!\n\n" . Artisan::output();
             $this->addToHistory('schedule:run', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Schedule executed', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error running schedule: " . $e->getMessage();
             $this->addToHistory('schedule:run', 'error', 0);
         }
@@ -232,7 +234,7 @@ class MaintenanceCommands extends Component
             Artisan::call('migrate:status');
             $this->output = Artisan::output();
             $this->addToHistory('migrate:status', 'success', 0);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error checking migrations: " . $e->getMessage();
             $this->addToHistory('migrate:status', 'error', 0);
         }
@@ -245,7 +247,7 @@ class MaintenanceCommands extends Component
             $this->output = "✅ Migrations ran successfully!\n\n" . Artisan::output();
             $this->addToHistory('migrate', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Migrations completed', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error running migrations: " . $e->getMessage();
             $this->addToHistory('migrate', 'error', 0);
         }
@@ -258,7 +260,7 @@ class MaintenanceCommands extends Component
             $this->output = "✅ Database refreshed and seeded successfully!\n\n" . Artisan::output();
             $this->addToHistory('migrate:fresh --seed', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Database refreshed', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error: " . $e->getMessage();
             $this->addToHistory('migrate:fresh --seed', 'error', 0);
         }
@@ -283,7 +285,7 @@ class MaintenanceCommands extends Component
             }
 
             $this->addToHistory('queue:stats', 'success', 0);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error getting queue stats: " . $e->getMessage();
             $this->addToHistory('queue:stats', 'error', 0);
         }
@@ -297,7 +299,7 @@ class MaintenanceCommands extends Component
             $this->output .= "Workers will gracefully restart after completing their current job.";
             $this->addToHistory('queue:restart', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Queue restart signal sent', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error restarting queue: " . $e->getMessage();
             $this->addToHistory('queue:restart', 'error', 0);
         }
@@ -311,7 +313,7 @@ class MaintenanceCommands extends Component
             $this->output = "🔄 Retrying all failed jobs...\n\n" . ($output ?: "Done.");
             $this->addToHistory('queue:retry all', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Failed jobs queued for retry', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error retrying failed jobs: " . $e->getMessage();
             $this->addToHistory('queue:retry all', 'error', 0);
         }
@@ -325,7 +327,7 @@ class MaintenanceCommands extends Component
             $this->output .= Artisan::output();
             $this->addToHistory('queue:flush', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: 'Failed jobs flushed', status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error flushing failed jobs: " . $e->getMessage();
             $this->addToHistory('queue:flush', 'error', 0);
         }
@@ -340,7 +342,7 @@ class MaintenanceCommands extends Component
                 ? "✅ Queue worker is functional!\n\n" . $output
                 : "⚠️ Queue check completed (no jobs to process).\n\n" . $output;
             $this->addToHistory('queue:work --once', 'success', 0);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error checking queue: " . $e->getMessage();
             $this->addToHistory('queue:work --once', 'error', 0);
         }
@@ -406,7 +408,7 @@ class MaintenanceCommands extends Component
     public function showGuestSessionStats()
     {
         try {
-            $stats = \App\Models\GuestSession::selectRaw('status, COUNT(*) as count')
+            $stats = GuestSession::selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status')
                 ->toArray();
@@ -420,10 +422,10 @@ class MaintenanceCommands extends Component
                 $this->output .= "  • " . ucfirst($status) . ": {$count}\n";
             }
 
-            $pastExpiry = \App\Models\GuestSession::where('expires_at', '<=', now())->count();
+            $pastExpiry = GuestSession::where('expires_at', '<=', now())->count();
             $this->output .= "\n⚠️  Sessions past expiry time: {$pastExpiry}";
             $this->addToHistory('guest_session_stats', 'success', 0);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error: " . $e->getMessage();
             $this->addToHistory('guest_session_stats', 'error', 0);
         }
@@ -432,13 +434,13 @@ class MaintenanceCommands extends Component
     public function clearExpiredSessions()
     {
         try {
-            $count = \App\Models\GuestSession::where('expires_at', '<=', now())
+            $count = GuestSession::where('expires_at', '<=', now())
                 ->whereNotIn('status', ['completed'])
                 ->count();
 
-            \App\Models\GuestSession::cleanupExpired();
+            GuestSession::cleanupExpired();
 
-            $deleted = \App\Models\GuestSession::where('status', 'expired')
+            $deleted = GuestSession::where('status', 'expired')
                 ->where('expires_at', '<=', now()->subDays(1))
                 ->delete();
 
@@ -448,7 +450,7 @@ class MaintenanceCommands extends Component
 
             $this->addToHistory('clear_expired_sessions', 'success', 0);
             $this->dispatch('notify', title: 'Success', message: "{$count} sessions marked expired", status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->output = "❌ Error: " . $e->getMessage();
             $this->addToHistory('clear_expired_sessions', 'error', 0);
         }
@@ -469,7 +471,7 @@ class MaintenanceCommands extends Component
             $this->addToHistory($command, 'success', $elapsed);
             $this->output = "✅ php artisan {$command}\n\n" . ($result ?: "Completed in {$elapsed}s");
             $this->dispatch('notify', title: 'Success', message: "{$command} completed", status: 'success');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $elapsed = round(microtime(true) - $startTime, 2);
             $this->addToHistory($command, 'error', $elapsed);
             $this->output = "❌ php artisan {$command}\n\nError: " . $e->getMessage();

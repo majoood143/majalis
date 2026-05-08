@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
@@ -16,8 +19,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Traits\HasGuestBooking;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 
 /**
@@ -29,7 +32,7 @@ use Spatie\Activitylog\LogOptions;
  * @property string $booking_number
  * @property int $hall_id
  * @property int $user_id
- * @property \Carbon\Carbon $booking_date
+ * @property Carbon $booking_date
  * @property string $time_slot
  * @property int $number_of_guests
  * @property string $customer_name
@@ -52,24 +55,24 @@ use Spatie\Activitylog\LogOptions;
  * @property string $payment_type
  * @property float|null $advance_amount
  * @property float|null $balance_due
- * @property \Carbon\Carbon|null $balance_paid_at
+ * @property Carbon|null $balance_paid_at
  * @property string|null $balance_payment_method
  * @property string|null $balance_payment_reference
- * @property \Carbon\Carbon|null $cancelled_at
+ * @property Carbon|null $cancelled_at
  * @property string|null $cancellation_reason
  * @property float|null $refund_amount
- * @property \Carbon\Carbon|null $confirmed_at
- * @property \Carbon\Carbon|null $completed_at
+ * @property Carbon|null $confirmed_at
+ * @property Carbon|null $completed_at
  * @property string|null $invoice_path
  * @property string|null $admin_notes
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
- * @property \Carbon\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  *
  * @property-read Hall $hall
  * @property-read User $user
- * @property-read \Illuminate\Database\Eloquent\Collection<Payment> $payments
- * @property-read \Illuminate\Database\Eloquent\Collection<BookingExtraService> $extraServices
+ * @property-read Collection<Payment> $payments
+ * @property-read Collection<BookingExtraService> $extraServices
  */
 class Booking extends Model
 {
@@ -284,9 +287,9 @@ class Booking extends Model
     /**
      * Get the review for this booking.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Review>
+     * @return HasOne<Review>
      */
-    public function review(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function review(): HasOne
     {
         return $this->hasOne(Review::class);
     }
@@ -434,13 +437,12 @@ class Booking extends Model
     // =========================================================
     // SCOPES
     // =========================================================
-
     /**
      * Scope to filter bookings by status.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $status
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeStatus($query, string $status)
     {
@@ -450,8 +452,8 @@ class Booking extends Model
     /**
      * Scope to filter upcoming bookings.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeUpcoming($query)
     {
@@ -462,8 +464,8 @@ class Booking extends Model
     /**
      * Scope to filter past bookings.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePast($query)
     {
@@ -473,9 +475,9 @@ class Booking extends Model
     /**
      * Scope to filter bookings for a specific hall.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $hallId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForHall($query, int $hallId)
     {
@@ -485,9 +487,9 @@ class Booking extends Model
     /**
      * Scope to filter bookings for halls owned by a specific owner.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $ownerId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForOwner($query, int $ownerId)
     {
@@ -497,8 +499,8 @@ class Booking extends Model
     /**
      * Scope to filter bookings with balance due.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeWithBalanceDue($query)
     {

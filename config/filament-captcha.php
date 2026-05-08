@@ -1,6 +1,6 @@
 <?php
 
-use Filament\Support\Enums\ActionSize;
+use Filament\Support\Enums\Size;
 
 return [
 
@@ -18,7 +18,7 @@ return [
 
     'refresh_button' => [
         'icon' => 'heroicon-o-arrow-path',
-        'size' => ActionSize::Medium,
+        'size' => Size::Medium,
     ],
 
 ];

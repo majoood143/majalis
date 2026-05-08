@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\GalleryResource\Pages;
 
+use Filament\Actions\Action;
 use App\Filament\Owner\Resources\GalleryResource;
 use App\Models\Hall;
 use App\Models\HallImage;
@@ -29,7 +30,7 @@ class ManageGallery extends Page
     /**
      * The view for this page.
      */
-    protected static string $view = 'filament.owner.resources.gallery-resource.pages.manage-gallery';
+    protected string $view = 'filament.owner.resources.gallery-resource.pages.manage-gallery';
 
     /**
      * Selected hall ID.
@@ -89,13 +90,13 @@ class ManageGallery extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('back')
+            Action::make('back')
                 ->label(__('owner.gallery.actions.back_to_gallery'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => GalleryResource::getUrl('index')),
 
-            Actions\Action::make('bulk_upload')
+            Action::make('bulk_upload')
                 ->label(__('owner.gallery.actions.bulk_upload'))
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('primary')

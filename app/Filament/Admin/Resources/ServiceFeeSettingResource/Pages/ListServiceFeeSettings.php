@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\ServiceFeeSettingResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use App\Models\ServiceFeeSetting;
 use App\Filament\Admin\Resources\ServiceFeeSettingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -26,11 +29,11 @@ class ListServiceFeeSettings extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('cleanupExpired')
+            Action::make('cleanupExpired')
                 ->label(__('service-fee.cleanup_expired'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')
@@ -38,7 +41,7 @@ class ListServiceFeeSettings extends ListRecords
                 ->modalHeading(__('service-fee.cleanup_modal_title'))
                 ->modalDescription(__('service-fee.cleanup_modal_desc'))
                 ->action(function () {
-                    $deleted = \App\Models\ServiceFeeSetting::where('effective_to', '<', now())
+                    $deleted = ServiceFeeSetting::where('effective_to', '<', now())
                         ->where('is_active', false)
                         ->delete();
 
@@ -59,38 +62,38 @@ class ListServiceFeeSettings extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('service-fee.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('service-fee.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
-                ->badge(fn() => \App\Models\ServiceFeeSetting::count()),
+                ->badge(fn() => ServiceFeeSetting::count()),
 
-            'active' => Tab::make(__('service-fee.tabs.active'))
+            'active' => \Filament\Schemas\Components\Tabs\Tab::make(__('service-fee.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\ServiceFeeSetting::where('is_active', true)->count())
+                ->badge(fn() => ServiceFeeSetting::where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('service-fee.tabs.inactive'))
+            'inactive' => \Filament\Schemas\Components\Tabs\Tab::make(__('service-fee.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\ServiceFeeSetting::where('is_active', false)->count())
+                ->badge(fn() => ServiceFeeSetting::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'global' => Tab::make(__('service-fee.tabs.global'))
+            'global' => \Filament\Schemas\Components\Tabs\Tab::make(__('service-fee.tabs.global'))
                 ->icon('heroicon-o-globe-alt')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('hall_id')->whereNull('owner_id'))
-                ->badge(fn() => \App\Models\ServiceFeeSetting::whereNull('hall_id')->whereNull('owner_id')->count())
+                ->badge(fn() => ServiceFeeSetting::whereNull('hall_id')->whereNull('owner_id')->count())
                 ->badgeColor('primary'),
 
-            'hall_specific' => Tab::make(__('service-fee.tabs.hall_specific'))
+            'hall_specific' => \Filament\Schemas\Components\Tabs\Tab::make(__('service-fee.tabs.hall_specific'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('hall_id'))
-                ->badge(fn() => \App\Models\ServiceFeeSetting::whereNotNull('hall_id')->count())
+                ->badge(fn() => ServiceFeeSetting::whereNotNull('hall_id')->count())
                 ->badgeColor('success'),
 
-            'owner_specific' => Tab::make(__('service-fee.tabs.owner_specific'))
+            'owner_specific' => \Filament\Schemas\Components\Tabs\Tab::make(__('service-fee.tabs.owner_specific'))
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('owner_id')->whereNull('hall_id'))
-                ->badge(fn() => \App\Models\ServiceFeeSetting::whereNotNull('owner_id')->whereNull('hall_id')->count())
+                ->badge(fn() => ServiceFeeSetting::whereNotNull('owner_id')->whereNull('hall_id')->count())
                 ->badgeColor('warning'),
         ];
     }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PaymentResource\Pages;
 
+use App\Models\Payment;
+use App\Models\Booking;
+use Exception;
 use App\Filament\Admin\Resources\PaymentResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -65,7 +68,7 @@ class CreatePayment extends CreateRecord
     {
         try {
             // Generate unique payment reference using model method
-            $data['payment_reference'] = \App\Models\Payment::generatePaymentReference();
+            $data['payment_reference'] = Payment::generatePaymentReference();
 
             // Validate amount - must be positive
             if (!isset($data['amount']) || $data['amount'] <= 0) {
@@ -83,7 +86,7 @@ class CreatePayment extends CreateRecord
 
             // Validate booking exists and is eligible for payment
             if (isset($data['booking_id'])) {
-                $booking = \App\Models\Booking::find($data['booking_id']);
+                $booking = Booking::find($data['booking_id']);
 
                 if (!$booking) {
                     Notification::make()
@@ -99,7 +102,7 @@ class CreatePayment extends CreateRecord
                 }
 
                 // Check if booking already has a paid payment
-                $existingPaidPayment = \App\Models\Payment::where('booking_id', $booking->id)
+                $existingPaidPayment = Payment::where('booking_id', $booking->id)
                     ->where('status', 'paid')
                     ->first();
 
@@ -170,7 +173,7 @@ class CreatePayment extends CreateRecord
             ]);
 
             return $data;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Payment creation validation failed', [
                 'error' => $e->getMessage(),
                 'data' => $data,
@@ -243,7 +246,7 @@ class CreatePayment extends CreateRecord
                 ->send();
 
             DB::commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('Payment after-creation tasks failed', [
@@ -292,7 +295,7 @@ class CreatePayment extends CreateRecord
 
         // Check for duplicate transaction IDs if provided
         if (!empty($this->data['transaction_id'])) {
-            $existingPayment = \App\Models\Payment::where('transaction_id', $this->data['transaction_id'])
+            $existingPayment = Payment::where('transaction_id', $this->data['transaction_id'])
                 ->first();
 
             if ($existingPayment) {

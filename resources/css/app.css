@@ -1,5 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
 
-
+@theme {
+    --font-sans: 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+}

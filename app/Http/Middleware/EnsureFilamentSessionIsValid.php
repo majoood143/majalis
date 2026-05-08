@@ -28,9 +28,9 @@ class EnsureFilamentSessionIsValid
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param Request $request
+     * @param Closure(Request):Response $next
+     * @return Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -62,8 +62,8 @@ class EnsureFilamentSessionIsValid
      * For Livewire/AJAX requests: Return 419 status with redirect URL
      * For standard requests: Redirect to appropriate login page
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param Request $request
+     * @return Response
      */
     protected function handleUnauthenticated(Request $request): Response
     {
@@ -88,7 +88,7 @@ class EnsureFilamentSessionIsValid
     /**
      * Determine the appropriate login URL based on the current panel.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return string
      */
     protected function getLoginUrl(Request $request): string
@@ -110,7 +110,7 @@ class EnsureFilamentSessionIsValid
     /**
      * Check if the current route is a public route (login, etc.)
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return bool
      */
     protected function isPublicRoute(Request $request): bool

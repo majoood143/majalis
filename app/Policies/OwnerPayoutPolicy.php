@@ -1,108 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\OwnerPayout;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class OwnerPayoutPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_payout');
+        return $authUser->can('ViewAny:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, OwnerPayout $ownerPayout): bool
+    public function view(AuthUser $authUser, OwnerPayout $ownerPayout): bool
     {
-        return $user->can('view_payout');
+        return $authUser->can('View:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('create_payout');
+        return $authUser->can('Create:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, OwnerPayout $ownerPayout): bool
+    public function update(AuthUser $authUser, OwnerPayout $ownerPayout): bool
     {
-        return $user->can('update_payout');
+        return $authUser->can('Update:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, OwnerPayout $ownerPayout): bool
+    public function delete(AuthUser $authUser, OwnerPayout $ownerPayout): bool
     {
-        return $user->can('delete_payout');
+        return $authUser->can('Delete:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return $user->can('delete_any_payout');
+        return $authUser->can('DeleteAny:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can permanently delete.
-     */
-    public function forceDelete(User $user, OwnerPayout $ownerPayout): bool
+    public function restore(AuthUser $authUser, OwnerPayout $ownerPayout): bool
     {
-        return $user->can('force_delete_payout');
+        return $authUser->can('Restore:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(AuthUser $authUser, OwnerPayout $ownerPayout): bool
     {
-        return $user->can('force_delete_any_payout');
+        return $authUser->can('ForceDelete:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, OwnerPayout $ownerPayout): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_payout');
+        return $authUser->can('ForceDeleteAny:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_any_payout');
+        return $authUser->can('RestoreAny:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, OwnerPayout $ownerPayout): bool
+    public function replicate(AuthUser $authUser, OwnerPayout $ownerPayout): bool
     {
-        return $user->can('replicate_payout');
+        return $authUser->can('Replicate:OwnerPayout');
     }
 
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('reorder_payout');
+        return $authUser->can('Reorder:OwnerPayout');
     }
+
 }

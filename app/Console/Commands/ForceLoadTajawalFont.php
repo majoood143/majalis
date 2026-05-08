@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -67,7 +68,7 @@ class ForceLoadTajawalFont extends Command
                 );
 
                 $this->info("✓ Loaded: Tajawal (weight: {$font['weight']})");
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->error("Failed to load {$font['file']}: " . $e->getMessage());
             }
         }

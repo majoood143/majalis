@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Pages\Auth;
 
+use Filament\Schemas\Schema;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Checkbox;
@@ -17,7 +18,7 @@ use Filament\Notifications\Notification;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use MarcoGermani87\FilamentCaptcha\Forms\Components\CaptchaField;
 
-class Login extends BaseLogin
+class Login extends \Filament\Auth\Pages\Login
 {
     /**
      * Get the title for the login page
@@ -46,10 +47,10 @@ class Login extends BaseLogin
     /**
      * Define the login form schema
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 CaptchaField::make('captcha'),
                 $this->getEmailFormComponent()
                     ->label(__('owner.auth.email'))
@@ -76,7 +77,7 @@ class Login extends BaseLogin
     /**
      * Authenticate the owner
      */
-    public function authenticate(): ?LoginResponse
+    public function authenticate(): ?\Filament\Auth\Http\Responses\Contracts\LoginResponse
     {
         try {
             $this->rateLimit(5);
@@ -136,7 +137,7 @@ class Login extends BaseLogin
 
         session()->regenerate();
 
-        return app(LoginResponse::class);
+        return app(\Filament\Auth\Http\Responses\Contracts\LoginResponse::class);
     }
 
     /**

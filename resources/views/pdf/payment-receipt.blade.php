@@ -1,9 +1,53 @@
+@php
+    $locale = app()->getLocale();
+
+    // Safely extract a string from a possibly-array/translatable value.
+    // Handles nested arrays returned by Setting::get() (json cast) or Translatable fields.
+    $resolveStr = function (mixed $v, string $fallback) use ($locale): string {
+        if (is_array($v)) {
+            $v = $v[$locale] ?? $v['ar'] ?? $v['en'] ?? $fallback;
+        }
+        if (is_string($v) && $v !== '') return $v;
+        if (is_numeric($v)) return (string) $v;
+        return $fallback;
+    };
+
+    $safeHallName = 'N/A';
+    if ($hall) {
+        $raw = $hall->name;
+        if (is_array($raw)) {
+            $safeHallName = $raw[$locale] ?? $raw['ar'] ?? $raw['en'] ?? 'N/A';
+        } elseif (is_string($raw) && $raw !== '') {
+            $safeHallName = $raw;
+        }
+        $safeHallName = is_string($safeHallName) ? $safeHallName : 'N/A';
+    }
+
+    $safeCustomerName  = (string) (is_array($booking?->customer_name)  ? ($booking->customer_name[$locale]  ?? 'N/A') : ($booking?->customer_name  ?? 'N/A'));
+    $safeCustomerPhone = (string) (is_array($booking?->customer_phone) ? ($booking->customer_phone[$locale] ?? 'N/A') : ($booking?->customer_phone ?? 'N/A'));
+    $safeCustomerEmail = (string) (is_array($booking?->customer_email) ? ($booking->customer_email[$locale] ?? 'N/A') : ($booking?->customer_email ?? 'N/A'));
+    $safeTimeSlot      = (string) (is_array($booking?->time_slot)      ? ($booking->time_slot[$locale]      ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->time_slot ?? 'N/A')));
+    $safePaymentType   = (string) (is_array($booking?->payment_type)   ? ($booking->payment_type[$locale]   ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->payment_type ?? 'N/A')));
+    $safePaymentMethod = (string) (is_array($payment->payment_method)  ? ($payment->payment_method[$locale] ?? 'N/A') : ucfirst($payment->payment_method ?? 'N/A'));
+    $safeStatus        = strtoupper(str_replace('_', ' ', is_string($payment->status) ? $payment->status : 'N/A'));
+    $safeRefundReason  = (string) (is_array($payment->refund_reason)   ? ($payment->refund_reason[$locale]  ?? '')    : ($payment->refund_reason ?? ''));
+
+    $safePaymentRef   = $resolveStr($payment->payment_reference, 'N/A');
+    $safeCurrency     = $resolveStr($payment->currency, 'OMR');
+    $safeTransId      = $resolveStr($payment->transaction_id, '');
+    $safeBookingNum   = $booking ? $resolveStr($booking->booking_number, 'N/A') : 'N/A';
+
+    $safePlatformName    = $resolveStr($platformName,    'Majalis');
+    $safePlatformAddress = $resolveStr($platformAddress, 'Muscat, Oman');
+    $safePlatformPhone   = $resolveStr($platformPhone,   '+968 9999 9999');
+    $safePlatformEmail   = $resolveStr($platformEmail,   'info@majalis.om');
+@endphp
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Payment Receipt - {{ $payment->payment_reference }}</title>
+    <title>Payment Receipt - {{ $safePaymentRef }}</title>
     <style>
         * { margin: 0; padding: 0; }
 
@@ -69,35 +113,6 @@
 </head>
 <body>
 
-@php
-    $locale = app()->getLocale();
-
-    $safeHallName = 'N/A';
-    if ($hall) {
-        $raw = $hall->name;
-        if (is_array($raw)) {
-            $safeHallName = $raw[$locale] ?? $raw['ar'] ?? $raw['en'] ?? 'N/A';
-        } elseif (is_string($raw) && $raw !== '') {
-            $safeHallName = $raw;
-        }
-        $safeHallName = is_string($safeHallName) ? $safeHallName : 'N/A';
-    }
-
-    $safeCustomerName  = is_array($booking?->customer_name)  ? ($booking->customer_name[$locale]  ?? 'N/A') : ($booking?->customer_name  ?? 'N/A');
-    $safeCustomerPhone = is_array($booking?->customer_phone) ? ($booking->customer_phone[$locale] ?? 'N/A') : ($booking?->customer_phone ?? 'N/A');
-    $safeCustomerEmail = is_array($booking?->customer_email) ? ($booking->customer_email[$locale] ?? 'N/A') : ($booking?->customer_email ?? 'N/A');
-    $safeTimeSlot      = is_array($booking?->time_slot)      ? ($booking->time_slot[$locale]      ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->time_slot ?? 'N/A'));
-    $safePaymentType   = is_array($booking?->payment_type)   ? ($booking->payment_type[$locale]   ?? 'N/A') : ucfirst(str_replace('_', ' ', $booking?->payment_type ?? 'N/A'));
-    $safePaymentMethod = is_array($payment->payment_method)  ? ($payment->payment_method[$locale] ?? 'N/A') : ucfirst($payment->payment_method ?? 'N/A');
-    $safeStatus        = strtoupper(str_replace('_', ' ', is_string($payment->status) ? $payment->status : 'N/A'));
-    $safeRefundReason  = is_array($payment->refund_reason)   ? ($payment->refund_reason[$locale]  ?? '')    : ($payment->refund_reason ?? '');
-
-    $safePlatformName    = is_array($platformName)    ? ($platformName[$locale]    ?? 'Majalis')        : (string) ($platformName    ?? 'Majalis');
-    $safePlatformAddress = is_array($platformAddress) ? ($platformAddress[$locale] ?? 'Muscat, Oman')   : (string) ($platformAddress ?? 'Muscat, Oman');
-    $safePlatformPhone   = is_array($platformPhone)   ? ($platformPhone[$locale]   ?? '+968 9999 9999') : (string) ($platformPhone   ?? '+968 9999 9999');
-    $safePlatformEmail   = is_array($platformEmail)   ? ($platformEmail[$locale]   ?? 'info@majalis.om'): (string) ($platformEmail   ?? 'info@majalis.om');
-@endphp
-
     {{-- ========================================================================
         Header — Logo (left) + Receipt title / ref (right)
         ======================================================================== --}}
@@ -119,12 +134,12 @@
                     {{ __('Payment Receipt') }}
                 </div>
                 <div style="font-size: 8pt; font-weight: bold; color: #000000; margin-bottom: 2px;">
-                    {{ __('Receipt Number') }}: {{ $payment->payment_reference }}
+                    {{ __('Receipt Number') }}: {{ $safePaymentRef }}
                 </div>
                 <div style="font-size: 7pt; color: #444444; margin-bottom: 6px;">
                     {{ __('Generated') }}: {{ $generatedDate->format('d/m/Y H:i') }}
                     @if($booking)
-                        &nbsp;|&nbsp; {{ __('Booking') }}: {{ $booking->booking_number }}
+                        &nbsp;|&nbsp; {{ __('Booking') }}: {{ $safeBookingNum }}
                     @endif
                 </div>
                 <span class="badge">{{ $safeStatus }}</span>
@@ -149,10 +164,10 @@
                     @endif
                 </div>
                 <div style="font-size: 20pt; font-weight: bold; color: #000000; margin: 4px 0;">
-                    {{ number_format((float) $payment->amount, 3) }} {{ $payment->currency }}
+                    {{ number_format((float) $payment->amount, 3) }} {{ $safeCurrency }}
                 </div>
                 <div style="font-size: 7.5pt; color: #444444;">
-                    {{ $payment->transaction_id ? __('Transaction ID') . ': ' . $payment->transaction_id : '' }}
+                    {{ $safeTransId ? __('Transaction ID') . ': ' . $safeTransId : '' }}
                 </div>
             </td>
         </tr>
@@ -203,7 +218,7 @@
                     </tr>
                     <tr>
                         <td class="info-label">{{ __('Currency') }}</td>
-                        <td class="text-right">{{ $payment->currency }}</td>
+                        <td class="text-right">{{ $safeCurrency }}</td>
                     </tr>
                     <tr>
                         <td class="info-label">{{ __('Payment Date') }}</td>
@@ -211,10 +226,10 @@
                             {{ ($payment->paid_at ?? $payment->created_at)?->format('d/m/Y H:i') ?? 'N/A' }}
                         </td>
                     </tr>
-                    @if($payment->transaction_id)
+                    @if($safeTransId)
                     <tr>
                         <td class="info-label">{{ __('Transaction ID') }}</td>
-                        <td class="text-right">{{ $payment->transaction_id }}</td>
+                        <td class="text-right">{{ $safeTransId }}</td>
                     </tr>
                     @endif
                     <tr style="border-top: 1.5px solid #000000;">
@@ -222,7 +237,7 @@
                             {{ __('Amount Paid') }}
                         </td>
                         <td class="text-right" style="font-weight: bold; padding: 6px 8px; font-size: 9pt;">
-                            {{ number_format((float) $payment->amount, 3) }} {{ $payment->currency }}
+                            {{ number_format((float) $payment->amount, 3) }} {{ $safeCurrency }}
                         </td>
                     </tr>
                 </table>
@@ -237,7 +252,7 @@
                 <table class="data-table" width="100%">
                     <tr>
                         <td class="info-label">{{ __('Booking Number') }}</td>
-                        <td class="text-right">{{ $booking->booking_number }}</td>
+                        <td class="text-right">{{ $safeBookingNum }}</td>
                     </tr>
                     @if($hall)
                     <tr>
@@ -278,7 +293,7 @@
         <tr>
             <td class="info-label">{{ __('Refund Amount') }}</td>
             <td class="text-right" style="font-weight: bold;">
-                {{ number_format((float) $payment->refund_amount, 3) }} {{ $payment->currency }}
+                {{ number_format((float) $payment->refund_amount, 3) }} {{ $safeCurrency }}
             </td>
         </tr>
         @if($safeRefundReason)

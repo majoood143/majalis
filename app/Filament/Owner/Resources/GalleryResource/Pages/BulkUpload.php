@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\GalleryResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
+use Exception;
 use App\Filament\Owner\Resources\GalleryResource;
 use App\Models\Hall;
 use App\Models\HallImage;
@@ -36,7 +42,7 @@ class BulkUpload extends Page implements HasForms
     /**
      * The view for this page.
      */
-    protected static string $view = 'filament.owner.resources.gallery-resource.pages.bulk-upload';
+    protected string $view = 'filament.owner.resources.gallery-resource.pages.bulk-upload';
 
     /**
      * Form data.
@@ -102,7 +108,7 @@ class BulkUpload extends Page implements HasForms
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('back')
+            Action::make('back')
                 ->label(__('owner.gallery.actions.back_to_gallery'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
@@ -113,15 +119,15 @@ class BulkUpload extends Page implements HasForms
     /**
      * Define the form.
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
         $user = Auth::user();
 
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('owner.gallery.bulk_upload.settings'))
+        return $schema
+            ->components([
+                Section::make(__('owner.gallery.bulk_upload.settings'))
                     ->schema([
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('owner.gallery.fields.hall'))
                             ->options(
                                 Hall::where('owner_id', $user?->id)
@@ -136,7 +142,7 @@ class BulkUpload extends Page implements HasForms
                             ->preload()
                             ->native(false),
 
-                        Forms\Components\Select::make('type')
+                        Select::make('type')
                             ->label(__('owner.gallery.fields.type'))
                             ->options([
                                 'gallery'    => __('owner.gallery.types.gallery'),
@@ -150,9 +156,9 @@ class BulkUpload extends Page implements HasForms
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make(__('owner.gallery.bulk_upload.images_section'))
+                Section::make(__('owner.gallery.bulk_upload.images_section'))
                     ->schema([
-                        Forms\Components\FileUpload::make('images')
+                        FileUpload::make('images')
                             ->label(__('owner.gallery.bulk_upload.select_images'))
                             ->image()
                             ->multiple()
@@ -227,7 +233,7 @@ class BulkUpload extends Page implements HasForms
                 ]);
 
                 $successCount++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Bulk upload failed: ' . $e->getMessage());
             }
         }

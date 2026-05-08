@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
 use App\Models\Booking;
 use Filament\Notifications\Notification;
 use Filament\Tables;
@@ -49,7 +51,7 @@ class RecentBookingsWidget extends BaseWidget
                     ->limit(10)
             )
             ->columns([
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label(__('owner.bookings.number'))
                     ->searchable()
                     ->copyable()
@@ -57,32 +59,32 @@ class RecentBookingsWidget extends BaseWidget
                     ->weight('bold')
                     ->color('primary'),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('owner.bookings.hall'))
                     //->getStateUsing(fn($record) => $record->hall->name[app()->getLocale()] ?? $record->hall->name['en'])
                     ->limit(20),
                     //->tooltip(fn($record) => $record->hall->name[app()->getLocale()] ?? $record->hall->name['en']),
 
-                Tables\Columns\TextColumn::make('customer_name') // ✅ Fixed: using actual field name
+                TextColumn::make('customer_name') // ✅ Fixed: using actual field name
                     ->label(__('owner.bookings.customer'))
                     ->getStateUsing(fn($record) => $record->user?->name ?? $record->customer_name)
                     ->searchable()
                     ->icon('heroicon-m-user')
                     ->iconColor(fn($record) => $record->user_id ? 'success' : 'warning'),
 
-                Tables\Columns\TextColumn::make('booking_date') // ✅ Fixed: correct field name
+                TextColumn::make('booking_date') // ✅ Fixed: correct field name
                     ->label(__('owner.bookings.booking_date'))
                     ->date()
                     ->sortable()
                     ->icon('heroicon-m-calendar')
                     ->color(fn($record) => $record->booking_date->isPast() ? 'gray' : 'success'),
 
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label(__('owner.bookings.slot'))
                     ->badge()
                     ->formatStateUsing(fn($state) => __("owner.slots.{$state}")),
 
-                Tables\Columns\BadgeColumn::make('status')
+                BadgeColumn::make('status')
                     ->label(__('owner.bookings.status'))
                     ->colors([
                         'warning' => 'pending',
@@ -92,14 +94,14 @@ class RecentBookingsWidget extends BaseWidget
                     ])
                     ->formatStateUsing(fn($state) => __("owner.status.{$state}")),
 
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(__('owner.bookings.amount'))
                     ->money('OMR')
                     ->sortable()
                     ->weight('bold')
                     ->color('success'),
 
-                Tables\Columns\BadgeColumn::make('payment_status') // ✅ Fixed: using payment_status from booking
+                BadgeColumn::make('payment_status') // ✅ Fixed: using payment_status from booking
                     ->label(__('owner.bookings.payment'))
                     ->colors([
                         'success' => 'paid',
@@ -109,14 +111,14 @@ class RecentBookingsWidget extends BaseWidget
                     ])
                     ->formatStateUsing(fn($state) => $state ? __("owner.payment.{$state}") : '-'),
             ])
-            ->actions([
-                Action::make('view')
+            ->recordActions([
+                \Filament\Actions\Action::make('view')
                     ->label(__('owner.actions.view'))
                     ->icon('heroicon-m-eye')
                     ->url(fn($record) => route('filament.owner.resources.bookings.view', $record))
                     ->color('info'),
 
-                Action::make('confirm')
+                \Filament\Actions\Action::make('confirm')
                     ->label(__('owner.actions.confirm'))
                     ->icon('heroicon-m-check')
                     ->action(fn($record) => $this->confirmBooking($record))

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Exception;
 use App\Services\BookingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,7 +27,7 @@ class AutoCompleteBookings implements ShouldQueue
             $completed = $bookingService->autoCompletePastBookings();
 
             Log::info('Auto-completed past bookings', ['count' => $completed]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Auto-complete bookings job failed', [
                 'error' => $e->getMessage()
             ]);

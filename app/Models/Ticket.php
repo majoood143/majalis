@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,8 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -36,14 +38,14 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $internal_notes
  * @property int|null $rating
  * @property string|null $feedback
- * @property \Carbon\Carbon|null $first_response_at
- * @property \Carbon\Carbon|null $resolved_at
- * @property \Carbon\Carbon|null $closed_at
- * @property \Carbon\Carbon|null $due_date
+ * @property Carbon|null $first_response_at
+ * @property Carbon|null $resolved_at
+ * @property Carbon|null $closed_at
+ * @property Carbon|null $due_date
  * @property array|null $metadata
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- * @property \Carbon\Carbon|null $deleted_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
  */
 class Ticket extends Model
 {
@@ -387,9 +389,9 @@ class Ticket extends Model
      * - Medium: 48 hours
      * - Low: 72 hours
      *
-     * @return \Carbon\Carbon
+     * @return Carbon
      */
-    protected function calculateDueDate(): \Carbon\Carbon
+    protected function calculateDueDate(): Carbon
     {
         $hours = match($this->priority) {
             TicketPriority::URGENT => 4,
@@ -474,7 +476,7 @@ class Ticket extends Model
     public function rate(int $rating, ?string $feedback = null): bool
     {
         if ($rating < 1 || $rating > 5) {
-            throw new \InvalidArgumentException('Rating must be between 1 and 5');
+            throw new InvalidArgumentException('Rating must be between 1 and 5');
         }
 
         return $this->update([

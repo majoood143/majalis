@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Throwable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -67,7 +68,7 @@ class ImageOptimizationService
                     ? round((($originalSize - $newSize) / $originalSize) * 100, 1)
                     : 0.0,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Image compression failed', ['path' => $diskPath, 'error' => $e->getMessage()]);
             return ['error' => $e->getMessage()];
         }
@@ -111,7 +112,7 @@ class ImageOptimizationService
 
             Storage::disk($disk)->put($thumbnailDiskPath, $content);
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Thumbnail generation failed', [
                 'source' => $sourceDiskPath,
                 'error'  => $e->getMessage(),

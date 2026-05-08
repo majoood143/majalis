@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners\Booking;
 
+use Throwable;
 use App\Enums\NotificationEvent;
 use App\Events\Booking\BookingRejected;
 use App\Services\Notification\NotificationService;
@@ -88,7 +89,7 @@ class SendBookingRejectedNotification implements ShouldQueue
             Log::info('BookingRejected notification sent successfully', [
                 'booking_id' => $booking->id,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Failed to send BookingRejected notification', [
                 'booking_id' => $booking->id,
                 'error' => $e->getMessage(),
@@ -103,10 +104,10 @@ class SendBookingRejectedNotification implements ShouldQueue
      * Handle a job failure.
      *
      * @param BookingRejected $event
-     * @param \Throwable $exception
+     * @param Throwable $exception
      * @return void
      */
-    public function failed(BookingRejected $event, \Throwable $exception): void
+    public function failed(BookingRejected $event, Throwable $exception): void
     {
         Log::critical('BookingRejected notification failed permanently', [
             'booking_id' => $event->booking->id,

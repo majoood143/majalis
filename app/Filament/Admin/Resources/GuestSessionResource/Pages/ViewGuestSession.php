@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\GuestSessionResource\Pages;
 
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\GuestSessionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
@@ -13,7 +14,7 @@ class ViewGuestSession extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->label(__('guest-session.hard_delete'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')

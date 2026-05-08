@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Actions\Action;
 use App\Models\Hall;
 use App\Models\Booking;
 use Filament\Tables;
@@ -47,7 +51,7 @@ class HallRecentBookingsWidget extends BaseWidget
         return $table
             ->query($this->getTableQuery())
             ->columns([
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label(__('widgets.hall-recent-bookings.columns.booking_number'))
                     ->searchable()
                     ->sortable()
@@ -56,19 +60,19 @@ class HallRecentBookingsWidget extends BaseWidget
                     ->weight('bold')
                     ->color('primary'),
 
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label(__('widgets.hall-recent-bookings.columns.customer'))
                     ->searchable()
                     ->sortable()
                     ->default(__('common.guest'))
                     ->icon('heroicon-o-user'),
 
-                Tables\Columns\TextColumn::make('booking_date')
+                TextColumn::make('booking_date')
                     ->date('d M Y')
                     ->sortable()
                     ->icon('heroicon-o-calendar'),
 
-                Tables\Columns\TextColumn::make('time_slot')
+                TextColumn::make('time_slot')
                     ->label(__('widgets.hall-recent-bookings.columns.time_slot'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => __("common.time_slots.{$state}"))
@@ -80,7 +84,7 @@ class HallRecentBookingsWidget extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('widgets.hall-recent-bookings.columns.status'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => __("common.booking_status.{$state}"))
@@ -92,7 +96,7 @@ class HallRecentBookingsWidget extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('payment_status')
+                TextColumn::make('payment_status')
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => __("common.payment_status.{$state}"))
                     ->color(fn(string $state): string => match ($state) {
@@ -103,13 +107,13 @@ class HallRecentBookingsWidget extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(__('widgets.hall-recent-bookings.columns.amount'))
                     ->money('OMR')
                     ->sortable()
                     ->alignEnd(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('widgets.hall-recent-bookings.columns.booked'))
                     ->dateTime('d M Y')
                     ->sortable()
@@ -117,7 +121,7 @@ class HallRecentBookingsWidget extends BaseWidget
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('widgets.hall-recent-bookings.filters.status'))
                     ->options([
                         'pending' => __('common.booking_status.pending'),
@@ -126,7 +130,7 @@ class HallRecentBookingsWidget extends BaseWidget
                         'cancelled' => __('common.booking_status.cancelled'),
                     ]),
 
-                Tables\Filters\SelectFilter::make('payment_status')
+                SelectFilter::make('payment_status')
                     ->label(__('widgets.hall-recent-bookings.filters.payment'))
                     ->options([
                         'unpaid' => __('common.payment_status.unpaid'),
@@ -135,12 +139,12 @@ class HallRecentBookingsWidget extends BaseWidget
                         'refunded' => __('common.payment_status.refunded'),
                     ]),
 
-                Tables\Filters\Filter::make('upcoming')
+                Filter::make('upcoming')
                     ->label(__('widgets.hall-recent-bookings.filters.upcoming'))
                     ->query(fn(Builder $query): Builder => $query->where('booking_date', '>=', now()->toDateString())),
             ])
-            ->actions([
-                Tables\Actions\Action::make('view')
+            ->recordActions([
+                Action::make('view')
                     ->label(__('common.actions.view'))
                     ->icon('heroicon-o-eye')
                     ->url(fn(Booking $record): string => route('filament.owner.resources.bookings.view', $record))

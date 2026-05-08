@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Carbon\Carbon;
+use Illuminate\Http\Response;
 use App\Models\Booking;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +39,7 @@ class InvoiceService
      * - Payment details
      *
      * @param Booking $booking The booking record
-     * @return \Barryvdh\DomPDF\PDF PDF object (not Response)
+     * @return PDF PDF object (not Response)
      */
     public function generateAdvanceInvoice(Booking $booking)
     {
@@ -74,7 +76,7 @@ class InvoiceService
      * - Payment deadline
      *
      * @param Booking $booking The booking record
-     * @return \Barryvdh\DomPDF\PDF PDF object (not Response)
+     * @return PDF PDF object (not Response)
      */
     public function generateBalanceInvoice(Booking $booking)
     {
@@ -107,7 +109,7 @@ class InvoiceService
      * (either as full payment or after balance is paid).
      *
      * @param Booking $booking The booking record
-     * @return \Barryvdh\DomPDF\PDF PDF object (not Response)
+     * @return PDF PDF object (not Response)
      */
     public function generateFullReceipt(Booking $booking)
     {
@@ -191,7 +193,7 @@ class InvoiceService
         });
 
         // Calculate payment deadline (e.g., 3 days before event)
-        $paymentDeadline = \Carbon\Carbon::parse($booking->booking_date)->subDays(3);
+        $paymentDeadline = Carbon::parse($booking->booking_date)->subDays(3);
 
         // Base data for all invoice types
         return [
@@ -285,9 +287,9 @@ class InvoiceService
      *
      * @param Booking $booking The booking record
      * @param string $type Invoice type: 'advance', 'balance', or 'full'
-     * @return \Illuminate\Http\Response PDF stream response
+     * @return Response PDF stream response
      */
-    public function streamInvoice(Booking $booking, string $type = 'advance'): \Illuminate\Http\Response
+    public function streamInvoice(Booking $booking, string $type = 'advance'): Response
     {
         // Validate type
         if (!in_array($type, ['advance', 'balance', 'full'])) {
@@ -356,7 +358,7 @@ class InvoiceService
      * Used by generateInvoice() after determining the correct type.
      *
      * @param Booking $booking The booking record (must be loaded with relationships)
-     * @return \Barryvdh\DomPDF\PDF PDF object
+     * @return PDF PDF object
      */
     protected function generateAdvanceInvoiceInternal(Booking $booking)
     {
@@ -379,7 +381,7 @@ class InvoiceService
      * Used by generateInvoice() after determining the correct type.
      *
      * @param Booking $booking The booking record (must be loaded with relationships)
-     * @return \Barryvdh\DomPDF\PDF PDF object
+     * @return PDF PDF object
      */
     protected function generateBalanceInvoiceInternal(Booking $booking)
     {

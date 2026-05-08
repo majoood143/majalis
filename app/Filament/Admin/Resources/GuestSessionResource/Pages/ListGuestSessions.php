@@ -2,10 +2,10 @@
 
 namespace App\Filament\Admin\Resources\GuestSessionResource\Pages;
 
+use Filament\Schemas\Components\Tabs\Tab;
 use App\Filament\Admin\Resources\GuestSessionResource;
 use App\Models\GuestSession;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListGuestSessions extends ListRecords

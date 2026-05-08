@@ -2,10 +2,13 @@
 
 namespace App\Filament\Admin\Resources\CommissionSettingResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use App\Models\CommissionSetting;
+use Filament\Schemas\Components\Tabs\Tab;
 use App\Filament\Admin\Resources\CommissionSettingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 
@@ -16,11 +19,11 @@ class ListCommissionSettings extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary'),
 
-            Actions\Action::make('exportCommissions')
+            Action::make('exportCommissions')
                 ->label(__('commission-setting.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -30,7 +33,7 @@ class ListCommissionSettings extends ListRecords
                 ->modalDescription('Export all commission settings to CSV file.')
                 ->modalSubmitActionLabel('Export'),
 
-            Actions\Action::make('bulkActivate')
+            Action::make('bulkActivate')
                 ->label(__('commission-setting.bulk_activate'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -38,7 +41,7 @@ class ListCommissionSettings extends ListRecords
                 ->modalHeading('Activate All Commission Settings')
                 ->modalDescription('This will activate all currently inactive commission settings.')
                 ->action(function () {
-                    $updated = \App\Models\CommissionSetting::where('is_active', false)->update([
+                    $updated = CommissionSetting::where('is_active', false)->update([
                         'is_active' => true
                     ]);
 
@@ -51,7 +54,7 @@ class ListCommissionSettings extends ListRecords
                     $this->redirect(static::getUrl());
                 }),
 
-            Actions\Action::make('cleanupExpired')
+            Action::make('cleanupExpired')
                 ->label(__('commission-setting.cleanup_expired'))
                 ->icon('heroicon-o-trash')
                 ->color('danger')
@@ -59,7 +62,7 @@ class ListCommissionSettings extends ListRecords
                 ->modalHeading('Delete Expired Commission Settings')
                 ->modalDescription('This will permanently delete all expired commission settings.')
                 ->action(function () {
-                    $deleted = \App\Models\CommissionSetting::where('effective_to', '<', now())
+                    $deleted = CommissionSetting::where('effective_to', '<', now())
                         ->where('is_active', false)
                         ->delete();
 
@@ -79,48 +82,48 @@ class ListCommissionSettings extends ListRecords
         return [
             'all' => Tab::make(__('commission-setting.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
-                ->badge(fn() => \App\Models\CommissionSetting::count()),
+                ->badge(fn() => CommissionSetting::count()),
 
             'active' => Tab::make(__('commission-setting.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\CommissionSetting::where('is_active', true)->count())
+                ->badge(fn() => CommissionSetting::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('commission-setting.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\CommissionSetting::where('is_active', false)->count())
+                ->badge(fn() => CommissionSetting::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'global' => Tab::make(__('commission-setting.tabs.global'))
                 ->icon('heroicon-o-globe-alt')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('hall_id')->whereNull('owner_id'))
-                ->badge(fn() => \App\Models\CommissionSetting::whereNull('hall_id')->whereNull('owner_id')->count())
+                ->badge(fn() => CommissionSetting::whereNull('hall_id')->whereNull('owner_id')->count())
                 ->badgeColor('primary'),
 
             'hall_specific' => Tab::make(__('commission-setting.tabs.hall_specific'))
                 ->icon('heroicon-o-building-storefront')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('hall_id'))
-                ->badge(fn() => \App\Models\CommissionSetting::whereNotNull('hall_id')->count())
+                ->badge(fn() => CommissionSetting::whereNotNull('hall_id')->count())
                 ->badgeColor('success'),
 
             'owner_specific' => Tab::make(__('commission-setting.tabs.owner_specific'))
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('owner_id')->whereNull('hall_id'))
-                ->badge(fn() => \App\Models\CommissionSetting::whereNotNull('owner_id')->whereNull('hall_id')->count())
+                ->badge(fn() => CommissionSetting::whereNotNull('owner_id')->whereNull('hall_id')->count())
                 ->badgeColor('warning'),
 
             'percentage' => Tab::make(__('commission-setting.tabs.percentage'))
                 ->icon('heroicon-o-percent-badge')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('commission_type', 'percentage'))
-                ->badge(fn() => \App\Models\CommissionSetting::where('commission_type', 'percentage')->count())
+                ->badge(fn() => CommissionSetting::where('commission_type', 'percentage')->count())
                 ->badgeColor('info'),
 
             'fixed' => Tab::make(__('commission-setting.tabs.fixed'))
                 ->icon('heroicon-o-banknotes')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('commission_type', 'fixed'))
-                ->badge(fn() => \App\Models\CommissionSetting::where('commission_type', 'fixed')->count())
+                ->badge(fn() => CommissionSetting::where('commission_type', 'fixed')->count())
                 ->badgeColor('info'),
 
             'expiring_soon' => Tab::make(__('commission-setting.tabs.expiring_soon'))
@@ -132,7 +135,7 @@ class ListCommissionSettings extends ListRecords
                         ->where('effective_to', '<=', now()->addDays(30))
                 )
                 ->badge(
-                    fn() => \App\Models\CommissionSetting::whereNotNull('effective_to')
+                    fn() => CommissionSetting::whereNotNull('effective_to')
                         ->where('effective_to', '>', now())
                         ->where('effective_to', '<=', now()->addDays(30))
                         ->count()
@@ -147,7 +150,7 @@ class ListCommissionSettings extends ListRecords
                         ->where('effective_to', '<', now())
                 )
                 ->badge(
-                    fn() => \App\Models\CommissionSetting::whereNotNull('effective_to')
+                    fn() => CommissionSetting::whereNotNull('effective_to')
                         ->where('effective_to', '<', now())
                         ->count()
                 )
@@ -157,7 +160,7 @@ class ListCommissionSettings extends ListRecords
 
     protected function exportCommissions(): void
     {
-        $commissions = \App\Models\CommissionSetting::with(['hall', 'owner'])->get();
+        $commissions = CommissionSetting::with(['hall', 'owner'])->get();
 
         $filename = 'commission_settings_' . now()->format('Y_m_d_His') . '.csv';
         $path = storage_path('app/public/exports/' . $filename);
@@ -221,7 +224,7 @@ class ListCommissionSettings extends ListRecords
             ->body('Commission settings exported successfully.')
             ->persistent()
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label('Download File')
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),

@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Pages;
 
+use App\Filament\Admin\Widgets\StatsOverviewWidget;
+use App\Filament\Admin\Widgets\RevenueChartWidget;
+use App\Filament\Admin\Widgets\BookingStatsWidget;
+use App\Filament\Admin\Widgets\RecentBookingsWidget;
+use App\Filament\Admin\Widgets\TopHallsWidget;
+use App\Filament\Admin\Widgets\PayoutStatsWidget;
+use App\Filament\Admin\Widgets\LatestOwnersWidget;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Exception;
+use Filament\Support\Enums\Width;
 use App\Services\DashboardExportService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -28,7 +39,7 @@ class Dashboard extends BaseDashboard
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-home';
 
     /**
      * Get the page title.
@@ -59,13 +70,13 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            \App\Filament\Admin\Widgets\StatsOverviewWidget::class,
-            \App\Filament\Admin\Widgets\RevenueChartWidget::class,
-            \App\Filament\Admin\Widgets\BookingStatsWidget::class,
-            \App\Filament\Admin\Widgets\RecentBookingsWidget::class,
-            \App\Filament\Admin\Widgets\TopHallsWidget::class,
-            \App\Filament\Admin\Widgets\PayoutStatsWidget::class,
-            \App\Filament\Admin\Widgets\LatestOwnersWidget::class,
+            StatsOverviewWidget::class,
+            RevenueChartWidget::class,
+            BookingStatsWidget::class,
+            RecentBookingsWidget::class,
+            TopHallsWidget::class,
+            PayoutStatsWidget::class,
+            LatestOwnersWidget::class,
         ];
     }
 
@@ -74,7 +85,7 @@ class Dashboard extends BaseDashboard
      *
      * @return int|string|array
      */
-    public function getColumns(): int|string|array
+    public function getColumns(): int|array
     {
         return [
             'sm' => 1,
@@ -105,22 +116,22 @@ class Dashboard extends BaseDashboard
                 ->label(__('admin.dashboard.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
-                ->form([
-                    Forms\Components\DatePicker::make('start_date')
+                ->schema([
+                    DatePicker::make('start_date')
                         ->label(__('admin.dashboard.start_date'))
                         ->default(now()->startOfMonth())
                         ->native(false)
                         ->displayFormat('d M Y')
                         ->required(),
 
-                    Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label(__('admin.dashboard.end_date'))
                         ->default(now())
                         ->native(false)
                         ->displayFormat('d M Y')
                         ->required(),
 
-                    Forms\Components\Select::make('format')
+                    Select::make('format')
                         ->label(__('admin.dashboard.export_format'))
                         ->options([
                             'csv' => 'CSV',
@@ -129,7 +140,7 @@ class Dashboard extends BaseDashboard
                         ->default('csv')
                         ->required(),
 
-                    Forms\Components\Select::make('report_type')
+                    Select::make('report_type')
                         ->label(__('admin.dashboard.report_type'))
                         ->options([
                             'summary' => __('admin.reports.export.summary'),
@@ -181,7 +192,7 @@ class Dashboard extends BaseDashboard
             }
 
             return $exportService->exportAdminDashboardCSV($startDate, $endDate, $reportType);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->title(__('admin.dashboard.export_error'))
                 ->body($e->getMessage())
@@ -195,10 +206,10 @@ class Dashboard extends BaseDashboard
     /**
      * Get max content width.
      *
-     * @return MaxWidth
+     * @return Width
      */
-    public function getMaxContentWidth(): MaxWidth
+    public function getMaxContentWidth(): Width
     {
-        return MaxWidth::Full;
+        return Width::Full;
     }
 }

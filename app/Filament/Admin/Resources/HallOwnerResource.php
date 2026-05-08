@@ -2,28 +2,50 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Placeholder;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
+use App\Filament\Admin\Resources\HallOwnerResource\Pages\ListHallOwners;
+use App\Filament\Admin\Resources\HallOwnerResource\Pages\CreateHallOwner;
+use App\Filament\Admin\Resources\HallOwnerResource\Pages\ViewHallOwner;
+use App\Filament\Admin\Resources\HallOwnerResource\Pages\EditHallOwner;
 use App\Filament\Admin\Resources\HallOwnerResource\Pages;
 use App\Models\HallOwner;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 class HallOwnerResource extends Resource
 {
     protected static ?string $model = HallOwner::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?string $navigationGroup = 'User Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'User Management';
 
     protected static ?int $navigationSort = 2;
 
@@ -42,80 +64,89 @@ class HallOwnerResource extends Resource
         return __('hall-owner.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Tabs::make(__('hall-owner.tabs.business_info'))
+        return $schema
+            ->components([
+                Tabs::make(__('hall-owner.tabs.business_info'))
                     ->tabs([
-                        Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.business_info'))
+                        Tab::make(__('hall-owner.tabs.business_info'))
                             ->icon('heroicon-o-building-office')
                             ->schema([
-                                Forms\Components\Select::make('user_id')
+                                Select::make('user_id')
                                     ->relationship('user', 'name')
                                     ->label(__('hall-owner.fields.user_id'))
                                     ->required()
                                     ->searchable()
                                     ->preload(),
 
-                                Forms\Components\TextInput::make('business_name')
+                                TextInput::make('business_name')
                                     ->label(__('hall-owner.fields.business_name'))
                                     ->required()
                                     ->maxLength(255),
 
-                                Forms\Components\TextInput::make('business_name_ar')
+                                TextInput::make('business_name_ar')
                                     ->label(__('hall-owner.fields.business_name_ar'))
                                     ->maxLength(255),
 
-                                Forms\Components\TextInput::make('commercial_registration')
+                                FileUpload::make('logo')
+                                    ->label(__('hall-owner.fields.logo'))
+                                    ->disk('public')
+                                    ->directory('logos/hall-owners')
+                                    ->image()
+                                    ->imageEditor()
+                                    ->maxSize(2048)
+                                    ->columnSpanFull(),
+
+                                TextInput::make('commercial_registration')
                                     ->label(__('hall-owner.fields.commercial_registration'))
                                     ->required()
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(255),
 
-                                Forms\Components\TextInput::make('tax_number')
+                                TextInput::make('tax_number')
                                     ->label(__('hall-owner.fields.tax_number'))
                                     ->maxLength(255),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.contact'))
+                        Tab::make(__('hall-owner.tabs.contact'))
                             ->icon('heroicon-o-phone')
                             ->schema([
-                                Forms\Components\TextInput::make('business_phone')
+                                TextInput::make('business_phone')
                                     ->label(__('hall-owner.fields.business_phone'))
                                     ->numeric()
                                     ->required()
                                     ->maxLength(20),
 
-                                Forms\Components\TextInput::make('business_email')
+                                TextInput::make('business_email')
                                     ->label(__('hall-owner.fields.business_email'))
                                     ->email()
                                     ->maxLength(255),
 
-                                Forms\Components\Textarea::make('business_address')
+                                Textarea::make('business_address')
                                     ->label(__('hall-owner.fields.business_address'))
                                     ->required()
                                     ->rows(3)
                                     ->columnSpanFull(),
 
-                                Forms\Components\Textarea::make('business_address_ar')
+                                Textarea::make('business_address_ar')
                                     ->label(__('hall-owner.fields.business_address_ar'))
                                     ->rows(3)
                                     ->columnSpanFull(),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.bank_details'))
+                        Tab::make(__('hall-owner.tabs.bank_details'))
                             ->icon('heroicon-o-banknotes')
                             ->schema([
-                                Forms\Components\TextInput::make('bank_name')
+                                TextInput::make('bank_name')
                                     ->label(__('hall-owner.fields.bank_name'))
                                     ->maxLength(255),
 
-                                Forms\Components\TextInput::make('bank_account_name')
+                                TextInput::make('bank_account_name')
                                     ->label(__('hall-owner.fields.bank_account_name'))
                                     ->maxLength(255),
 
-                                Forms\Components\TextInput::make('bank_account_number')
+                                TextInput::make('bank_account_number')
                                     ->label(__('hall-owner.fields.bank_account_number'))
                                     ->maxLength(17)
                                     ->rules([
@@ -129,30 +160,30 @@ class HallOwnerResource extends Resource
 
 
 
-                                Forms\Components\TextInput::make('iban')
+                                TextInput::make('iban')
                                     ->label(__('hall-owner.fields.iban'))
                                     ->maxLength(255),
 
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.documents'))
+                        Tab::make(__('hall-owner.tabs.documents'))
                             ->icon('heroicon-o-document-text')
                             ->schema([
-                                Forms\Components\FileUpload::make('commercial_registration_document')
+                                FileUpload::make('commercial_registration_document')
                                     ->disk('public')
                                     ->directory('documents/cr')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                                     ->downloadable()
                                     ->columnSpanFull(),
 
-                                Forms\Components\FileUpload::make('tax_certificate')
+                                FileUpload::make('tax_certificate')
                                     ->disk('public')
                                     ->directory('documents/tax')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                                     ->downloadable()
                                     ->columnSpanFull(),
 
-                                Forms\Components\FileUpload::make('identity_document')
+                                FileUpload::make('identity_document')
                                     ->disk('public')
                                     ->directory('documents/identity')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
@@ -160,39 +191,39 @@ class HallOwnerResource extends Resource
                                     ->columnSpanFull(),
                             ]),
 
-                        Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.verification'))
+                        Tab::make(__('hall-owner.tabs.verification'))
                             ->icon('heroicon-o-shield-check')
                             ->schema([
-                                Forms\Components\Toggle::make('is_verified')
+                                Toggle::make('is_verified')
                                     ->label(__('hall-owner.fields.is_verified'))
                                     ->inline(false),
 
-                                Forms\Components\Toggle::make('is_active')
+                                Toggle::make('is_active')
                                     ->label(__('hall-owner.fields.is_active'))
                                     ->inline(false),
 
-                                Forms\Components\Textarea::make('verification_notes')
+                                Textarea::make('verification_notes')
                                     ->label(__('hall-owner.fields.verification_notes'))
                                     ->rows(4)
                                     ->columnSpanFull(),
                             ])->columns(2),
 
-                        Forms\Components\Tabs\Tab::make(__('hall-owner.tabs.commission'))
+                        Tab::make(__('hall-owner.tabs.commission'))
                             ->icon('heroicon-o-currency-dollar')
                             ->schema([
-                                Forms\Components\Select::make('commission_type')
+                                Select::make('commission_type')
                                     ->label(__('hall-owner.fields.commission_type'))
                                     ->options([
                                         'percentage' => __('hall-owner.options.percentage'),
                                         'fixed' => __('hall-owner.options.fixed'),
                                     ]),
 
-                                Forms\Components\TextInput::make('commission_value')
+                                TextInput::make('commission_value')
                                     ->label(__('hall-owner.fields.commission_value'))
                                     ->numeric()
                                     ->step(0.01),
 
-                                Forms\Components\Placeholder::make('note')
+                                Placeholder::make('note')
                                     ->content(__('hall-owner.note'))
                                     ->columnSpanFull(),
                             ])->columns(2),
@@ -204,65 +235,65 @@ class HallOwnerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label(__('hall-owner.columns.owner_name'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('business_name')
+                TextColumn::make('business_name')
                     ->label(__('hall-owner.columns.business_name'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('commercial_registration')
+                TextColumn::make('commercial_registration')
                     ->label(__('hall-owner.columns.commercial_registration'))
                     ->searchable()
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('business_phone')
+                TextColumn::make('business_phone')
                     ->label(__('hall-owner.columns.business_phone'))
                     ->searchable()
                     ->copyable(),
 
-                Tables\Columns\IconColumn::make('is_verified')
+                IconColumn::make('is_verified')
                     ->label(__('hall-owner.columns.is_verified'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('hall-owner.columns.is_active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('hall-owner.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_verified')
+                TernaryFilter::make('is_verified')
                     ->label(__('hall-owner.filters.verified'))
                     ->boolean()
                     ->native(false),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('hall-owner.filters.active'))
                     ->boolean()
                     ->native(false),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    ViewAction::make(),
+                    EditAction::make(),
 
-                    Tables\Actions\Action::make('verify')
+                    Action::make('verify')
                         ->label(__('hall-owner.actions.verify'))
                         ->icon('heroicon-o-check-badge')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->form([
-                            Forms\Components\Textarea::make('notes')
+                        ->schema([
+                            Textarea::make('notes')
                                 ->label(__('hall-owner.fields.notes')),
                         ])
                         ->action(function (HallOwner $record, array $data) {
@@ -270,87 +301,93 @@ class HallOwnerResource extends Resource
                         })
                         ->visible(fn(HallOwner $record) => !$record->is_verified),
 
-                    Tables\Actions\Action::make('reject')
+                    Action::make('reject')
                         ->label(__('hall-owner.actions.reject'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->form([
-                            Forms\Components\Textarea::make('notes')
+                        ->schema([
+                            Textarea::make('notes')
                                 ->label(__('hall-owner.fields.rejection_reason'))
                                 ->required(),
                         ])
                         ->action(fn(HallOwner $record, array $data) => $record->reject($data['notes']))
                         ->visible(fn(HallOwner $record) => $record->is_verified),
 
-                    Tables\Actions\DeleteAction::make(),
-                ActivityLogTimelineTableAction::make('Activities'),
+                    DeleteAction::make(),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
 
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make(__('hall-owner.infolist.business_information'))
+        return $schema
+            ->components([
+                Section::make(__('hall-owner.infolist.business_information'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('user.name')
+                        ImageEntry::make('logo')
+                            ->label(__('hall-owner.fields.logo'))
+                            ->disk('public')
+                            ->height(80)
+                            ->circular()
+                            ->columnSpanFull(),
+                        TextEntry::make('user.name')
                             ->label(__('hall-owner.infolist.owner')),
-                        Infolists\Components\TextEntry::make('business_name')
+                        TextEntry::make('business_name')
                             ->label(__('hall-owner.infolist.business_name')),
 
-                        Infolists\Components\TextEntry::make('business_name_ar')
+                        TextEntry::make('business_name_ar')
                             ->label(__('hall-owner.infolist.business_name_ar')),
-                        Infolists\Components\TextEntry::make('commercial_registration')
+                        TextEntry::make('commercial_registration')
                             ->copyable(),
-                        Infolists\Components\TextEntry::make('tax_number')
+                        TextEntry::make('tax_number')
                             ->copyable(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('hall-owner.infolist.contact_information'))
+                Section::make(__('hall-owner.infolist.contact_information'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('business_phone')
+                        TextEntry::make('business_phone')
                             ->copyable(),
-                        Infolists\Components\TextEntry::make('business_email')
+                        TextEntry::make('business_email')
                             ->copyable(),
-                        Infolists\Components\TextEntry::make('business_address'),
+                        TextEntry::make('business_address'),
                     ])->columns(2),
 
-                Infolists\Components\Section::make(__('hall-owner.infolist.bank_details'))
+                Section::make(__('hall-owner.infolist.bank_details'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('bank_name'),
-                        Infolists\Components\TextEntry::make('bank_account_name'),
-                        Infolists\Components\TextEntry::make('bank_account_number')
+                        TextEntry::make('bank_name'),
+                        TextEntry::make('bank_account_name'),
+                        TextEntry::make('bank_account_number')
                             ->copyable(),
-                        Infolists\Components\TextEntry::make('iban')
+                        TextEntry::make('iban')
                             ->copyable(),
                     ])->columns(2),
 
-                Infolists\Components\Section::make(__('hall-owner.infolist.verification_status'))
+                Section::make(__('hall-owner.infolist.verification_status'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('is_verified')
+                        TextEntry::make('is_verified')
                             ->badge()
                             ->color(fn($state) => $state ? 'success' : 'warning')
                             ->formatStateUsing(fn($state) => $state
                                 ? __('hall-owner.infolist.verified')
                                 : __('hall-owner.infolist.pending')),
-                        Infolists\Components\TextEntry::make('verified_at')
+                        TextEntry::make('verified_at')
                             ->dateTime(),
-                        Infolists\Components\TextEntry::make('verifiedBy.name')
+                        TextEntry::make('verifiedBy.name')
                             ->label(__('hall-owner.infolist.verified_by')),
-                        Infolists\Components\TextEntry::make('verification_notes')
+                        TextEntry::make('verification_notes')
                             ->columnSpanFull(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('hall-owner.infolist.documents'))
+                Section::make(__('hall-owner.infolist.documents'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('commercial_registration_document')
+                        TextEntry::make('commercial_registration_document')
                             ->label(__('hall-owner.infolist.commercial_registration_document'))
                             ->formatStateUsing(function ($state) {
                                 if (!$state) {
@@ -365,7 +402,7 @@ class HallOwnerResource extends Resource
                             })
                             ->html(),
 
-                        Infolists\Components\TextEntry::make('tax_certificate')
+                        TextEntry::make('tax_certificate')
                             ->label(__('hall-owner.infolist.tax_certificate'))
                             ->formatStateUsing(function ($state) {
                                 if (!$state) {
@@ -380,7 +417,7 @@ class HallOwnerResource extends Resource
                             })
                             ->html(),
 
-                        Infolists\Components\TextEntry::make('identity_document')
+                        TextEntry::make('identity_document')
                             ->label(__('hall-owner.infolist.identity_document'))
                             ->formatStateUsing(function ($state) {
                                 if (!$state) {
@@ -395,7 +432,7 @@ class HallOwnerResource extends Resource
                             })
                             ->html(),
 
-                        Infolists\Components\TextEntry::make('additional_documents')
+                        TextEntry::make('additional_documents')
                             ->label(__('hall-owner.infolist.additional_documents'))
                             ->formatStateUsing(function ($state) {
                                 if (empty($state)) {
@@ -422,18 +459,18 @@ class HallOwnerResource extends Resource
                             ->columnSpanFull(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('hall-owner.infolist.statistics'))
+                Section::make(__('hall-owner.infolist.statistics'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('total_halls')
+                        TextEntry::make('total_halls')
                             ->label(__('hall-owner.infolist.total_halls'))
                             ->state(fn($record) => $record->getTotalHalls()),
-                        Infolists\Components\TextEntry::make('active_halls')
+                        TextEntry::make('active_halls')
                             ->label(__('hall-owner.infolist.active_halls'))
                             ->state(fn($record) => $record->getActiveHalls()),
-                        Infolists\Components\TextEntry::make('total_bookings')
+                        TextEntry::make('total_bookings')
                             ->label(__('hall-owner.infolist.total_bookings'))
                             ->state(fn($record) => $record->getTotalBookings()),
-                        Infolists\Components\TextEntry::make('total_revenue')
+                        TextEntry::make('total_revenue')
                             ->label(__('hall-owner.infolist.total_revenue'))
                             ->money('OMR')
                             ->state(fn($record) => $record->getTotalRevenue()),
@@ -451,10 +488,10 @@ class HallOwnerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListHallOwners::route('/'),
-            'create' => Pages\CreateHallOwner::route('/create'),
-            'view' => Pages\ViewHallOwner::route('/{record}'),
-            'edit' => Pages\EditHallOwner::route('/{record}/edit'),
+            'index' => ListHallOwners::route('/'),
+            'create' => CreateHallOwner::route('/create'),
+            'view' => ViewHallOwner::route('/{record}'),
+            'edit' => EditHallOwner::route('/{record}/edit'),
         ];
     }
 

@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Region extends Model
 {

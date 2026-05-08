@@ -2,10 +2,15 @@
 
 namespace App\Filament\Admin\Resources\RegionResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\IconEntry;
 use App\Filament\Admin\Resources\RegionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists\Infolist;
 use Filament\Infolists;
 
 class ViewRegion extends ViewRecord
@@ -15,24 +20,24 @@ class ViewRegion extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
-            Actions\DeleteAction::make(),
+            EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Region Information')
+                Section::make('Region Information')
                     ->schema([
-                        Infolists\Components\TextEntry::make('name')
+                        TextEntry::make('name')
                             ->formatStateUsing(fn($record) => $record->name),
-                        Infolists\Components\TextEntry::make('code')->badge(),
-                        Infolists\Components\TextEntry::make('cities_count')
+                        TextEntry::make('code')->badge(),
+                        TextEntry::make('cities_count')
                             ->state(fn($record) => $record->cities()->count())
                             ->badge(),
-                        Infolists\Components\IconEntry::make('is_active')->boolean(),
+                        IconEntry::make('is_active')->boolean(),
                     ])->columns(2),
             ]);
     }

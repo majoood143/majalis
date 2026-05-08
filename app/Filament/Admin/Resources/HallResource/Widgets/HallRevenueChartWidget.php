@@ -13,9 +13,9 @@ use Carbon\Carbon;
 class HallRevenueChartWidget extends ChartWidget
 {
     public ?Model $record = null;
-    protected static ?string $heading = 'Revenue Analysis';
-    protected static ?string $maxHeight = '300px';
-    protected static ?string $pollingInterval = '120s';
+    protected ?string $heading = 'Revenue Analysis';
+    protected ?string $maxHeight = '300px';
+    protected ?string $pollingInterval = '120s';
 
     protected int|string|array $columnSpan = [
         'sm' => 'full',

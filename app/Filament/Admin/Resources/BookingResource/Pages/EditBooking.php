@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\DeleteAction;
+use App\Models\Hall;
 use App\Filament\Admin\Resources\BookingResource;
 use App\Models\Booking;
 use Filament\Actions;
@@ -42,8 +45,8 @@ class EditBooking extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
+            ViewAction::make(),
+            DeleteAction::make(),
         ];
     }
 
@@ -122,7 +125,7 @@ class EditBooking extends EditRecord
         // ✅ NEW: Handle advance payment recalculation
         if ($shouldRecalculateAdvance) {
             //$newHall = \App\Models\Hall::find($data['hall_id']);
-            $newHall = \App\Models\Hall::find($newHallId);
+            $newHall = Hall::find($newHallId);
 
             // Check if this booking had advance payment and balance was already paid
             if ($this->record->isAdvancePayment() && $this->record->balance_paid_at) {
@@ -188,7 +191,7 @@ class EditBooking extends EditRecord
     {
         // Check if we need to recalculate advance payment
         if ($this->advancePaymentRecalculated) {
-            $hall = \App\Models\Hall::find($this->record->hall_id);
+            $hall = Hall::find($this->record->hall_id);
 
             if ($hall && $hall->allows_advance_payment && !$this->record->balance_paid_at) {
                 // Store old values for comparison

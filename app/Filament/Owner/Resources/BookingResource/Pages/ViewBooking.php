@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\BookingResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Actions\ActionGroup;
+use App\Filament\Owner\Resources\BookingResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Owner\Resources\BookingResource;
 use App\Models\Booking;
 use Filament\Actions;
@@ -55,7 +64,7 @@ class ViewBooking extends ViewRecord
     {
         return [
             // Approve Action
-            Actions\Action::make('approve')
+            Action::make('approve')
                 ->label(__('pages/view-booking.actions.approve.label'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -88,7 +97,7 @@ class ViewBooking extends ViewRecord
                 }),
 
             // Reject Action
-            Actions\Action::make('reject')
+            Action::make('reject')
                 ->label(__('pages/view-booking.actions.reject.label'))
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
@@ -96,8 +105,8 @@ class ViewBooking extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading(__('pages/view-booking.actions.reject.modal_heading'))
                 ->modalDescription(__('pages/view-booking.actions.reject.modal_description'))
-                ->form([
-                    Forms\Components\Textarea::make('rejection_reason')
+                ->schema([
+                    Textarea::make('rejection_reason')
                         ->label(__('pages/view-booking.actions.reject.reason_label'))
                         ->required()
                         ->maxLength(500)
@@ -129,17 +138,17 @@ class ViewBooking extends ViewRecord
                 }),
 
             // Record Balance Payment Action
-            Actions\Action::make('record_balance')
+            Action::make('record_balance')
                 ->label(__('pages/view-booking.actions.record_balance.label'))
                 ->icon('heroicon-o-banknotes')
                 ->color('info')
                 ->size('lg')
                 ->modalHeading(__('pages/view-booking.actions.record_balance.modal_heading'))
                 ->modalDescription(__('pages/view-booking.actions.record_balance.modal_description'))
-                ->form([
-                    Forms\Components\Section::make(__('pages/view-booking.actions.record_balance.section_title'))
+                ->schema([
+                    Section::make(__('pages/view-booking.actions.record_balance.section_title'))
                         ->schema([
-                            Forms\Components\Placeholder::make('balance_summary')
+                            Placeholder::make('balance_summary')
                                 ->label(__('pages/view-booking.actions.record_balance.balance_summary_label'))
                                 ->content(
                                     fn(): string =>
@@ -150,7 +159,7 @@ class ViewBooking extends ViewRecord
                                     ])
                                 ),
 
-                            Forms\Components\TextInput::make('amount_received')
+                            TextInput::make('amount_received')
                                 ->label(__('pages/view-booking.actions.record_balance.amount_received_label'))
                                 ->prefix('OMR')
                                 ->numeric()
@@ -160,7 +169,7 @@ class ViewBooking extends ViewRecord
                                 ->step(0.001)
                                 ->helperText(__('pages/view-booking.actions.record_balance.amount_received_helper')),
 
-                            Forms\Components\Select::make('payment_method')
+                            Select::make('payment_method')
                                 ->label(__('pages/view-booking.actions.record_balance.payment_method_label'))
                                 ->options([
                                     'cash' => __('common.payment_methods.cash'),
@@ -171,18 +180,18 @@ class ViewBooking extends ViewRecord
                                 ->required()
                                 ->native(false),
 
-                            Forms\Components\TextInput::make('reference')
+                            TextInput::make('reference')
                                 ->label(__('pages/view-booking.actions.record_balance.reference_label'))
                                 ->placeholder(__('pages/view-booking.actions.record_balance.reference_placeholder'))
                                 ->maxLength(100),
 
-                            Forms\Components\DateTimePicker::make('received_at')
+                            DateTimePicker::make('received_at')
                                 ->label(__('pages/view-booking.actions.record_balance.received_at_label'))
                                 ->default(now())
                                 ->required()
                                 ->maxDate(now()),
 
-                            Forms\Components\Textarea::make('notes')
+                            Textarea::make('notes')
                                 ->label(__('pages/view-booking.actions.record_balance.notes_label'))
                                 ->placeholder(__('pages/view-booking.actions.record_balance.notes_placeholder'))
                                 ->maxLength(500)
@@ -236,21 +245,21 @@ class ViewBooking extends ViewRecord
                 }),
 
             // Contact Customer Action Group
-            Actions\ActionGroup::make([
-                Actions\Action::make('call')
+            ActionGroup::make([
+                Action::make('call')
                     ->label(__('pages/view-booking.actions.contact.call'))
                     ->icon('heroicon-o-phone')
                     ->url(fn(): string => "tel:{$this->record->customer_phone}")
                     ->openUrlInNewTab(),
 
-                Actions\Action::make('email')
+                Action::make('email')
                     ->label(__('pages/view-booking.actions.contact.email'))
                     ->icon('heroicon-o-envelope')
                     ->url(fn(): string => "mailto:{$this->record->customer_email}?subject=" .
                         urlencode(__('pages/view-booking.actions.contact.email_subject', ['number' => $this->record->booking_number])))
                     ->openUrlInNewTab(),
 
-                Actions\Action::make('whatsapp')
+                Action::make('whatsapp')
                     ->label(__('pages/view-booking.actions.contact.whatsapp'))
                     ->icon('heroicon-o-chat-bubble-left-ellipsis')
                     ->url(fn(): string => "https://api.whatsapp.com/send?phone=" . preg_replace('/[^0-9]/', '', $this->record->customer_phone) .
@@ -267,7 +276,7 @@ class ViewBooking extends ViewRecord
                 ->button(),
 
             // Print/Download Invoice
-            Actions\Action::make('download_invoice')
+            Action::make('download_invoice')
                 ->label(__('pages/view-booking.actions.download_invoice'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
@@ -276,7 +285,7 @@ class ViewBooking extends ViewRecord
                 ->openUrlInNewTab(),
 
             // Back to List
-            Actions\Action::make('back')
+            Action::make('back')
                 ->label(__('pages/view-booking.actions.back'))
                 ->url(BookingResource::getUrl('index'))
                 ->color('gray')
@@ -298,7 +307,7 @@ class ViewBooking extends ViewRecord
     public function getRelationManagers(): array
     {
         return [
-            BookingResource\RelationManagers\PaymentsRelationManager::class,
+            PaymentsRelationManager::class,
         ];
     }
 }

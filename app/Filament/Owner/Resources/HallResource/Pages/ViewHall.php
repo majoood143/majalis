@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
 use App\Filament\Owner\Resources\HallResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
@@ -44,19 +46,19 @@ class ViewHall extends ViewRecord
     {
         return [
             // Edit Hall
-            Actions\EditAction::make()
+            EditAction::make()
                 ->label(__('owner.halls.actions.edit'))
                 ->icon('heroicon-o-pencil'),
 
             // Manage Availability
-            Actions\Action::make('availability')
+            Action::make('availability')
                 ->label(__('owner.halls.actions.availability'))
                 ->icon('heroicon-o-calendar')
                 ->color('info')
                 ->url(fn () => HallResource::getUrl('availability', ['record' => $this->record])),
 
             // View on Website
-            Actions\Action::make('view_public')
+            Action::make('view_public')
                 ->label(__('owner.halls.actions.view_public'))
                 ->icon('heroicon-o-globe-alt')
                 ->color('gray')

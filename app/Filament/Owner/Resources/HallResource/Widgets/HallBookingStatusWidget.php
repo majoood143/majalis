@@ -12,9 +12,9 @@ use Illuminate\Database\Eloquent\Model;
 class HallBookingStatusWidget extends ChartWidget
 {
     public ?Model $record = null;
-    protected static ?string $heading = 'Booking Distribution';
-    protected static ?string $maxHeight = '300px';
-    protected static ?string $pollingInterval = '120s';
+    protected ?string $heading = 'Booking Distribution';
+    protected ?string $maxHeight = '300px';
+    protected ?string $pollingInterval = '120s';
 
     protected int|string|array $columnSpan = [
         'sm' => 'full',

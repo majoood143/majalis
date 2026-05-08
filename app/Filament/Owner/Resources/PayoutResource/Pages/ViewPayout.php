@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\PayoutResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Placeholder;
+use App\Models\TicketMessageType;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+use App\Models\OwnerPayout;
+use App\Models\User;
 use App\Enums\PayoutStatus;
 use App\Filament\Owner\Resources\PayoutResource;
 use App\Models\Ticket;
@@ -32,7 +43,7 @@ use Illuminate\Support\Facades\Storage;
  * @package App\Filament\Owner\Resources\PayoutResource\Pages
  * @version 2.0.0
  *
- * @property-read \App\Models\OwnerPayout $record
+ * @property-read OwnerPayout $record
  */
 class ViewPayout extends ViewRecord
 {
@@ -104,7 +115,7 @@ class ViewPayout extends ViewRecord
             // Download Receipt Action
             // ====================================================
             // Only visible when payout is completed AND has a receipt
-            Actions\Action::make('downloadReceipt')
+            Action::make('downloadReceipt')
                 ->label(__('owner.payouts.download_receipt'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
@@ -132,7 +143,7 @@ class ViewPayout extends ViewRecord
             // ====================================================
             // Uses modal form instead of external route to avoid
             // dependency on non-existent TicketResource in Owner panel
-            Actions\Action::make('reportIssue')
+            Action::make('reportIssue')
                 ->label(__('owner.payouts.report_issue'))
                 ->icon('heroicon-o-exclamation-triangle')
                 ->color('warning')
@@ -143,9 +154,9 @@ class ViewPayout extends ViewRecord
                 ]))
                 ->modalSubmitActionLabel(__('owner.payouts.submit_issue'))
                 ->modalWidth('lg')
-                ->form([
+                ->schema([
                     // Issue Type Selection
-                    Forms\Components\Select::make('type')
+                    Select::make('type')
                         ->label(__('owner.payouts.issue_type'))
                         ->options([
                             TicketType::CLAIM->value => __('owner.payouts.issue_types.claim'),
@@ -157,7 +168,7 @@ class ViewPayout extends ViewRecord
                         ->native(false),
 
                     // Priority Selection
-                    Forms\Components\Select::make('priority')
+                    Select::make('priority')
                         ->label(__('owner.payouts.issue_priority'))
                         ->options([
                             TicketPriority::LOW->value => __('owner.payouts.priorities.low'),
@@ -169,7 +180,7 @@ class ViewPayout extends ViewRecord
                         ->native(false),
 
                     // Subject (Pre-filled with payout reference)
-                    Forms\Components\TextInput::make('subject')
+                    TextInput::make('subject')
                         ->label(__('owner.payouts.issue_subject'))
                         ->default(fn (): string => __('owner.payouts.default_subject', [
                             'payout' => $this->record->payout_number,
@@ -179,7 +190,7 @@ class ViewPayout extends ViewRecord
                         ->columnSpanFull(),
 
                     // Description
-                    Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label(__('owner.payouts.issue_description'))
                         ->placeholder(__('owner.payouts.issue_description_placeholder'))
                         ->required()
@@ -189,7 +200,7 @@ class ViewPayout extends ViewRecord
                         ->columnSpanFull(),
 
                     // Hidden payout context (displayed as info)
-                    Forms\Components\Placeholder::make('payout_info')
+                    Placeholder::make('payout_info')
                         ->label(__('owner.payouts.related_payout'))
                         ->content(fn (): string => sprintf(
                             '%s - %s OMR (%s)',
@@ -206,7 +217,7 @@ class ViewPayout extends ViewRecord
             // ====================================================
             // Back to List Action
             // ====================================================
-            Actions\Action::make('backToList')
+            Action::make('backToList')
                 ->label(__('owner.payouts.back_to_list'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
@@ -228,7 +239,7 @@ class ViewPayout extends ViewRecord
         try {
             DB::beginTransaction();
 
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = Auth::user();
 
             // Create the support ticket
@@ -260,7 +271,7 @@ class ViewPayout extends ViewRecord
                 $ticket->addMessage(
                     $data['description'],
                     $user->id,
-                    \App\Models\TicketMessageType::CUSTOMER_REPLY ?? 'customer_reply',
+                    TicketMessageType::CUSTOMER_REPLY ?? 'customer_reply',
                     [] // No attachments from this form
                 );
             }
@@ -277,18 +288,18 @@ class ViewPayout extends ViewRecord
                 ->persistent()
                 ->actions([
                     // Optional: Add action to view ticket if route exists
-                    \Filament\Notifications\Actions\Action::make('view_ticket')
+                    Action::make('view_ticket')
                         ->label(__('owner.payouts.view_ticket'))
                         ->url($this->getTicketViewUrl($ticket))
                         ->visible(fn (): bool => $this->hasCustomerTicketRoute()),
                 ])
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             // Log the error for debugging
-            \Illuminate\Support\Facades\Log::error('Failed to create payout issue ticket', [
+            Log::error('Failed to create payout issue ticket', [
                 'payout_id' => $this->record->id,
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
@@ -311,7 +322,7 @@ class ViewPayout extends ViewRecord
      */
     protected function hasCustomerTicketRoute(): bool
     {
-        return \Illuminate\Support\Facades\Route::has('customer.tickets.show');
+        return Route::has('customer.tickets.show');
     }
 
     /**

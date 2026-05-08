@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use Exception;
+use Throwable;
 use App\Models\Booking;
 use App\Mail\BookingReminderMail;
 use Illuminate\Bus\Queueable;
@@ -108,7 +110,7 @@ class SendBookingReminder implements ShouldQueue
                 'booking_id' => $this->booking->id,
                 'email' => $this->booking->customer_email,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('SendBookingReminder: Email failed', [
                 'booking_id' => $this->booking->id,
                 'error' => $e->getMessage(),
@@ -155,7 +157,7 @@ class SendBookingReminder implements ShouldQueue
                     'booking_id' => $this->booking->id,
                     'phone' => $this->booking->customer_phone,
                 ]);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('SendBookingReminder: SMS failed', [
                     'booking_id' => $this->booking->id,
                     'error' => $e->getMessage(),
@@ -205,10 +207,10 @@ class SendBookingReminder implements ShouldQueue
     /**
      * Handle a job failure.
      *
-     * @param \Throwable $exception
+     * @param Throwable $exception
      * @return void
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error('SendBookingReminder: Job failed', [
             'booking_id' => $this->booking->id,

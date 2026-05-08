@@ -2,21 +2,34 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\HallFeatureResource\Pages\ListHallFeatures;
+use App\Filament\Admin\Resources\HallFeatureResource\Pages\CreateHallFeature;
+use App\Filament\Admin\Resources\HallFeatureResource\Pages\EditHallFeature;
 use App\Filament\Admin\Resources\HallFeatureResource\Pages;
 use App\Models\HallFeature;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 class HallFeatureResource extends Resource
 {
     protected static ?string $model = HallFeature::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-star';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-star';
 
     //protected static ?string $navigationGroup = 'Hall Management';
 
@@ -42,113 +55,114 @@ class HallFeatureResource extends Resource
         return __('hall-feature.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('hall-feature.feature_information'))
+        return $schema
+            ->components([
+                Section::make(__('hall-feature.feature_information'))
                     ->schema([
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('hall-feature.name_en'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('hall-feature.name_ar'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('slug')
+                        TextInput::make('slug')
                             ->label(__('hall-feature.slug'))
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->helperText(__('hall-feature.slug_helper')),
 
-                        Forms\Components\TextInput::make('icon')
+                        TextInput::make('icon')
                             ->label(__('hall-feature.icon'))
                             ->maxLength(255)
                             ->helperText(__('hall-feature.icon_helper')),
 
-                        Forms\Components\Textarea::make('description.en')
+                        Textarea::make('description.en')
                             ->label(__('hall-feature.description_en'))
                             ->rows(3),
 
-                        Forms\Components\Textarea::make('description.ar')
+                        Textarea::make('description.ar')
                             ->label(__('hall-feature.description_ar'))
                             ->rows(3),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('hall-feature.settings'))
+                Section::make(__('hall-feature.settings'))
                     ->schema([
-                        Forms\Components\TextInput::make('order')
+                        TextInput::make('order')
                             ->label(__('hall-feature.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('hall-feature.is_active'))
                             ->default(true)
                             ->inline(false),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('hall-feature.name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->name),
 
-                Tables\Columns\TextColumn::make('slug')
+                TextColumn::make('slug')
                     ->label(__('hall-feature.slug'))
                     ->searchable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('icon')
+                TextColumn::make('icon')
                     ->label(__('hall-feature.icon'))
                     ->badge()
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('hall-feature.is_active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('order')
+                TextColumn::make('order')
                     ->label(__('hall-feature.order'))
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('hall-feature.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('hall-feature.active'))
                     ->boolean()
                     ->trueLabel(__('hall-feature.active_only'))
                     ->falseLabel(__('hall-feature.inactive_only'))
                     ->native(false),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->label(__('hall-feature.edit')),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label(__('hall-feature.delete')),
-                ActivityLogTimelineTableAction::make('Activities'),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('order')
@@ -165,9 +179,9 @@ class HallFeatureResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListHallFeatures::route('/'),
-            'create' => Pages\CreateHallFeature::route('/create'),
-            'edit' => Pages\EditHallFeature::route('/{record}/edit'),
+            'index' => ListHallFeatures::route('/'),
+            'create' => CreateHallFeature::route('/create'),
+            'edit' => EditHallFeature::route('/{record}/edit'),
         ];
     }
 }

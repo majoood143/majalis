@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Actions;
+use App\Models\OwnerPayout;
+use App\Enums\PayoutStatus;
+use Throwable;
+use Filament\Support\Enums\Width;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Services\ReportService;
@@ -57,13 +67,13 @@ class Reports extends Page implements HasForms
     use InteractsWithForms;
 
     /** @var string */
-    protected static string $view = 'filament.owner.pages.reports';
+    protected string $view = 'filament.owner.pages.reports';
 
     /** @var string|null */
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar-square';
 
     /** @var string|null */
-    protected static ?string $navigationGroup = null;
+    protected static string | \UnitEnum | null $navigationGroup = null;
 
     public static function getNavigationGroup(): ?string
     {
@@ -132,16 +142,16 @@ class Reports extends Page implements HasForms
     /**
      * Define the filter form.
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(5)
+        return $schema
+            ->components([
+                Grid::make(5)
                     ->schema([
-                        Forms\Components\DatePicker::make('startDate')
+                        DatePicker::make('startDate')
                             ->label(__('owner_report.reports.filters.start_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
@@ -149,7 +159,7 @@ class Reports extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn() => $this->loadData()),
 
-                        Forms\Components\DatePicker::make('endDate')
+                        DatePicker::make('endDate')
                             ->label(__('owner_report.reports.filters.end_date'))
                             ->native(false)
                             ->displayFormat('d M Y')
@@ -157,14 +167,14 @@ class Reports extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn() => $this->loadData()),
 
-                        Forms\Components\Select::make('hallId')
+                        Select::make('hallId')
                             ->label(__('owner_report.reports.filters.hall'))
                             ->options(fn() => $this->getOwnerHalls())
                             ->placeholder(__('owner_report.reports.filters.all_halls'))
                             ->live()
                             ->afterStateUpdated(fn() => $this->loadData()),
 
-                        Forms\Components\Select::make('preset')
+                        Select::make('preset')
                             ->label(__('owner_report.reports.filters.preset'))
                             ->options([
                                 'today'        => __('owner_report.reports.presets.today'),
@@ -180,8 +190,8 @@ class Reports extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn($state) => $this->applyPreset($state)),
 
-                        Forms\Components\Actions::make([
-                            Forms\Components\Actions\Action::make('refresh')
+                        Actions::make([
+                            Action::make('refresh')
                                 ->label(__('owner_report.reports.actions.refresh'))
                                 ->icon('heroicon-o-arrow-path')
                                 ->action(fn() => $this->loadData()),
@@ -340,10 +350,10 @@ class Reports extends Page implements HasForms
                 ? (int) Hall::where('id', $this->hallId)->where('is_active', true)->exists()
                 : Hall::where('owner_id', Auth::id())->where('is_active', true)->count(),
 
-            'pending_payouts'   => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
-                ->where('status', \App\Enums\PayoutStatus::PENDING)->sum('net_payout'),
-            'completed_payouts' => (float) \App\Models\OwnerPayout::where('owner_id', Auth::id())
-                ->where('status', \App\Enums\PayoutStatus::COMPLETED)->sum('net_payout'),
+            'pending_payouts'   => (float) OwnerPayout::where('owner_id', Auth::id())
+                ->where('status', PayoutStatus::PENDING)->sum('net_payout'),
+            'completed_payouts' => (float) OwnerPayout::where('owner_id', Auth::id())
+                ->where('status', PayoutStatus::COMPLETED)->sum('net_payout'),
 
             'average_booking_value' => (float) ($bookingsQuery->clone()->where('payment_status', 'paid')->avg('total_amount') ?? 0),
             'total_guests'          => (int) $bookingsQuery->clone()->whereIn('status', ['confirmed', 'completed'])->sum('number_of_guests'),
@@ -491,7 +501,6 @@ class Reports extends Page implements HasForms
     // ======================================================================
     // EXPORT ACTIONS
     // ======================================================================
-
     /**
      * Export report as PDF using mPDF.
      *
@@ -500,7 +509,7 @@ class Reports extends Page implements HasForms
      * primary cause of Arabic rendering issues (missing letters, corrupted text).
      *
      * @param bool $debug Return raw HTML instead of PDF for browser inspection
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|\Illuminate\Http\Response|null
+     * @return StreamedResponse|\Illuminate\Http\Response|null
      */
     public function exportPDF(bool $debug = false)
     {
@@ -533,7 +542,7 @@ class Reports extends Page implements HasForms
                     'pdf-debug/report-' . now()->timestamp . '.html',
                     $html
                 );
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::warning('PDF debug save failed: ' . $e->getMessage());
             }
 
@@ -545,7 +554,7 @@ class Reports extends Page implements HasForms
             return $pdfService
                 ->generateFromHtml($html)
                 ->download($filename);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('PDF Export failed', [
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
@@ -577,8 +586,8 @@ class Reports extends Page implements HasForms
                 ->label(__('owner_report.reports.actions.export_csv'))
                 ->icon('heroicon-o-table-cells')
                 ->color('success')
-                ->form([
-                    Forms\Components\Select::make('report_type')
+                ->schema([
+                    Select::make('report_type')
                         ->label(__('owner_report.reports.export.type'))
                         ->options([
                             'summary'  => __('owner_report.reports.export.summary'),
@@ -611,7 +620,7 @@ class Reports extends Page implements HasForms
      * Export report as CSV.
      *
      * @param string $reportType
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|null
+     * @return StreamedResponse|null
      */
     public function exportCSV(string $reportType)
     {
@@ -652,10 +661,10 @@ class Reports extends Page implements HasForms
     }
 
     /**
-     * @return MaxWidth
+     * @return Width
      */
-    public function getMaxContentWidth(): MaxWidth
+    public function getMaxContentWidth(): Width
     {
-        return MaxWidth::Full;
+        return Width::Full;
     }
 }

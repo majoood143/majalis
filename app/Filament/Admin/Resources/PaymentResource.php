@@ -17,6 +17,34 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\KeyValue;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Exception;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\Toggle;
+use InvalidArgumentException;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Checkbox;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Infolists\Components\TextEntry;
+use App\Filament\Admin\Resources\PaymentResource\Pages\ListPayments;
+use App\Filament\Admin\Resources\PaymentResource\Pages\CreatePayment;
+use App\Filament\Admin\Resources\PaymentResource\Pages\ViewPayment;
+use App\Filament\Admin\Resources\PaymentResource\Pages\EditPayment;
 use App\Filament\Admin\Resources\PaymentResource\Pages;
 use App\Models\Payment;
 use App\Models\Setting;
@@ -34,7 +62,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Mail\PaymentReceiptMail;
 //use Filament\Actions\ActionGroup;
 use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 /**
@@ -61,14 +88,14 @@ class PaymentResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-credit-card';
 
     /**
      * Navigation group for organizing menu items.
      *
      * @var string|null
      */
-    protected static ?string $navigationGroup = 'Booking Management';
+    protected static string | \UnitEnum | null $navigationGroup = 'Booking Management';
 
     /**
      * Sort order within the navigation group.
@@ -110,44 +137,44 @@ class PaymentResource extends Resource
     /**
      * Define the form schema for creating/editing payments.
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('payment.sections.payment_information'))
+        return $schema
+            ->components([
+                Section::make(__('payment.sections.payment_information'))
                     ->schema([
-                        Forms\Components\TextInput::make('payment_reference')
+                        TextInput::make('payment_reference')
                             ->label(__('payment.fields.payment_reference'))
                             ->disabled()
                             ->dehydrated(false),
 
-                        Forms\Components\Select::make('booking_id')
+                        Select::make('booking_id')
                             ->relationship('booking', 'booking_number')
                             ->label(__('payment.fields.booking'))
                             ->required()
                             ->searchable()
                             ->preload(),
 
-                        Forms\Components\TextInput::make('transaction_id')
+                        TextInput::make('transaction_id')
                             ->label(__('payment.fields.transaction_id'))
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('amount')
+                        TextInput::make('amount')
                             ->label(__('payment.fields.amount'))
                             ->numeric()
                             ->required()
                             ->prefix('OMR')
                             ->step(0.001),
 
-                        Forms\Components\TextInput::make('currency')
+                        TextInput::make('currency')
                             ->label(__('payment.fields.currency'))
                             ->default('OMR')
                             ->maxLength(3),
 
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label(__('payment.fields.status'))
                             ->options([
                                 'pending' => __('payment.status.pending'),
@@ -162,38 +189,38 @@ class PaymentResource extends Resource
                             ])
                             ->required(),
 
-                        Forms\Components\TextInput::make('payment_method')
+                        TextInput::make('payment_method')
                             ->label(__('payment.fields.payment_method'))
                             ->maxLength(255),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('payment.sections.refund_information'))
+                Section::make(__('payment.sections.refund_information'))
                     ->schema([
-                        Forms\Components\TextInput::make('refund_amount')
+                        TextInput::make('refund_amount')
                             ->label(__('payment.fields.refund_amount'))
                             ->numeric()
                             ->prefix('OMR')
                             ->step(0.001),
 
-                        Forms\Components\Textarea::make('refund_reason')
+                        Textarea::make('refund_reason')
                             ->label(__('payment.fields.refund_reason'))
                             ->rows(3)
                             ->columnSpanFull(),
                     ])->columns(2)
                     ->collapsible(),
 
-                Forms\Components\Section::make(__('payment.sections.failure_information'))
+                Section::make(__('payment.sections.failure_information'))
                     ->schema([
-                        Forms\Components\Textarea::make('failure_reason')
+                        Textarea::make('failure_reason')
                             ->label(__('payment.fields.failure_reason'))
                             ->rows(3)
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),
 
-                Forms\Components\Section::make(__('payment.sections.gateway_response'))
+                Section::make(__('payment.sections.gateway_response'))
                     ->schema([
-                        Forms\Components\KeyValue::make('gateway_response')
+                        KeyValue::make('gateway_response')
                             ->label(__('payment.fields.gateway_response'))
                             ->columnSpanFull(),
                     ])
@@ -218,13 +245,13 @@ class PaymentResource extends Resource
             // Eager load relationships for performance
             ->modifyQueryUsing(fn($query) => $query->with('booking'))
             ->columns([
-                Tables\Columns\TextColumn::make('payment_reference')
+                TextColumn::make('payment_reference')
                     ->label(__('payment.columns.payment_reference'))
                     ->searchable()
                     ->sortable()
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('booking.booking_number')
+                TextColumn::make('booking.booking_number')
                     ->label(__('payment.columns.booking_number'))
                     ->searchable()
                     ->sortable(),
@@ -235,12 +262,12 @@ class PaymentResource extends Resource
                 //     ->copyable()
                 //     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('amount')
+                TextColumn::make('amount')
                     ->label(__('payment.columns.amount'))
                     ->money('OMR')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('payment.columns.status'))
                     ->badge()
                     ->sortable()
@@ -266,26 +293,26 @@ class PaymentResource extends Resource
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('payment_method')
+                TextColumn::make('payment_method')
                     ->label(__('payment.columns.payment_method'))
                     ->badge()
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('paid_at')
+                TextColumn::make('paid_at')
                     ->label(__('payment.columns.paid_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('payment.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label(__('payment.filters.status'))
                     ->options([
                         'pending' => __('payment.status.pending'),
@@ -295,12 +322,12 @@ class PaymentResource extends Resource
                         'partially_refunded' => __('payment.status.partially_refunded'),
                     ]),
 
-                Tables\Filters\Filter::make('paid_at')
+                Filter::make('paid_at')
                     ->label(__('payment.filters.paid_at'))
-                    ->form([
-                        Forms\Components\DatePicker::make('from')
+                    ->schema([
+                        DatePicker::make('from')
                             ->label(__('payment.fields.from_date')),
-                        Forms\Components\DatePicker::make('until')
+                        DatePicker::make('until')
                             ->label(__('payment.fields.to_date')),
                     ])
                     ->query(function ($query, array $data) {
@@ -309,13 +336,13 @@ class PaymentResource extends Resource
                             ->when($data['until'], fn($q) => $q->whereDate('paid_at', '<=', $data['until']));
                     }),
             ])
-            ->actions([
+            ->recordActions([
 
-            ActionGroup::make([
+            \Filament\Actions\ActionGroup::make([
 
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                ActivityLogTimelineTableAction::make('Activities'),
+                ViewAction::make(),
+                EditAction::make(),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
             ]),
                 // =========================================================
                 // 📋 STANDARD CRUD ACTIONS
@@ -327,7 +354,7 @@ class PaymentResource extends Resource
                 // =========================================================
                 // Provides download, print, and email receipt functionality
                 // A5 sized PDF receipts for compact printing
-                Tables\Actions\ActionGroup::make([
+                \Filament\Actions\ActionGroup::make([
                     /**
                      * Download Receipt Action
                      *
@@ -335,7 +362,7 @@ class PaymentResource extends Resource
                      * Includes payment details, booking info, and customer data.
                      * Only visible for payments that have been processed.
                      */
-                    Tables\Actions\Action::make('downloadReceipt')
+                    Action::make('downloadReceipt')
                         ->label(__('payment.actions.download_receipt'))
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('success')
@@ -416,7 +443,7 @@ class PaymentResource extends Resource
                      * Uses inline display mode instead of attachment download.
                      * Optimized for A5 paper size.
                      */
-                    Tables\Actions\Action::make('printReceipt')
+                    Action::make('printReceipt')
                         ->label(__('payment.actions.print_receipt'))
                         ->icon('heroicon-o-printer')
                         ->color('info')
@@ -467,13 +494,13 @@ class PaymentResource extends Resource
                                         'Content-Disposition' => 'inline; filename="' . $filename . '"',
                                     ]
                                 );
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Log::error('Receipt print failed', [
                                     'payment_id' => $record->id,
                                     'error' => $e->getMessage(),
                                 ]);
 
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->danger()
                                     ->title(__('payment.notifications.print_failed'))
                                     ->body(__('payment.notifications.print_failed_body', [
@@ -493,7 +520,7 @@ class PaymentResource extends Resource
                      * Includes PDF attachment with A5-sized receipt.
                      * Uses PaymentReceiptMail mailable class.
                      */
-                    Tables\Actions\Action::make('emailReceipt')
+                    Action::make('emailReceipt')
                         ->label(__('payment.actions.email_receipt'))
                         ->icon('heroicon-o-envelope')
                         ->color('warning')
@@ -505,12 +532,12 @@ class PaymentResource extends Resource
                         ->modalDescription(__('payment.modals.email_receipt.description'))
                         ->modalSubmitActionLabel(__('payment.actions.send_email'))
                         ->modalWidth('md')
-                        ->form([
-                            Forms\Components\Section::make(__('payment.sections.email_details'))
+                        ->schema([
+                            Section::make(__('payment.sections.email_details'))
                                 ->description(__('payment.descriptions.email_receipt'))
                                 ->schema([
                                     // Customer email input (pre-filled from booking)
-                                    Forms\Components\TextInput::make('email')
+                                    TextInput::make('email')
                                         ->label(__('payment.fields.customer_email'))
                                         ->email()
                                         ->required()
@@ -521,13 +548,13 @@ class PaymentResource extends Resource
                                         ->helperText(__('payment.helpers.email_receipt')),
 
                                     // Option to send copy to admin
-                                    Forms\Components\Toggle::make('send_admin_copy')
+                                    Toggle::make('send_admin_copy')
                                         ->label(__('payment.fields.send_admin_copy'))
                                         ->default(false)
                                         ->helperText(__('payment.helpers.send_admin_copy')),
 
                                     // Custom message (optional)
-                                    Forms\Components\Textarea::make('custom_message')
+                                    Textarea::make('custom_message')
                                         ->label(__('payment.fields.custom_message'))
                                         ->rows(3)
                                         ->placeholder(__('payment.placeholders.custom_message'))
@@ -542,7 +569,7 @@ class PaymentResource extends Resource
                                 // Validate email address
                                 $email = filter_var($data['email'], FILTER_VALIDATE_EMAIL);
                                 if (!$email) {
-                                    throw new \InvalidArgumentException(__('payment.errors.invalid_email'));
+                                    throw new InvalidArgumentException(__('payment.errors.invalid_email'));
                                 }
 
                                 // Send email to customer
@@ -572,7 +599,7 @@ class PaymentResource extends Resource
                                 }
 
                                 // Success notification
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->success()
                                     ->title(__('payment.notifications.email_sent'))
                                     ->body(__('payment.notifications.email_sent_body', [
@@ -580,7 +607,7 @@ class PaymentResource extends Resource
                                     ]))
                                     ->send();
 
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 // Log error
                                 Log::error('Payment receipt email failed', [
                                     'payment_id' => $record->id,
@@ -589,7 +616,7 @@ class PaymentResource extends Resource
                                 ]);
 
                                 // Error notification
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->danger()
                                     ->title(__('payment.notifications.email_failed'))
                                     ->body(__('payment.notifications.email_failed_body', [
@@ -601,44 +628,44 @@ class PaymentResource extends Resource
                         }),
 
 
-                Tables\Actions\Action::make('refund')
+                Action::make('refund')
                     ->label(__('payment.actions.refund'))
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
                     ->visible(fn(Payment $record): bool => $record->canBeRefunded())
-                    ->form(function (Payment $record): array {
+                    ->schema(function (Payment $record): array {
                         $remainingAmount = $record->getRemainingRefundableAmount();
 
                         return [
-                            Forms\Components\Section::make(__('payment.sections.refund_details'))
+                            Section::make(__('payment.sections.refund_details'))
                                 ->description(__('payment.descriptions.refund_process'))
                                 ->schema([
-                                    Forms\Components\Grid::make(2)
+                                    Grid::make(2)
                                         ->schema([
-                                            Forms\Components\Placeholder::make('payment_reference')
+                                            Placeholder::make('payment_reference')
                                                 ->label(__('payment.fields.payment_reference'))
                                                 ->content($record->payment_reference),
 
-                                            Forms\Components\Placeholder::make('booking_number')
+                                            Placeholder::make('booking_number')
                                                 ->label(__('payment.fields.booking'))
                                                 ->content($record->booking?->booking_number ?? __('payment.n_a')),
 
-                                            Forms\Components\Placeholder::make('original_amount')
+                                            Placeholder::make('original_amount')
                                                 ->label(__('payment.placeholders.original_amount'))
                                                 ->content(number_format((float) $record->amount, 3) . ' OMR'),
 
-                                            Forms\Components\Placeholder::make('already_refunded')
+                                            Placeholder::make('already_refunded')
                                                 ->label(__('payment.placeholders.already_refunded'))
                                                 ->content(number_format((float) ($record->refund_amount ?? 0), 3) . ' OMR'),
 
-                                            Forms\Components\Placeholder::make('refundable_amount')
+                                            Placeholder::make('refundable_amount')
                                                 ->label(__('payment.placeholders.refundable_amount'))
                                                 ->content(fn() => number_format($remainingAmount, 3) . ' OMR')
                                                 ->columnSpanFull()
                                                 ->extraAttributes(['class' => 'text-lg font-bold text-green-600']),
                                         ]),
 
-                                    Forms\Components\Radio::make('refund_type')
+                                    Radio::make('refund_type')
                                         ->label(__('payment.fields.refund_type'))
                                         ->options([
                                             'full' => __('payment.options.full_refund', ['amount' => number_format($remainingAmount, 3)]),
@@ -649,7 +676,7 @@ class PaymentResource extends Resource
                                         ->live()
                                         ->columnSpanFull(),
 
-                                    Forms\Components\TextInput::make('amount')
+                                    TextInput::make('amount')
                                         ->label(__('payment.fields.refund_amount_input'))
                                         ->numeric()
                                         ->required()
@@ -661,7 +688,7 @@ class PaymentResource extends Resource
                                         ->helperText(__('payment.helpers.max_refund', ['amount' => number_format($remainingAmount, 3)]))
                                         ->visible(fn($get) => $get('refund_type') === 'partial'),
 
-                                    Forms\Components\Select::make('reason')
+                                    Select::make('reason')
                                         ->label(__('payment.fields.refund_reason_select'))
                                         ->options([
                                             'Customer Request' => __('payment.refund_reasons.customer_request'),
@@ -676,13 +703,13 @@ class PaymentResource extends Resource
                                         ->searchable()
                                         ->columnSpanFull(),
 
-                                    Forms\Components\Textarea::make('notes')
+                                    Textarea::make('notes')
                                         ->label(__('payment.fields.additional_notes'))
                                         ->rows(3)
                                         ->placeholder(__('payment.placeholders.additional_notes'))
                                         ->columnSpanFull(),
 
-                                    Forms\Components\Checkbox::make('notify_customer')
+                                    Checkbox::make('notify_customer')
                                         ->label(__('payment.fields.notify_customer'))
                                         ->default(true)
                                         ->helperText(__('payment.helpers.notify_customer')),
@@ -720,7 +747,7 @@ class PaymentResource extends Resource
                                             'amount' => $amount,
                                             'customer_email' => $record->booking?->customer_email,
                                         ]);
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                         Log::warning('Failed to send refund notification', [
                                             'payment_id' => $record->id,
                                             'error' => $e->getMessage(),
@@ -728,14 +755,14 @@ class PaymentResource extends Resource
                                     }
                                 }
 
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->title(__('payment.notifications.refund_success'))
                                     ->success()
                                     ->body(__('payment.notifications.refund_success_body', ['amount' => number_format($amount, 3)]))
                                     ->send();
                             }
-                        } catch (\Exception $e) {
-                            \Filament\Notifications\Notification::make()
+                        } catch (Exception $e) {
+                            Notification::make()
                                 ->title(__('payment.notifications.refund_failed'))
                                 ->danger()
                                 ->body(__('payment.notifications.refund_failed_body', ['error' => $e->getMessage()]))
@@ -756,9 +783,9 @@ class PaymentResource extends Resource
                 // 💰 REFUND ACTION
                 // =========================================================
                 ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -767,28 +794,28 @@ class PaymentResource extends Resource
     /**
      * Define the infolist schema for viewing payment details.
      *
-     * @param Infolist $infolist
-     * @return Infolist
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make(__('payment.sections.payment_information'))
+        return $schema
+            ->components([
+                Section::make(__('payment.sections.payment_information'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('payment_reference')
+                        TextEntry::make('payment_reference')
                             ->label(__('payment.fields.payment_reference'))
                             ->copyable(),
-                        Infolists\Components\TextEntry::make('booking.booking_number')
+                        TextEntry::make('booking.booking_number')
                             ->label(__('payment.fields.booking')),
-                        Infolists\Components\TextEntry::make('transaction_id')
+                        TextEntry::make('transaction_id')
                             ->label(__('payment.fields.transaction_id'))
                             ->limit(30)
                             ->copyable(),
-                        Infolists\Components\TextEntry::make('amount')
+                        TextEntry::make('amount')
                             ->label(__('payment.fields.amount'))
                             ->money('OMR'),
-                        Infolists\Components\TextEntry::make('status')
+                        TextEntry::make('status')
                             ->label(__('payment.fields.status'))
                             ->badge()
                             ->formatStateUsing(fn($state): string => match ($state) {
@@ -807,34 +834,35 @@ class PaymentResource extends Resource
                                 'partially_refunded' => 'info',
                                 default => 'gray',
                             }),
-                        Infolists\Components\TextEntry::make('payment_method')
+                        TextEntry::make('payment_method')
                             ->label(__('payment.fields.payment_method'))
                             ->badge(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('payment.sections.timestamps'))
+                Section::make(__('payment.sections.timestamps'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('paid_at')
+                        TextEntry::make('paid_at')
                             ->label(__('payment.fields.paid_at'))
                             ->dateTime(),
-                        Infolists\Components\TextEntry::make('failed_at')
+                        TextEntry::make('failed_at')
                             ->label(__('payment.fields.failed_at'))
                             ->dateTime(),
-                        Infolists\Components\TextEntry::make('refunded_at')
+                        TextEntry::make('refunded_at')
                             ->label(__('payment.fields.refunded_at'))
                             ->dateTime(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make(__('payment.sections.refund_details'))
+                Section::make(__('payment.sections.refund_details'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('refund_amount')
+                        TextEntry::make('refund_amount')
                             ->label(__('payment.fields.refund_amount'))
                             ->money('OMR'),
-                        Infolists\Components\TextEntry::make('refund_reason')
+                        TextEntry::make('refund_reason')
                             ->label(__('payment.fields.refund_reason')),
                     ])
                     ->visible(fn($record) => $record->isRefunded()),
-            ]);
+            ])
+            ->columns(1);
     }
 
     /**
@@ -857,10 +885,10 @@ class PaymentResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPayments::route('/'),
-            'create' => Pages\CreatePayment::route('/create'),
-            'view' => Pages\ViewPayment::route('/{record}'),
-            'edit' => Pages\EditPayment::route('/{record}/edit'),
+            'index' => ListPayments::route('/'),
+            'create' => CreatePayment::route('/create'),
+            'view' => ViewPayment::route('/{record}'),
+            'edit' => EditPayment::route('/{record}/edit'),
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\CityResource\Pages;
 
+use App\Models\City;
 use App\Filament\Admin\Resources\CityResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -109,7 +110,7 @@ class CreateCity extends CreateRecord
         $baseCode = $code;
         $counter = 1;
 
-        while (\App\Models\City::where('code', $code)->exists()) {
+        while (City::where('code', $code)->exists()) {
             $code = $baseCode . $counter;
             $counter++;
 

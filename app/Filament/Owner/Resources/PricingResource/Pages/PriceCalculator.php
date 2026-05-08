@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\PricingResource\Pages;
 
+use Filament\Actions\Action;
 use App\Filament\Owner\Resources\PricingResource;
 use App\Models\Hall;
 use App\Models\HallAvailability;
@@ -43,7 +44,7 @@ class PriceCalculator extends Page implements HasForms
     /**
      * The view for this page.
      */
-    protected static string $view = 'filament.owner.resources.pricing-resource.pages.price-calculator';
+    protected string $view = 'filament.owner.resources.pricing-resource.pages.price-calculator';
 
     /**
      * Selected hall ID.
@@ -112,13 +113,13 @@ class PriceCalculator extends Page implements HasForms
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('back')
+            Action::make('back')
                 ->label(__('owner.pricing.actions.back_to_list'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(fn () => PricingResource::getUrl('index')),
 
-            Actions\Action::make('create_rule')
+            Action::make('create_rule')
                 ->label(__('owner.pricing.actions.create'))
                 ->icon('heroicon-o-plus')
                 ->color('primary')

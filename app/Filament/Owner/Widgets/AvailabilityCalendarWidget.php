@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Widgets;
 
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Saade\FilamentFullCalendar\Actions\CreateAction;
+use Filament\Schemas\Schema;
+use Saade\FilamentFullCalendar\Actions\EditAction;
+use Saade\FilamentFullCalendar\Actions\DeleteAction;
+use Filament\Actions\Action;
+use App\Filament\Owner\Resources\AvailabilityResource;
+use Filament\Schemas\Components\Component;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\HallAvailability;
@@ -385,17 +399,17 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
     /**
      * Define form schema for viewing/editing availability.
      *
-     * @return array<Forms\Components\Component>
+     * @return array<Component>
      */
     public function getFormSchema(): array
     {
         $user = Auth::user();
 
         return [
-            Forms\Components\Grid::make(2)
+            Grid::make(2)
                 ->schema([
                     // Hall selection
-                    Forms\Components\Select::make('hall_id')
+                    Select::make('hall_id')
                         ->label(__('owner.availability_resource.fields.hall'))
                         ->options(function () use ($user) {
                             return Hall::where('owner_id', $user?->id)
@@ -409,14 +423,14 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                         ->searchable(),
 
                     // Date
-                    Forms\Components\DatePicker::make('date')
+                    DatePicker::make('date')
                         ->label(__('owner.availability_resource.fields.date'))
                         ->required()
                         ->native(false)
                         ->minDate(now()),
 
                     // Time Slot
-                    Forms\Components\Select::make('time_slot')
+                    Select::make('time_slot')
                         ->label(__('owner.availability_resource.fields.time_slot'))
                         ->options([
                             'morning' => __('owner.slots.morning'),
@@ -428,14 +442,14 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                         ->native(false),
 
                     // Available Toggle
-                    Forms\Components\Toggle::make('is_available')
+                    Toggle::make('is_available')
                         ->label(__('owner.availability_resource.fields.is_available'))
                         ->default(true)
                         ->live(),
                 ]),
 
             // Block reason (visible when not available)
-            Forms\Components\Select::make('reason')
+            Select::make('reason')
                 ->label(__('owner.availability_resource.fields.reason'))
                 ->options([
                     'blocked' => __('owner.availability.reasons.blocked'),
@@ -447,11 +461,11 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                 ])
                 ->default('blocked')
                 ->native(false)
-                ->visible(fn(Forms\Get $get): bool => !$get('is_available'))
+                ->visible(fn(Get $get): bool => !$get('is_available'))
                 ->requiredIf('is_available', false),
 
             // Custom Price
-            Forms\Components\TextInput::make('custom_price')
+            TextInput::make('custom_price')
                 ->label(__('owner.availability_resource.fields.custom_price'))
                 ->numeric()
                 ->minValue(0)
@@ -460,7 +474,7 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                 ->placeholder(__('owner.availability_resource.placeholders.use_hall_price')),
 
             // Notes
-            Forms\Components\Textarea::make('notes')
+            Textarea::make('notes')
                 ->label(__('owner.availability_resource.fields.notes'))
                 ->rows(2)
                 ->maxLength(500),
@@ -475,22 +489,22 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
     protected function modalActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(__('owner.fullcalendar.actions.create'))
-                ->mountUsing(function (Forms\Form $form, array $arguments): void {
+                ->mountUsing(function (Schema $schema, array $arguments): void {
                     // ✅ FIX: Safely extract start — may be string, array, or null
                     $startRaw = $arguments['start'] ?? null;
                     $startStr = is_string($startRaw) ? $startRaw : null;
 
                     // Pre-fill form with selected date/time from calendar click
-                    $form->fill([
+                    $schema->fill([
                         'hall_id' => $this->selectedHallId,
                         'date' => $startStr ?? now()->toDateString(),
                         'time_slot' => $this->determineTimeSlot($startStr),
                         'is_available' => true,
                     ]);
                 })
-                ->mutateFormDataUsing(function (array $data): array {
+                ->mutateDataUsing(function (array $data): array {
                     // Ensure reason is null when available
                     if ($data['is_available'] ?? true) {
                         $data['reason'] = null;
@@ -498,15 +512,15 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                     return $data;
                 }),
 
-            Actions\EditAction::make()
+            EditAction::make()
                 ->label(__('owner.fullcalendar.actions.edit'))
-                ->mountUsing(function (HallAvailability $record, Forms\Form $form, array $arguments): void {
+                ->mountUsing(function (HallAvailability $record, Schema $schema, array $arguments): void {
                     // ✅ FIX: Safely extract start from nested event array
                     $eventStart = $arguments['event']['start'] ?? null;
                     $dateStr = is_string($eventStart) ? $eventStart : $record->date->format('Y-m-d');
 
                     // Fill form with existing data, considering any drag updates
-                    $form->fill([
+                    $schema->fill([
                         'hall_id' => $record->hall_id,
                         'date' => $dateStr,
                         'time_slot' => $record->time_slot,
@@ -516,14 +530,14 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                         'notes' => $record->notes,
                     ]);
                 })
-                ->mutateFormDataUsing(function (array $data): array {
+                ->mutateDataUsing(function (array $data): array {
                     if ($data['is_available'] ?? true) {
                         $data['reason'] = null;
                     }
                     return $data;
                 }),
 
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->label(__('owner.fullcalendar.actions.delete')),
         ];
     }
@@ -693,7 +707,7 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
     /**
      * Define header actions (hall filter, etc.).
      *
-     * @return array<\Filament\Actions\Action>
+     * @return array<Action>
      */
     protected function headerActions(): array
     {
@@ -701,14 +715,14 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
 
         return [
             // Hall Filter Action
-            \Filament\Actions\Action::make('filter_hall')
+            Action::make('filter_hall')
                 ->label($this->selectedHallId
                     ? Hall::find($this->selectedHallId)?->getTranslation('name', app()->getLocale()) ?? __('owner.fullcalendar.all_halls')
                     : __('owner.fullcalendar.all_halls'))
                 ->icon('heroicon-o-funnel')
                 ->color('gray')
-                ->form([
-                    Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('owner.fullcalendar.select_hall'))
                         ->options(function () use ($user) {
                             return Hall::where('owner_id', $user?->id)
@@ -728,12 +742,12 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                 }),
 
             // Generate Availability Action
-            \Filament\Actions\Action::make('generate')
+            Action::make('generate')
                 ->label(__('owner.fullcalendar.actions.generate'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
-                ->form([
-                    Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('owner.availability_resource.fields.hall'))
                         ->options(function () use ($user) {
                             return Hall::where('owner_id', $user?->id)
@@ -747,7 +761,7 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                         ->searchable()
                         ->default($this->selectedHallId),
 
-                    Forms\Components\TextInput::make('days')
+                    TextInput::make('days')
                         ->label(__('owner.availability_resource.fields.days_to_generate'))
                         ->numeric()
                         ->default(90)
@@ -781,11 +795,11 @@ class AvailabilityCalendarWidget extends FullCalendarWidget
                 }),
 
             // List View Link
-            \Filament\Actions\Action::make('list_view')
+            Action::make('list_view')
                 ->label(__('owner.availability_resource.actions.list_view'))
                 ->icon('heroicon-o-list-bullet')
                 ->color('gray')
-                ->url(fn() => \App\Filament\Owner\Resources\AvailabilityResource::getUrl('index')),
+                ->url(fn() => AvailabilityResource::getUrl('index')),
         ];
     }
 

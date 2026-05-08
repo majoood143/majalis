@@ -2,11 +2,24 @@
 
 namespace App\Filament\Admin\Resources\HallFeatureResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Illuminate\Support\Str;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\TextSize;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Support\Enums\IconSize;
+use Filament\Infolists\Components\ViewEntry;
+use App\Models\HallFeature;
+use Spatie\Activitylog\Models\Activity;
 use App\Filament\Admin\Resources\HallFeatureResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -19,11 +32,11 @@ class ViewHallFeature extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make()
+            EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary'),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -41,7 +54,7 @@ class ViewHallFeature extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewHalls')
+            Action::make('viewHalls')
                 ->label('View Halls')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
@@ -53,7 +66,7 @@ class ViewHallFeature extends ViewRecord
                 ]))
                 ->visible(fn() => $this->record->halls()->count() > 0),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -67,7 +80,7 @@ class ViewHallFeature extends ViewRecord
                     }
                     $newFeature->setTranslations('name', $name);
 
-                    $newFeature->slug = \Illuminate\Support\Str::slug($newFeature->getTranslation('name', 'en')) . '-copy';
+                    $newFeature->slug = Str::slug($newFeature->getTranslation('name', 'en')) . '-copy';
                     $newFeature->is_active = false;
                     $newFeature->save();
 
@@ -75,15 +88,15 @@ class ViewHallFeature extends ViewRecord
                         ->success()
                         ->title('Feature Duplicated')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('View Duplicate')
                                 ->url(HallFeatureResource::getUrl('view', ['record' => $newFeature->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     if ($this->record->halls()->count() > 0) {
                         Notification::make()
                             ->danger()
@@ -99,23 +112,23 @@ class ViewHallFeature extends ViewRecord
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Feature Information')
+                Section::make('Feature Information')
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
+                                TextEntry::make('name')
                                     ->label('Feature Name')
                                     ->formatStateUsing(fn($record) => $record->name)
                                     ->badge()
                                     ->color('primary')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                                    ->size(TextSize::Large)
                                     ->icon('heroicon-o-star'),
 
-                                Infolists\Components\TextEntry::make('slug')
+                                TextEntry::make('slug')
                                     ->label('Slug')
                                     ->badge()
                                     ->color('gray')
@@ -124,20 +137,20 @@ class ViewHallFeature extends ViewRecord
                                     ->icon('heroicon-o-link'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name.en')
+                                TextEntry::make('name.en')
                                     ->label('Name (English)')
                                     ->icon('heroicon-o-language'),
 
-                                Infolists\Components\TextEntry::make('name.ar')
+                                TextEntry::make('name.ar')
                                     ->label('Name (Arabic)')
                                     ->icon('heroicon-o-language'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('icon')
+                                TextEntry::make('icon')
                                     ->label('Icon')
                                     ->placeholder('No icon set')
                                     ->badge()
@@ -145,27 +158,27 @@ class ViewHallFeature extends ViewRecord
                                     ->copyable()
                                     ->icon(fn($state) => $state ?: 'heroicon-o-photo'),
 
-                                Infolists\Components\IconEntry::make('is_active')
+                                IconEntry::make('is_active')
                                     ->label('Status')
                                     ->boolean()
                                     ->trueIcon('heroicon-o-check-circle')
                                     ->falseIcon('heroicon-o-x-circle')
                                     ->trueColor('success')
                                     ->falseColor('danger')
-                                    ->size(Infolists\Components\IconEntry\IconEntrySize::Large),
+                                    ->size(IconSize::Large),
                             ]),
                     ])
                     ->icon('heroicon-o-information-circle')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Description')
+                Section::make('Description')
                     ->schema([
-                        Infolists\Components\TextEntry::make('description.en')
+                        TextEntry::make('description.en')
                             ->label('Description (English)')
                             ->default('No description provided')
                             ->columnSpanFull(),
 
-                        Infolists\Components\TextEntry::make('description.ar')
+                        TextEntry::make('description.ar')
                             ->label('Description (Arabic)')
                             ->default('لا يوجد وصف')
                             ->columnSpanFull(),
@@ -174,31 +187,31 @@ class ViewHallFeature extends ViewRecord
                     ->collapsible()
                     ->visible(fn($record) => $record->description),
 
-                Infolists\Components\Section::make('Usage Statistics')
+                Section::make('Usage Statistics')
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('halls_count')
+                                TextEntry::make('halls_count')
                                     ->label('Total Halls')
                                     ->state(fn($record) => $record->halls()->count())
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-building-storefront'),
 
-                                Infolists\Components\TextEntry::make('active_halls_count')
+                                TextEntry::make('active_halls_count')
                                     ->label('Active Halls')
                                     ->state(fn($record) => $record->halls()->where('is_active', true)->count())
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-check-circle'),
 
-                                Infolists\Components\TextEntry::make('order')
+                                TextEntry::make('order')
                                     ->label('Display Order')
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-bars-3'),
 
-                                Infolists\Components\TextEntry::make('popularity')
+                                TextEntry::make('popularity')
                                     ->label('Popularity')
                                     ->state(function ($record) {
                                         $count = $record->halls()->count();
@@ -223,9 +236,9 @@ class ViewHallFeature extends ViewRecord
                     ->icon('heroicon-o-chart-bar')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Halls Using This Feature')
+                Section::make('Halls Using This Feature')
                     ->schema([
-                        Infolists\Components\ViewEntry::make('halls_list')
+                        ViewEntry::make('halls_list')
                             ->label('')
                             ->view('filament.infolists.components.halls-list', [
                                 'halls' => fn($record) => $record->halls()
@@ -235,7 +248,7 @@ class ViewHallFeature extends ViewRecord
                                     ->get()
                             ]),
 
-                        Infolists\Components\TextEntry::make('more_halls')
+                        TextEntry::make('more_halls')
                             ->label('')
                             ->state(function ($record) {
                                 $total = $record->halls()->count();
@@ -251,11 +264,11 @@ class ViewHallFeature extends ViewRecord
                     ->visible(fn($record) => $record->halls()->count() > 0)
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Feature Analytics')
+                Section::make('Feature Analytics')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('cities_count')
+                                TextEntry::make('cities_count')
                                     ->label('Cities Coverage')
                                     ->state(function ($record) {
                                         return $record->halls()
@@ -266,7 +279,7 @@ class ViewHallFeature extends ViewRecord
                                     ->color('purple')
                                     ->icon('heroicon-o-map-pin'),
 
-                                Infolists\Components\TextEntry::make('regions_count')
+                                TextEntry::make('regions_count')
                                     ->label('Regions Coverage')
                                     ->state(function ($record) {
                                         return $record->halls()
@@ -277,10 +290,10 @@ class ViewHallFeature extends ViewRecord
                                     ->color('purple')
                                     ->icon('heroicon-o-map'),
 
-                                Infolists\Components\TextEntry::make('feature_rank')
+                                TextEntry::make('feature_rank')
                                     ->label('Feature Rank')
                                     ->state(function ($record) {
-                                        $rank = \App\Models\HallFeature::withCount('halls')
+                                        $rank = HallFeature::withCount('halls')
                                             ->orderBy('halls_count', 'desc')
                                             ->pluck('id')
                                             ->search($record->id);
@@ -295,23 +308,23 @@ class ViewHallFeature extends ViewRecord
                     ->icon('heroicon-o-chart-pie')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('System Information')
+                Section::make('System Information')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('id')
+                                TextEntry::make('id')
                                     ->label('Feature ID')
                                     ->badge()
                                     ->color('gray')
                                     ->copyable()
                                     ->icon('heroicon-o-hashtag'),
 
-                                Infolists\Components\TextEntry::make('created_at')
+                                TextEntry::make('created_at')
                                     ->label('Created At')
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('updated_at')
+                                TextEntry::make('updated_at')
                                     ->label('Last Updated')
                                     ->dateTime('d M Y, h:i A')
                                     ->since()
@@ -321,9 +334,9 @@ class ViewHallFeature extends ViewRecord
                     ->icon('heroicon-o-server')
                     ->collapsed(),
 
-                Infolists\Components\Section::make('Activity History')
+                Section::make('Activity History')
                     ->schema([
-                        Infolists\Components\ViewEntry::make('activity_log')
+                        ViewEntry::make('activity_log')
                             ->label('')
                             ->view('filament.infolists.components.activity-log', [
                                 'activities' => fn($record) => activity()
@@ -335,7 +348,7 @@ class ViewHallFeature extends ViewRecord
                     ])
                     ->icon('heroicon-o-clock')
                     ->collapsed()
-                    ->visible(fn() => class_exists(\Spatie\Activitylog\Models\Activity::class)),
+                    ->visible(fn() => class_exists(Activity::class)),
             ]);
     }
 

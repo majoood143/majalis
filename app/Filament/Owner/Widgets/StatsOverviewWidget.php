@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Widgets;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\Payment;
@@ -18,7 +20,7 @@ class StatsOverviewWidget extends BaseWidget
     /**
      * Widget polling interval
      */
-    protected static ?string $pollingInterval = '30s';
+    protected ?string $pollingInterval = '30s';
 
     /**
      * Widget column span
@@ -295,16 +297,16 @@ class StatsOverviewWidget extends BaseWidget
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('filter')
-                ->form([
-                    \Filament\Forms\Components\Select::make('dateRange')
+            Action::make('filter')
+                ->schema([
+                    Select::make('dateRange')
                         ->options([
                             'week' => 'This Week',
                             'month' => 'This Month',
                             'year' => 'This Year',
                         ])
                         ->default('month'),
-                    \Filament\Forms\Components\Select::make('hallId')
+                    Select::make('hallId')
                         ->options(
                             Auth::user()->halls()->pluck('name', 'id')
                             //auth()->user()->halls()->pluck('name', 'id')

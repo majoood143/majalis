@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Http\Response;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\OwnerPayout;
@@ -93,7 +94,7 @@ class DashboardExportService
      * @param int $ownerId
      * @param Carbon $startDate
      * @param Carbon $endDate
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function exportOwnerDashboardPDF(
         int $ownerId,
@@ -176,7 +177,7 @@ class DashboardExportService
      *
      * @param Carbon $startDate
      * @param Carbon $endDate
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function exportAdminDashboardPDF(Carbon $startDate, Carbon $endDate)
     {

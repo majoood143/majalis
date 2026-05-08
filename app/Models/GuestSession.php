@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * GuestSession Model
@@ -209,12 +210,11 @@ class GuestSession extends Model
     // =========================================================================
     // SCOPES
     // =========================================================================
-
     /**
      * Scope to filter active (non-expired) sessions.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeActive($query)
     {
@@ -225,8 +225,8 @@ class GuestSession extends Model
     /**
      * Scope to filter verified sessions.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeVerified($query)
     {
@@ -236,9 +236,9 @@ class GuestSession extends Model
     /**
      * Scope to filter sessions by email.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $email
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeByEmail($query, string $email)
     {
@@ -248,8 +248,8 @@ class GuestSession extends Model
     /**
      * Scope to filter pending sessions.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePending($query)
     {
@@ -259,8 +259,8 @@ class GuestSession extends Model
     /**
      * Scope to filter expired sessions for cleanup.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeExpired($query)
     {

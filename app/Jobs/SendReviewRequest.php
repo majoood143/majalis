@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use Throwable;
 use App\Models\Booking;
 use App\Mail\ReviewRequestMail;
 use Illuminate\Bus\Queueable;
@@ -105,7 +106,7 @@ class SendReviewRequest implements ShouldQueue
         ]));
     }
 
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error('SendReviewRequest: Job failed', [
             'booking_id' => $this->booking->id,

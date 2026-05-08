@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\EarningsResource\Pages;
 
+use Filament\Actions\Action;
+use Exception;
+use Illuminate\Support\Facades\Log;
 use App\Filament\Owner\Resources\EarningsResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
@@ -77,7 +80,7 @@ class ViewEarnings extends ViewRecord
     {
         return [
             // Download Invoice
-            Actions\Action::make('downloadInvoice')
+            Action::make('downloadInvoice')
                 ->label(__('owner.earnings.download_invoice'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
@@ -95,7 +98,7 @@ class ViewEarnings extends ViewRecord
                 }),
 
             // Generate Statement
-            Actions\Action::make('generateStatement')
+            Action::make('generateStatement')
                 ->label(__('owner.earnings.generate_statement'))
                 ->icon('heroicon-o-document-text')
                 ->color('info')
@@ -104,7 +107,7 @@ class ViewEarnings extends ViewRecord
                 }),
 
             // Back to list
-            Actions\Action::make('backToList')
+            Action::make('backToList')
                 ->label(__('owner.actions.back_to_list'))
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
@@ -161,15 +164,15 @@ class ViewEarnings extends ViewRecord
                 ->success()
                 ->title(__('owner.earnings.statement_generated'))
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('owner.actions.download'))
                         ->url(Storage::disk('public')->url($filepath))
                         ->openUrlInNewTab(),
                 ])
                 ->persistent()
                 ->send();
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Statement generation failed', [
+        } catch (Exception $e) {
+            Log::error('Statement generation failed', [
                 'booking_id' => $this->record->id,
                 'error' => $e->getMessage(),
             ]);

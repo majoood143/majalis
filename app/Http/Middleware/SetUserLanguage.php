@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use Exception;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -249,7 +251,7 @@ class SetUserLanguage
 
             return Auth::guard($guard)->check()
                 && Auth::guard($guard)->user() !== null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -257,14 +259,14 @@ class SetUserLanguage
     /**
      * Get authenticated user safely.
      *
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+     * @return Authenticatable|null
      */
-    protected function getAuthenticatedUser(): ?\Illuminate\Contracts\Auth\Authenticatable
+    protected function getAuthenticatedUser(): ?Authenticatable
     {
         try {
             $guard = $this->getGuardName();
             return Auth::guard($guard)->user();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -292,7 +294,7 @@ class SetUserLanguage
                     $user->update(['language_preference' => $locale]);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Silently fail — session already has the correct locale
         }
     }

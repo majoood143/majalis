@@ -4,6 +4,24 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\PromoCodeResource\Pages\ListPromoCodes;
+use App\Filament\Admin\Resources\PromoCodeResource\Pages\CreatePromoCode;
+use App\Filament\Admin\Resources\PromoCodeResource\Pages\EditPromoCode;
 use App\Filament\Admin\Resources\PromoCodeResource\Pages;
 use App\Filament\Admin\Resources\PromoCodeResource\RelationManagers\BookingsRelationManager;
 use App\Models\Hall;
@@ -20,7 +38,7 @@ class PromoCodeResource extends Resource
 {
     protected static ?string $model = PromoCode::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?int $navigationSort = 5;
 
@@ -44,13 +62,13 @@ class PromoCodeResource extends Resource
         return __('promo.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Section::make(__('promo.section_details'))
+        return $schema->components([
+            Section::make(__('promo.section_details'))
                 ->columns(2)
                 ->schema([
-                    Forms\Components\TextInput::make('code')
+                    TextInput::make('code')
                         ->label(__('promo.field_code'))
                         ->required()
                         ->maxLength(50)
@@ -59,21 +77,21 @@ class PromoCodeResource extends Resource
                         ->unique(ignoreRecord: true)
                         ->placeholder('SAVE10'),
 
-                    Forms\Components\TextInput::make('name')
+                    TextInput::make('name')
                         ->label(__('promo.field_name'))
                         ->required()
                         ->maxLength(255),
 
-                    Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label(__('promo.field_description'))
                         ->maxLength(500)
                         ->columnSpanFull(),
                 ]),
 
-            Forms\Components\Section::make(__('promo.section_discount'))
+            Section::make(__('promo.section_discount'))
                 ->columns(2)
                 ->schema([
-                    Forms\Components\Select::make('discount_type')
+                    Select::make('discount_type')
                         ->label(__('promo.field_discount_type'))
                         ->required()
                         ->options([
@@ -82,47 +100,47 @@ class PromoCodeResource extends Resource
                         ])
                         ->live(),
 
-                    Forms\Components\TextInput::make('discount_value')
-                        ->label(fn (Get $get): string => $get('discount_type') === 'percentage'
+                    TextInput::make('discount_value')
+                        ->label(fn (\Filament\Schemas\Components\Utilities\Get $get): string => $get('discount_type') === 'percentage'
                             ? __('promo.field_discount_value_pct')
                             : __('promo.field_discount_value_fixed'))
                         ->required()
                         ->numeric()
                         ->minValue(0.01)
-                        ->maxValue(fn (Get $get): ?float => $get('discount_type') === 'percentage' ? 100 : null)
+                        ->maxValue(fn (\Filament\Schemas\Components\Utilities\Get $get): ?float => $get('discount_type') === 'percentage' ? 100 : null)
                         ->step(0.01)
-                        ->suffix(fn (Get $get): string => $get('discount_type') === 'percentage' ? '%' : __('currency.omr')),
+                        ->suffix(fn (\Filament\Schemas\Components\Utilities\Get $get): string => $get('discount_type') === 'percentage' ? '%' : __('currency.omr')),
                 ]),
 
-            Forms\Components\Section::make(__('promo.section_validity'))
+            Section::make(__('promo.section_validity'))
                 ->columns(2)
                 ->schema([
-                    Forms\Components\DateTimePicker::make('valid_from')
+                    DateTimePicker::make('valid_from')
                         ->label(__('promo.field_valid_from'))
                         ->nullable()
                         ->native(false),
 
-                    Forms\Components\DateTimePicker::make('valid_until')
+                    DateTimePicker::make('valid_until')
                         ->label(__('promo.field_valid_until'))
                         ->nullable()
                         ->native(false)
                         ->after('valid_from'),
 
-                    Forms\Components\TextInput::make('max_uses')
+                    TextInput::make('max_uses')
                         ->label(__('promo.field_max_uses'))
                         ->helperText(__('promo.field_max_uses_helper'))
                         ->nullable()
                         ->integer()
                         ->minValue(1),
 
-                    Forms\Components\Toggle::make('is_active')
+                    Toggle::make('is_active')
                         ->label(__('promo.field_is_active'))
                         ->default(true),
                 ]),
 
-            Forms\Components\Section::make(__('promo.section_scope'))
+            Section::make(__('promo.section_scope'))
                 ->schema([
-                    Forms\Components\Select::make('hall_id')
+                    Select::make('hall_id')
                         ->label(__('promo.field_hall'))
                         ->helperText(__('promo.field_hall_helper'))
                         ->nullable()
@@ -134,30 +152,31 @@ class PromoCodeResource extends Resource
                             ])
                         ),
                 ]),
-        ]);
+        ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('code')
+                TextColumn::make('code')
                     ->label(__('promo.col_code'))
                     ->searchable()
                     ->copyable()
                     ->badge()
                     ->color('primary'),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('promo.col_name'))
                     ->searchable()
                     ->limit(30),
 
-                Tables\Columns\TextColumn::make('discount_label')
+                TextColumn::make('discount_label')
                     ->label(__('promo.col_discount'))
                     ->getStateUsing(fn (PromoCode $record): string => $record->discount_label),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('promo.col_hall'))
                     ->getStateUsing(fn (PromoCode $record): string => $record->hall
                         ? $record->hall->getTranslation('name', app()->getLocale())
@@ -165,14 +184,14 @@ class PromoCodeResource extends Resource
                     ->badge()
                     ->color(fn (PromoCode $record) => $record->hall_id ? 'info' : 'gray'),
 
-                Tables\Columns\TextColumn::make('used_count')
+                TextColumn::make('used_count')
                     ->label(__('promo.col_used'))
                     ->getStateUsing(fn (PromoCode $record): string => $record->max_uses !== null
                         ? "{$record->used_count} / {$record->max_uses}"
                         : (string) $record->used_count)
                     ->alignCenter(),
 
-                Tables\Columns\TextColumn::make('valid_until')
+                TextColumn::make('valid_until')
                     ->label(__('promo.col_valid_until'))
                     ->dateTime('d M Y')
                     ->placeholder(__('promo.no_expiry'))
@@ -180,23 +199,23 @@ class PromoCodeResource extends Resource
                         ? 'danger'
                         : 'success'),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('promo.col_active'))
                     ->boolean()
                     ->alignCenter(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('promo.filter_active')),
 
-                Tables\Filters\SelectFilter::make('discount_type')
+                SelectFilter::make('discount_type')
                     ->label(__('promo.filter_type'))
                     ->options([
                         'percentage' => __('promo.type_percentage'),
                         'fixed'      => __('promo.type_fixed'),
                     ]),
 
-                Tables\Filters\SelectFilter::make('hall_id')
+                SelectFilter::make('hall_id')
                     ->label(__('promo.filter_hall'))
                     ->options(
                         Hall::all()->mapWithKeys(fn (Hall $h) => [
@@ -204,13 +223,13 @@ class PromoCodeResource extends Resource
                         ])
                     ),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -226,9 +245,9 @@ class PromoCodeResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListPromoCodes::route('/'),
-            'create' => Pages\CreatePromoCode::route('/create'),
-            'edit'   => Pages\EditPromoCode::route('/{record}/edit'),
+            'index'  => ListPromoCodes::route('/'),
+            'create' => CreatePromoCode::route('/create'),
+            'edit'   => EditPromoCode::route('/{record}/edit'),
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\HallFeatureResource\Pages;
 
+use App\Models\HallFeature;
 use App\Filament\Admin\Resources\HallFeatureResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -52,7 +53,7 @@ class CreateHallFeature extends CreateRecord
         }
 
         // Check for duplicate feature names
-        $exists = \App\Models\HallFeature::where(function ($query) use ($data) {
+        $exists = HallFeature::where(function ($query) use ($data) {
             $query->where('name->en', $data['name']['en'])
                 ->orWhere('name->ar', $data['name']['ar']);
         })->exists();
@@ -108,7 +109,7 @@ class CreateHallFeature extends CreateRecord
         $baseSlug = $slug;
         $counter = 1;
 
-        while (\App\Models\HallFeature::where('slug', $slug)->exists()) {
+        while (HallFeature::where('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }

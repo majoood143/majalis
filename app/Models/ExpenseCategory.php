@@ -15,14 +15,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * ExpenseCategory Model
@@ -37,12 +40,12 @@ use Spatie\Activitylog\LogOptions;
  * @property bool $is_active
  * @property bool $is_system
  * @property int $order
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
- * @property \Carbon\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  *
  * @property-read User|null $owner
- * @property-read \Illuminate\Database\Eloquent\Collection|Expense[] $expenses
+ * @property-read Collection|Expense[] $expenses
  * @property-read int|null $expenses_count
  */
 class ExpenseCategory extends Model
@@ -166,12 +169,11 @@ class ExpenseCategory extends Model
     | SCOPES
     |--------------------------------------------------------------------------
     */
-
     /**
      * Scope to only active categories
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeActive($query)
     {
@@ -181,8 +183,8 @@ class ExpenseCategory extends Model
     /**
      * Scope to system categories only
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeSystem($query)
     {
@@ -192,9 +194,9 @@ class ExpenseCategory extends Model
     /**
      * Scope to categories for a specific owner (includes system categories)
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param int $ownerId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeForOwner($query, int $ownerId)
     {
@@ -207,9 +209,9 @@ class ExpenseCategory extends Model
     /**
      * Scope to filter by type
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $type
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeOfType($query, string $type)
     {
@@ -219,8 +221,8 @@ class ExpenseCategory extends Model
     /**
      * Scope to order by order column
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeOrdered($query)
     {

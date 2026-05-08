@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\Pages;
 
+use App\Models\Hall;
+use Filament\Actions\CreateAction;
 use App\Filament\Owner\Resources\HallResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -47,7 +49,7 @@ class ListHalls extends ListRecords
     public function getSubheading(): ?string
     {
         $user = Auth::user();
-        $count = \App\Models\Hall::where('owner_id', $user->id)->count();
+        $count = Hall::where('owner_id', $user->id)->count();
         
         return __('owner.halls.subheading', ['count' => $count]);
     }
@@ -60,7 +62,7 @@ class ListHalls extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(__('owner.halls.actions.create'))
                 ->icon('heroicon-o-plus'),
         ];
@@ -69,29 +71,29 @@ class ListHalls extends ListRecords
     /**
      * Get the tabs for filtering halls.
      *
-     * @return array<Tab>
+     * @return array<\Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
         $user = Auth::user();
-        $baseQuery = fn () => \App\Models\Hall::where('owner_id', $user->id);
+        $baseQuery = fn () => Hall::where('owner_id', $user->id);
 
         return [
-            'all' => Tab::make(__('owner.halls.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.halls.tabs.all'))
                 ->badge($baseQuery()->count())
                 ->badgeColor('primary'),
 
-            'active' => Tab::make(__('owner.halls.tabs.active'))
+            'active' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.halls.tabs.active'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', true))
                 ->badge($baseQuery()->where('is_active', true)->count())
                 ->badgeColor('success'),
 
-            'inactive' => Tab::make(__('owner.halls.tabs.inactive'))
+            'inactive' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.halls.tabs.inactive'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_active', false))
                 ->badge($baseQuery()->where('is_active', false)->count())
                 ->badgeColor('danger'),
 
-            'featured' => Tab::make(__('owner.halls.tabs.featured'))
+            'featured' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.halls.tabs.featured'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_featured', true))
                 ->badge($baseQuery()->where('is_featured', true)->count())
                 ->badgeColor('warning')

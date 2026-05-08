@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs\Notification;
 
+use InvalidArgumentException;
+use Throwable;
+use RuntimeException;
 use App\Enums\NotificationType;
 use App\Mail\Booking\BookingNotificationMail;
 use App\Models\BookingNotification;
@@ -107,7 +110,7 @@ class SendNotificationJob implements ShouldQueue
                 NotificationType::SMS->value => $this->sendSms(),
                 NotificationType::PUSH->value => $this->sendPush(),
                 NotificationType::WHATSAPP->value => $this->sendWhatsApp(),
-                default => throw new \InvalidArgumentException("Unknown notification type: {$this->notification->type}"),
+                default => throw new InvalidArgumentException("Unknown notification type: {$this->notification->type}"),
             };
 
             // Mark as sent
@@ -116,7 +119,7 @@ class SendNotificationJob implements ShouldQueue
             Log::info('Notification sent successfully', [
                 'notification_id' => $this->notification->id,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->handleFailure($e);
             throw $e; // Re-throw to trigger queue retry
         }
@@ -130,13 +133,13 @@ class SendNotificationJob implements ShouldQueue
     protected function sendEmail(): void
     {
         if (empty($this->notification->recipient_email)) {
-            throw new \InvalidArgumentException('No recipient email address');
+            throw new InvalidArgumentException('No recipient email address');
         }
 
         // Load booking relationship
         $booking = $this->notification->booking;
         if (!$booking) {
-            throw new \RuntimeException('Booking not found for notification');
+            throw new RuntimeException('Booking not found for notification');
         }
 
         // Send the email
@@ -155,7 +158,7 @@ class SendNotificationJob implements ShouldQueue
     protected function sendSms(): void
     {
         if (empty($this->notification->recipient_phone)) {
-            throw new \InvalidArgumentException('No recipient phone number');
+            throw new InvalidArgumentException('No recipient phone number');
         }
 
         // TODO: Implement SMS sending via configured provider
@@ -204,10 +207,10 @@ class SendNotificationJob implements ShouldQueue
     /**
      * Handle job failure.
      *
-     * @param \Throwable $exception
+     * @param Throwable $exception
      * @return void
      */
-    protected function handleFailure(\Throwable $exception): void
+    protected function handleFailure(Throwable $exception): void
     {
         $this->notification->markAsFailed($exception->getMessage());
 
@@ -222,10 +225,10 @@ class SendNotificationJob implements ShouldQueue
     /**
      * Handle a job failure after all retries.
      *
-     * @param \Throwable $exception
+     * @param Throwable $exception
      * @return void
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::critical('Notification failed permanently after all retries', [
             'notification_id' => $this->notification->id,

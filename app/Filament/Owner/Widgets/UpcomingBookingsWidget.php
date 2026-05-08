@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class UpcomingBookingsWidget extends Widget
 {
-    protected static string $view = 'filament.owner.widgets.upcoming-bookings';
+    protected string $view = 'filament.owner.widgets.upcoming-bookings';
 
     protected int | string | array $columnSpan = [
         'sm' => 'full',

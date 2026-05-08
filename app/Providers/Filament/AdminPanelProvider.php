@@ -2,6 +2,11 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Pages\Dashboard;
+use App\Filament\Pages\Maintenance;
+use App\Filament\Admin\Widgets\PayoutStatsWidget;
+use App\Filament\Admin\Pages\EnvEditor;
+use LaraZeus\SpatieTranslatable\SpatieTranslatablePlugin;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -17,20 +22,20 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\SpatieLaravelTranslatablePlugin;
 use App\Http\Middleware\SetUserLanguage;
 //use Filament\Panels\Enums\PanelsRenderHook;
 use Filament\View\PanelsRenderHook;
 use App\Filament\Pages\EditProfile;
-use Rmsramos\Activitylog\ActivitylogPlugin;
 use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
-use Vormkracht10\FilamentMails\FilamentMails;
-use Vormkracht10\FilamentMails\FilamentMailsPlugin;
-use \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
+use Backstage\Mails\Mails;
+use Backstage\Mails\MailsPlugin;
+use Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Illuminate\Support\Facades\Blade;
 use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
+use WallaceMartinss\FilamentEvolution\FilamentEvolutionPlugin;
+
 
 
 
@@ -40,11 +45,13 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->id('admin')
+            ->default()
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->profile()
             ->colors([
-                'primary' => Color::hex('#B9916D'),
+                'primary' => Color::generateV3Palette('#B9916D'),
                 'danger' => Color::Red,
                 'gray' => Color::Slate,
                 'info' => Color::Sky,
@@ -63,14 +70,14 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             EditProfile::class,
-                \App\Filament\Pages\Maintenance::class,
+                Maintenance::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
                 //Widgets\AccountWidget::class,
-                \App\Filament\Admin\Widgets\PayoutStatsWidget::class,
+                PayoutStatsWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -86,15 +93,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
-                ActivitylogPlugin::make(),
+                // TODO: replace rmsramos/activitylog (v3-only) with a v4-compatible activity log plugin
                 FilamentSpatieLaravelBackupPlugin::make(),
                 FilamentSpatieLaravelHealthPlugin::make(),
-                FilamentMailsPlugin::make(),
+                MailsPlugin::make(),
                 FilamentJobsMonitorPlugin::make()
                     ->enableNavigation(),
                 GtagPlugin::make(),
                 FilamentEnvEditorPlugin::make()
-                    ->viewPage(\App\Filament\Admin\Pages\EnvEditor::class),
+                    ->viewPage(EnvEditor::class),
+            FilamentEvolutionPlugin::make(),
             //\MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
             //KnowledgeBasePlugin::make(),
 
@@ -111,7 +119,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->sidebarCollapsibleOnDesktop()
             ->spa()
-            ->routes(fn() => FilamentMails::routes())
+            ->routes(fn() => Mails::routes())
 
             //->locale(config('app.locale'))
             //->locales(['en' => 'English', 'ar' => 'العربية'])
@@ -123,7 +131,7 @@ class AdminPanelProvider extends PanelProvider
             )
             // ADD PLUGIN CONFIGURATION
             ->plugin(
-                SpatieLaravelTranslatablePlugin::make()
+                SpatieTranslatablePlugin::make()
                     ->defaultLocales(['en', 'ar']),
 
 

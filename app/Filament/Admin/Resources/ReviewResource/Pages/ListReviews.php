@@ -2,10 +2,13 @@
 
 namespace App\Filament\Admin\Resources\ReviewResource\Pages;
 
+use Filament\Actions\Action;
+use App\Models\Review;
+use Exception;
+use Filament\Schemas\Components\Tabs\Tab;
 use App\Filament\Admin\Resources\ReviewResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +20,7 @@ class ListReviews extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('exportReviews')
+            Action::make('exportReviews')
                 ->label(__('review.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -27,7 +30,7 @@ class ListReviews extends ListRecords
                 ->modalDescription(__('review.actions.export_modal_description'))
                 ->modalSubmitActionLabel(__('review.actions.export')),
 
-            Actions\Action::make('bulkApprove')
+            Action::make('bulkApprove')
                 ->label(__('review.actions.bulk_approve'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -37,7 +40,7 @@ class ListReviews extends ListRecords
                 ->action(function () {
                     DB::beginTransaction();
                     try {
-                        $count = \App\Models\Review::where('is_approved', false)->get()->each->approve()->count();
+                        $count = Review::where('is_approved', false)->get()->each->approve()->count();
                         DB::commit();
                         Notification::make()
                             ->success()
@@ -45,7 +48,7 @@ class ListReviews extends ListRecords
                             ->body(__('review.notifications.bulk_approve_success_body', ['count' => $count]))
                             ->send();
                         $this->redirect(static::getUrl());
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         DB::rollBack();
                         Notification::make()
                             ->danger()
@@ -61,39 +64,39 @@ class ListReviews extends ListRecords
     {
         return [
             'all' => Tab::make(__('review.tabs.all'))
-                ->badge(fn() => \App\Models\Review::count()),
+                ->badge(fn() => Review::count()),
 
             'pending' => Tab::make(__('review.tabs.pending'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_approved', false))
-                ->badge(fn() => \App\Models\Review::where('is_approved', false)->count())
+                ->badge(fn() => Review::where('is_approved', false)->count())
                 ->badgeColor('warning'),
 
             'approved' => Tab::make(__('review.tabs.approved'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_approved', true))
-                ->badge(fn() => \App\Models\Review::where('is_approved', true)->count())
+                ->badge(fn() => Review::where('is_approved', true)->count())
                 ->badgeColor('success'),
 
             'featured' => Tab::make(__('review.tabs.featured'))
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_featured', true))
-                ->badge(fn() => \App\Models\Review::where('is_featured', true)->count())
+                ->badge(fn() => Review::where('is_featured', true)->count())
                 ->badgeColor('warning'),
 
             '5_stars' => Tab::make(__('review.tabs.5_stars'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('rating', 5))
-                ->badge(fn() => \App\Models\Review::where('rating', 5)->count())
+                ->badge(fn() => Review::where('rating', 5)->count())
                 ->badgeColor('success'),
 
             'low_rated' => Tab::make(__('review.tabs.low_rated'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('rating', '<=', 2))
-                ->badge(fn() => \App\Models\Review::where('rating', '<=', 2)->count())
+                ->badge(fn() => Review::where('rating', '<=', 2)->count())
                 ->badgeColor('danger'),
 
             'with_response' => Tab::make(__('review.tabs.with_response'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('owner_response'))
-                ->badge(fn() => \App\Models\Review::whereNotNull('owner_response')->count())
+                ->badge(fn() => Review::whereNotNull('owner_response')->count())
                 ->badgeColor('info'),
         ];
     }
@@ -103,7 +106,7 @@ class ListReviews extends ListRecords
         DB::beginTransaction();
 
         try {
-            $reviews = \App\Models\Review::with(['hall', 'user', 'booking'])->get();
+            $reviews = Review::with(['hall', 'user', 'booking'])->get();
 
             $filename = 'reviews_' . now()->format('Y_m_d_His') . '.csv';
             $path = storage_path('app/public/exports/' . $filename);
@@ -162,14 +165,14 @@ class ListReviews extends ListRecords
                 ->title(__('review.notifications.export_success'))
                 ->body(__('review.notifications.export_success_body'))
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('review.actions.download'))
                         ->url(asset('storage/exports/' . $filename))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Notification::make()

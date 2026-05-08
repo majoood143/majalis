@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\AvailabilityResource\Pages;
 
+use Filament\Actions\Action;
+use App\Filament\Owner\Resources\HallResource;
+use Filament\Actions\DeleteAction;
 use App\Filament\Owner\Resources\AvailabilityResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -61,7 +64,7 @@ class EditAvailability extends EditRecord
     {
         return [
             // Quick Toggle
-            Actions\Action::make('toggle')
+            Action::make('toggle')
                 ->label(fn (): string => $this->record->is_available
                     ? __('owner.availability_resource.actions.block')
                     : __('owner.availability_resource.actions.unblock'))
@@ -87,15 +90,15 @@ class EditAvailability extends EditRecord
                 }),
 
             // View Hall
-            Actions\Action::make('view_hall')
+            Action::make('view_hall')
                 ->label(__('owner.availability_resource.actions.view_hall'))
                 ->icon('heroicon-o-building-office-2')
                 ->color('gray')
-                ->url(fn () => \App\Filament\Owner\Resources\HallResource::getUrl('edit', [
+                ->url(fn () => HallResource::getUrl('edit', [
                     'record' => $this->record->hall_id,
                 ])),
 
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

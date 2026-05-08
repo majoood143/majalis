@@ -2,25 +2,45 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\CityResource\Pages\ListCities;
+use App\Filament\Admin\Resources\CityResource\Pages\CreateCity;
+use App\Filament\Admin\Resources\CityResource\Pages\ViewCity;
+use App\Filament\Admin\Resources\CityResource\Pages\EditCity;
 use App\Filament\Admin\Resources\CityResource\Pages;
 use App\Models\City;
 use App\Models\Region;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
+use Filament\Support\Icons\Heroicon;
+use UnitEnum;
 
 
 class CityResource extends Resource
 {
     protected static ?string $model = City::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationGroup = 'Location Management';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-office';
+
+    protected static string | \UnitEnum | null $navigationGroup = 'Location Management';
 
     protected static ?int $navigationSort = 2;
 
@@ -39,13 +59,13 @@ class CityResource extends Resource
         return __('city.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('city.city_information'))
+        return $schema
+            ->components([
+                Section::make(__('city.city_information'))
                     ->schema([
-                        Forms\Components\Select::make('region_id')
+                        Select::make('region_id')
                             ->label(__('city.region'))
                             ->options(function () {
                                 return Region::all()->mapWithKeys(function ($region) {
@@ -56,42 +76,42 @@ class CityResource extends Resource
                             ->searchable()
                             ->preload(),
 
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('city.name_en'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('city.name_ar'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('code')
+                        TextInput::make('code')
                             ->label(__('city.code'))
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(10)
                             ->alphaDash(),
 
-                        Forms\Components\Textarea::make('description.en')
+                        Textarea::make('description.en')
                             ->label(__('city.description_en'))
                             ->rows(3),
 
-                        Forms\Components\Textarea::make('description.ar')
+                        Textarea::make('description.ar')
                             ->label(__('city.description_ar'))
                             ->rows(3),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('city.location'))
+                Section::make(__('city.location'))
                     ->schema([
-                        Forms\Components\TextInput::make('latitude')
+                        TextInput::make('latitude')
                             ->label(__('city.latitude'))
                             ->numeric()
                             ->step(0.0000001)
                             ->minValue(-90)
                             ->maxValue(90),
 
-                        Forms\Components\TextInput::make('longitude')
+                        TextInput::make('longitude')
                             ->label(__('city.longitude'))
                             ->numeric()
                             ->step(0.0000001)
@@ -99,27 +119,28 @@ class CityResource extends Resource
                             ->maxValue(180),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('city.settings'))
+                Section::make(__('city.settings'))
                     ->schema([
-                        Forms\Components\TextInput::make('order')
+                        TextInput::make('order')
                             ->label(__('city.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('city.is_active'))
                             ->default(true)
                             ->inline(false),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('city.name'))
                     ->searchable(query: function ($query, $search) {
                         return $query->where(function ($query) use ($search) {
@@ -131,66 +152,67 @@ class CityResource extends Resource
                         return $query->orderBy('name->en', $direction);
                     }),
 
-                Tables\Columns\TextColumn::make('region.name')
+                TextColumn::make('region.name')
                     ->label(__('city.region_name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->region->name),
 
-                Tables\Columns\TextColumn::make('code')
+                TextColumn::make('code')
                     ->label(__('city.code'))
                     ->searchable()
                     ->badge(),
 
-                Tables\Columns\TextColumn::make('halls_count')
+                TextColumn::make('halls_count')
                     ->counts('halls')
                     ->label(__('city.halls'))
                     ->badge()
                     ->color('info'),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('city.is_active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('order')
+                TextColumn::make('order')
                     ->label(__('city.order'))
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(__('city.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('region_id')
+                SelectFilter::make('region_id')
                     ->label(__('city.filters.region'))
                     ->relationship('region', 'name')
+                    ->getOptionLabelFromRecordUsing(fn (Region $record) => $record->name)
                     ->searchable()
                     ->preload(),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('city.filters.active'))
                     ->boolean()
                     ->trueLabel(__('city.filters.active_only'))
                     ->falseLabel(__('city.filters.inactive_only'))
                     ->native(false),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->label(__('city.table_actions.edit')),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label(__('city.table_actions.delete')),
-                Tables\Actions\ViewAction::make(),
-                ActivityLogTimelineTableAction::make('Activities'),
+                    ViewAction::make(),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('order');
@@ -206,10 +228,10 @@ class CityResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCities::route('/'),
-            'create' => Pages\CreateCity::route('/create'),
-            'view' => Pages\ViewCity::route('/{record}'),
-            'edit' => Pages\EditCity::route('/{record}/edit'),
+            'index' => ListCities::route('/'),
+            'create' => CreateCity::route('/create'),
+            'view' => ViewCity::route('/{record}'),
+            'edit' => EditCity::route('/{record}/edit'),
         ];
     }
 }

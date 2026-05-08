@@ -14,7 +14,7 @@ use Carbon\Carbon;
 class HallStatsOverviewWidget extends BaseWidget
 {
     public ?Model $record = null;
-    protected static ?string $pollingInterval = '60s';
+    protected ?string $pollingInterval = '60s';
     protected int|string|array $columnSpan = 'full';
 
     protected function getStats(): array

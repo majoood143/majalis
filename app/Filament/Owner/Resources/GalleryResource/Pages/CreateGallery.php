@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\GalleryResource\Pages;
 
+use Exception;
 use App\Filament\Owner\Resources\GalleryResource;
 use App\Models\Hall;
 use Filament\Resources\Pages\CreateRecord;
@@ -140,7 +141,7 @@ class CreateGallery extends CreateRecord
                     $metadata['height'] = $imageInfo[1];
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to extract image metadata: ' . $e->getMessage());
         }
 

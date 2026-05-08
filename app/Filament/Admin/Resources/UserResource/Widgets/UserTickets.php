@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\UserResource\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
+use BackedEnum;
 use App\Models\Ticket;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
@@ -31,23 +33,23 @@ class UserTickets extends BaseWidget
         return $table
             ->query($this->getTableQuery())
             ->columns([
-                Tables\Columns\TextColumn::make('ticket_number')
+                TextColumn::make('ticket_number')
                     ->label('Ticket #')
                     ->searchable()
                     ->copyable()
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('subject')
+                TextColumn::make('subject')
                     ->label('Subject')
                     ->searchable()
                     ->limit(40),
 
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label('Type')
                     ->badge()
-                    ->formatStateUsing(fn($state) => $state instanceof \BackedEnum ? $state->value : $state),
+                    ->formatStateUsing(fn($state) => $state instanceof BackedEnum ? $state->value : $state),
 
-                Tables\Columns\TextColumn::make('priority')
+                TextColumn::make('priority')
                     ->label('Priority')
                     ->badge()
                     ->color(fn($state): string => match (true) {
@@ -56,9 +58,9 @@ class UserTickets extends BaseWidget
                         $state === TicketPriority::MEDIUM || $state?->value === 'medium' => 'info',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn($state) => $state instanceof \BackedEnum ? ucfirst($state->value) : ucfirst((string) $state)),
+                    ->formatStateUsing(fn($state) => $state instanceof BackedEnum ? ucfirst($state->value) : ucfirst((string) $state)),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->color(fn($state): string => match (true) {
@@ -70,16 +72,16 @@ class UserTickets extends BaseWidget
                         $state === TicketStatus::ESCALATED || $state?->value === 'escalated' => 'danger',
                         default => 'warning',
                     })
-                    ->formatStateUsing(fn($state) => $state instanceof \BackedEnum
+                    ->formatStateUsing(fn($state) => $state instanceof BackedEnum
                         ? ucfirst(str_replace('_', ' ', $state->value))
                         : ucfirst(str_replace('_', ' ', (string) $state))),
 
-                Tables\Columns\TextColumn::make('booking.booking_number')
+                TextColumn::make('booking.booking_number')
                     ->label('Booking')
                     ->placeholder('—')
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Opened')
                     ->dateTime('d M Y')
                     ->sortable(),

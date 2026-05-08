@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use Exception;
 use App\Models\Booking;
 use App\Services\InvoiceService;
 use Illuminate\Bus\Queueable;
@@ -51,7 +52,7 @@ class SendBookingInvoiceEmail
             try {
                 $pdf = $invoiceService->generateFullReceipt($this->booking);
                 $pdfContent = $pdf->output();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('PDF generation failed for invoice email', [
                     'booking_id' => $this->booking->id,
                     'error' => $e->getMessage(),

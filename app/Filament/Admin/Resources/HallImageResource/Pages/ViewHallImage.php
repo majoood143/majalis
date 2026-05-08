@@ -2,11 +2,23 @@
 
 namespace App\Filament\Admin\Resources\HallImageResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\TextSize;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Support\Enums\IconSize;
+use Filament\Infolists\Components\ViewEntry;
+use Spatie\Activitylog\Models\Activity;
 use App\Filament\Admin\Resources\HallImageResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -20,18 +32,18 @@ class ViewHallImage extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make()
+            EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary'),
 
-            Actions\Action::make('viewFullImage')
+            Action::make('viewFullImage')
                 ->label('View Full Size')
                 ->icon('heroicon-o-magnifying-glass-plus')
                 ->color('info')
                 //->url(fn() => Storage::disk('public')->url($this->record->image_path))
                 ->openUrlInNewTab(),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -49,7 +61,7 @@ class ViewHallImage extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('toggleFeatured')
+            Action::make('toggleFeatured')
                 ->label(fn() => $this->record->is_featured ? 'Unmark Featured' : 'Mark Featured')
                 ->icon('heroicon-o-star')
                 ->color(fn() => $this->record->is_featured ? 'gray' : 'warning')
@@ -67,7 +79,7 @@ class ViewHallImage extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewHall')
+            Action::make('viewHall')
                 ->label('View Hall')
                 ->icon('heroicon-o-building-storefront')
                 ->color('info')
@@ -75,7 +87,7 @@ class ViewHallImage extends ViewRecord
                     'record' => $this->record->hall_id
                 ])),
 
-            Actions\Action::make('downloadImage')
+            Action::make('downloadImage')
                 ->label('Download')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -86,7 +98,7 @@ class ViewHallImage extends ViewRecord
                     // );
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -111,14 +123,14 @@ class ViewHallImage extends ViewRecord
                         ->success()
                         ->title('Image Duplicated')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('View Duplicate')
                                 ->url(HallImageResource::getUrl('view', ['record' => $newImage->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->before(function () {
                     if ($this->record->image_path) {
                         Storage::disk('public')->delete($this->record->image_path);
@@ -131,13 +143,13 @@ class ViewHallImage extends ViewRecord
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Image Preview')
+                Section::make('Image Preview')
                     ->schema([
-                        Infolists\Components\ImageEntry::make('image_path')
+                        ImageEntry::make('image_path')
                             ->label('')
                             ->disk('public')
                             ->height(400)
@@ -145,18 +157,18 @@ class ViewHallImage extends ViewRecord
                     ])
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Image Information')
+                Section::make('Image Information')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('hall.name')
+                                TextEntry::make('hall.name')
                                     ->label('Hall')
                                     ->badge()
                                     ->color('success')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                                    ->size(TextSize::Large)
                                     ->icon('heroicon-o-building-storefront'),
 
-                                Infolists\Components\TextEntry::make('type')
+                                TextEntry::make('type')
                                     ->label('Image Type')
                                     ->formatStateUsing(fn($record) => $record->type_label ?? ucfirst($record->type))
                                     ->badge()
@@ -175,66 +187,66 @@ class ViewHallImage extends ViewRecord
                                         default => 'heroicon-o-photo',
                                     }),
 
-                                Infolists\Components\TextEntry::make('order')
+                                TextEntry::make('order')
                                     ->label('Display Order')
                                     ->badge()
                                     ->color('gray')
                                     ->icon('heroicon-o-bars-3'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\IconEntry::make('is_active')
+                                IconEntry::make('is_active')
                                     ->label('Active Status')
                                     ->boolean()
                                     ->trueIcon('heroicon-o-check-circle')
                                     ->falseIcon('heroicon-o-x-circle')
                                     ->trueColor('success')
                                     ->falseColor('danger')
-                                    ->size(Infolists\Components\IconEntry\IconEntrySize::Large),
+                                    ->size(IconSize::Large),
 
-                                Infolists\Components\IconEntry::make('is_featured')
+                                IconEntry::make('is_featured')
                                     ->label('Featured')
                                     ->boolean()
                                     ->trueIcon('heroicon-o-star')
                                     ->falseIcon('heroicon-o-minus-circle')
                                     ->trueColor('warning')
                                     ->falseColor('gray')
-                                    ->size(Infolists\Components\IconEntry\IconEntrySize::Large),
+                                    ->size(IconSize::Large),
                             ]),
                     ])
                     ->icon('heroicon-o-information-circle')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Image Details')
+                Section::make('Image Details')
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('title.en')
+                                TextEntry::make('title.en')
                                     ->label('Title (English)')
                                     ->placeholder('No title')
                                     ->icon('heroicon-o-language'),
 
-                                Infolists\Components\TextEntry::make('title.ar')
+                                TextEntry::make('title.ar')
                                     ->label('Title (Arabic)')
                                     ->placeholder('لا يوجد عنوان')
                                     ->icon('heroicon-o-language'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('caption.en')
+                                TextEntry::make('caption.en')
                                     ->label('Caption (English)')
                                     ->placeholder('No caption')
                                     ->columnSpanFull(),
 
-                                Infolists\Components\TextEntry::make('caption.ar')
+                                TextEntry::make('caption.ar')
                                     ->label('Caption (Arabic)')
                                     ->placeholder('لا يوجد تعليق')
                                     ->columnSpanFull(),
                             ]),
 
-                        Infolists\Components\TextEntry::make('alt_text')
+                        TextEntry::make('alt_text')
                             ->label('Alt Text (SEO)')
                             ->placeholder('No alt text')
                             ->icon('heroicon-o-magnifying-glass')
@@ -243,25 +255,25 @@ class ViewHallImage extends ViewRecord
                     ->icon('heroicon-o-document-text')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Technical Details')
+                Section::make('Technical Details')
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('formatted_size')
+                                TextEntry::make('formatted_size')
                                     ->label('File Size')
                                     ->state(fn($record) => $this->formatBytes($record->file_size ?? 0))
                                     ->badge()
                                     ->color(fn($record) => ($record->file_size ?? 0) > 2097152 ? 'warning' : 'success')
                                     ->icon('heroicon-o-server'),
 
-                                Infolists\Components\TextEntry::make('dimensions')
+                                TextEntry::make('dimensions')
                                     ->label('Dimensions')
                                     ->placeholder('Unknown')
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-arrows-pointing-out'),
 
-                                Infolists\Components\TextEntry::make('aspect_ratio')
+                                TextEntry::make('aspect_ratio')
                                     ->label('Aspect Ratio')
                                     ->state(function ($record) {
                                         if ($record->dimensions) {
@@ -277,7 +289,7 @@ class ViewHallImage extends ViewRecord
                                     ->color('purple')
                                     ->icon('heroicon-o-chart-bar'),
 
-                                Infolists\Components\TextEntry::make('file_format')
+                                TextEntry::make('file_format')
                                     ->label('Format')
                                     ->state(fn($record) => strtoupper(pathinfo($record->image_path, PATHINFO_EXTENSION)))
                                     ->badge()
@@ -285,14 +297,14 @@ class ViewHallImage extends ViewRecord
                                     ->icon('heroicon-o-document'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('image_path')
+                                TextEntry::make('image_path')
                                     ->label('File Path')
                                     ->copyable()
                                     ->icon('heroicon-o-folder'),
 
-                                Infolists\Components\TextEntry::make('thumbnail_status')
+                                TextEntry::make('thumbnail_status')
                                     ->label('Thumbnail')
                                     ->state(fn($record) => $record->thumbnail_path ? 'Available' : 'Not Generated')
                                     ->badge()
@@ -303,11 +315,11 @@ class ViewHallImage extends ViewRecord
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Image Quality Analysis')
+                Section::make('Image Quality Analysis')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('optimization_status')
+                                TextEntry::make('optimization_status')
                                     ->label('Optimization')
                                     ->state(function ($record) {
                                         $size = $record->file_size ?? 0;
@@ -324,7 +336,7 @@ class ViewHallImage extends ViewRecord
                                     })
                                     ->icon('heroicon-o-sparkles'),
 
-                                Infolists\Components\TextEntry::make('resolution_quality')
+                                TextEntry::make('resolution_quality')
                                     ->label('Resolution')
                                     ->state(function ($record) {
                                         if ($record->dimensions) {
@@ -349,7 +361,7 @@ class ViewHallImage extends ViewRecord
                                     })
                                     ->icon('heroicon-o-photo'),
 
-                                Infolists\Components\TextEntry::make('web_ready')
+                                TextEntry::make('web_ready')
                                     ->label('Web Ready')
                                     ->state(function ($record) {
                                         $size = $record->file_size ?? 0;
@@ -372,9 +384,9 @@ class ViewHallImage extends ViewRecord
                     ->icon('heroicon-o-chart-bar-square')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Thumbnail Preview')
+                Section::make('Thumbnail Preview')
                     ->schema([
-                        Infolists\Components\ImageEntry::make('thumbnail_path')
+                        ImageEntry::make('thumbnail_path')
                             ->label('Thumbnail')
                             ->disk('public')
                             ->height(150)
@@ -385,23 +397,23 @@ class ViewHallImage extends ViewRecord
                     ->collapsible()
                     ->collapsed(),
 
-                Infolists\Components\Section::make('System Information')
+                Section::make('System Information')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('id')
+                                TextEntry::make('id')
                                     ->label('Image ID')
                                     ->badge()
                                     ->color('gray')
                                     ->copyable()
                                     ->icon('heroicon-o-hashtag'),
 
-                                Infolists\Components\TextEntry::make('created_at')
+                                TextEntry::make('created_at')
                                     ->label('Uploaded At')
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('updated_at')
+                                TextEntry::make('updated_at')
                                     ->label('Last Updated')
                                     ->dateTime('d M Y, h:i A')
                                     ->since()
@@ -411,9 +423,9 @@ class ViewHallImage extends ViewRecord
                     ->icon('heroicon-o-server')
                     ->collapsed(),
 
-                Infolists\Components\Section::make('Activity History')
+                Section::make('Activity History')
                     ->schema([
-                        Infolists\Components\ViewEntry::make('activity_log')
+                        ViewEntry::make('activity_log')
                             ->label('')
                             ->view('filament.infolists.components.activity-log', [
                                 'activities' => fn($record) => activity()
@@ -425,7 +437,7 @@ class ViewHallImage extends ViewRecord
                     ])
                     ->icon('heroicon-o-clock')
                     ->collapsed()
-                    ->visible(fn() => class_exists(\Spatie\Activitylog\Models\Activity::class)),
+                    ->visible(fn() => class_exists(Activity::class)),
             ]);
     }
 

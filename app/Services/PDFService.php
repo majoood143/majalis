@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Payment;
 use App\Models\Booking;
 use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -69,7 +70,7 @@ class PDFService
 
             // Verify file was created
             if (!Storage::disk('local')->exists($filename)) {
-                throw new \Exception('PDF file was not created');
+                throw new Exception('PDF file was not created');
             }
 
             // Update booking with invoice path
@@ -78,7 +79,7 @@ class PDFService
             // Verify update
             $booking->refresh();
             if (empty($booking->invoice_path)) {
-                throw new \Exception('Invoice path was not saved to database');
+                throw new Exception('Invoice path was not saved to database');
             }
 
             Log::info('Invoice generated successfully', [
@@ -88,7 +89,7 @@ class PDFService
             ]);
 
             return $filename;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Invoice generation failed', [
                 'booking_id' => $booking->id,
                 'error' => $e->getMessage(),
@@ -269,10 +270,10 @@ class PDFService
     /**
      * Generate payment receipt PDF
      *
-     * @param \App\Models\Payment $payment
+     * @param Payment $payment
      * @return string Filename of generated PDF
      */
-    public function generatePaymentReceipt(\App\Models\Payment $payment): string
+    public function generatePaymentReceipt(Payment $payment): string
     {
         // Load relationships
         $payment->load('booking.hall');
@@ -288,7 +289,7 @@ class PDFService
         }
 
         // Generate PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.payment-receipt', [
+        $pdf = Pdf::loadView('pdf.payment-receipt', [
             'payment'         => $payment,
             'booking'         => $payment->booking,
             'hall'            => $payment->booking?->hall,

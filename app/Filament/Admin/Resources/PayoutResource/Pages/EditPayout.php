@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PayoutResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Actions\DeleteAction;
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource;
 use Filament\Actions;
@@ -37,10 +43,10 @@ class EditPayout extends EditRecord
     {
         return [
             // View Action
-            Actions\ViewAction::make(),
+            ViewAction::make(),
 
             // Process Action
-            Actions\Action::make('process')
+            Action::make('process')
                 ->label(__('admin.payout.actions.process'))
                 ->icon('heroicon-o-play')
                 ->color('info')
@@ -58,12 +64,12 @@ class EditPayout extends EditRecord
                 }),
 
             // Complete Action
-            Actions\Action::make('complete')
+            Action::make('complete')
                 ->label(__('admin.payout.actions.complete'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
-                ->form([
-                    \Filament\Forms\Components\Select::make('payment_method')
+                ->schema([
+                    Select::make('payment_method')
                         ->label(__('admin.payout.fields.payment_method'))
                         ->options([
                             'bank_transfer' => __('admin.payout.methods.bank_transfer'),
@@ -74,7 +80,7 @@ class EditPayout extends EditRecord
                         ->required()
                         ->default($this->record->payment_method),
 
-                    \Filament\Forms\Components\TextInput::make('transaction_reference')
+                    TextInput::make('transaction_reference')
                         ->label(__('admin.payout.fields.transaction_reference'))
                         ->required()
                         ->maxLength(100)
@@ -96,12 +102,12 @@ class EditPayout extends EditRecord
                 }),
 
             // Hold Action
-            Actions\Action::make('hold')
+            Action::make('hold')
                 ->label(__('admin.payout.actions.hold'))
                 ->icon('heroicon-o-pause-circle')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label(__('admin.payout.fields.hold_reason'))
                         ->rows(2),
                 ])
@@ -118,13 +124,13 @@ class EditPayout extends EditRecord
                 }),
 
             // Cancel Action
-            Actions\Action::make('cancel')
+            Action::make('cancel')
                 ->label(__('admin.payout.actions.cancel'))
                 ->icon('heroicon-o-no-symbol')
                 ->color('danger')
                 ->requiresConfirmation()
-                ->form([
-                    \Filament\Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label(__('admin.payout.fields.cancel_reason'))
                         ->rows(2),
                 ])
@@ -140,7 +146,7 @@ class EditPayout extends EditRecord
                 }),
 
             // Delete Action
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->visible(fn () => !$this->record->status->isTerminal()),
         ];
     }

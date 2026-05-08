@@ -2,10 +2,17 @@
 
 namespace App\Filament\Admin\Resources\ExtraServiceResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use App\Models\Hall;
+use Filament\Forms\Components\Checkbox;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\ExtraService;
 use App\Filament\Admin\Resources\ExtraServiceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -19,12 +26,12 @@ class ListExtraServices extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary')
                 ->label(__('extra-service.actions.create')),
 
-            Actions\Action::make('exportServices')
+            Action::make('exportServices')
                 ->label(__('extra-service.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
@@ -34,12 +41,12 @@ class ListExtraServices extends ListRecords
                 ->modalDescription(__('extra-service.actions.export_modal.description'))
                 ->modalSubmitActionLabel(__('extra-service.actions.export_modal.submit_label')),
 
-            Actions\Action::make('bulkPriceUpdate')
+            Action::make('bulkPriceUpdate')
                 ->label(__('extra-service.actions.bulk_price_update'))
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning')
-                ->form([
-                    \Filament\Forms\Components\Select::make('update_type')
+                ->schema([
+                    Select::make('update_type')
                         ->label(__('extra-service.actions.bulk_price_update_modal.update_type'))
                         ->options([
                             'percentage_increase' => __('extra-service.actions.bulk_price_update_modal.update_type_options.percentage_increase'),
@@ -50,7 +57,7 @@ class ListExtraServices extends ListRecords
                         ->required()
                         ->reactive(),
 
-                    \Filament\Forms\Components\TextInput::make('value')
+                    TextInput::make('value')
                         ->label(function ($get) {
                             $updateType = $get('update_type') ?? '';
                             $label = __('extra-service.actions.bulk_price_update_modal.value');
@@ -66,9 +73,9 @@ class ListExtraServices extends ListRecords
                         ->minValue(0)
                         ->step(0.001),
 
-                    \Filament\Forms\Components\Select::make('hall_id')
+                    Select::make('hall_id')
                         ->label(__('extra-service.actions.bulk_price_update_modal.hall_optional'))
-                        ->options(\App\Models\Hall::where('is_active', true)->get()->pluck('name', 'id'))
+                        ->options(Hall::where('is_active', true)->get()->pluck('name', 'id'))
                         ->searchable()
                         ->preload()
                         ->helperText(__('extra-service.actions.bulk_price_update_modal.hall_helper')),
@@ -77,26 +84,26 @@ class ListExtraServices extends ListRecords
                     $this->bulkUpdatePrices($data);
                 }),
 
-            Actions\Action::make('duplicateServices')
+            Action::make('duplicateServices')
                 ->label(__('extra-service.actions.duplicate_services'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\Select::make('source_hall_id')
+                ->schema([
+                    Select::make('source_hall_id')
                         ->label(__('extra-service.actions.duplicate_services_modal.source_hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\Select::make('target_hall_id')
+                    Select::make('target_hall_id')
                         ->label(__('extra-service.actions.duplicate_services_modal.target_hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\Checkbox::make('copy_inactive')
+                    Checkbox::make('copy_inactive')
                         ->label(__('extra-service.actions.duplicate_services_modal.copy_inactive'))
                         ->default(false),
                 ])
@@ -111,67 +118,67 @@ class ListExtraServices extends ListRecords
         return [
             'all' => Tab::make(__('extra-service.tabs.all'))
                 ->icon('heroicon-o-squares-2x2')
-                ->badge(fn() => \App\Models\ExtraService::count()),
+                ->badge(fn() => ExtraService::count()),
 
             'active' => Tab::make(__('extra-service.tabs.active'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', true))
-                ->badge(fn() => \App\Models\ExtraService::where('is_active', true)->count())
+                ->badge(fn() => ExtraService::where('is_active', true)->count())
                 ->badgeColor('success'),
 
             'inactive' => Tab::make(__('extra-service.tabs.inactive'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_active', false))
-                ->badge(fn() => \App\Models\ExtraService::where('is_active', false)->count())
+                ->badge(fn() => ExtraService::where('is_active', false)->count())
                 ->badgeColor('danger'),
 
             'required' => Tab::make(__('extra-service.tabs.required'))
                 ->icon('heroicon-o-star')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('is_required', true))
-                ->badge(fn() => \App\Models\ExtraService::where('is_required', true)->count())
+                ->badge(fn() => ExtraService::where('is_required', true)->count())
                 ->badgeColor('warning'),
 
             'per_person' => Tab::make(__('extra-service.tabs.per_person'))
                 ->icon('heroicon-o-user-group')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'per_person'))
-                ->badge(fn() => \App\Models\ExtraService::where('unit', 'per_person')->count())
+                ->badge(fn() => ExtraService::where('unit', 'per_person')->count())
                 ->badgeColor('info'),
 
             'per_item' => Tab::make(__('extra-service.tabs.per_item'))
                 ->icon('heroicon-o-cube')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'per_item'))
-                ->badge(fn() => \App\Models\ExtraService::where('unit', 'per_item')->count())
+                ->badge(fn() => ExtraService::where('unit', 'per_item')->count())
                 ->badgeColor('info'),
 
             'per_hour' => Tab::make(__('extra-service.tabs.per_hour'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'per_hour'))
-                ->badge(fn() => \App\Models\ExtraService::where('unit', 'per_hour')->count())
+                ->badge(fn() => ExtraService::where('unit', 'per_hour')->count())
                 ->badgeColor('info'),
 
             'fixed' => Tab::make(__('extra-service.tabs.fixed'))
                 ->icon('heroicon-o-banknotes')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('unit', 'fixed'))
-                ->badge(fn() => \App\Models\ExtraService::where('unit', 'fixed')->count())
+                ->badge(fn() => ExtraService::where('unit', 'fixed')->count())
                 ->badgeColor('success'),
 
             'with_image' => Tab::make(__('extra-service.tabs.with_image'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNotNull('image'))
-                ->badge(fn() => \App\Models\ExtraService::whereNotNull('image')->count())
+                ->badge(fn() => ExtraService::whereNotNull('image')->count())
                 ->badgeColor('purple'),
 
             'without_image' => Tab::make(__('extra-service.tabs.without_image'))
                 ->icon('heroicon-o-photo')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('image'))
-                ->badge(fn() => \App\Models\ExtraService::whereNull('image')->count())
+                ->badge(fn() => ExtraService::whereNull('image')->count())
                 ->badgeColor('gray'),
         ];
     }
 
     protected function exportServices(): void
     {
-        $services = \App\Models\ExtraService::with('hall')->get();
+        $services = ExtraService::with('hall')->get();
 
         $filename = 'extra_services_' . now()->format('Y_m_d_His') . '.csv';
         $path = storage_path('app/public/exports/' . $filename);
@@ -228,7 +235,7 @@ class ListExtraServices extends ListRecords
             ->body(__('extra-service.notifications.export_body'))
             ->persistent()
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('extra-service.notifications.download'))
                     ->url(asset('storage/exports/' . $filename))
                     ->openUrlInNewTab(),
@@ -238,7 +245,7 @@ class ListExtraServices extends ListRecords
 
     protected function bulkUpdatePrices(array $data): void
     {
-        $query = \App\Models\ExtraService::query();
+        $query = ExtraService::query();
 
         if (isset($data['hall_id'])) {
             $query->where('hall_id', $data['hall_id']);
@@ -293,7 +300,7 @@ class ListExtraServices extends ListRecords
 
     protected function duplicateServicesToHall(array $data): void
     {
-        $query = \App\Models\ExtraService::where('hall_id', $data['source_hall_id']);
+        $query = ExtraService::where('hall_id', $data['source_hall_id']);
 
         if (!$data['copy_inactive']) {
             $query->where('is_active', true);

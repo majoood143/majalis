@@ -172,15 +172,15 @@
             <h3>Payment Details</h3>
             <div class="detail-row">
                 <span class="detail-label">Receipt Number:</span>
-                <span class="detail-value">{{ $payment->payment_reference }}</span>
+                <span class="detail-value">{{ is_array($payment->payment_reference) ? ($payment->payment_reference[app()->getLocale()] ?? $payment->payment_reference['en'] ?? 'N/A') : ($payment->payment_reference ?? 'N/A') }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Transaction ID:</span>
-                <span class="detail-value">{{ $payment->transaction_id ?? 'N/A' }}</span>
+                <span class="detail-value">{{ is_array($payment->transaction_id) ? ($payment->transaction_id[app()->getLocale()] ?? $payment->transaction_id['en'] ?? 'N/A') : ($payment->transaction_id ?? 'N/A') }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Payment Method:</span>
-                <span class="detail-value">{{ $payment->payment_method ?? 'N/A' }}</span>
+                <span class="detail-value">{{ is_array($payment->payment_method) ? ($payment->payment_method[app()->getLocale()] ?? $payment->payment_method['en'] ?? 'N/A') : ($payment->payment_method ?? 'N/A') }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Payment Date:</span>
@@ -198,7 +198,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Hall:</span>
-                <span class="detail-value">{{ $hall->name ?? 'N/A' }}</span>
+                <span class="detail-value">{{ is_array($hall->name ?? null) ? ($hall->name[app()->getLocale()] ?? $hall->name['ar'] ?? $hall->name['en'] ?? 'N/A') : ($hall->name ?? 'N/A') }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Event Date:</span>
@@ -206,7 +206,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Time Slot:</span>
-                <span class="detail-value">{{ ucfirst(str_replace('_', ' ', $booking->time_slot ?? 'N/A')) }}</span>
+                <span class="detail-value">{{ ucfirst(str_replace('_', ' ', is_array($booking->time_slot ?? null) ? ($booking->time_slot[app()->getLocale()] ?? 'N/A') : ($booking->time_slot ?? 'N/A'))) }}</span>
             </div>
         </div>
         @endif

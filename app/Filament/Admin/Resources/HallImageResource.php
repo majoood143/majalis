@@ -2,23 +2,40 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\HallImageResource\Pages\ListHallImages;
+use App\Filament\Admin\Resources\HallImageResource\Pages\CreateHallImage;
+use App\Filament\Admin\Resources\HallImageResource\Pages\EditHallImage;
 use App\Filament\Admin\Resources\HallImageResource\Pages;
 use App\Models\HallImage;
 use App\Models\Hall;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 class HallImageResource extends Resource
 {
     protected static ?string $model = HallImage::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-photo';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-photo';
 
     //protected static ?string $navigationGroup = 'Hall Management';
 
@@ -46,20 +63,20 @@ class HallImageResource extends Resource
         return __('hall-image.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-            Forms\Components\Section::make(__('hall-image.image_information'))
+        return $schema
+            ->components([
+            Section::make(__('hall-image.image_information'))
                 ->schema([
-                    Forms\Components\Select::make('hall_id')
+                    Select::make('hall_id')
                         ->label(__('hall-image.hall'))
                         ->options(Hall::all()->pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    Forms\Components\Select::make('type')
+                    Select::make('type')
                         ->label(__('hall-image.type'))
                         ->options([
                             'gallery' => __('hall-image.types.gallery'),
@@ -71,7 +88,7 @@ class HallImageResource extends Resource
                         ->required(),
 
                     // FIX: Added ->disk('public') to load existing images correctly
-                    Forms\Components\FileUpload::make('image_path')
+                    FileUpload::make('image_path')
                         ->label(__('hall-image.image_path'))
                         ->image()
                         ->disk('public')                    // ← REQUIRED for loading existing images
@@ -86,7 +103,7 @@ class HallImageResource extends Resource
                         ->uploadProgressIndicatorPosition('left'),
 
                     // FIX: Added ->disk('public') to load existing thumbnails correctly
-                    Forms\Components\FileUpload::make('thumbnail_path')
+                    FileUpload::make('thumbnail_path')
                         ->label(__('hall-image.thumbnail_path'))
                         ->image()
                         ->disk('public')                    // ← REQUIRED for loading existing images
@@ -96,64 +113,65 @@ class HallImageResource extends Resource
                         ->imagePreviewHeight('150'),        // ← Smaller preview for thumbnails
                 ])->columns(2),
 
-                Forms\Components\Section::make(__('hall-image.image_details'))
+                Section::make(__('hall-image.image_details'))
                     ->schema([
-                        Forms\Components\TextInput::make('title.en')
+                        TextInput::make('title.en')
                             ->label(__('hall-image.title_en'))
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('title.ar')
+                        TextInput::make('title.ar')
                             ->label(__('hall-image.title_ar'))
                             ->maxLength(255),
 
-                        Forms\Components\Textarea::make('caption.en')
+                        Textarea::make('caption.en')
                             ->label(__('hall-image.caption_en'))
                             ->rows(2),
 
-                        Forms\Components\Textarea::make('caption.ar')
+                        Textarea::make('caption.ar')
                             ->label(__('hall-image.caption_ar'))
                             ->rows(2),
 
-                        Forms\Components\TextInput::make('alt_text')
+                        TextInput::make('alt_text')
                             ->label(__('hall-image.alt_text'))
                             ->maxLength(255),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('hall-image.settings'))
+                Section::make(__('hall-image.settings'))
                     ->schema([
-                        Forms\Components\TextInput::make('order')
+                        TextInput::make('order')
                             ->label(__('hall-image.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('hall-image.is_active'))
                             ->default(true)
                             ->inline(false),
 
-                        Forms\Components\Toggle::make('is_featured')
+                        Toggle::make('is_featured')
                             ->label(__('hall-image.is_featured'))
                             ->inline(false),
                     ])->columns(3),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image_path')
+                ImageColumn::make('image_path')
                     ->label(__('hall-image.image'))
                     ->size(80),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('hall-image.hall_name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->hall->name),
 
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->label(__('hall-image.type'))
                     ->badge()
                     ->formatStateUsing(function ($record) {
@@ -163,43 +181,43 @@ class HallImageResource extends Resource
                     })
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label(__('hall-image.title'))
                     ->searchable()
                     ->limit(30)
                     ->formatStateUsing(fn($record) => $record->title ?: __('hall-image.no_title')),
 
-                Tables\Columns\TextColumn::make('formatted_size')
+                TextColumn::make('formatted_size')
                     ->label(__('hall-image.size'))
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('dimensions')
+                TextColumn::make('dimensions')
                     ->label(__('hall-image.dimensions'))
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('is_featured')
+                IconColumn::make('is_featured')
                     ->label(__('hall-image.featured'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('hall-image.active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('order')
+                TextColumn::make('order')
                     ->label(__('hall-image.order'))
                     ->sortable()
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('hall_id')
+                SelectFilter::make('hall_id')
                     ->label(__('hall-image.filters.hall'))
                     ->relationship('hall', 'name')
                     ->searchable()
                     ->preload(),
 
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label(__('hall-image.filters.type'))
                     ->options([
                         'gallery' => __('hall-image.types.gallery'),
@@ -208,28 +226,28 @@ class HallImageResource extends Resource
                         '360_view' => __('hall-image.types.360_view'),
                     ]),
 
-                Tables\Filters\TernaryFilter::make('is_featured')
+                TernaryFilter::make('is_featured')
                     ->label(__('hall-image.filters.featured'))
                     ->boolean()
                     ->native(false),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('hall-image.filters.active'))
                     ->boolean()
                     ->native(false),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->label(__('hall-image.edit')),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label(__('hall-image.delete')),
-                ActivityLogTimelineTableAction::make('Activities'),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('order')
@@ -246,9 +264,9 @@ class HallImageResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListHallImages::route('/'),
-            'create' => Pages\CreateHallImage::route('/create'),
-            'edit' => Pages\EditHallImage::route('/{record}/edit'),
+            'index' => ListHallImages::route('/'),
+            'create' => CreateHallImage::route('/create'),
+            'edit' => EditHallImage::route('/{record}/edit'),
         ];
     }
 }

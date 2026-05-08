@@ -2,6 +2,10 @@
 
 namespace App\Filament\Admin\Resources\CommissionSettingResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\CommissionSettingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -18,7 +22,7 @@ class EditCommissionSetting extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -43,7 +47,7 @@ class EditCommissionSetting extends EditRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewBookings')
+            Action::make('viewBookings')
                 ->label('View Affected Bookings')
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
@@ -54,7 +58,7 @@ class EditCommissionSetting extends EditRecord
                     ]
                 ])),
 
-            Actions\Action::make('calculateImpact')
+            Action::make('calculateImpact')
                 ->label('Calculate Financial Impact')
                 ->icon('heroicon-o-calculator')
                 ->color('warning')
@@ -67,26 +71,26 @@ class EditCommissionSetting extends EditRecord
                         ->info()
                         ->persistent()
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('viewReport')
+                            Action::make('viewReport')
                                 ->label('View Full Report')
                                 ->url('#'),
                         ])
                         ->send();
                 }),
 
-            Actions\Action::make('extendValidity')
+            Action::make('extendValidity')
                 ->label('Extend Validity')
                 ->icon('heroicon-o-calendar-days')
                 ->color('success')
                 ->visible(fn() => $this->record->effective_to !== null)
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('new_effective_to')
+                ->schema([
+                    DatePicker::make('new_effective_to')
                         ->label('New End Date')
                         ->native(false)
                         ->minDate(fn() => $this->record->effective_to ?? now())
                         ->required(),
 
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Textarea::make('reason')
                         ->label('Reason for Extension')
                         ->rows(3),
                 ])
@@ -113,7 +117,7 @@ class EditCommissionSetting extends EditRecord
                         ->send();
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -140,15 +144,15 @@ class EditCommissionSetting extends EditRecord
                         ->title('Commission Setting Duplicated')
                         ->body('The commission setting has been duplicated successfully.')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('Edit Duplicate')
                                 ->url(CommissionSettingResource::getUrl('edit', ['record' => $newCommission->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     // Check if commission has been applied to any bookings
                     // This assumes you have a way to track which commission was applied
                     // You may need to adjust this based on your actual implementation
@@ -175,7 +179,7 @@ class EditCommissionSetting extends EditRecord
                     //Cache::tags(['commissions'])->flush();
                 }),
 
-            Actions\Action::make('viewHistory')
+            Action::make('viewHistory')
                 ->label('View History')
                 ->icon('heroicon-o-clock')
                 ->color('gray')

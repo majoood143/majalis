@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\HallResource\Pages;
 
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use App\Filament\Owner\Resources\HallResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -41,19 +44,19 @@ class EditHall extends EditRecord
     {
         return [
             // View Hall
-            Actions\ViewAction::make()
+            ViewAction::make()
                 ->label(__('owner.halls.actions.view'))
                 ->icon('heroicon-o-eye'),
 
             // Manage Availability
-            Actions\Action::make('availability')
+            Action::make('availability')
                 ->label(__('owner.halls.actions.availability'))
                 ->icon('heroicon-o-calendar')
                 ->color('info')
                 ->url(fn () => HallResource::getUrl('availability', ['record' => $this->record])),
 
             // Regenerate Availability
-            Actions\Action::make('regenerate_availability')
+            Action::make('regenerate_availability')
                 ->label(__('owner.halls.actions.regenerate'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
@@ -70,7 +73,7 @@ class EditHall extends EditRecord
                 }),
 
             // Toggle Active Status
-            Actions\Action::make('toggle_active')
+            Action::make('toggle_active')
                 ->label(fn (): string => $this->record->is_active
                     ? __('owner.halls.actions.deactivate')
                     : __('owner.halls.actions.activate'))
@@ -93,7 +96,7 @@ class EditHall extends EditRecord
                 }),
 
             // Delete Action
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->label(__('owner.halls.actions.delete'))
                 ->requiresConfirmation()
                 ->modalHeading(__('owner.halls.modals.delete_heading'))

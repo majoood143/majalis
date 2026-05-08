@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use DateTime;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use App\Enums\UserRole;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -14,8 +17,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * User Model
@@ -40,9 +43,9 @@ use Spatie\Activitylog\LogOptions;
  * @property string $phone
  * @property string $phone_country_code
  * @property bool $is_active
- * @property \DateTime|null $email_verified_at
- * @property \DateTime|null $phone_verified_at
- * @property \DateTime|null $deleted_at
+ * @property DateTime|null $email_verified_at
+ * @property DateTime|null $phone_verified_at
+ * @property DateTime|null $deleted_at
  */
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
@@ -310,12 +313,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     // ==================== QUERY SCOPES ====================
-
     /**
      * Scope a query to only include admin users.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeAdmins($query)
     {
@@ -325,8 +327,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /**
      * Scope a query to only include hall owner users.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeHallOwners($query)
     {
@@ -336,8 +338,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /**
      * Scope a query to only include customer users.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeCustomers($query)
     {
@@ -347,8 +349,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /**
      * Scope a query to only include active users.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeActive($query)
     {
@@ -358,8 +360,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /**
      * Scope a query to only include verified users.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeVerified($query)
     {
@@ -481,7 +483,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      *
      * Returns bookings that are in the future and not cancelled.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getUpcomingBookings()
     {
@@ -497,7 +499,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      *
      * Returns bookings that have already occurred.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getPastBookings()
     {

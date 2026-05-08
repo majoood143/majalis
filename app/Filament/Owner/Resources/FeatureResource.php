@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
+use App\Filament\Owner\Resources\FeatureResource\Pages\ListFeatures;
+use App\Filament\Owner\Resources\FeatureResource\Pages\ManageHallFeatures;
 use App\Filament\Owner\Resources\FeatureResource\Pages;
 use App\Models\Hall;
 use App\Models\HallFeature;
@@ -42,7 +56,7 @@ class FeatureResource extends OwnerResource
     /**
      * The navigation icon.
      */
-    protected static ?string $navigationIcon = 'heroicon-o-check-badge';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-check-badge';
 
     /**
      * The navigation group.
@@ -154,7 +168,7 @@ class FeatureResource extends OwnerResource
             ->striped()
             ->columns([
                 // Icon Column
-                Tables\Columns\TextColumn::make('icon')
+                TextColumn::make('icon')
                     ->label('')
                     ->formatStateUsing(fn (string $state): string => '')
                     ->html()
@@ -164,7 +178,7 @@ class FeatureResource extends OwnerResource
                     ->view('filament.owner.components.feature-icon'),
 
                 // Feature Name
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('owner.features.columns.name'))
                     ->formatStateUsing(fn ($record) => $record->getTranslation('name', app()->getLocale()))
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -176,7 +190,7 @@ class FeatureResource extends OwnerResource
                     ->sortable(),
 
                 // Description
-                Tables\Columns\TextColumn::make('description')
+                TextColumn::make('description')
                     ->label(__('owner.features.columns.description'))
                     ->formatStateUsing(fn ($record) => $record->getTranslation('description', app()->getLocale()) ?? '-')
                     ->limit(50)
@@ -184,7 +198,7 @@ class FeatureResource extends OwnerResource
                     ->toggleable(),
 
                 // Your Halls Count
-                Tables\Columns\TextColumn::make('halls_count')
+                TextColumn::make('halls_count')
                     ->label(__('owner.features.columns.your_halls'))
                     ->state(function ($record) use ($ownerHallIds): int {
                         return Hall::whereIn('id', $ownerHallIds)
@@ -196,7 +210,7 @@ class FeatureResource extends OwnerResource
                     ->icon(fn (int $state): string => $state > 0 ? 'heroicon-o-check' : 'heroicon-o-minus'),
 
                 // Status Badge (added to your halls or not)
-                Tables\Columns\IconColumn::make('is_added')
+                IconColumn::make('is_added')
                     ->label(__('owner.features.columns.added'))
                     ->state(fn ($record) => in_array($record->id, $ownerFeatureIds))
                     ->boolean()
@@ -207,7 +221,7 @@ class FeatureResource extends OwnerResource
             ])
             ->filters([
                 // Added to My Halls filter
-                Tables\Filters\TernaryFilter::make('added_to_halls')
+                TernaryFilter::make('added_to_halls')
                     ->label(__('owner.features.filters.added_status'))
                     ->placeholder(__('owner.features.filters.all'))
                     ->trueLabel(__('owner.features.filters.added_only'))
@@ -218,20 +232,20 @@ class FeatureResource extends OwnerResource
                         blank: fn (Builder $query) => $query,
                     ),
             ])
-            ->actions([
+            ->recordActions([
                 // View Details
-                Tables\Actions\ViewAction::make()
+                ViewAction::make()
                     ->label(__('owner.features.actions.view'))
                     ->icon('heroicon-o-eye')
                     ->modalHeading(fn ($record) => $record->getTranslation('name', app()->getLocale())),
 
                 // Quick Add to Hall
-                Tables\Actions\Action::make('add_to_hall')
+                Action::make('add_to_hall')
                     ->label(__('owner.features.actions.add_to_hall'))
                     ->icon('heroicon-o-plus-circle')
                     ->color('success')
-                    ->form([
-                        Forms\Components\CheckboxList::make('hall_ids')
+                    ->schema([
+                        CheckboxList::make('hall_ids')
                             ->label(__('owner.features.fields.select_halls'))
                             ->options(function () use ($user) {
                                 return Hall::where('owner_id', $user?->id)
@@ -289,13 +303,13 @@ class FeatureResource extends OwnerResource
                     }),
 
                 // Remove from Hall
-                Tables\Actions\Action::make('remove_from_hall')
+                Action::make('remove_from_hall')
                     ->label(__('owner.features.actions.remove_from_hall'))
                     ->icon('heroicon-o-minus-circle')
                     ->color('danger')
                     ->visible(fn ($record) => in_array($record->id, $ownerFeatureIds))
-                    ->form([
-                        Forms\Components\CheckboxList::make('hall_ids')
+                    ->schema([
+                        CheckboxList::make('hall_ids')
                             ->label(__('owner.features.fields.select_halls_remove'))
                             ->options(function ($record) use ($user) {
                                 return Hall::where('owner_id', $user?->id)
@@ -337,15 +351,15 @@ class FeatureResource extends OwnerResource
                             ->send();
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+            ->toolbarActions([
+                BulkActionGroup::make([
                     // Bulk Add to Hall
-                    Tables\Actions\BulkAction::make('bulk_add')
+                    BulkAction::make('bulk_add')
                         ->label(__('owner.features.bulk.add_to_hall'))
                         ->icon('heroicon-o-plus-circle')
                         ->color('success')
-                        ->form([
-                            Forms\Components\CheckboxList::make('hall_ids')
+                        ->schema([
+                            CheckboxList::make('hall_ids')
                                 ->label(__('owner.features.fields.select_halls'))
                                 ->options(function () use ($user) {
                                     return Hall::where('owner_id', $user?->id)
@@ -402,24 +416,24 @@ class FeatureResource extends OwnerResource
     /**
      * Configure the infolist for viewing feature details.
      */
-    public static function infolist(Infolist $infolist): Infolist
+    public static function infolist(Schema $schema): Schema
     {
         $user = Auth::user();
 
-        return $infolist
-            ->schema([
-                Infolists\Components\Section::make()
+        return $schema
+            ->components([
+                Section::make()
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
                                 // Feature Icon
-                                Infolists\Components\TextEntry::make('icon')
+                                TextEntry::make('icon')
                                     ->label(__('owner.features.fields.icon'))
                                     ->formatStateUsing(fn ($record) => view('filament.owner.components.feature-icon-large', ['record' => $record])->render())
                                     ->html(),
 
                                 // Feature Name
-                                Infolists\Components\TextEntry::make('name')
+                                TextEntry::make('name')
                                     ->label(__('owner.features.fields.name'))
                                     ->formatStateUsing(fn ($record) =>
                                         $record->getTranslation('name', 'en') . ' / ' . $record->getTranslation('name', 'ar')
@@ -427,7 +441,7 @@ class FeatureResource extends OwnerResource
                             ]),
 
                         // Description
-                        Infolists\Components\TextEntry::make('description')
+                        TextEntry::make('description')
                             ->label(__('owner.features.fields.description'))
                             ->formatStateUsing(fn ($record) =>
                                 $record->getTranslation('description', app()->getLocale()) ?? __('owner.features.no_description')
@@ -435,7 +449,7 @@ class FeatureResource extends OwnerResource
                             ->columnSpanFull(),
 
                         // Halls using this feature
-                        Infolists\Components\TextEntry::make('your_halls')
+                        TextEntry::make('your_halls')
                             ->label(__('owner.features.fields.your_halls_with'))
                             ->state(function ($record) use ($user) {
                                 $halls = Hall::where('owner_id', $user?->id)
@@ -461,8 +475,8 @@ class FeatureResource extends OwnerResource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListFeatures::route('/'),
-            'manage' => Pages\ManageHallFeatures::route('/manage'),
+            'index' => ListFeatures::route('/'),
+            'manage' => ManageHallFeatures::route('/manage'),
         ];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\PayoutResource\Widgets;
 
+use App\Models\User;
 use App\Enums\PayoutStatus;
 use App\Models\OwnerPayout;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -38,7 +39,7 @@ class PayoutSummaryWidget extends BaseWidget
      *
      * @var string|null
      */
-    protected static ?string $pollingInterval = '60s';
+    protected ?string $pollingInterval = '60s';
 
     /**
      * Get the stats to display.
@@ -156,7 +157,7 @@ class PayoutSummaryWidget extends BaseWidget
     /**
      * Get payout chart data for the last 6 months.
      *
-     * @param \App\Models\User $user
+     * @param User $user
      * @return array<int>
      */
     protected function getPayoutChartData($user): array

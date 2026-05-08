@@ -2,24 +2,43 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Admin\Resources\ExtraServiceResource\Pages\ListExtraServices;
+use App\Filament\Admin\Resources\ExtraServiceResource\Pages\CreateExtraService;
+use App\Filament\Admin\Resources\ExtraServiceResource\Pages\ViewExtraService;
+use App\Filament\Admin\Resources\ExtraServiceResource\Pages\EditExtraService;
 use App\Filament\Admin\Resources\ExtraServiceResource\Pages;
 use App\Models\ExtraService;
 use App\Models\Hall;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Infolists\Components\Tabs\Tab;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\ActionGroup;
-use Rmsramos\Activitylog\Actions\ActivityLogTimelineTableAction;
 
 
 class ExtraServiceResource extends Resource
 {
     protected static ?string $model = ExtraService::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-gift';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-gift';
 
     //protected static ?string $navigationGroup = 'Hall Management';
 
@@ -45,13 +64,13 @@ class ExtraServiceResource extends Resource
         return __('extra-service.navigation_label');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make(__('extra-service.service_information'))
+        return $schema
+            ->components([
+                Section::make(__('extra-service.service_information'))
                     ->schema([
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(__('extra-service.hall'))
                             ->options(function () {
                                 return Hall::with(['city', 'owner'])
@@ -80,37 +99,37 @@ class ExtraServiceResource extends Resource
                             ->searchable()
                             ->preload(),
 
-                        Forms\Components\TextInput::make('name.en')
+                        TextInput::make('name.en')
                             ->label(__('extra-service.name_en'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('name.ar')
+                        TextInput::make('name.ar')
                             ->label(__('extra-service.name_ar'))
                             ->required()
                             ->maxLength(255),
 
-                        Forms\Components\RichEditor::make('description.en')
+                        RichEditor::make('description.en')
                             ->label(__('extra-service.description_en'))
                             ->required()
                             ->columnSpanFull(),
 
-                        Forms\Components\RichEditor::make('description.ar')
+                        RichEditor::make('description.ar')
                             ->label(__('extra-service.description_ar'))
                             ->required()
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('extra-service.pricing'))
+                Section::make(__('extra-service.pricing'))
                     ->schema([
-                        Forms\Components\TextInput::make('price')
+                        TextInput::make('price')
                             ->label(__('extra-service.price'))
                             ->numeric()
                             ->required()
                             ->prefix('OMR')
                             ->step(0.001),
 
-                        Forms\Components\Select::make('unit')
+                        Select::make('unit')
                             ->label(__('extra-service.unit'))
                             ->options([
                                 'per_person' => __('extra-service.units.per_person'),
@@ -120,74 +139,75 @@ class ExtraServiceResource extends Resource
                             ])
                             ->default('fixed'),
 
-                        Forms\Components\TextInput::make('minimum_quantity')
+                        TextInput::make('minimum_quantity')
                             ->label(__('extra-service.minimum_quantity'))
                             ->numeric()
                             ->default(1)
                             ->minValue(1),
 
-                        Forms\Components\TextInput::make('maximum_quantity')
+                        TextInput::make('maximum_quantity')
                             ->label(__('extra-service.maximum_quantity'))
                             ->numeric()
                             ->minValue(1)
                             ->helperText(__('extra-service.maximum_quantity_helper')),
                     ])->columns(2),
 
-                Forms\Components\Section::make(__('extra-service.media'))
+                Section::make(__('extra-service.media'))
                     ->schema([
-                        Forms\Components\FileUpload::make('image')
+                        FileUpload::make('image')
                             ->label(__('extra-service.image'))
                             ->image()
                             ->directory('services')
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make(__('extra-service.settings'))
+                Section::make(__('extra-service.settings'))
                     ->schema([
-                        Forms\Components\TextInput::make('order')
+                        TextInput::make('order')
                             ->label(__('extra-service.order'))
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
 
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('extra-service.is_active'))
                             ->default(true)
                             ->inline(false),
 
-                        Forms\Components\Toggle::make('is_required')
+                        Toggle::make('is_required')
                             ->label(__('extra-service.is_required'))
                             ->helperText(__('extra-service.is_required_helper'))
                             ->inline(false),
                     ])->columns(3),
-            ]);
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')
+                ImageColumn::make('image')
                     ->circular(),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('extra-service.name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->name),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('extra-service.hall_name'))
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(fn($record) => $record->hall->name),
 
-                Tables\Columns\TextColumn::make('price')
+                TextColumn::make('price')
                     ->label(__('extra-service.price'))
                     ->money('OMR')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('unit')
+                TextColumn::make('unit')
                     ->label(__('extra-service.unit_label'))
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => match ($state) {
@@ -198,29 +218,29 @@ class ExtraServiceResource extends Resource
                         default => $state,
                     }),
 
-                Tables\Columns\IconColumn::make('is_required')
+                IconColumn::make('is_required')
                     ->label(__('extra-service.required'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('extra-service.active'))
                     ->boolean()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('order')
+                TextColumn::make('order')
                     ->label(__('extra-service.order'))
                     ->sortable()
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('hall_id')
+                SelectFilter::make('hall_id')
                     ->label(__('extra-service.filters.hall'))
                     ->relationship('hall', 'name')
                     ->searchable()
                     ->preload(),
 
-                Tables\Filters\SelectFilter::make('unit')
+                SelectFilter::make('unit')
                     ->label(__('extra-service.filters.unit'))
                     ->options([
                         'per_person' => __('extra-service.units.per_person'),
@@ -229,30 +249,30 @@ class ExtraServiceResource extends Resource
                         'fixed' => __('extra-service.units.fixed'),
                     ]),
 
-                Tables\Filters\TernaryFilter::make('is_active')
+                TernaryFilter::make('is_active')
                     ->label(__('extra-service.filters.active'))
                     ->boolean()
                     ->native(false),
 
-                Tables\Filters\TernaryFilter::make('is_required')
+                TernaryFilter::make('is_required')
                     ->label(__('extra-service.filters.required'))
                     ->boolean()
                     ->native(false),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make()
+                    ViewAction::make()
                         ->label(__('extra-service.view')),
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->label(__('extra-service.edit')),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label(__('extra-service.delete')),
-                ActivityLogTimelineTableAction::make('Activities'),
+                // TODO: ActivityLogTimelineTableAction removed (rmsramos v3-only) - replace with v4 equivalent,
                 ])
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('order');
@@ -268,10 +288,10 @@ class ExtraServiceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListExtraServices::route('/'),
-            'create' => Pages\CreateExtraService::route('/create'),
-            'view' => Pages\ViewExtraService::route('/{record}'),
-            'edit' => Pages\EditExtraService::route('/{record}/edit'),
+            'index' => ListExtraServices::route('/'),
+            'create' => CreateExtraService::route('/create'),
+            'view' => ViewExtraService::route('/{record}'),
+            'edit' => EditExtraService::route('/{record}/edit'),
         ];
     }
 }

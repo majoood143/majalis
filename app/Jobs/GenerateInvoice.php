@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use Exception;
+use Throwable;
 use App\Models\Booking;
 use App\Services\PDFService;
 use Illuminate\Bus\Queueable;
@@ -34,7 +36,7 @@ class GenerateInvoice implements ShouldQueue
             $pdfService->generateBookingInvoice($this->booking);
 
             Log::info('Invoice generated', ['booking_id' => $this->booking->id]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Invoice generation job failed', [
                 'booking_id' => $this->booking->id,
                 'error' => $e->getMessage()
@@ -47,7 +49,7 @@ class GenerateInvoice implements ShouldQueue
     /**
      * Handle a job failure.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error('Invoice generation job failed permanently', [
             'booking_id' => $this->booking->id,

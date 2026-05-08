@@ -52,6 +52,7 @@ return [
         'from_date' => 'من تاريخ',
         'to_date' => 'إلى تاريخ',
         'rejection_reason' => 'سبب الرفض',
+        'logo' => 'شعار العمل',
     ],
 
     // Options

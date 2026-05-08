@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\AvailabilityResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Toggle;
+use Filament\Actions\CreateAction;
+use App\Models\HallAvailability;
 use App\Filament\Owner\Resources\AvailabilityResource;
 use App\Models\Hall;
 use Filament\Actions;
@@ -59,7 +66,7 @@ class ListAvailabilities extends ListRecords
     {
         return [
             // Calendar View Button
-            Actions\Action::make('calendar_view')
+            Action::make('calendar_view')
                 ->label(__('owner.availability_resource.actions.calendar_view'))
                 ->icon('heroicon-o-calendar')
                 ->color('info')
@@ -120,32 +127,32 @@ class ListAvailabilities extends ListRecords
 
 
 
-            Actions\Action::make('generateAvailability')
+            Action::make('generateAvailability')
                 ->label(__('hall-availability.list_actions.generate_availability'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('success')
-                ->form([
-                    \Filament\Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('hall-availability.hall'))
-                        ->options(\App\Models\Hall::pluck('name', 'id'))
+                        ->options(Hall::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload(),
 
-                    \Filament\Forms\Components\DatePicker::make('start_date')
+                    DatePicker::make('start_date')
                         ->label(__('hall-availability.generate_availability_modal.start_date'))
                         ->required()
                         ->native(false)
                         ->default(now()),
 
-                    \Filament\Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label(__('hall-availability.generate_availability_modal.end_date'))
                         ->required()
                         ->native(false)
                         ->default(now()->addMonths(3))
                         ->afterOrEqual('start_date'),
 
-                    \Filament\Forms\Components\CheckboxList::make('time_slots')
+                    CheckboxList::make('time_slots')
                         ->label(__('hall-availability.generate_availability_modal.time_slots_to_generate'))
                         ->options([
                             'morning' => __('hall-availability.time_slots_short.morning'),
@@ -157,7 +164,7 @@ class ListAvailabilities extends ListRecords
                         ->required()
                         ->columns(2),
 
-                    \Filament\Forms\Components\Toggle::make('skip_existing')
+                    Toggle::make('skip_existing')
                         ->label(__('hall-availability.generate_availability_modal.skip_existing'))
                         ->helperText(__('hall-availability.generate_availability_modal.skip_existing_helper'))
                         ->default(true),
@@ -168,7 +175,7 @@ class ListAvailabilities extends ListRecords
 
 
             // Create Action
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label(__('owner.availability_resource.actions.create'))
                 ->icon('heroicon-o-plus'),
         ];
@@ -177,50 +184,50 @@ class ListAvailabilities extends ListRecords
     /**
      * Get tabs for filtering.
      *
-     * @return array<Tab>
+     * @return array<\Filament\Schemas\Components\Tabs\Tab>
      */
     public function getTabs(): array
     {
         $user = Auth::user();
-        $baseQuery = fn () => \App\Models\HallAvailability::whereHas('hall', function (Builder $q) use ($user) {
+        $baseQuery = fn () => HallAvailability::whereHas('hall', function (Builder $q) use ($user) {
             $q->where('owner_id', $user->id);
         })->where('date', '>=', now()->toDateString());
 
         return [
-            'all' => Tab::make(__('owner.availability_resource.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.all'))
                 ->badge($baseQuery()->count())
                 ->badgeColor('primary'),
 
-            'available' => Tab::make(__('owner.availability_resource.tabs.available'))
+            'available' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.available'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_available', true))
                 ->badge($baseQuery()->where('is_available', true)->count())
                 ->badgeColor('success')
                 ->icon('heroicon-o-check-circle'),
 
-            'blocked' => Tab::make(__('owner.availability_resource.tabs.blocked'))
+            'blocked' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.blocked'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('is_available', false)->where('reason', '!=', 'booked'))
                 ->badge($baseQuery()->where('is_available', false)->where('reason', '!=', 'booked')->count())
                 ->badgeColor('danger')
                 ->icon('heroicon-o-x-circle'),
 
-            'booked' => Tab::make(__('owner.availability_resource.tabs.booked'))
+            'booked' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.booked'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('reason', 'booked'))
                 ->badge($baseQuery()->where('reason', 'booked')->count())
                 ->badgeColor('info')
                 ->icon('heroicon-o-calendar-days'),
 
-            'maintenance' => Tab::make(__('owner.availability_resource.tabs.maintenance'))
+            'maintenance' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.maintenance'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('reason', 'maintenance'))
                 ->badge($baseQuery()->where('reason', 'maintenance')->count())
                 ->badgeColor('warning')
                 ->icon('heroicon-o-wrench-screwdriver'),
 
-            'today' => Tab::make(__('owner.availability_resource.tabs.today'))
+            'today' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.today'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereDate('date', now()))
                 ->badge($baseQuery()->whereDate('date', now())->count())
                 ->badgeColor('gray'),
 
-            'this_week' => Tab::make(__('owner.availability_resource.tabs.this_week'))
+            'this_week' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner.availability_resource.tabs.this_week'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereBetween('date', [
                     now()->startOfWeek()->toDateString(),
                     now()->endOfWeek()->toDateString(),
@@ -242,7 +249,7 @@ class ListAvailabilities extends ListRecords
 
         while ($startDate->lte($endDate)) {
             foreach ($data['time_slots'] as $timeSlot) {
-                $exists = \App\Models\HallAvailability::where('hall_id', $data['hall_id'])
+                $exists = HallAvailability::where('hall_id', $data['hall_id'])
                     ->where('date', $startDate->toDateString())
                     ->where('time_slot', $timeSlot)
                     ->exists();
@@ -252,7 +259,7 @@ class ListAvailabilities extends ListRecords
                     continue;
                 }
 
-                \App\Models\HallAvailability::updateOrCreate(
+                HallAvailability::updateOrCreate(
                     [
                         'hall_id' => $data['hall_id'],
                         'date' => $startDate->toDateString(),

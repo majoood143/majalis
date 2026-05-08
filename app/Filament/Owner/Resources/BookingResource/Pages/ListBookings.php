@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\BookingResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\DatePicker;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Filament\Owner\Resources\BookingResource\Widgets\BookingStatsWidget;
 use App\Filament\Owner\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Hall;
@@ -44,15 +50,15 @@ class ListBookings extends ListRecords
             //         $this->notify('info', __('owner_booking.pages.list.export_notification'));
             //     }),
 
-            Actions\Action::make('export')
+            Action::make('export')
                 ->label(__('owner_booking.pages.list.export_label'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
                 ->modalHeading(__('owner_booking.export.modal_heading'))
                 ->modalDescription(__('owner_booking.export.modal_description'))
                 ->modalSubmitActionLabel(__('owner_booking.export.submit_label'))
-                ->form([
-                    Forms\Components\Select::make('hall_id')
+                ->schema([
+                    Select::make('hall_id')
                         ->label(__('owner_booking.export.hall_label'))
                         ->options(fn () => Hall::where('owner_id', Auth::id())
                             ->get()
@@ -61,17 +67,17 @@ class ListBookings extends ListRecords
                             ]))
                         ->placeholder(__('owner_booking.export.all_halls'))
                         ->nullable(),
-                    Forms\Components\Grid::make(2)
+                    Grid::make(2)
                         ->schema([
-                            Forms\Components\DatePicker::make('date_from')
+                            DatePicker::make('date_from')
                                 ->label(__('owner_booking.export.date_from'))
                                 ->nullable(),
-                            Forms\Components\DatePicker::make('date_to')
+                            DatePicker::make('date_to')
                                 ->label(__('owner_booking.export.date_to'))
                                 ->nullable(),
                         ]),
                 ])
-                ->action(function (array $data): \Symfony\Component\HttpFoundation\StreamedResponse {
+                ->action(function (array $data): StreamedResponse {
                     $query = Booking::query()
                         ->whereHas('hall', fn (Builder $q) => $q->where('owner_id', Auth::id()))
                         ->with(['hall', 'user', 'extraServices'])
@@ -128,24 +134,24 @@ class ListBookings extends ListRecords
         $baseQuery = fn() => static::getResource()::getEloquentQuery();
 
         return [
-            'all' => Tab::make(__('owner_booking.pages.list.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner_booking.pages.list.tabs.all'))
                 ->icon('heroicon-o-rectangle-stack')
                 ->badge(fn() => $baseQuery()->count())
                 ->badgeColor('gray'),
 
-            'pending' => Tab::make(__('owner_booking.pages.list.tabs.pending'))
+            'pending' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner_booking.pages.list.tabs.pending'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'pending'))
                 ->badge(fn() => $baseQuery()->where('status', 'pending')->count())
                 ->badgeColor('warning'),
 
-            'confirmed' => Tab::make(__('owner_booking.pages.list.tabs.confirmed'))
+            'confirmed' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner_booking.pages.list.tabs.confirmed'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'confirmed'))
                 ->badge(fn() => $baseQuery()->where('status', 'confirmed')->count())
                 ->badgeColor('success'),
 
-            'upcoming' => Tab::make(__('owner_booking.pages.list.tabs.upcoming'))
+            'upcoming' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner_booking.pages.list.tabs.upcoming'))
                 ->icon('heroicon-o-calendar')
                 ->modifyQueryUsing(fn(Builder $query) => $query
                     ->where('booking_date', '>=', now()->toDateString())
@@ -157,13 +163,13 @@ class ListBookings extends ListRecords
                     ->count())
                 ->badgeColor('info'),
 
-            'completed' => Tab::make(__('owner_booking.pages.list.tabs.completed'))
+            'completed' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner_booking.pages.list.tabs.completed'))
                 ->icon('heroicon-o-check-badge')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'completed'))
                 ->badge(fn() => $baseQuery()->where('status', 'completed')->count())
                 ->badgeColor('info'),
 
-            'cancelled' => Tab::make(__('owner_booking.pages.list.tabs.cancelled'))
+            'cancelled' => \Filament\Schemas\Components\Tabs\Tab::make(__('owner_booking.pages.list.tabs.cancelled'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'cancelled'))
                 ->badge(fn() => $baseQuery()->where('status', 'cancelled')->count())
@@ -177,7 +183,7 @@ class ListBookings extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            BookingResource\Widgets\BookingStatsWidget::class,
+            BookingStatsWidget::class,
         ];
     }
 }

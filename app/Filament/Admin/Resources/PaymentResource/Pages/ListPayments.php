@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PaymentResource\Pages;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Textarea;
+use App\Models\Payment;
+use Exception;
 use App\Filament\Admin\Resources\PaymentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -21,28 +32,28 @@ class ListPayments extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->color('primary')
                 ->label(__('payment.actions.create')),
 
-            Actions\Action::make('exportPayments')
+            Action::make('exportPayments')
                 ->label(__('payment.actions.export'))
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
-                ->form([
-                    \Filament\Forms\Components\Section::make(__('payment.sections.export_options'))
+                ->schema([
+                    Section::make(__('payment.sections.export_options'))
                         ->schema([
-                            \Filament\Forms\Components\Grid::make(2)
+                            Grid::make(2)
                                 ->schema([
-                                    \Filament\Forms\Components\DatePicker::make('from_date')
+                                    DatePicker::make('from_date')
                                         ->label(__('payment.fields.from_date'))
                                         ->default(now()->startOfMonth())
                                         ->native(false)
                                         ->displayFormat('d/m/Y')
                                         ->required(),
 
-                                    \Filament\Forms\Components\DatePicker::make('to_date')
+                                    DatePicker::make('to_date')
                                         ->label(__('payment.fields.to_date'))
                                         ->default(now())
                                         ->native(false)
@@ -50,7 +61,7 @@ class ListPayments extends ListRecords
                                         ->required(),
                                 ]),
 
-                            \Filament\Forms\Components\Select::make('status')
+                            Select::make('status')
                                 ->label(__('payment.filters.status_filter'))
                                 ->options([
                                     'all' => __('payment.options.all_statuses'),
@@ -63,7 +74,7 @@ class ListPayments extends ListRecords
                                 ->default('all')
                                 ->required(),
 
-                            \Filament\Forms\Components\Select::make('format')
+                            Select::make('format')
                                 ->label(__('payment.fields.format'))
                                 ->options([
                                     'csv' => __('payment.options.csv_format'),
@@ -72,7 +83,7 @@ class ListPayments extends ListRecords
                                 ->default('csv')
                                 ->required(),
 
-                            \Filament\Forms\Components\Toggle::make('include_booking_details')
+                            Toggle::make('include_booking_details')
                                 ->label(__('payment.fields.include_booking_details'))
                                 ->default(true)
                                 ->helperText(__('payment.helpers.include_booking_details')),
@@ -82,23 +93,23 @@ class ListPayments extends ListRecords
                     $this->exportPayments($data);
                 }),
 
-            Actions\Action::make('generateFinancialReport')
+            Action::make('generateFinancialReport')
                 ->label(__('payment.actions.financial_report'))
                 ->icon('heroicon-o-document-chart-bar')
                 ->color('info')
-                ->form([
-                    \Filament\Forms\Components\Section::make(__('payment.sections.report_period'))
+                ->schema([
+                    Section::make(__('payment.sections.report_period'))
                         ->schema([
-                            \Filament\Forms\Components\Grid::make(2)
+                            Grid::make(2)
                                 ->schema([
-                                    \Filament\Forms\Components\DatePicker::make('from_date')
+                                    DatePicker::make('from_date')
                                         ->label(__('payment.fields.from_date'))
                                         ->required()
                                         ->default(now()->startOfMonth())
                                         ->native(false)
                                         ->displayFormat('d/m/Y'),
 
-                                    \Filament\Forms\Components\DatePicker::make('to_date')
+                                    DatePicker::make('to_date')
                                         ->label(__('payment.fields.to_date'))
                                         ->required()
                                         ->default(now())
@@ -106,7 +117,7 @@ class ListPayments extends ListRecords
                                         ->displayFormat('d/m/Y'),
                                 ]),
 
-                            \Filament\Forms\Components\CheckboxList::make('metrics')
+                            CheckboxList::make('metrics')
                                 ->label(__('payment.fields.metrics'))
                                 ->options([
                                     'revenue' => __('payment.metrics.revenue'),
@@ -123,21 +134,21 @@ class ListPayments extends ListRecords
                     $this->generateFinancialReport($data);
                 }),
 
-            Actions\Action::make('reconcilePayments')
+            Action::make('reconcilePayments')
                 ->label(__('payment.actions.reconcile'))
                 ->icon('heroicon-o-calculator')
                 ->color('warning')
                 ->requiresConfirmation()
                 ->modalHeading(__('payment.modals.reconcile.heading'))
                 ->modalDescription(__('payment.modals.reconcile.description'))
-                ->form([
-                    \Filament\Forms\Components\DatePicker::make('reconcile_date')
+                ->schema([
+                    DatePicker::make('reconcile_date')
                         ->label(__('payment.fields.reconcile_date'))
                         ->default(today())
                         ->native(false)
                         ->required(),
 
-                    \Filament\Forms\Components\Toggle::make('auto_update')
+                    Toggle::make('auto_update')
                         ->label(__('payment.fields.auto_update'))
                         ->default(false)
                         ->helperText(__('payment.helpers.auto_update')),
@@ -146,15 +157,15 @@ class ListPayments extends ListRecords
                     $this->reconcilePayments($data);
                 }),
 
-            Actions\Action::make('retryFailedPayments')
+            Action::make('retryFailedPayments')
                 ->label(__('payment.actions.retry_failed'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('danger')
                 ->requiresConfirmation()
                 ->modalHeading(__('payment.modals.retry.heading'))
                 ->modalDescription(__('payment.modals.retry.description'))
-                ->form([
-                    \Filament\Forms\Components\Select::make('age')
+                ->schema([
+                    Select::make('age')
                         ->label(__('payment.fields.age'))
                         ->options([
                             '1' => __('payment.options.last_24_hours'),
@@ -165,7 +176,7 @@ class ListPayments extends ListRecords
                         ->default('1')
                         ->required(),
 
-                    \Filament\Forms\Components\Textarea::make('reason')
+                    Textarea::make('reason')
                         ->label(__('payment.fields.retry_reason'))
                         ->rows(2),
                 ])
@@ -173,15 +184,15 @@ class ListPayments extends ListRecords
                     $this->retryFailedPayments($data);
                 }),
 
-            Actions\Action::make('sendReminders')
+            Action::make('sendReminders')
                 ->label(__('payment.actions.send_reminders'))
                 ->icon('heroicon-o-bell')
                 ->color('gray')
                 ->requiresConfirmation()
                 ->modalHeading(__('payment.modals.reminders.heading'))
                 ->modalDescription(__('payment.modals.reminders.description'))
-                ->form([
-                    \Filament\Forms\Components\Select::make('age')
+                ->schema([
+                    Select::make('age')
                         ->label(__('payment.fields.pending_for'))
                         ->options([
                             '1' => __('payment.options.more_than_1_day'),
@@ -200,67 +211,67 @@ class ListPayments extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(__('payment.tabs.all'))
+            'all' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.all'))
                 ->icon('heroicon-o-credit-card')
-                ->badge(fn() => \App\Models\Payment::count()),
+                ->badge(fn() => Payment::count()),
 
-            'paid' => Tab::make(__('payment.tabs.paid'))
+            'paid' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.paid'))
                 ->icon('heroicon-o-check-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'paid'))
-                ->badge(fn() => \App\Models\Payment::where('status', 'paid')->count())
+                ->badge(fn() => Payment::where('status', 'paid')->count())
                 ->badgeColor('success'),
 
-            'pending' => Tab::make(__('payment.tabs.pending'))
+            'pending' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.pending'))
                 ->icon('heroicon-o-clock')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'pending'))
-                ->badge(fn() => \App\Models\Payment::where('status', 'pending')->count())
+                ->badge(fn() => Payment::where('status', 'pending')->count())
                 ->badgeColor('warning'),
 
-            'failed' => Tab::make(__('payment.tabs.failed'))
+            'failed' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.failed'))
                 ->icon('heroicon-o-x-circle')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'failed'))
-                ->badge(fn() => \App\Models\Payment::where('status', 'failed')->count())
+                ->badge(fn() => Payment::where('status', 'failed')->count())
                 ->badgeColor('danger'),
 
-            'refunded' => Tab::make(__('payment.tabs.refunded'))
+            'refunded' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.refunded'))
                 ->icon('heroicon-o-arrow-path')
                 ->modifyQueryUsing(fn(Builder $query) =>
                     $query->whereIn('status', ['refunded', 'partially_refunded']))
-                ->badge(fn() => \App\Models\Payment::whereIn('status', ['refunded', 'partially_refunded'])->count())
+                ->badge(fn() => Payment::whereIn('status', ['refunded', 'partially_refunded'])->count())
                 ->badgeColor('info'),
 
-            'today' => Tab::make(__('payment.tabs.today'))
+            'today' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.today'))
                 ->icon('heroicon-o-calendar')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereDate('created_at', today()))
-                ->badge(fn() => \App\Models\Payment::whereDate('created_at', today())->count())
+                ->badge(fn() => Payment::whereDate('created_at', today())->count())
                 ->badgeColor('purple'),
 
-            'this_week' => Tab::make(__('payment.tabs.this_week'))
+            'this_week' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.this_week'))
                 ->icon('heroicon-o-calendar-days')
                 ->modifyQueryUsing(fn(Builder $query) => $query->whereBetween('created_at', [
                     now()->startOfWeek(),
                     now()->endOfWeek()
                 ]))
-                ->badge(fn() => \App\Models\Payment::whereBetween('created_at', [
+                ->badge(fn() => Payment::whereBetween('created_at', [
                     now()->startOfWeek(),
                     now()->endOfWeek()
                 ])->count())
                 ->badgeColor('purple'),
 
-            'this_month' => Tab::make(__('payment.tabs.this_month'))
+            'this_month' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.this_month'))
                 ->icon('heroicon-o-calendar')
                 ->modifyQueryUsing(fn(Builder $query) =>
                     $query->whereMonth('created_at', now()->month)
                         ->whereYear('created_at', now()->year))
-                ->badge(fn() => \App\Models\Payment::whereMonth('created_at', now()->month)
+                ->badge(fn() => Payment::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
                     ->count())
                 ->badgeColor('primary'),
 
-            'high_value' => Tab::make(__('payment.tabs.high_value'))
+            'high_value' => \Filament\Schemas\Components\Tabs\Tab::make(__('payment.tabs.high_value'))
                 ->icon('heroicon-o-banknotes')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('amount', '>=', 1000))
-                ->badge(fn() => \App\Models\Payment::where('amount', '>=', 1000)->count())
+                ->badge(fn() => Payment::where('amount', '>=', 1000)->count())
                 ->badgeColor('success'),
         ];
     }
@@ -270,7 +281,7 @@ class ListPayments extends ListRecords
         DB::beginTransaction();
 
         try {
-            $query = \App\Models\Payment::query()
+            $query = Payment::query()
                 ->with(['booking.hall'])
                 ->whereBetween('created_at', [
                     $data['from_date'] . ' 00:00:00',
@@ -374,13 +385,13 @@ class ListPayments extends ListRecords
                 ->body(__('payment.notifications.export_success_body', ['count' => $payments->count()]))
                 ->persistent()
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('payment.actions.download'))
                         ->url(asset('storage/' . $exportPath . '/' . $filename))
                         ->openUrlInNewTab(),
                 ])
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error('Payment export failed', [
@@ -434,7 +445,7 @@ class ListPayments extends ListRecords
             ->success()
             ->title(__('payment.notifications.json_export_success'))
             ->actions([
-                \Filament\Notifications\Actions\Action::make('download')
+                Action::make('download')
                     ->label(__('payment.actions.download'))
                     ->url(asset('storage/exports/payments/' . $filename))
                     ->openUrlInNewTab(),
@@ -448,7 +459,7 @@ class ListPayments extends ListRecords
             $reconciledCount = 0;
             $mismatches = [];
 
-            $payments = \App\Models\Payment::whereDate('created_at', $data['reconcile_date'])
+            $payments = Payment::whereDate('created_at', $data['reconcile_date'])
                 ->whereNotNull('transaction_id')
                 ->get();
 
@@ -472,7 +483,7 @@ class ListPayments extends ListRecords
                 ]))
                 ->persistent()
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Payment reconciliation failed', [
                 'error' => $e->getMessage(),
             ]);
@@ -500,7 +511,7 @@ class ListPayments extends ListRecords
                 : $data['to_date']->format('Y-m-d');
 
             if (in_array('revenue', $metrics)) {
-                $paidPayments = \App\Models\Payment::where('status', 'paid')
+                $paidPayments = Payment::where('status', 'paid')
                     ->where(function ($query) use ($fromDate, $toDate) {
                         $query->whereBetween('paid_at', [
                             $fromDate . ' 00:00:00',
@@ -524,7 +535,7 @@ class ListPayments extends ListRecords
             }
 
             if (in_array('refunds', $metrics)) {
-                $refundedPayments = \App\Models\Payment::whereIn('status', ['refunded', 'partially_refunded'])
+                $refundedPayments = Payment::whereIn('status', ['refunded', 'partially_refunded'])
                     ->where(function ($query) use ($fromDate, $toDate) {
                         $query->whereBetween('refunded_at', [
                             $fromDate . ' 00:00:00',
@@ -549,7 +560,7 @@ class ListPayments extends ListRecords
             }
 
             if (in_array('failed', $metrics)) {
-                $failedPayments = \App\Models\Payment::where('status', 'failed')
+                $failedPayments = Payment::where('status', 'failed')
                     ->where(function ($query) use ($fromDate, $toDate) {
                         $query->whereBetween('failed_at', [
                             $fromDate . ' 00:00:00',
@@ -572,7 +583,7 @@ class ListPayments extends ListRecords
             }
 
             if (in_array('payment_methods', $metrics)) {
-                $methodBreakdown = \App\Models\Payment::whereBetween('created_at', [
+                $methodBreakdown = Payment::whereBetween('created_at', [
                     $fromDate . ' 00:00:00',
                     $toDate . ' 23:59:59'
                 ])
@@ -629,7 +640,7 @@ class ListPayments extends ListRecords
                 ->persistent()
                 ->duration(null)
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Financial report generation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -649,7 +660,7 @@ class ListPayments extends ListRecords
         try {
             $daysAgo = now()->subDays((int)$data['age']);
 
-            $failedPayments = \App\Models\Payment::where('status', 'failed')
+            $failedPayments = Payment::where('status', 'failed')
                 ->where('failed_at', '>=', $daysAgo)
                 ->get();
 
@@ -665,7 +676,7 @@ class ListPayments extends ListRecords
                 ->title(__('payment.notifications.retry_completed'))
                 ->body(__('payment.notifications.retry_completed_body', ['count' => $retriedCount]))
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed payments retry error', [
                 'error' => $e->getMessage(),
             ]);
@@ -683,7 +694,7 @@ class ListPayments extends ListRecords
         try {
             $daysAgo = now()->subDays((int)$data['age']);
 
-            $pendingPayments = \App\Models\Payment::where('status', 'pending')
+            $pendingPayments = Payment::where('status', 'pending')
                 ->where('created_at', '<=', $daysAgo)
                 ->with('booking')
                 ->get();
@@ -695,7 +706,7 @@ class ListPayments extends ListRecords
                 ->title(__('payment.notifications.reminders_sent'))
                 ->body(__('payment.notifications.reminders_sent_body', ['count' => $sentCount]))
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->danger()
                 ->title(__('payment.notifications.reminders_failed'))

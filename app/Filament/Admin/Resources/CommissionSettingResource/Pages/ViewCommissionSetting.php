@@ -2,11 +2,23 @@
 
 namespace App\Filament\Admin\Resources\CommissionSettingResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\TextSize;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Support\Enums\IconSize;
+use Carbon\Carbon;
+use Filament\Infolists\Components\ViewEntry;
+use Spatie\Activitylog\Models\Activity;
 use App\Filament\Admin\Resources\CommissionSettingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -19,11 +31,11 @@ class ViewCommissionSetting extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make()
+            EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary'),
 
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
@@ -41,7 +53,7 @@ class ViewCommissionSetting extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\Action::make('viewBookings')
+            Action::make('viewBookings')
                 ->label('View Affected Bookings')
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
@@ -52,7 +64,7 @@ class ViewCommissionSetting extends ViewRecord
                     ]
                 ])),
 
-            Actions\Action::make('calculateRevenue')
+            Action::make('calculateRevenue')
                 ->label('Calculate Revenue Impact')
                 ->icon('heroicon-o-calculator')
                 ->color('success')
@@ -64,7 +76,7 @@ class ViewCommissionSetting extends ViewRecord
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('Close'),
 
-            Actions\Action::make('exportReport')
+            Action::make('exportReport')
                 ->label('Export Report')
                 ->icon('heroicon-o-document-text')
                 ->color('gray')
@@ -72,7 +84,7 @@ class ViewCommissionSetting extends ViewRecord
                     $this->exportCommissionReport();
                 }),
 
-            Actions\Action::make('duplicate')
+            Action::make('duplicate')
                 ->label('Duplicate')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
@@ -95,30 +107,30 @@ class ViewCommissionSetting extends ViewRecord
                         ->success()
                         ->title('Commission Duplicated')
                         ->actions([
-                            \Filament\Notifications\Actions\Action::make('view')
+                            Action::make('view')
                                 ->label('View Duplicate')
                                 ->url(CommissionSettingResource::getUrl('view', ['record' => $newCommission->id])),
                         ])
                         ->send();
                 }),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     // Add validation before deletion if needed
                 })
                 ->successRedirectUrl(route('filament.admin.resources.commission-settings.index')),
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
-                Infolists\Components\Section::make('Commission Scope')
+                Section::make('Commission Scope')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('scope_type')
+                                TextEntry::make('scope_type')
                                     ->label('Scope Type')
                                     ->state(function ($record) {
                                         if ($record->hall_id) return 'Hall-Specific';
@@ -132,9 +144,9 @@ class ViewCommissionSetting extends ViewRecord
                                         default => 'primary',
                                     })
                                     ->icon('heroicon-o-tag')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
+                                    ->size(TextSize::Large),
 
-                                Infolists\Components\TextEntry::make('hall.name')
+                                TextEntry::make('hall.name')
                                     ->label('Hall')
                                     ->placeholder('Not Applicable')
                                     ->badge()
@@ -142,7 +154,7 @@ class ViewCommissionSetting extends ViewRecord
                                     ->icon('heroicon-o-building-storefront')
                                     ->visible(fn($record) => $record->hall_id !== null),
 
-                                Infolists\Components\TextEntry::make('owner.name')
+                                TextEntry::make('owner.name')
                                     ->label('Owner')
                                     ->placeholder('Not Applicable')
                                     ->badge()
@@ -151,7 +163,7 @@ class ViewCommissionSetting extends ViewRecord
                                     ->visible(fn($record) => $record->owner_id !== null && $record->hall_id === null),
                             ]),
 
-                        Infolists\Components\TextEntry::make('priority_note')
+                        TextEntry::make('priority_note')
                             ->label('Priority Information')
                             ->state('Priority: Hall-specific > Owner-specific > Global')
                             ->color('info')
@@ -161,43 +173,43 @@ class ViewCommissionSetting extends ViewRecord
                     ->icon('heroicon-o-funnel')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Commission Details')
+                Section::make('Commission Details')
                     ->schema([
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
+                                TextEntry::make('name')
                                     ->label('Commission Name')
                                     ->formatStateUsing(fn($record) => $record->name ?? 'Unnamed Commission')
                                     ->badge()
                                     ->color('primary')
                                     ->icon('heroicon-o-tag'),
 
-                                Infolists\Components\IconEntry::make('is_active')
+                                IconEntry::make('is_active')
                                     ->label('Status')
                                     ->boolean()
                                     ->trueIcon('heroicon-o-check-circle')
                                     ->falseIcon('heroicon-o-x-circle')
                                     ->trueColor('success')
                                     ->falseColor('danger')
-                                    ->size(Infolists\Components\IconEntry\IconEntrySize::Large),
+                                    ->size(IconSize::Large),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name.en')
+                                TextEntry::make('name.en')
                                     ->label('Name (English)')
                                     ->placeholder('Not set')
                                     ->icon('heroicon-o-language'),
 
-                                Infolists\Components\TextEntry::make('name.ar')
+                                TextEntry::make('name.ar')
                                     ->label('Name (Arabic)')
                                     ->placeholder('غير محدد')
                                     ->icon('heroicon-o-language'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('commission_type')
+                                TextEntry::make('commission_type')
                                     ->label('Commission Type')
                                     ->formatStateUsing(fn($state) => ucfirst($state->value ?? $state))
                                     ->badge()
@@ -206,7 +218,7 @@ class ViewCommissionSetting extends ViewRecord
                                         ? 'heroicon-o-percent-badge'
                                         : 'heroicon-o-banknotes'),
 
-                                Infolists\Components\TextEntry::make('commission_value')
+                                TextEntry::make('commission_value')
                                     ->label('Commission Value')
                                     ->formatStateUsing(function ($record) {
                                         return $record->commission_type->value === 'percentage'
@@ -215,19 +227,19 @@ class ViewCommissionSetting extends ViewRecord
                                     })
                                     ->badge()
                                     ->color('success')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                                    ->size(TextSize::Large)
                                     ->copyable()
                                     ->icon('heroicon-o-currency-dollar'),
                             ]),
 
-                        Infolists\Components\Grid::make(1)
+                        Grid::make(1)
                             ->schema([
-                                Infolists\Components\TextEntry::make('description.en')
+                                TextEntry::make('description.en')
                                     ->label('Description (English)')
                                     ->placeholder('No description provided')
                                     ->columnSpanFull(),
 
-                                Infolists\Components\TextEntry::make('description.ar')
+                                TextEntry::make('description.ar')
                                     ->label('Description (Arabic)')
                                     ->placeholder('لا يوجد وصف')
                                     ->columnSpanFull(),
@@ -236,11 +248,11 @@ class ViewCommissionSetting extends ViewRecord
                     ->icon('heroicon-o-calculator')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Validity Period')
+                Section::make('Validity Period')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('effective_from')
+                                TextEntry::make('effective_from')
                                     ->label('Effective From')
                                     ->date('d M Y')
                                     ->placeholder('Immediate Effect')
@@ -248,7 +260,7 @@ class ViewCommissionSetting extends ViewRecord
                                     ->color('success')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('effective_to')
+                                TextEntry::make('effective_to')
                                     ->label('Effective To')
                                     ->date('d M Y')
                                     ->placeholder('Indefinite')
@@ -258,7 +270,7 @@ class ViewCommissionSetting extends ViewRecord
                                         : 'info')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('validity_status')
+                                TextEntry::make('validity_status')
                                     ->label('Current Status')
                                     ->state(function ($record) {
                                         if ($record->effective_to && $record->effective_to < now()) {
@@ -282,15 +294,15 @@ class ViewCommissionSetting extends ViewRecord
                                     ->icon('heroicon-o-clock'),
                             ]),
 
-                        Infolists\Components\TextEntry::make('duration')
+                        TextEntry::make('duration')
                             ->label('Duration')
                             ->state(function ($record) {
                                 if (!$record->effective_from || !$record->effective_to) {
                                     return 'Indefinite';
                                 }
 
-                                $from = \Carbon\Carbon::parse($record->effective_from);
-                                $to = \Carbon\Carbon::parse($record->effective_to);
+                                $from = Carbon::parse($record->effective_from);
+                                $to = Carbon::parse($record->effective_to);
 
                                 return $from->diffInDays($to) . ' days';
                             })
@@ -300,32 +312,32 @@ class ViewCommissionSetting extends ViewRecord
                     ->icon('heroicon-o-calendar-days')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Financial Statistics')
+                Section::make('Financial Statistics')
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('total_bookings')
+                                TextEntry::make('total_bookings')
                                     ->label('Total Bookings')
                                     ->state(fn($record) => $this->getTotalBookings($record))
                                     ->badge()
                                     ->color('info')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('total_revenue')
+                                TextEntry::make('total_revenue')
                                     ->label('Total Commission Earned')
                                     ->state(fn($record) => number_format($this->getTotalRevenue($record), 3) . ' OMR')
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-banknotes'),
 
-                                Infolists\Components\TextEntry::make('avg_commission')
+                                TextEntry::make('avg_commission')
                                     ->label('Average per Booking')
                                     ->state(fn($record) => number_format($this->getAverageCommission($record), 3) . ' OMR')
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-calculator'),
 
-                                Infolists\Components\TextEntry::make('last_applied')
+                                TextEntry::make('last_applied')
                                     ->label('Last Applied')
                                     ->state(fn($record) => $this->getLastAppliedDate($record))
                                     ->badge()
@@ -336,23 +348,23 @@ class ViewCommissionSetting extends ViewRecord
                     ->icon('heroicon-o-chart-bar')
                     ->collapsible(),
 
-                Infolists\Components\Section::make('System Information')
+                Section::make('System Information')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('id')
+                                TextEntry::make('id')
                                     ->label('Commission ID')
                                     ->badge()
                                     ->color('gray')
                                     ->copyable()
                                     ->icon('heroicon-o-hashtag'),
 
-                                Infolists\Components\TextEntry::make('created_at')
+                                TextEntry::make('created_at')
                                     ->label('Created At')
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('updated_at')
+                                TextEntry::make('updated_at')
                                     ->label('Last Updated')
                                     ->dateTime('d M Y, h:i A')
                                     ->since()
@@ -362,9 +374,9 @@ class ViewCommissionSetting extends ViewRecord
                     ->icon('heroicon-o-server')
                     ->collapsed(),
 
-                Infolists\Components\Section::make('Activity History')
+                Section::make('Activity History')
                     ->schema([
-                        Infolists\Components\ViewEntry::make('activity_log')
+                        ViewEntry::make('activity_log')
                             ->label('')
                             ->view('filament.infolists.components.activity-log', [
                                 'activities' => fn($record) => activity()
@@ -376,8 +388,9 @@ class ViewCommissionSetting extends ViewRecord
                     ])
                     ->icon('heroicon-o-clock')
                     ->collapsed()
-                    ->visible(fn() => class_exists(\Spatie\Activitylog\Models\Activity::class)),
-            ]);
+                    ->visible(fn() => class_exists(Activity::class)),
+            ])
+            ->columns(1);
     }
 
     public function getTitle(): string

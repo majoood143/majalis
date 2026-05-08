@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\RegionResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use App\Filament\Admin\Resources\RegionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -17,7 +19,7 @@ class EditRegion extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('viewCities')
+            Action::make('viewCities')
                 ->label('View Cities')
                 ->icon('heroicon-o-building-office')
                 ->badge(fn() => $this->record->cities()->count())
@@ -25,8 +27,8 @@ class EditRegion extends EditRecord
                     'tableFilters' => ['region_id' => ['value' => $this->record->id]]
                 ])),
 
-            Actions\DeleteAction::make()
-                ->before(function (Actions\DeleteAction $action) {
+            DeleteAction::make()
+                ->before(function (DeleteAction $action) {
                     if ($this->record->cities()->count() > 0) {
                         Notification::make()
                             ->danger()

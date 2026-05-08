@@ -1,108 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\SeasonalPricing;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SeasonalPricingPolicy
 {
     use HandlesAuthorization;
-
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->can('view_any_pricing');
+        return $authUser->can('ViewAny:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, SeasonalPricing $seasonalPricing): bool
+    public function view(AuthUser $authUser, SeasonalPricing $seasonalPricing): bool
     {
-        return $user->can('view_pricing');
+        return $authUser->can('View:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->can('create_pricing');
+        return $authUser->can('Create:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, SeasonalPricing $seasonalPricing): bool
+    public function update(AuthUser $authUser, SeasonalPricing $seasonalPricing): bool
     {
-        return $user->can('update_pricing');
+        return $authUser->can('Update:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, SeasonalPricing $seasonalPricing): bool
+    public function delete(AuthUser $authUser, SeasonalPricing $seasonalPricing): bool
     {
-        return $user->can('delete_pricing');
+        return $authUser->can('Delete:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can bulk delete.
-     */
-    public function deleteAny(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return $user->can('delete_any_pricing');
+        return $authUser->can('DeleteAny:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can permanently delete.
-     */
-    public function forceDelete(User $user, SeasonalPricing $seasonalPricing): bool
+    public function restore(AuthUser $authUser, SeasonalPricing $seasonalPricing): bool
     {
-        return $user->can('force_delete_pricing');
+        return $authUser->can('Restore:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can permanently bulk delete.
-     */
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(AuthUser $authUser, SeasonalPricing $seasonalPricing): bool
     {
-        return $user->can('force_delete_any_pricing');
+        return $authUser->can('ForceDelete:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can restore.
-     */
-    public function restore(User $user, SeasonalPricing $seasonalPricing): bool
+    public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_pricing');
+        return $authUser->can('ForceDeleteAny:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can bulk restore.
-     */
-    public function restoreAny(User $user): bool
+    public function restoreAny(AuthUser $authUser): bool
     {
-        return $user->can('restore_any_pricing');
+        return $authUser->can('RestoreAny:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can replicate.
-     */
-    public function replicate(User $user, SeasonalPricing $seasonalPricing): bool
+    public function replicate(AuthUser $authUser, SeasonalPricing $seasonalPricing): bool
     {
-        return $user->can('replicate_pricing');
+        return $authUser->can('Replicate:SeasonalPricing');
     }
 
-    /**
-     * Determine whether the user can reorder.
-     */
-    public function reorder(User $user): bool
+    public function reorder(AuthUser $authUser): bool
     {
-        return $user->can('reorder_pricing');
+        return $authUser->can('Reorder:SeasonalPricing');
     }
+
 }

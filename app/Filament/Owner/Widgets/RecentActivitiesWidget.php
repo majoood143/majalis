@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Widgets;
 
+use App\Models\Booking;
 use Filament\Widgets\Widget;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Collection;
@@ -14,7 +15,7 @@ class RecentActivitiesWidget extends Widget
     /**
      * Widget view
      */
-    protected static string $view = 'filament.owner.widgets.recent-activities';
+    protected string $view = 'filament.owner.widgets.recent-activities';
 
     /**
      * Widget column span
@@ -80,7 +81,7 @@ class RecentActivitiesWidget extends Widget
                 $query->where('subject_type', 'App\Models\Booking')
                     ->whereIn(
                         'subject_id',
-                        \App\Models\Booking::whereHas('hall', function ($q) use ($user) {
+                        Booking::whereHas('hall', function ($q) use ($user) {
                             $q->where('owner_id', $user->id);
                         })->pluck('id')
                     );

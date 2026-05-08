@@ -15,6 +15,39 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\ColorPicker;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\BulkAction;
+use App\Filament\Owner\Resources\ExpenseResource\Pages\ListExpenses;
+use App\Filament\Owner\Resources\ExpenseResource\Pages\CreateExpense;
+use App\Filament\Owner\Resources\ExpenseResource\Pages\ViewExpense;
+use App\Filament\Owner\Resources\ExpenseResource\Pages\EditExpense;
 use App\Enums\ExpensePaymentMethod;
 use App\Enums\ExpensePaymentStatus;
 use App\Enums\ExpenseStatus;
@@ -60,7 +93,7 @@ class ExpenseResource extends Resource
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
 
     /**
      * The navigation group for the resource.
@@ -128,34 +161,34 @@ class ExpenseResource extends Resource
     /**
      * Define the form schema for creating/editing expenses.
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Main Information Section
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'معلومات المصروف' : 'Expense Information')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'معلومات المصروف' : 'Expense Information')
                     ->description(fn() => app()->getLocale() === 'ar'
                         ? 'أدخل التفاصيل الأساسية للمصروف'
                         : 'Enter the basic expense details')
                     ->schema([
                         // Expense Number (auto-generated, read-only on edit)
-                        Forms\Components\TextInput::make('expense_number')
+                        TextInput::make('expense_number')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'رقم المصروف' : 'Expense Number')
                             ->disabled()
                             ->dehydrated(false)
                             ->visible(fn($record) => $record !== null),
 
                         // Expense Type
-                        Forms\Components\Select::make('expense_type')
+                        Select::make('expense_type')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'نوع المصروف' : 'Expense Type')
                             ->options(ExpenseType::toArray())
                             ->required()
                             ->default(ExpenseType::Operational->value)
                             ->live()
-                            ->afterStateUpdated(function (Forms\Set $set, ?string $state) {
+                            ->afterStateUpdated(function (Set $set, ?string $state) {
                                 // Clear booking_id if not a booking expense
                                 if ($state !== ExpenseType::Booking->value) {
                                     $set('booking_id', null);
@@ -169,7 +202,7 @@ class ExpenseResource extends Resource
                             ->helperText(fn($state) => $state ? ExpenseType::tryFrom($state)?->getDescription() : null),
 
                         // Hall Selection
-                        Forms\Components\Select::make('hall_id')
+                        Select::make('hall_id')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'القاعة' : 'Hall')
                             ->relationship(
                                 name: 'hall',
@@ -186,9 +219,9 @@ class ExpenseResource extends Resource
                                 : 'Select the hall related to this expense (optional)'),
 
                         // Booking Selection (only for booking expenses)
-                        Forms\Components\Select::make('booking_id')
+                        Select::make('booking_id')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'الحجز' : 'Booking')
-                            ->options(function (Forms\Get $get) {
+                            ->options(function (Get $get) {
                                 $hallId = $get('hall_id');
                                 $ownerId = Auth::id();
 
@@ -209,13 +242,13 @@ class ExpenseResource extends Resource
                             })
                             ->searchable()
                             ->nullable()
-                            ->visible(fn(Forms\Get $get) => $get('expense_type') === ExpenseType::Booking->value)
+                            ->visible(fn(Get $get) => $get('expense_type') === ExpenseType::Booking->value)
                             ->helperText(fn() => app()->getLocale() === 'ar'
                                 ? 'ربط هذا المصروف بحجز معين'
                                 : 'Link this expense to a specific booking'),
 
                         // Category Selection
-                        Forms\Components\Select::make('category_id')
+                        Select::make('category_id')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'الفئة' : 'Category')
                             ->relationship(
                                 name: 'category',
@@ -231,13 +264,13 @@ class ExpenseResource extends Resource
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name.en')
+                                TextInput::make('name.en')
                                     ->label('Name (English)')
                                     ->required(),
-                                Forms\Components\TextInput::make('name.ar')
+                                TextInput::make('name.ar')
                                     ->label('Name (Arabic)')
                                     ->required(),
-                                Forms\Components\ColorPicker::make('color')
+                                ColorPicker::make('color')
                                     ->label('Color')
                                     ->default('#6366f1'),
                             ])
@@ -249,22 +282,22 @@ class ExpenseResource extends Resource
                     ->columns(2),
 
                 // Title and Description Section
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'الوصف' : 'Description')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'الوصف' : 'Description')
                     ->schema([
                         // Title (Bilingual)
-                        Forms\Components\Tabs::make('title_tabs')
+                        Tabs::make('title_tabs')
                             ->tabs([
-                                Forms\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'العربية' : 'Arabic')
+                                Tab::make(app()->getLocale() === 'ar' ? 'العربية' : 'Arabic')
                                     ->schema([
-                                        Forms\Components\TextInput::make('title.ar')
+                                        TextInput::make('title.ar')
                                             ->label(fn() => app()->getLocale() === 'ar' ? 'العنوان بالعربية' : 'Title (Arabic)')
                                             ->required()
                                             ->maxLength(255)
                                             ->extraAttributes(['dir' => 'rtl']),
                                     ]),
-                                Forms\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'الإنجليزية' : 'English')
+                                Tab::make(app()->getLocale() === 'ar' ? 'الإنجليزية' : 'English')
                                     ->schema([
-                                        Forms\Components\TextInput::make('title.en')
+                                        TextInput::make('title.en')
                                             ->label(fn() => app()->getLocale() === 'ar' ? 'العنوان بالإنجليزية' : 'Title (English)')
                                             ->required()
                                             ->maxLength(255),
@@ -273,18 +306,18 @@ class ExpenseResource extends Resource
                             ->columnSpanFull(),
 
                         // Description (Bilingual)
-                        Forms\Components\Tabs::make('description_tabs')
+                        Tabs::make('description_tabs')
                             ->tabs([
-                                Forms\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'العربية' : 'Arabic')
+                                Tab::make(app()->getLocale() === 'ar' ? 'العربية' : 'Arabic')
                                     ->schema([
-                                        Forms\Components\Textarea::make('description.ar')
+                                        Textarea::make('description.ar')
                                             ->label(fn() => app()->getLocale() === 'ar' ? 'الوصف بالعربية' : 'Description (Arabic)')
                                             ->rows(3)
                                             ->extraAttributes(['dir' => 'rtl']),
                                     ]),
-                                Forms\Components\Tabs\Tab::make(app()->getLocale() === 'ar' ? 'الإنجليزية' : 'English')
+                                Tab::make(app()->getLocale() === 'ar' ? 'الإنجليزية' : 'English')
                                     ->schema([
-                                        Forms\Components\Textarea::make('description.en')
+                                        Textarea::make('description.en')
                                             ->label(fn() => app()->getLocale() === 'ar' ? 'الوصف بالإنجليزية' : 'Description (English)')
                                             ->rows(3),
                                     ]),
@@ -293,10 +326,10 @@ class ExpenseResource extends Resource
                     ]),
 
                 // Financial Details Section
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'التفاصيل المالية' : 'Financial Details')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'التفاصيل المالية' : 'Financial Details')
                     ->schema([
                         // Amount
-                        Forms\Components\TextInput::make('amount')
+                        TextInput::make('amount')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'المبلغ (ريال عماني)' : 'Amount (OMR)')
                             ->required()
                             ->numeric()
@@ -306,7 +339,7 @@ class ExpenseResource extends Resource
                             ->live(onBlur: true),
 
                         // Tax Amount
-                        Forms\Components\TextInput::make('tax_amount')
+                        TextInput::make('tax_amount')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'الضريبة (ريال عماني)' : 'Tax (OMR)')
                             ->numeric()
                             ->minValue(0)
@@ -316,9 +349,9 @@ class ExpenseResource extends Resource
                             ->live(onBlur: true),
 
                         // Total Display (calculated)
-                        Forms\Components\Placeholder::make('calculated_total')
+                        Placeholder::make('calculated_total')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'المجموع' : 'Total')
-                            ->content(function (Forms\Get $get) {
+                            ->content(function (Get $get) {
                                 $amount = (float) ($get('amount') ?? 0);
                                 $tax = (float) ($get('tax_amount') ?? 0);
                                 $total = $amount + $tax;
@@ -326,14 +359,14 @@ class ExpenseResource extends Resource
                             }),
 
                         // Expense Date
-                        Forms\Components\DatePicker::make('expense_date')
+                        DatePicker::make('expense_date')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ المصروف' : 'Expense Date')
                             ->required()
                             ->default(now())
                             ->maxDate(now()),
 
                         // Payment Method
-                        Forms\Components\Select::make('payment_method')
+                        Select::make('payment_method')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'طريقة الدفع' : 'Payment Method')
                             ->options(ExpensePaymentMethod::toArray())
                             ->default(ExpensePaymentMethod::Cash->value)
@@ -341,7 +374,7 @@ class ExpenseResource extends Resource
                             ->live(),
 
                         // Payment Status
-                        Forms\Components\Select::make('payment_status')
+                        Select::make('payment_status')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'حالة الدفع' : 'Payment Status')
                             ->options(ExpensePaymentStatus::toArray())
                             ->default(ExpensePaymentStatus::Paid->value)
@@ -349,35 +382,35 @@ class ExpenseResource extends Resource
                             ->live(),
 
                         // Payment Reference
-                        Forms\Components\TextInput::make('payment_reference')
+                        TextInput::make('payment_reference')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'رقم المرجع' : 'Payment Reference')
                             ->maxLength(100)
-                            ->visible(fn(Forms\Get $get) =>
+                            ->visible(fn(Get $get) =>
                                 ExpensePaymentMethod::tryFrom($get('payment_method') ?? '')?->requiresReference() ?? false
                             ),
 
                         // Due Date (for pending payments)
-                        Forms\Components\DatePicker::make('due_date')
+                        DatePicker::make('due_date')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ الاستحقاق' : 'Due Date')
-                            ->visible(fn(Forms\Get $get) =>
+                            ->visible(fn(Get $get) =>
                                 in_array($get('payment_status'), [ExpensePaymentStatus::Pending->value, ExpensePaymentStatus::Partial->value])
                             ),
                     ])
                     ->columns(3),
 
                 // Vendor Information Section
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'معلومات المورد' : 'Vendor Information')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'معلومات المورد' : 'Vendor Information')
                     ->schema([
-                        Forms\Components\TextInput::make('vendor_name')
+                        TextInput::make('vendor_name')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'اسم المورد' : 'Vendor Name')
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('vendor_phone')
+                        TextInput::make('vendor_phone')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'هاتف المورد' : 'Vendor Phone')
                             ->tel()
                             ->maxLength(20),
 
-                        Forms\Components\TextInput::make('vendor_email')
+                        TextInput::make('vendor_email')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'بريد المورد' : 'Vendor Email')
                             ->email()
                             ->maxLength(255),
@@ -387,39 +420,39 @@ class ExpenseResource extends Resource
                     ->collapsible(),
 
                 // Recurring Expense Settings
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'إعدادات التكرار' : 'Recurring Settings')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'إعدادات التكرار' : 'Recurring Settings')
                     ->schema([
-                        Forms\Components\Toggle::make('is_recurring')
+                        Toggle::make('is_recurring')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'مصروف متكرر' : 'Recurring Expense')
                             ->live()
                             ->default(false),
 
-                        Forms\Components\Select::make('recurring_frequency')
+                        Select::make('recurring_frequency')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تكرار' : 'Frequency')
                             ->options(RecurringFrequency::toArray())
-                            ->visible(fn(Forms\Get $get) => $get('is_recurring'))
-                            ->required(fn(Forms\Get $get) => $get('is_recurring')),
+                            ->visible(fn(Get $get) => $get('is_recurring'))
+                            ->required(fn(Get $get) => $get('is_recurring')),
 
-                        Forms\Components\DatePicker::make('recurring_start_date')
+                        DatePicker::make('recurring_start_date')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ البداية' : 'Start Date')
-                            ->visible(fn(Forms\Get $get) => $get('is_recurring'))
-                            ->required(fn(Forms\Get $get) => $get('is_recurring')),
+                            ->visible(fn(Get $get) => $get('is_recurring'))
+                            ->required(fn(Get $get) => $get('is_recurring')),
 
-                        Forms\Components\DatePicker::make('recurring_end_date')
+                        DatePicker::make('recurring_end_date')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ النهاية' : 'End Date')
-                            ->visible(fn(Forms\Get $get) => $get('is_recurring'))
+                            ->visible(fn(Get $get) => $get('is_recurring'))
                             ->helperText(fn() => app()->getLocale() === 'ar'
                                 ? 'اتركه فارغاً للتكرار بلا نهاية'
                                 : 'Leave empty for indefinite recurring'),
                     ])
                     ->columns(2)
-                    ->visible(fn(Forms\Get $get) => $get('expense_type') === ExpenseType::Recurring->value)
+                    ->visible(fn(Get $get) => $get('expense_type') === ExpenseType::Recurring->value)
                     ->collapsible(),
 
                 // Attachments Section
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'المرفقات' : 'Attachments')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'المرفقات' : 'Attachments')
                     ->schema([
-                        Forms\Components\FileUpload::make('attachments')
+                        FileUpload::make('attachments')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'إيصالات ومستندات' : 'Receipts & Documents')
                             ->multiple()
                             ->directory('expenses/attachments')
@@ -435,9 +468,9 @@ class ExpenseResource extends Resource
                     ->collapsible(),
 
                 // Notes Section
-                Forms\Components\Section::make(fn() => app()->getLocale() === 'ar' ? 'ملاحظات' : 'Notes')
+                Section::make(fn() => app()->getLocale() === 'ar' ? 'ملاحظات' : 'Notes')
                     ->schema([
-                        Forms\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'ملاحظات داخلية' : 'Internal Notes')
                             ->rows(3)
                             ->maxLength(1000),
@@ -458,7 +491,7 @@ class ExpenseResource extends Resource
         return $table
             ->columns([
                 // Expense Number
-                Tables\Columns\TextColumn::make('expense_number')
+                TextColumn::make('expense_number')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'الرقم' : 'Number')
                     ->searchable()
                     ->sortable()
@@ -466,7 +499,7 @@ class ExpenseResource extends Resource
                     ->weight('bold'),
 
                 // Title
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'العنوان' : 'Title')
                     ->formatStateUsing(fn($record) => $record->getTranslation('title', app()->getLocale()))
                     ->searchable()
@@ -474,27 +507,27 @@ class ExpenseResource extends Resource
                     ->tooltip(fn($record) => $record->getTranslation('title', app()->getLocale())),
 
                 // Expense Type
-                Tables\Columns\TextColumn::make('expense_type')
+                TextColumn::make('expense_type')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'النوع' : 'Type')
                     ->badge()
                     ->sortable(),
 
                 // Category
-                Tables\Columns\TextColumn::make('category.name')
+                TextColumn::make('category.name')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'الفئة' : 'Category')
                     ->formatStateUsing(fn($record) => $record->category?->getTranslation('name', app()->getLocale()) ?? '-')
                     ->sortable()
                     ->toggleable(),
 
                 // Hall
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'القاعة' : 'Hall')
                     ->formatStateUsing(fn($record) => $record->hall?->getTranslation('name', app()->getLocale()) ?? '-')
                     ->sortable()
                     ->toggleable(),
 
                 // Booking
-                Tables\Columns\TextColumn::make('booking.booking_number')
+                TextColumn::make('booking.booking_number')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'الحجز' : 'Booking')
                     ->sortable()
                     ->toggleable()
@@ -503,48 +536,48 @@ class ExpenseResource extends Resource
                         : null),
 
                 // Amount
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'المبلغ' : 'Amount')
                     ->money('OMR')
                     ->sortable()
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
+                        Sum::make()
                             ->money('OMR'),
                     ]),
 
                 // Expense Date
-                Tables\Columns\TextColumn::make('expense_date')
+                TextColumn::make('expense_date')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'التاريخ' : 'Date')
                     ->date('Y-m-d')
                     ->sortable(),
 
                 // Payment Status
-                Tables\Columns\TextColumn::make('payment_status')
+                TextColumn::make('payment_status')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'حالة الدفع' : 'Payment')
                     ->badge()
                     ->sortable(),
 
                 // Payment Method
-                Tables\Columns\TextColumn::make('payment_method')
+                TextColumn::make('payment_method')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'طريقة الدفع' : 'Method')
                     ->badge()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 // Vendor
-                Tables\Columns\TextColumn::make('vendor_name')
+                TextColumn::make('vendor_name')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'المورد' : 'Vendor')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 // Status
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'الحالة' : 'Status')
                     ->badge()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 // Created At
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'تاريخ الإنشاء' : 'Created')
                     ->dateTime('Y-m-d H:i')
                     ->sortable()
@@ -552,18 +585,18 @@ class ExpenseResource extends Resource
             ])
             ->filters([
                 // Expense Type Filter
-                Tables\Filters\SelectFilter::make('expense_type')
+                SelectFilter::make('expense_type')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'النوع' : 'Type')
                     ->options(ExpenseType::toArray()),
 
                 // Category Filter
-                Tables\Filters\SelectFilter::make('category_id')
+                SelectFilter::make('category_id')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'الفئة' : 'Category')
                     ->relationship('category', 'name')
                     ->getOptionLabelFromRecordUsing(fn(ExpenseCategory $record) => $record->getTranslation('name', app()->getLocale())),
 
                 // Hall Filter
-                Tables\Filters\SelectFilter::make('hall_id')
+                SelectFilter::make('hall_id')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'القاعة' : 'Hall')
                     ->relationship(
                         'hall',
@@ -573,21 +606,21 @@ class ExpenseResource extends Resource
                     ->getOptionLabelFromRecordUsing(fn(Hall $record) => $record->getTranslation('name', app()->getLocale())),
 
                 // Payment Status Filter
-                Tables\Filters\SelectFilter::make('payment_status')
+                SelectFilter::make('payment_status')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'حالة الدفع' : 'Payment Status')
                     ->options(ExpensePaymentStatus::toArray()),
 
                 // Payment Method Filter
-                Tables\Filters\SelectFilter::make('payment_method')
+                SelectFilter::make('payment_method')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'طريقة الدفع' : 'Payment Method')
                     ->options(ExpensePaymentMethod::toArray()),
 
                 // Date Range Filter
-                Tables\Filters\Filter::make('expense_date')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')
+                Filter::make('expense_date')
+                    ->schema([
+                        DatePicker::make('from')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'من' : 'From'),
-                        Forms\Components\DatePicker::make('until')
+                        DatePicker::make('until')
                             ->label(fn() => app()->getLocale() === 'ar' ? 'إلى' : 'Until'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -603,7 +636,7 @@ class ExpenseResource extends Resource
                     }),
 
                 // Booking Linked Filter
-                Tables\Filters\TernaryFilter::make('has_booking')
+                TernaryFilter::make('has_booking')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'مرتبط بحجز' : 'Linked to Booking')
                     ->queries(
                         true: fn(Builder $query) => $query->whereNotNull('booking_id'),
@@ -611,15 +644,15 @@ class ExpenseResource extends Resource
                     ),
 
                 // Trashed Filter
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
 
                 // Mark as Paid Action
-                Tables\Actions\Action::make('mark_paid')
+                Action::make('mark_paid')
                     ->label(fn() => app()->getLocale() === 'ar' ? 'تم الدفع' : 'Mark Paid')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
@@ -627,14 +660,14 @@ class ExpenseResource extends Resource
                     ->requiresConfirmation()
                     ->action(fn($record) => $record->markAsPaid()),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
 
                     // Bulk Mark as Paid
-                    Tables\Actions\BulkAction::make('bulk_mark_paid')
+                    BulkAction::make('bulk_mark_paid')
                         ->label(fn() => app()->getLocale() === 'ar' ? 'تم الدفع' : 'Mark as Paid')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -667,10 +700,10 @@ class ExpenseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListExpenses::route('/'),
-            'create' => Pages\CreateExpense::route('/create'),
-            'view' => Pages\ViewExpense::route('/{record}'),
-            'edit' => Pages\EditExpense::route('/{record}/edit'),
+            'index' => ListExpenses::route('/'),
+            'create' => CreateExpense::route('/create'),
+            'view' => ViewExpense::route('/{record}'),
+            'edit' => EditExpense::route('/{record}/edit'),
         ];
     }
 

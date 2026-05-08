@@ -19,6 +19,16 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\HallResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\TextSize;
+use Filament\Infolists\Components\IconEntry;
 use App\Filament\Admin\Resources\HallResource;
 use App\Filament\Admin\Resources\HallResource\Widgets\HallStatsOverviewWidget;
 use App\Filament\Admin\Resources\HallResource\Widgets\HallBookingTrendWidget;
@@ -96,7 +106,7 @@ class ViewHall extends ViewRecord
      *
      * @return int|string|array
      */
-    public function getHeaderWidgetsColumns(): int|string|array
+    public function getHeaderWidgetsColumns(): int|array
     {
         return 1; // Stats overview takes full width
     }
@@ -106,7 +116,7 @@ class ViewHall extends ViewRecord
      *
      * @return int|string|array
      */
-    public function getFooterWidgetsColumns(): int|string|array
+    public function getFooterWidgetsColumns(): int|array
     {
         return [
             'sm' => 1,
@@ -125,12 +135,12 @@ class ViewHall extends ViewRecord
     {
         return [
             // Edit action
-            Actions\EditAction::make()
+            EditAction::make()
                 ->icon('heroicon-o-pencil-square')
                 ->color('primary'),
 
             // Toggle active status
-            Actions\Action::make('toggleActive')
+            Action::make('toggleActive')
                 ->label(fn() => $this->record->is_active ? __('Deactivate') : __('Activate'))
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'danger' : 'success')
@@ -153,7 +163,7 @@ class ViewHall extends ViewRecord
                 }),
 
             // View bookings action
-            Actions\Action::make('viewBookings')
+            Action::make('viewBookings')
                 ->label(__('Bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
@@ -163,7 +173,7 @@ class ViewHall extends ViewRecord
                 ])),
 
             // Open in Google Maps
-            Actions\Action::make('viewLocation')
+            Action::make('viewLocation')
                 ->label(__('Open in Maps'))
                 ->icon('heroicon-o-map-pin')
                 ->color('success')
@@ -173,7 +183,7 @@ class ViewHall extends ViewRecord
                 ->visible(fn() => $this->record->latitude && $this->record->longitude),
 
             // Delete action
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->successRedirectUrl(route('filament.admin.resources.halls.index')),
         ];
     }
@@ -181,20 +191,20 @@ class ViewHall extends ViewRecord
     /**
      * Define the infolist schema for displaying hall details.
      *
-     * @param Infolist $infolist The Filament infolist instance
-     * @return Infolist Configured infolist with all sections
+     * @param Schema $infolist The Filament infolist instance
+     * @return Schema Configured infolist with all sections
      */
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 // =============================================
                 // SECTION: Hall Overview
                 // =============================================
-                Infolists\Components\Section::make(__('Hall Overview'))
+                Section::make(__('Hall Overview'))
                     ->schema([
                         // Featured image
-                        Infolists\Components\ImageEntry::make('featured_image')
+                        ImageEntry::make('featured_image')
                             ->label(__('Featured Image'))
                             ->disk('public')
                             ->height(300)
@@ -202,31 +212,31 @@ class ViewHall extends ViewRecord
                             ->visible(fn($record) => $record->featured_image),
 
                         // Basic info grid
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('name')
+                                TextEntry::make('name')
                                     ->label(__('admin.fields.hall_name'))
                                     ->formatStateUsing(fn($record) => $record->name)
                                     ->badge()
                                     ->color('primary')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                                    ->size(TextSize::Large)
                                     ->icon('heroicon-o-building-office-2'),
 
-                    Infolists\Components\TextEntry::make('region.name')
+                    TextEntry::make('region.name')
                         ->label(__('admin.fields.region'))
                         ->formatStateUsing(fn($record) => $record->region->name ?? 'N/A')
                         ->badge()
                         ->color('success')
                         ->icon('heroicon-o-map-pin'),
 
-                                Infolists\Components\TextEntry::make('city.name')
+                                TextEntry::make('city.name')
                                     ->label(__('admin.fields.city'))
                                     ->formatStateUsing(fn($record) => $record->city->name ?? 'N/A')
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-map-pin'),
 
-                                Infolists\Components\TextEntry::make('owner.name')
+                                TextEntry::make('owner.name')
                                     //->label(__('Owner'))
                                     ->label(__('admin.reports.table.owner'))
                                     ->badge()
@@ -239,15 +249,15 @@ class ViewHall extends ViewRecord
                 // =============================================
                 // SECTION: Description
                 // =============================================
-                Infolists\Components\Section::make(__('Description'))
+                Section::make(__('Description'))
                     ->schema([
-                        Infolists\Components\TextEntry::make('description_en')
+                        TextEntry::make('description_en')
                             ->label(__('Description (English)'))
                             ->html()
                             ->columnSpanFull()
                             ->getStateUsing(fn($record) => $record->getTranslation('description', 'en') ?? 'N/A'),
 
-                        Infolists\Components\TextEntry::make('description_ar')
+                        TextEntry::make('description_ar')
                             ->label(__('Description (Arabic)'))
                             ->html()
                             ->columnSpanFull()
@@ -259,31 +269,31 @@ class ViewHall extends ViewRecord
                 // =============================================
                 // SECTION: Capacity & Pricing
                 // =============================================
-                Infolists\Components\Section::make(__('Capacity & Pricing'))
+                Section::make(__('Capacity & Pricing'))
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('capacity_min')
+                                TextEntry::make('capacity_min')
                                     ->label(__('Min Capacity'))
                                     ->suffix(' ' . __('guests'))
                                     ->badge()
                                     ->color('info'),
 
-                                Infolists\Components\TextEntry::make('capacity_max')
+                                TextEntry::make('capacity_max')
                                     ->label(__('Max Capacity'))
                                     ->suffix(' ' . __('guests'))
                                     ->badge()
                                     ->color('success')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
+                                    ->size(TextSize::Large),
 
-                                Infolists\Components\TextEntry::make('price_per_slot')
+                                TextEntry::make('price_per_slot')
                                     ->label(__('Base Price'))
                                     ->money('OMR')
                                     ->badge()
                                     ->color('warning')
-                                    ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
+                                    ->size(TextSize::Large),
 
-                                Infolists\Components\TextEntry::make('average_rating')
+                                TextEntry::make('average_rating')
                                     ->label(__('Rating'))
                                     ->badge()
                                     ->color('warning')
@@ -298,32 +308,32 @@ class ViewHall extends ViewRecord
                 // =============================================
                 // SECTION: Statistics (Quick Summary)
                 // =============================================
-                Infolists\Components\Section::make(__('Quick Statistics'))
+                Section::make(__('Quick Statistics'))
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\TextEntry::make('total_bookings')
+                                TextEntry::make('total_bookings')
                                     ->label(__('Total Bookings'))
                                     ->state(fn($record) => $record->bookings()->count())
                                     ->badge()
                                     ->color('primary')
                                     ->icon('heroicon-o-calendar-days'),
 
-                                Infolists\Components\TextEntry::make('total_revenue')
+                                TextEntry::make('total_revenue')
                                     ->label(__('Total Revenue'))
                                     ->state(fn($record) => number_format($this->getTotalRevenue($record), 3) . ' OMR')
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-banknotes'),
 
-                                Infolists\Components\TextEntry::make('reviews_count')
+                                TextEntry::make('reviews_count')
                                     ->label(__('Reviews'))
                                     ->state(fn($record) => $record->reviews()->count())
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-o-star'),
 
-                                Infolists\Components\TextEntry::make('pending_bookings')
+                                TextEntry::make('pending_bookings')
                                     ->label(__('Pending'))
                                     ->state(fn($record) => $record->bookings()->where('status', 'pending')->count())
                                     ->badge()
@@ -337,11 +347,11 @@ class ViewHall extends ViewRecord
                 // =============================================
                 // SECTION: Settings
                 // =============================================
-                Infolists\Components\Section::make(__('Settings'))
+                Section::make(__('Settings'))
                     ->schema([
-                        Infolists\Components\Grid::make(4)
+                        Grid::make(4)
                             ->schema([
-                                Infolists\Components\IconEntry::make('is_active')
+                                IconEntry::make('is_active')
                                     ->label(__('Active'))
                                     ->boolean()
                                     ->trueIcon('heroicon-o-check-circle')
@@ -349,7 +359,7 @@ class ViewHall extends ViewRecord
                                     ->trueColor('success')
                                     ->falseColor('danger'),
 
-                                Infolists\Components\IconEntry::make('is_featured')
+                                IconEntry::make('is_featured')
                                     ->label(__('Featured'))
                                     ->boolean()
                                     ->trueIcon('heroicon-o-star')
@@ -357,7 +367,7 @@ class ViewHall extends ViewRecord
                                     ->trueColor('warning')
                                     ->falseColor('gray'),
 
-                                Infolists\Components\IconEntry::make('requires_approval')
+                                IconEntry::make('requires_approval')
                                     ->label(__('Requires Approval'))
                                     ->boolean()
                                     ->trueIcon('heroicon-o-shield-check')
@@ -365,22 +375,22 @@ class ViewHall extends ViewRecord
                                     ->trueColor('info')
                                     ->falseColor('gray'),
 
-                                Infolists\Components\TextEntry::make('slug')
+                                TextEntry::make('slug')
                                     ->label(__('URL Slug'))
                                     ->copyable()
                                     ->badge()
                                     ->color('gray'),
                             ]),
 
-                        Infolists\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Infolists\Components\TextEntry::make('cancellation_hours')
+                                TextEntry::make('cancellation_hours')
                                     ->label(__('Cancellation Window'))
                                     ->suffix(' ' . __('hours'))
                                     ->badge()
                                     ->color('info'),
 
-                                Infolists\Components\TextEntry::make('cancellation_fee_percentage')
+                                TextEntry::make('cancellation_fee_percentage')
                                     ->label(__('Cancellation Fee'))
                                     ->suffix('%')
                                     ->badge()
@@ -393,22 +403,22 @@ class ViewHall extends ViewRecord
                 // =============================================
                 // SECTION: System Information
                 // =============================================
-                Infolists\Components\Section::make(__('System Information'))
+                Section::make(__('System Information'))
                     ->schema([
-                        Infolists\Components\Grid::make(3)
+                        Grid::make(3)
                             ->schema([
-                                Infolists\Components\TextEntry::make('id')
+                                TextEntry::make('id')
                                     ->label(__('Hall ID'))
                                     ->badge()
                                     ->color('gray')
                                     ->copyable(),
 
-                                Infolists\Components\TextEntry::make('created_at')
+                                TextEntry::make('created_at')
                                     ->label(__('Created At'))
                                     ->dateTime('d M Y, h:i A')
                                     ->icon('heroicon-o-calendar'),
 
-                                Infolists\Components\TextEntry::make('updated_at')
+                                TextEntry::make('updated_at')
                                     ->label(__('Last Updated'))
                                     ->dateTime('d M Y, h:i A')
                                     ->since()

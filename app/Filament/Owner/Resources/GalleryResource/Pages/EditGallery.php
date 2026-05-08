@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Resources\GalleryResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use App\Filament\Owner\Resources\GalleryResource;
 use App\Models\Hall;
 use Filament\Actions;
@@ -60,7 +62,7 @@ class EditGallery extends EditRecord
     {
         return [
             // Toggle Featured
-            Actions\Action::make('toggle_featured')
+            Action::make('toggle_featured')
                 ->label(fn (): string => $this->record->is_featured
                     ? __('owner.gallery.actions.unmark_featured') ?? 'Unmark Featured'
                     : __('owner.gallery.actions.mark_featured') ?? 'Mark Featured')
@@ -80,7 +82,7 @@ class EditGallery extends EditRecord
                 }),
 
             // Toggle Active
-            Actions\Action::make('toggle_active')
+            Action::make('toggle_active')
                 ->label(fn (): string => $this->record->is_active
                     ? __('owner.gallery.actions.deactivate') ?? 'Deactivate'
                     : __('owner.gallery.actions.activate') ?? 'Activate')
@@ -102,7 +104,7 @@ class EditGallery extends EditRecord
                 }),
 
             // Delete
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->before(function (): void {
                     // Delete files from storage
                     if ($this->record->image_path && Storage::disk('public')->exists($this->record->image_path)) {

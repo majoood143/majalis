@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\PayoutResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Illuminate\Support\Facades\Storage;
+use Filament\Actions\DeleteAction;
 use App\Enums\PayoutStatus;
 use App\Filament\Admin\Resources\PayoutResource;
 use Filament\Actions;
@@ -37,11 +44,11 @@ class ViewPayout1 extends ViewRecord
     {
         return [
             // Edit Action
-            Actions\EditAction::make()
+            EditAction::make()
                 ->visible(fn () => !$this->record->status->isTerminal()),
 
             // Process Action
-            Actions\Action::make('process')
+            Action::make('process')
                 ->label(__('admin.payout.actions.process'))
                 ->icon('heroicon-o-play')
                 ->color('info')
@@ -73,13 +80,13 @@ class ViewPayout1 extends ViewRecord
                 }),
 
             // Complete Action
-            Actions\Action::make('complete')
+            Action::make('complete')
                 ->label(__('admin.payout.actions.complete'))
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->size('lg')
-                ->form([
-                    Forms\Components\Select::make('payment_method')
+                ->schema([
+                    Select::make('payment_method')
                         ->label(__('admin.payout.fields.payment_method'))
                         ->options([
                             'bank_transfer' => __('admin.payout.methods.bank_transfer'),
@@ -91,7 +98,7 @@ class ViewPayout1 extends ViewRecord
                         ->native(false)
                         ->default($this->record->payment_method),
 
-                    Forms\Components\TextInput::make('transaction_reference')
+                    TextInput::make('transaction_reference')
                         ->label(__('admin.payout.fields.transaction_reference'))
                         ->required()
                         ->maxLength(100)
@@ -128,12 +135,12 @@ class ViewPayout1 extends ViewRecord
                 }),
 
             // Mark Failed Action
-            Actions\Action::make('fail')
+            Action::make('fail')
                 ->label(__('admin.payout.actions.fail'))
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
-                ->form([
-                    Forms\Components\Textarea::make('failure_reason')
+                ->schema([
+                    Textarea::make('failure_reason')
                         ->label(__('admin.payout.fields.failure_reason'))
                         ->required()
                         ->rows(3)
@@ -155,12 +162,12 @@ class ViewPayout1 extends ViewRecord
                 }),
 
             // Hold Action
-            Actions\Action::make('hold')
+            Action::make('hold')
                 ->label(__('admin.payout.actions.hold'))
                 ->icon('heroicon-o-pause-circle')
                 ->color('warning')
-                ->form([
-                    Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label(__('admin.payout.fields.hold_reason'))
                         ->rows(2)
                         ->maxLength(500)
@@ -181,15 +188,15 @@ class ViewPayout1 extends ViewRecord
                 }),
 
             // Cancel Action
-            Actions\Action::make('cancel')
+            Action::make('cancel')
                 ->label(__('admin.payout.actions.cancel'))
                 ->icon('heroicon-o-no-symbol')
                 ->color('gray')
                 ->requiresConfirmation()
                 ->modalHeading(__('admin.payout.modal.cancel_title'))
                 ->modalDescription(__('admin.payout.modal.cancel_desc'))
-                ->form([
-                    Forms\Components\Textarea::make('reason')
+                ->schema([
+                    Textarea::make('reason')
                         ->label(__('admin.payout.fields.cancel_reason'))
                         ->rows(2)
                         ->maxLength(500),
@@ -207,7 +214,7 @@ class ViewPayout1 extends ViewRecord
                 }),
 
             // Print Receipt Action
-            Actions\Action::make('print_receipt')
+            Action::make('print_receipt')
                 ->label(__('admin.payout.actions.print'))
                 ->icon('heroicon-o-printer')
                 ->color('gray')
@@ -216,31 +223,31 @@ class ViewPayout1 extends ViewRecord
                 ->openUrlInNewTab(),
 
             // Download Receipt Action - Fixed without named route
-            Actions\Action::make('downloadReceipt')
+            Action::make('downloadReceipt')
                 ->label(__('admin.payout.download_receipt'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('success')
-                ->visible(fn(): bool => $this->record->status === \App\Enums\PayoutStatus::COMPLETED
+                ->visible(fn(): bool => $this->record->status === PayoutStatus::COMPLETED
                     && !empty($this->record->receipt_path))
                 ->action(function () {
                     // Check if file exists in storage
-                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->record->receipt_path)) {
+                    if (Storage::disk('public')->exists($this->record->receipt_path)) {
                         // Return download response
                         return response()->download(
-                            \Illuminate\Support\Facades\Storage::disk('public')->path($this->record->receipt_path),
+                            Storage::disk('public')->path($this->record->receipt_path),
                             "payout-receipt-{$this->record->payout_number}.pdf"
                         );
                     }
 
                     // File not found notification
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->warning()
                         ->title(__('admin.payout.receipt_not_found'))
                         ->send();
                 }),
 
             // Delete Action
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->visible(fn () => !$this->record->status->isTerminal()),
         ];
     }

@@ -4,19 +4,24 @@ declare(strict_types=1);
 
 namespace App\Filament\Owner\Pages;
 
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\Select;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use App\Models\User;
+use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\Booking;
 use App\Models\Hall;
 use App\Models\OwnerPayout;
 use App\Enums\PayoutStatus;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -45,14 +50,14 @@ class FinancialReportsPage extends Page implements HasForms
      *
      * @var string
      */
-    protected static string $view = 'filament.owner.pages.financial-reports';
+    protected string $view = 'filament.owner.pages.financial-reports';
 
     /**
      * The navigation icon.
      *
      * @var string|null
      */
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar';
 
     /**
      * The navigation group.
@@ -160,16 +165,16 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Get the form schema.
      *
-     * @param Form $form
-     * @return Form
+     * @param Schema $schema
+     * @return Schema
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(4)
+        return $schema
+            ->components([
+                Grid::make(4)
                     ->schema([
-                        Forms\Components\Select::make('reportType')
+                        Select::make('reportType')
                             ->label(__('owner.reports.type'))
                             ->options([
                                 'monthly' => __('owner.reports.type_monthly'),
@@ -181,7 +186,7 @@ class FinancialReportsPage extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn() => $this->generateReport()),
 
-                        Forms\Components\Select::make('selectedYear')
+                        Select::make('selectedYear')
                             ->label(__('owner.reports.year'))
                             ->options(function (): array {
                                 $years = [];
@@ -194,7 +199,7 @@ class FinancialReportsPage extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn() => $this->generateReport()),
 
-                        Forms\Components\Select::make('selectedMonth')
+                        Select::make('selectedMonth')
                             ->label(__('owner.reports.month'))
                             ->options([
                                 1 => __('owner.months.january'),
@@ -215,7 +220,7 @@ class FinancialReportsPage extends Page implements HasForms
                             ->live()
                             ->afterStateUpdated(fn() => $this->generateReport()),
 
-                        Forms\Components\Select::make('selectedHall')
+                        Select::make('selectedHall')
                             ->label(__('owner.reports.hall'))
                             ->options(function (): array {
                                 return Hall::where('owner_id', Auth::id())
@@ -305,7 +310,7 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Generate monthly report.
      *
-     * @param \App\Models\User $user
+     * @param User $user
      * @return array
      */
     protected function generateMonthlyReport($user): array
@@ -385,7 +390,7 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Generate yearly report.
      *
-     * @param \App\Models\User $user
+     * @param User $user
      * @return array
      */
     protected function generateYearlyReport($user): array
@@ -492,7 +497,7 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Generate hall performance report.
      *
-     * @param \App\Models\User $user
+     * @param User $user
      * @return array
      */
     protected function generateHallReport($user): array
@@ -584,7 +589,7 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Generate comparison report (month-over-month).
      *
-     * @param \App\Models\User $user
+     * @param User $user
      * @return array
      */
     protected function generateComparisonReport($user): array
@@ -725,8 +730,8 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Get hall breakdown from bookings.
      *
-     * @param \Illuminate\Support\Collection $bookings
-     * @param \App\Models\User $user
+     * @param Collection $bookings
+     * @param User $user
      * @return array
      */
     protected function getHallBreakdown($bookings, $user): array
@@ -911,15 +916,15 @@ class FinancialReportsPage extends Page implements HasForms
                 ->success()
                 ->title(__('owner.reports.export_success'))
                 ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
+                    Action::make('download')
                         ->label(__('owner.actions.download'))
                         ->url(Storage::disk('public')->url($filepath))
                         ->openUrlInNewTab(),
                 ])
                 ->persistent()
                 ->send();
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Financial report export failed', [
+        } catch (Exception $e) {
+            Log::error('Financial report export failed', [
                 'user_id' => Auth::id(),
                 'report_type' => $this->reportType,
                 'error' => $e->getMessage(),
@@ -937,7 +942,7 @@ class FinancialReportsPage extends Page implements HasForms
     /**
      * Export report to CSV.
      *
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse|null
+     * @return StreamedResponse|null
      */
     public function exportToCsv()
     {
@@ -974,7 +979,7 @@ class FinancialReportsPage extends Page implements HasForms
             }, $filename, [
                 'Content-Type' => 'text/csv; charset=utf-8',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->danger()
                 ->title(__('owner.reports.export_failed'))

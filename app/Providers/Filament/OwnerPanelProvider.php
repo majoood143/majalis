@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use Filament\Pages\Dashboard;
+use App\Filament\Owner\Widgets\AvailabilityCalendarWidget;
+use LaraZeus\SpatieTranslatable\SpatieTranslatablePlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -22,7 +25,6 @@ use App\Http\Middleware\SetUserLanguage;
 use App\Filament\Pages\EditProfile;
 use App\Filament\Owner\Resources\ExpenseResource;
 use Filament\View\PanelsRenderHook;
-use Filament\SpatieLaravelTranslatablePlugin;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
@@ -34,9 +36,10 @@ class OwnerPanelProvider extends PanelProvider
         return $panel
             ->id('owner')
             ->path('owner')
+            ->viteTheme('resources/css/filament/owner/theme.css')
             ->login()  // This enables the login page
             ->colors([
-                'primary' => Color::hex('#B9916D'),
+                'primary' => Color::generateV3Palette('#B9916D'),
                 'danger' => Color::Rose,
                 'warning' => Color::Amber,
                 'success' => Color::Green,
@@ -57,14 +60,14 @@ class OwnerPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Owner/Pages'), for: 'App\\Filament\\Owner\\Pages')
             ->discoverWidgets(in: app_path('Filament/Owner/Widgets'), for: 'App\\Filament\\Owner\\Widgets')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
                 EditProfile::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Owner/Widgets'), for: 'App\\Filament\\Owner\\Widgets')
             ->widgets([
                 //Widgets\AccountWidget::class,
                 //Widgets\FilamentInfoWidget::class,
-                \App\Filament\Owner\Widgets\AvailabilityCalendarWidget::class,
+                AvailabilityCalendarWidget::class,
 
             ])
             ->middleware([
@@ -100,7 +103,7 @@ class OwnerPanelProvider extends PanelProvider
                 __('owner.nav_groups.settings'),
             ])
             ->plugin(
-                SpatieLaravelTranslatablePlugin::make()
+                SpatieTranslatablePlugin::make()
                     ->defaultLocales(['en', 'ar'])
             )
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\HallOwnerResource\Widgets;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\Action;
 use App\Filament\Admin\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Hall;
@@ -38,29 +40,29 @@ class HallOwnerRecentBookings extends BaseWidget
         return $table
             ->query($this->getTableQuery())
             ->columns([
-                Tables\Columns\TextColumn::make('booking_number')
+                TextColumn::make('booking_number')
                     ->label(__('hall-owner.widgets.columns.booking_number'))
                     ->searchable()
                     ->copyable()
                     ->weight('bold')
                     ->url(fn(Booking $record): string => BookingResource::getUrl('view', ['record' => $record])),
 
-                Tables\Columns\TextColumn::make('hall.name')
+                TextColumn::make('hall.name')
                     ->label(__('hall-owner.widgets.columns.hall'))
                     ->searchable()
                     ->limit(25),
 
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label(__('hall-owner.widgets.columns.customer'))
                     ->searchable()
                     ->limit(25),
 
-                Tables\Columns\TextColumn::make('booking_date')
+                TextColumn::make('booking_date')
                     ->label(__('hall-owner.widgets.columns.date'))
                     ->date('d M Y')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label(__('hall-owner.widgets.columns.status'))
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -71,7 +73,7 @@ class HallOwnerRecentBookings extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('payment_status')
+                TextColumn::make('payment_status')
                     ->label(__('hall-owner.widgets.columns.payment'))
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -82,17 +84,17 @@ class HallOwnerRecentBookings extends BaseWidget
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('total_amount')
+                TextColumn::make('total_amount')
                     ->label(__('hall-owner.widgets.columns.income'))
                     ->money('OMR', 3)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('commission_amount')
+                TextColumn::make('commission_amount')
                     ->label(__('hall-owner.widgets.columns.commission'))
                     ->money('OMR', 3)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('owner_payout')
+                TextColumn::make('owner_payout')
                     ->label(__('hall-owner.widgets.columns.payout'))
                     ->money('OMR', 3)
                     ->sortable()
@@ -101,8 +103,8 @@ class HallOwnerRecentBookings extends BaseWidget
             ->defaultSort('booking_date', 'desc')
             ->paginated([10, 25, 50])
             ->defaultPaginationPageOption(10)
-            ->actions([
-                Tables\Actions\Action::make('view')
+            ->recordActions([
+                Action::make('view')
                     ->url(fn(Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
                     ->icon('heroicon-m-eye')
                     ->label(__('hall-owner.widgets.actions.view')),

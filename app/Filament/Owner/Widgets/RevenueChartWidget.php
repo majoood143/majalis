@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class RevenueChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Revenue Trend';
+    protected ?string $heading = 'Revenue Trend';
 
     protected int | string | array $columnSpan = [
         'sm' => 'full',
@@ -21,7 +21,7 @@ class RevenueChartWidget extends ChartWidget
         'xl' => 2,
     ];
 
-    protected static ?string $maxHeight = '300px';
+    protected ?string $maxHeight = '300px';
 
     protected function getType(): string
     {

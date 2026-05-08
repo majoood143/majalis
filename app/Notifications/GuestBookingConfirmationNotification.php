@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use Carbon\Carbon;
+use Exception;
 use App\Models\Booking;
 use App\Services\BookingPdfService;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -72,7 +74,7 @@ class GuestBookingConfirmationNotification extends Notification
             ? ($booking->customer_name[$locale] ?? $booking->customer_name['en'] ?? 'Guest')
             : (string) ($booking->customer_name ?? 'Guest');
 
-        $bookingDate = $booking->booking_date instanceof \Carbon\Carbon
+        $bookingDate = $booking->booking_date instanceof Carbon
             ? $booking->booking_date->format('l, F j, Y')
             : (string) ($booking->booking_date ?? 'N/A');
 
@@ -209,7 +211,7 @@ class GuestBookingConfirmationNotification extends Notification
                     'expected_path' => $fullPath,
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Failed to attach PDF to guest confirmation email (email will still be sent)', [
                 'booking_id' => $booking->id,
                 'error'      => $e->getMessage(),

@@ -2,10 +2,16 @@
 
 namespace App\Filament\Admin\Resources\ReviewResource\Pages;
 
+use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\IconEntry;
 use App\Filament\Admin\Resources\ReviewResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Infolists\Infolist;
 use Filament\Infolists;
 use Filament\Notifications\Notification;
 
@@ -16,9 +22,9 @@ class ViewReview extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            EditAction::make(),
 
-            Actions\Action::make('approve')
+            Action::make('approve')
                 ->visible(fn() => !$this->record->is_approved)
                 ->action(function () {
                     $this->record->approve();
@@ -26,37 +32,37 @@ class ViewReview extends ViewRecord
                     $this->redirect(static::getUrl(['record' => $this->record]));
                 }),
 
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Review Information')
+                Section::make('Review Information')
                     ->schema([
-                        Infolists\Components\TextEntry::make('hall.name')
+                        TextEntry::make('hall.name')
                             ->formatStateUsing(fn($record) => $record->hall->getTranslation('name', 'en')),
-                        Infolists\Components\TextEntry::make('user.name'),
-                        Infolists\Components\TextEntry::make('rating')
+                        TextEntry::make('user.name'),
+                        TextEntry::make('rating')
                             ->badge()
                             ->formatStateUsing(fn($state) => str_repeat('⭐', $state)),
-                        Infolists\Components\TextEntry::make('comment')->columnSpanFull(),
+                        TextEntry::make('comment')->columnSpanFull(),
                     ])->columns(3),
 
-                Infolists\Components\Section::make('Detailed Ratings')
+                Section::make('Detailed Ratings')
                     ->schema([
-                        Infolists\Components\TextEntry::make('cleanliness_rating')->suffix('/5'),
-                        Infolists\Components\TextEntry::make('service_rating')->suffix('/5'),
-                        Infolists\Components\TextEntry::make('value_rating')->suffix('/5'),
-                        Infolists\Components\TextEntry::make('location_rating')->suffix('/5'),
+                        TextEntry::make('cleanliness_rating')->suffix('/5'),
+                        TextEntry::make('service_rating')->suffix('/5'),
+                        TextEntry::make('value_rating')->suffix('/5'),
+                        TextEntry::make('location_rating')->suffix('/5'),
                     ])->columns(4),
 
-                Infolists\Components\Section::make('Status')
+                Section::make('Status')
                     ->schema([
-                        Infolists\Components\IconEntry::make('is_approved')->boolean(),
-                        Infolists\Components\IconEntry::make('is_featured')->boolean(),
+                        IconEntry::make('is_approved')->boolean(),
+                        IconEntry::make('is_featured')->boolean(),
                     ])->columns(2),
             ]);
     }

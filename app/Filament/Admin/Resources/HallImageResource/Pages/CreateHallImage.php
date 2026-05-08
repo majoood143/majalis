@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\HallImageResource\Pages;
 
+use App\Models\HallImage;
+use Exception;
 use App\Filament\Admin\Resources\HallImageResource;
 use App\Services\ImageOptimizationService;
 use Filament\Resources\Pages\CreateRecord;
@@ -71,7 +73,7 @@ class CreateHallImage extends CreateRecord
 
         // Check for featured image limit
         if ($data['type'] === 'featured') {
-            $featuredCount = \App\Models\HallImage::where('hall_id', $data['hall_id'])
+            $featuredCount = HallImage::where('hall_id', $data['hall_id'])
                 ->where('type', 'featured')
                 ->count();
 
@@ -165,7 +167,7 @@ class CreateHallImage extends CreateRecord
                     ]);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to extract image metadata: ' . $e->getMessage());
         }
     }
@@ -181,7 +183,7 @@ class CreateHallImage extends CreateRecord
                 $image->update(['thumbnail_path' => $thumbnailPath]);
                 Log::info('Thumbnail generated for image: ' . $image->id);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Thumbnail generation failed: ' . $e->getMessage());
         }
     }

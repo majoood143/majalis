@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use ReflectionClass;
 use App\Mail\BookingReminderMail;
 use App\Models\Booking;
 use App\Services\BookingReminderService;
@@ -489,7 +490,7 @@ class DiagnoseBookingEmail extends Command
             $this->line("  ✅ Service instantiated");
 
             // Check if service has the fixed Mail::to() pattern
-            $reflection = new \ReflectionClass($service);
+            $reflection = new ReflectionClass($service);
             $sourceFile = $reflection->getFileName();
 
             if ($sourceFile && file_exists($sourceFile)) {
