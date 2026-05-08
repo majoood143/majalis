@@ -96,7 +96,7 @@ class AdminPanelProvider extends PanelProvider
                 // TODO: replace rmsramos/activitylog (v3-only) with a v4-compatible activity log plugin
                 FilamentSpatieLaravelBackupPlugin::make(),
                 FilamentSpatieLaravelHealthPlugin::make(),
-                MailsPlugin::make(),
+                //MailsPlugin::make(),
                 FilamentJobsMonitorPlugin::make()
                     ->enableNavigation(),
                 GtagPlugin::make(),
