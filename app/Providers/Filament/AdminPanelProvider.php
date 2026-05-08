@@ -131,8 +131,8 @@ class AdminPanelProvider extends PanelProvider
             )
             // ADD PLUGIN CONFIGURATION
             ->plugin(
-                SpatieTranslatablePlugin::make()
-                    ->defaultLocales(['en', 'ar']),
+                // SpatieTranslatablePlugin::make()
+                //     ->defaultLocales(['en', 'ar']),
 
 
 
