@@ -96,13 +96,13 @@ class AdminPanelProvider extends PanelProvider
                 // TODO: replace rmsramos/activitylog (v3-only) with a v4-compatible activity log plugin
                 FilamentSpatieLaravelBackupPlugin::make(),
                 FilamentSpatieLaravelHealthPlugin::make(),
-                //MailsPlugin::make(),
+                MailsPlugin::make(),
                 FilamentJobsMonitorPlugin::make()
                     ->enableNavigation(),
                 GtagPlugin::make(),
                 FilamentEnvEditorPlugin::make()
                     ->viewPage(EnvEditor::class),
-            //FilamentEvolutionPlugin::make(),
+            FilamentEvolutionPlugin::make(),
             //\MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
             //KnowledgeBasePlugin::make(),
 
@@ -128,14 +128,14 @@ class AdminPanelProvider extends PanelProvider
                 fn(): string => Blade::render(
                     '<script src="{{ asset("js/filament-session-handler.js") }}" defer></script>'
                 )
-            );
+            )
             // ADD PLUGIN CONFIGURATION
-            // ->plugin(
-            //     // SpatieTranslatablePlugin::make()
-            //     //     ->defaultLocales(['en', 'ar']),
+            ->plugin(
+                SpatieTranslatablePlugin::make()
+                    ->defaultLocales(['en', 'ar']),
 
 
 
-            // );
+            );
     }
 }

@@ -102,10 +102,10 @@ class OwnerPanelProvider extends PanelProvider
                 __('owner.nav_groups.support'),
                 __('owner.nav_groups.settings'),
             ])
-            // ->plugin(
-            //     SpatieTranslatablePlugin::make()
-            //         ->defaultLocales(['en', 'ar'])
-            // )
+            ->plugin(
+                SpatieTranslatablePlugin::make()
+                    ->defaultLocales(['en', 'ar'])
+            )
 
             ->resources([
                 ExpenseResource::class,
