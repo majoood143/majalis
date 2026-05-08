@@ -128,14 +128,14 @@ class AdminPanelProvider extends PanelProvider
                 fn(): string => Blade::render(
                     '<script src="{{ asset("js/filament-session-handler.js") }}" defer></script>'
                 )
-            )
-            // ADD PLUGIN CONFIGURATION
-            ->plugin(
-                // SpatieTranslatablePlugin::make()
-                //     ->defaultLocales(['en', 'ar']),
-
-
-
             );
+            // ADD PLUGIN CONFIGURATION
+            // ->plugin(
+            //     // SpatieTranslatablePlugin::make()
+            //     //     ->defaultLocales(['en', 'ar']),
+
+
+
+            // );
     }
 }
