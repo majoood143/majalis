@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->profile()
             ->colors([
-                'primary' => Color::generateV3Palette('#B9916D'),
+                // 'primary' => Color::generateV3Palette('#B9916D'),
                 'danger' => Color::Red,
                 'gray' => Color::Slate,
                 'info' => Color::Sky,
