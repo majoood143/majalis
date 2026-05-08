@@ -39,7 +39,7 @@ class OwnerPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/owner/theme.css')
             ->login()  // This enables the login page
             ->colors([
-                'primary' => Color::generateV3Palette('#B9916D'),
+                // 'primary' => Color::generateV3Palette('#B9916D'),
                 'danger' => Color::Rose,
                 'warning' => Color::Amber,
                 'success' => Color::Green,
