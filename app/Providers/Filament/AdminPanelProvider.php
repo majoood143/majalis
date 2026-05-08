@@ -102,7 +102,7 @@ class AdminPanelProvider extends PanelProvider
                 GtagPlugin::make(),
                 FilamentEnvEditorPlugin::make()
                     ->viewPage(EnvEditor::class),
-            FilamentEvolutionPlugin::make(),
+            //FilamentEvolutionPlugin::make(),
             //\MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
             //KnowledgeBasePlugin::make(),
 
