@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Blade;
 use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
 use WallaceMartinss\FilamentEvolution\FilamentEvolutionPlugin;
+use App\Filament\Pages\WhatsAppTester;
 
 
 
@@ -71,8 +72,9 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
                 Dashboard::class,
-            EditProfile::class,
+                EditProfile::class,
                 Maintenance::class,
+            WhatsAppTester::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
@@ -102,9 +104,12 @@ class AdminPanelProvider extends PanelProvider
                 GtagPlugin::make(),
                 FilamentEnvEditorPlugin::make()
                     ->viewPage(EnvEditor::class),
-            FilamentEvolutionPlugin::make(),
-            \MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
-            //KnowledgeBasePlugin::make(),
+                FilamentEvolutionPlugin::make()
+                    ->whatsappInstanceResource()  // Show instances (default: true)
+                    ->viewMessageHistory()        // Show message history
+                    ->viewWebhookLogs(),           // Show webhook logs,
+                \MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
+                //KnowledgeBasePlugin::make(),
 
 
             ])
