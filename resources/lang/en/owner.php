@@ -264,6 +264,8 @@ return [
             'advance_payment_desc' => 'Configure advance payment requirements',
             'amenities' => 'Amenities & Features',
             'amenities_desc' => 'Select the features available in your hall',
+            'event_types' => 'Accepted Event Types',
+            'event_types_desc' => 'Select the event types this hall accepts. Customers will only choose from these when booking.',
             'images' => 'Images',
             'video' => 'Video & Virtual Tour',
             'contact' => 'Contact Information',

@@ -421,12 +421,12 @@
                             <select name="event_type" x-model="formData.event_type"
                                 class="w-full px-4 py-3 transition border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
                                 <option value="">{{ __('halls.select_event_type') }}</option>
-                                <option value="wedding">{{ __('halls.wedding') }}</option>
-                                <option value="corporate">{{ __('halls.corporate') }}</option>
-                                <option value="birthday">{{ __('halls.birthday') }}</option>
-                                <option value="conference">{{ __('halls.conference') }}</option>
-                                <option value="graduation">{{ __('halls.graduation') }}</option>
-                                <option value="other">{{ __('halls.other') }}</option>
+                                @foreach ($eventTypes as $eventType)
+                                    <option value="{{ $eventType->id }}"
+                                        {{ old('event_type') == $eventType->id ? 'selected' : '' }}>
+                                        {{ $eventType->getTranslation('name', app()->getLocale()) }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 

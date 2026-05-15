@@ -795,6 +795,11 @@ class Hall extends Model
         return $this->belongsToMany(HallType::class, 'hall_hall_type')->withTimestamps();
     }
 
+    public function eventTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(EventType::class, 'hall_event_type');
+    }
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);

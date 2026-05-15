@@ -44,6 +44,9 @@ class HallOwnerRegistration extends Component
     public string $bank_account_number = '';
     public string $iban                = '';
 
+    // Step 2: Logo (optional)
+    public $logo = null;
+
     // Step 5: Documents
     public $commercial_registration_document = null;
     public $identity_document                = null;
@@ -64,6 +67,7 @@ class HallOwnerRegistration extends Component
             2 => [
                 'business_name'           => ['required', 'string', 'max:255'],
                 'business_name_ar'        => ['nullable', 'string', 'max:255'],
+                'logo'                    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
                 'commercial_registration' => ['required', 'string', 'max:100', 'unique:hall_owners,commercial_registration'],
                 'tax_number'              => ['nullable', 'string', 'max:50'],
             ],
@@ -178,6 +182,9 @@ class HallOwnerRegistration extends Component
             $taxDocPath = $this->tax_certificate
                 ? $this->tax_certificate->store('hall-owner-documents', 'public')
                 : null;
+            $logoPath = $this->logo
+                ? $this->logo->store('logos/hall-owners', 'public')
+                : null;
 
             HallOwner::create([
                 'user_id'                          => $user->id,
@@ -193,6 +200,7 @@ class HallOwnerRegistration extends Component
                 'bank_account_name'                => $this->bank_account_name ?: null,
                 'bank_account_number'              => $this->bank_account_number ?: null,
                 'iban'                             => $this->iban ?: null,
+                'logo'                             => $logoPath,
                 'commercial_registration_document' => $crDocPath,
                 'identity_document'                => $idDocPath,
                 'tax_certificate'                  => $taxDocPath,

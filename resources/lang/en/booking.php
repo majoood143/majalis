@@ -163,6 +163,12 @@ return [
             'placeholder' => 'Select event type',
             'helper' => 'Type of event being held',
         ],
+        'event_types' => [
+            'label' => 'Event Types',
+            'placeholder' => 'Select one or more event types',
+            'helper' => 'Choose all applicable event types for this booking',
+            'helper_filtered' => 'Showing event types accepted by the selected hall',
+        ],
 
         // Customer Details
         'customer_name' => [

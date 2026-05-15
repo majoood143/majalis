@@ -86,25 +86,25 @@
 
                 <!-- Desktop Navigation Links -->
                 <div class="items-center hidden space-x-8 md:flex {{ app()->getLocale() === 'ar' ? 'space-x-reverse' : '' }}">
-                    <a href="{{ route('customer.halls.index') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.halls.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                    <a href="{{ route('customer.halls.index') }}" class="text-gray-700 hover:text-[#B9916D] px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.halls.*') ? 'text-[#B9916D] font-semibold' : '' }}">
                         {{ __('dashboard.browse_halls') }}
                     </a>
 
                     @auth
-                        <a href="{{ route('customer.dashboard') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.dashboard') ? 'text-indigo-600 font-semibold' : '' }}">
+                        <a href="{{ route('customer.dashboard') }}" class="text-gray-700 hover:text-[#B9916D] px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.dashboard') ? 'text-[#B9916D] font-semibold' : '' }}">
                             {{ __('dashboard.nav_dashboard') }}
                         </a>
-                        <a href="{{ route('customer.bookings') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.bookings') || request()->routeIs('customer.booking.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                        <a href="{{ route('customer.bookings') }}" class="text-gray-700 hover:text-[#B9916D] px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.bookings') || request()->routeIs('customer.booking.*') ? 'text-[#B9916D] font-semibold' : '' }}">
                             {{ __('dashboard.my_bookings') }}
                         </a>
-                        <a href="{{ route('customer.tickets.index') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                        <a href="{{ route('customer.tickets.index') }}" class="text-gray-700 hover:text-[#B9916D] px-3 py-2 text-sm font-medium {{ request()->routeIs('customer.tickets.*') ? 'text-[#B9916D] font-semibold' : '' }}">
                             {{ __('tickets.nav_link') }}
                         </a>
 
                         <!-- User Dropdown -->
                         <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" class="flex items-center space-x-2 {{ app()->getLocale() === 'ar' ? 'space-x-reverse' : '' }} text-gray-700 hover:text-indigo-600">
-                                <div class="flex items-center justify-center w-8 h-8 font-medium text-white bg-indigo-600 rounded-full">
+                            <button @click="open = !open" class="flex items-center space-x-2 {{ app()->getLocale() === 'ar' ? 'space-x-reverse' : '' }} text-gray-700 hover:text-[#B9916D]">
+                                <div class="flex items-center justify-center w-8 h-8 font-medium text-white bg-[#B9916D] rounded-full">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                 </div>
                                 <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
@@ -114,7 +114,7 @@
                             </button>
 
                             <div x-show="open" @click.away="open = false" x-cloak
-                                class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} w-48 py-1 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                                class="absolute z-50 {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} w-48 py-1 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
                                 <a href="{{ route('customer.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     {{ __('dashboard.my_profile') }}
                                 </a>
@@ -128,13 +128,13 @@
                         </div>
                     @else
                         <a href="{{ route('guest.tickets.verify') }}"
-                           class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('guest.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                           class="text-gray-700 hover:text-[#B9916D] px-3 py-2 text-sm font-medium {{ request()->routeIs('guest.tickets.*') ? 'text-[#B9916D] font-semibold' : '' }}">
                             {{ __('tickets_guest.verify_title') }}
                         </a>
-                        <a href="{{ route('login') }}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600">
+                        <a href="{{ route('login') }}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#B9916D]">
                             {{ __('dashboard.login') }}
                         </a>
-                        <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-[#B9916D] rounded-md hover:bg-[#a07d5e]">
                             {{ __('dashboard.register') }}
                         </a>
                     @endauth
@@ -167,7 +167,7 @@
                         </span>
                     </a>
 
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-700 hover:text-indigo-600">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-700 hover:text-[#B9916D]">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -180,37 +180,37 @@
         {{-- Mobile menu panel: x-show reads mobileMenuOpen from parent <nav> x-data --}}
         <div x-show="mobileMenuOpen" x-cloak class="md:hidden">
             <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{{ route('customer.halls.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
+                <a href="{{ route('customer.halls.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50">
                     {{ __('dashboard.browse_halls') }}
                 </a>
                 @auth
-                    <a href="{{ route('customer.dashboard') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
+                    <a href="{{ route('customer.dashboard') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50">
                         {{ __('dashboard.nav_dashboard') }}
                     </a>
-                    <a href="{{ route('customer.bookings') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
+                    <a href="{{ route('customer.bookings') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50">
                         {{ __('dashboard.my_bookings') }}
                     </a>
-                    <a href="{{ route('customer.tickets.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50 {{ request()->routeIs('customer.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                    <a href="{{ route('customer.tickets.index') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50 {{ request()->routeIs('customer.tickets.*') ? 'text-[#B9916D] font-semibold' : '' }}">
                         {{ __('tickets.nav_link') }}
                     </a>
-                    <a href="{{ route('customer.profile') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
+                    <a href="{{ route('customer.profile') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50">
                         {{ __('dashboard.my_profile') }}
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="block w-full px-3 py-2 text-base font-medium {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
+                        <button type="submit" class="block w-full px-3 py-2 text-base font-medium {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50">
                             {{ __('dashboard.logout') }}
                         </button>
                     </form>
                 @else
                     <a href="{{ route('guest.tickets.verify') }}"
-                       class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50 {{ request()->routeIs('guest.tickets.*') ? 'text-indigo-600 font-semibold' : '' }}">
+                       class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50 {{ request()->routeIs('guest.tickets.*') ? 'text-[#B9916D] font-semibold' : '' }}">
                         {{ __('tickets_guest.verify_title') }}
                     </a>
-                    <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-indigo-600 hover:bg-gray-50">
+                    <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:text-[#B9916D] hover:bg-gray-50">
                         {{ __('dashboard.login') }}
                     </a>
-                    <a href="{{ route('register') }}" class="block px-3 py-2 text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                    <a href="{{ route('register') }}" class="block px-3 py-2 text-base font-medium text-white bg-[#B9916D] rounded-md hover:bg-[#a07d5e]">
                         {{ __('dashboard.register') }}
                     </a>
                 @endauth

@@ -405,11 +405,14 @@ class GuestBookingController extends Controller
         $guestSession->updateStatus('booking');
 
         // Load hall with relationships
-        $hall->load(['city.region', 'owner', 'activeExtraServices']);
+        $hall->load(['city.region', 'owner', 'activeExtraServices', 'eventTypes']);
+
+        $eventTypes = $hall->eventTypes->where('is_active', true)->sortBy('sort_order');
 
         return view('customer.guest.booking-form', [
             'hall' => $hall,
             'guestSession' => $guestSession,
+            'eventTypes' => $eventTypes,
         ]);
     }
 

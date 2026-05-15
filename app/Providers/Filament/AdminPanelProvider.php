@@ -103,7 +103,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentEnvEditorPlugin::make()
                     ->viewPage(EnvEditor::class),
             FilamentEvolutionPlugin::make(),
-            //\MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
+            \MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
             //KnowledgeBasePlugin::make(),
 
 

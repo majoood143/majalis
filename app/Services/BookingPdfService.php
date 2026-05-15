@@ -33,6 +33,10 @@ class BookingPdfService
             // Load booking with relationships
             $booking->load(['hall.city.region', 'extraServices', 'user']);
 
+            // Ensure every booking has a guest_token so the QR code URL works
+            // for both guest and authenticated-user bookings.
+            $this->ensureGuestToken($booking);
+
             // Render blade view to HTML
             $html = view('pdf.booking-confirmation', ['booking' => $booking])->render();
 
@@ -58,6 +62,22 @@ class BookingPdfService
     }
 
     /**
+     * Ensure the booking has a guest_token so the PDF QR code can link to
+     * the public /guest/booking/{token} route for both guest and user bookings.
+     */
+    private function ensureGuestToken(Booking $booking): void
+    {
+        if (!empty($booking->guest_token)) {
+            return;
+        }
+
+        $token = Booking::generateGuestToken();
+
+        $booking->update(['guest_token' => $token]);
+        $booking->guest_token = $token;
+    }
+
+    /**
      * Download booking confirmation PDF as a browser response.
      *
      * Always regenerates with mPDF to guarantee Arabic renders correctly.
@@ -68,6 +88,8 @@ class BookingPdfService
     public function download(Booking $booking): StreamedResponse
     {
         $booking->load(['hall.city.region', 'extraServices', 'user']);
+
+        $this->ensureGuestToken($booking);
 
         $html = view('pdf.booking-confirmation', ['booking' => $booking])->render();
 

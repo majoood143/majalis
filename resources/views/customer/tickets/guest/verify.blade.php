@@ -8,8 +8,8 @@
 
         {{-- Logo / Icon --}}
         <div class="flex justify-center mb-6">
-            <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full">
-                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center justify-center w-16 h-16 bg-[#B9916D] rounded-full">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
@@ -31,9 +31,9 @@
 
         {{-- Step indicator --}}
         <div class="flex items-center mb-8">
-            <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-indigo-600 rounded-full shrink-0">1</div>
+            <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-[#B9916D] rounded-full shrink-0">1</div>
             <div class="flex-1 h-1 mx-2 bg-gray-200 rounded">
-                <div class="h-1 bg-indigo-200 rounded" style="width:0%"></div>
+                <div class="h-1 bg-[#B9916D] rounded" style="width:0%"></div>
             </div>
             <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-gray-400 bg-gray-100 rounded-full shrink-0">2</div>
         </div>
@@ -84,7 +84,7 @@
                 </div>
 
                 <button type="submit"
-                        class="w-full px-6 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+                        class="w-full px-6 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-[#B9916D] transition">
                     {{ __('tickets_guest.verify_btn') }}
                 </button>
             </form>

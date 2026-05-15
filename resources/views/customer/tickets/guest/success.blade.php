@@ -23,7 +23,7 @@
             <p class="mb-1 text-xs font-semibold tracking-widest text-gray-400 uppercase">
                 {{ __('tickets_guest.your_reference') }}
             </p>
-            <p class="text-2xl font-bold tracking-widest text-indigo-600">{{ $ticketNumber }}</p>
+            <p class="text-2xl font-bold tracking-widest bg-[#B9916D] text-white">{{ $ticketNumber }}</p>
             @if($guestEmail)
                 <p class="mt-2 text-sm text-gray-500">
                     {{ __('tickets_guest.confirmation_sent_to') }} <strong>{{ $guestEmail }}</strong>

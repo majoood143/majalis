@@ -211,11 +211,15 @@ class BookingResource extends OwnerResource
                             ->disabled()
                             ->dehydrated(false),
 
-                        TextInput::make('event_type')
+                        Select::make('eventTypes')
                             ->label(__('owner_booking.form.fields.event_type'))
-                            ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : __('owner_booking.general.na'))
+                            ->multiple()
+                            ->relationship('eventTypes', 'name')
+                            ->getOptionLabelFromRecordUsing(fn($record) => $record->getTranslation('name', app()->getLocale()))
+                            ->preload()
                             ->disabled()
-                            ->dehydrated(false),
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
 
                         TextInput::make('number_of_guests')
                             ->label(__('owner_booking.form.fields.number_of_guests'))
@@ -975,10 +979,15 @@ class BookingResource extends OwnerResource
                                         default => ucfirst($state),
                                     }),
 
-                                TextEntry::make('event_type')
+                                RepeatableEntry::make('eventTypes')
                                     ->label(__('owner_booking.infolist.sections.event_details.event_type'))
-                                    ->formatStateUsing(fn(?string $state): string => $state ? ucfirst($state) : __('owner_booking.infolist.placeholders.not_specified'))
-                                    ->placeholder(__('owner_booking.infolist.placeholders.not_specified')),
+                                    ->schema([
+                                        TextEntry::make('name')
+                                            ->label('')
+                                            ->formatStateUsing(fn($state, $record) => $record->getTranslation('name', app()->getLocale()))
+                                            ->badge()
+                                            ->color('primary'),
+                                    ]),
 
                                 TextEntry::make('number_of_guests')
                                     ->label(__('owner_booking.infolist.sections.event_details.expected_guests'))

@@ -7,24 +7,24 @@
 
     {{-- Step indicator --}}
     <div class="flex items-center mb-8 max-w-xs mx-auto">
-        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-indigo-600 rounded-full shrink-0">
+        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-[#B9916D] rounded-full shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-        <div class="flex-1 h-1 mx-2 bg-indigo-300 rounded"></div>
-        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-indigo-600 rounded-full shrink-0">2</div>
+        <div class="flex-1 h-1 mx-2 bg-[#B9916D]/40 rounded"></div>
+        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-[#B9916D] rounded-full shrink-0">2</div>
     </div>
 
     {{-- Verified booking banner --}}
-    <div class="flex items-start gap-3 p-4 mb-6 text-sm text-indigo-900 bg-indigo-50 border border-indigo-200 rounded-lg">
-        <svg class="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex items-start gap-3 p-4 mb-6 text-sm text-[#5a3e28] bg-[#F8F5F2] border border-[#B9916D]/30 rounded-lg">
+        <svg class="w-5 h-5 text-[#B9916D] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
         </svg>
         <div>
             <p class="font-semibold">{{ __('tickets_guest.booking_verified') }}</p>
-            <p class="mt-0.5 text-indigo-700">
+            <p class="mt-0.5 text-[#8a6a4a]">
                 {{ __('tickets_guest.booking_ref') }}: <strong>{{ $booking->booking_number }}</strong>
                 @if($booking->hall)
                     &mdash; {{ $booking->hall->name }}
@@ -67,7 +67,7 @@
                                {{ old('type') === $ticketType->value ? 'checked' : '' }}
                                {{ $ticketType->value === 'claim' && !old('type') ? 'checked' : '' }}>
                         <div class="flex flex-col items-center gap-1 p-3 text-center transition border-2 rounded-lg border-gray-200
-                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50 hover:border-indigo-300">
+                                    peer-checked:border-[#B9916D] peer-checked:bg-[#F8F5F2] hover:border-[#B9916D]/50">
                             @php
                                 $icons = [
                                     'claim'        => 'M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z',
@@ -105,7 +105,7 @@
                 <input type="text" id="subject" name="subject" value="{{ old('subject') }}"
                        maxlength="200"
                        placeholder="{{ __('tickets.subject_placeholder') }}"
-                       class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500
+                       class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#B9916D]
                               {{ $errors->has('subject') ? 'border-red-400' : 'border-gray-300' }}">
                 @error('subject')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -118,7 +118,7 @@
                 </label>
                 <textarea id="description" name="description" rows="5"
                           placeholder="{{ __('tickets.description_placeholder') }}"
-                          class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500
+                          class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#B9916D]
                                  {{ $errors->has('description') ? 'border-red-400' : 'border-gray-300' }}">{{ old('description') }}</textarea>
                 @error('description')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -132,14 +132,14 @@
             <p class="mb-4 text-sm text-gray-500">{{ __('tickets.attachments_hint') }}</p>
             <div class="flex items-center justify-center w-full">
                 <label for="attachments"
-                       class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 bg-gray-50 hover:border-indigo-400 hover:bg-indigo-50 transition">
+                       class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 bg-gray-50 hover:border-[#B9916D] hover:bg-[#F8F5F2] transition">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                         </svg>
                         <p class="text-sm text-gray-500">
-                            <span class="font-semibold text-indigo-600">{{ __('tickets.upload_click') }}</span>
+                            <span class="font-semibold text-[#B9916D]">{{ __('tickets.upload_click') }}</span>
                             {{ __('tickets.upload_or') }}
                         </p>
                         <p class="text-xs text-gray-400 mt-1">{{ __('tickets.upload_types') }}</p>
@@ -158,7 +158,7 @@
                 {{ __('tickets_guest.back_btn') }}
             </a>
             <button type="submit"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+                    class="inline-flex items-center gap-2 px-6 py-2.5 font-semibold text-white bg-[#B9916D] rounded-lg hover:bg-[#a07c5e] transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                 </svg>
@@ -176,7 +176,7 @@ document.getElementById('attachments').addEventListener('change', function () {
     Array.from(this.files).forEach(file => {
         const item = document.createElement('div');
         item.className = 'flex items-center gap-2 text-sm text-gray-700';
-        item.innerHTML = `<svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        item.innerHTML = `<svg class="w-4 h-4 text-[#B9916D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
         </svg> ${file.name} <span class="text-gray-400">(${(file.size / 1024).toFixed(0)} KB)</span>`;
         list.appendChild(item);

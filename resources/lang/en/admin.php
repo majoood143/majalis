@@ -568,6 +568,8 @@ return [
     'add_price_override' => 'Add Price Override',
     'override_prices_help' => 'Override prices for: morning, afternoon, evening, full_day',
     'select_features_help' => 'Select all features available in this hall',
+    'accepted_event_types' => 'Accepted Event Types',
+    'accepted_event_types_help' => 'Select the event types this hall accepts. Only these will appear when booking.',
     'disabled' => 'Disabled',
 
     'optional_google_maps' => 'Optional: Paste a Google Maps link for this location',

@@ -252,31 +252,26 @@ class ReviewResource extends Resource
 
                 TernaryFilter::make('is_approved')
                     ->label(__('review.filters.approved'))
-                    ->boolean()
-                    ->native(false),
+                    ->boolean(),
 
                 TernaryFilter::make('is_featured')
                     ->label(__('review.filters.featured'))
-                    ->boolean()
-                    ->native(false),
+                    ->boolean(),
 
                 TernaryFilter::make('owner_response')
                     ->label(__('review.filters.has_owner_response'))
                     ->queries(
                         true: fn($query) => $query->whereNotNull('owner_response'),
                         false: fn($query) => $query->whereNull('owner_response'),
-                    )
-                    ->native(false),
+                    ),
 
                 TernaryFilter::make('is_late_review')
                     ->label(__('review.filters_extra.late_review'))
-                    ->boolean()
-                    ->native(false),
+                    ->boolean(),
 
                 TernaryFilter::make('marketing_consent')
                     ->label(__('review.filters_extra.marketing_consent'))
-                    ->boolean()
-                    ->native(false),
+                    ->boolean(),
             ])
             ->recordActions([
                 EditAction::make(),

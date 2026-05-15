@@ -12,7 +12,7 @@
             <p class="text-gray-600">{{ __('tickets.subtitle') }}</p>
         </div>
         <a href="{{ route('customer.tickets.create') }}"
-            class="inline-flex items-center gap-2 px-6 py-3 mt-4 font-medium text-white transition bg-indigo-600 rounded-lg md:mt-0 hover:bg-indigo-700">
+            class="inline-flex items-center gap-2 px-6 py-3 mt-4 font-medium text-white transition bg-[#B9916D] rounded-lg md:mt-0 hover:bg-[#a07d5e]">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -37,7 +37,7 @@
         <form action="{{ route('customer.tickets.index') }}" method="GET" class="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">{{ __('tickets.filter_status') }}</label>
-                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B9916D]">
                     <option value="">{{ __('tickets.all_statuses') }}</option>
                     @foreach($statuses as $value => $label)
                         <option value="{{ $value }}" {{ $status === $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -46,7 +46,7 @@
             </div>
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">{{ __('tickets.filter_type') }}</label>
-                <select name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <select name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B9916D]">
                     <option value="">{{ __('tickets.all_types') }}</option>
                     @foreach($types as $value => $label)
                         <option value="{{ $value }}" {{ $type === $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -76,7 +76,7 @@
                     {{-- Left: ticket info --}}
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-2 mb-1">
-                            <span class="text-xs font-semibold tracking-wide text-indigo-600 uppercase">
+                            <span class="text-xs font-semibold tracking-wide text-[#B9916D] uppercase">
                                 {{ $ticket->ticket_number }}
                             </span>
                             {{-- Status Badge --}}
@@ -84,7 +84,7 @@
                                 $statusColors = [
                                     'open'        => 'bg-blue-100 text-blue-700',
                                     'pending'     => 'bg-yellow-100 text-yellow-700',
-                                    'in_progress' => 'bg-indigo-100 text-indigo-700',
+                                    'in_progress' => 'bg-[#E8D5C4] text-[#B9916D]',
                                     'on_hold'     => 'bg-gray-100 text-gray-600',
                                     'resolved'    => 'bg-green-100 text-green-700',
                                     'closed'      => 'bg-gray-100 text-gray-500',
@@ -138,7 +138,7 @@
             <h3 class="mb-2 text-lg font-semibold text-gray-700">{{ __('tickets.no_requests') }}</h3>
             <p class="mb-6 text-gray-500">{{ __('tickets.no_requests_desc') }}</p>
             <a href="{{ route('customer.tickets.create') }}"
-               class="inline-flex items-center gap-2 px-6 py-3 font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">
+               class="inline-flex items-center gap-2 px-6 py-3 font-medium text-white bg-[#B9916D] rounded-lg hover:bg-[#a07d5e]">
                 {{ __('tickets.submit_first') }}
             </a>
         </div>

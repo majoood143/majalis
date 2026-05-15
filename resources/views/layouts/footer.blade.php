@@ -110,6 +110,12 @@
                             {{ app()->getLocale() === 'ar' ? 'سجّل قاعتك معنا' : 'Register Your Hall' }}
                         </a>
                     </li>
+
+                    <li>
+                        <a href="{{ route('guest.tickets.create') }}" class="text-gray-400 font-medium transition hover:text-gray-300">
+                            {{ app()->getLocale() === 'ar' ? 'سجل بلاغ' : 'Register a claim' }}
+                        </a>
+                    </li>
                 </ul>
             </div>
 

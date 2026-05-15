@@ -571,6 +571,8 @@ return [
     'add_price_override' => 'إضافة تجاوز سعر',
     'override_prices_help' => 'تجاوز الأسعار لـ: الصباح، بعد الظهر، المساء، طوال اليوم',
     'select_features_help' => 'حدد جميع الميزات المتاحة في هذه القاعة',
+    'accepted_event_types' => 'أنواع المناسبات المقبولة',
+    'accepted_event_types_help' => 'اختر أنواع المناسبات التي تقبلها هذه القاعة. ستظهر فقط هذه الأنواع عند الحجز.',
     'disabled' => 'معطل',
     'optional_google_maps' => 'اختياري: الصق رابط خرائط جوجل لهذا الموقع',
     'youtube_vimeo_link' => 'رابط يوتيوب أو فيميو',

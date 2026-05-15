@@ -7,13 +7,13 @@
 
     {{-- Step indicator --}}
     <div class="flex items-center mb-8 max-w-xs mx-auto">
-        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-indigo-600 rounded-full shrink-0">
+        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-[#B9916D] rounded-full shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
         <div class="flex-1 h-1 mx-2 bg-indigo-300 rounded"></div>
-        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-indigo-600 rounded-full shrink-0">1½</div>
+        <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-[#B9916D] rounded-full shrink-0">1½</div>
         <div class="flex-1 h-1 mx-2 bg-gray-200 rounded"></div>
         <div class="flex items-center justify-center w-8 h-8 text-sm font-bold text-gray-400 bg-gray-100 rounded-full shrink-0">2</div>
     </div>

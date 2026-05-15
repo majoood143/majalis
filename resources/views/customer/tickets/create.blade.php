@@ -5,26 +5,32 @@
 @section('content')
 <div class="px-4 py-8 mx-auto max-w-3xl sm:px-6 lg:px-8">
 
-    {{-- Breadcrumb --}}
+    {{-- ─── Breadcrumb ──────────────────────────────────────── --}}
     <nav class="flex items-center gap-2 mb-6 text-sm text-gray-500">
-        <a href="{{ route('customer.tickets.index') }}" class="hover:text-indigo-600">{{ __('tickets.nav_link') }}</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="{{ route('customer.tickets.index') }}"
+           class="hover:text-[#B9916D] transition-colors">{{ __('tickets.nav_link') }}</a>
+        <svg class="w-3.5 h-3.5 shrink-0 rtl:rotate-180 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <span class="text-gray-700">{{ __('tickets.breadcrumb_new') }}</span>
+        <span class="font-medium text-gray-700">{{ __('tickets.breadcrumb_new') }}</span>
     </nav>
 
-    {{-- Header --}}
-    <div class="mb-8">
-        <h1 class="mb-2 text-3xl font-bold text-gray-900">{{ __('tickets.create_title') }}</h1>
-        <p class="text-gray-600">{{ __('tickets.create_subtitle') }}</p>
+    {{-- ─── Header Banner ───────────────────────────────────── --}}
+    <div class="relative mb-8 overflow-hidden bg-[#B9916D] rounded-2xl">
+        <div class="absolute inset-0 opacity-10"
+             style="background-image: url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\");">
+        </div>
+        <div class="relative px-6 py-7 sm:px-8">
+            <h1 class="mb-1 text-2xl font-bold text-white sm:text-3xl">{{ __('tickets.create_title') }}</h1>
+            <p class="text-[#e4c9b5] text-sm">{{ __('tickets.create_subtitle') }}</p>
+        </div>
     </div>
 
-    {{-- Error Summary --}}
+    {{-- ─── Error Summary ───────────────────────────────────── --}}
     @if($errors->any())
-        <div class="p-4 mb-6 text-red-800 bg-red-100 border border-red-200 rounded-lg">
+        <div class="p-4 mb-6 text-red-800 bg-red-50 border border-red-200 rounded-xl">
             <p class="mb-1 font-semibold">{{ __('tickets.errors_heading') }}</p>
-            <ul class="text-sm list-disc list-inside">
+            <ul class="text-sm list-disc list-inside space-y-0.5">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -33,13 +39,17 @@
     @endif
 
     <form action="{{ route('customer.tickets.store') }}" method="POST" enctype="multipart/form-data"
-          class="space-y-6 bg-white rounded-lg shadow-md">
+          class="bg-white shadow-sm rounded-2xl overflow-hidden">
 
         @csrf
 
-        {{-- Request Type --}}
+        {{-- ─── Request Type ────────────────────────────────── --}}
         <div class="p-6 border-b border-gray-100">
-            <h2 class="mb-4 text-base font-semibold text-gray-800">{{ __('tickets.section_type') }}</h2>
+            <h2 class="mb-1 text-sm font-semibold tracking-wide text-gray-500 uppercase">
+                {{ __('tickets.section_type') }}
+            </h2>
+            <p class="mb-4 text-xs text-gray-400">{{ __('tickets.create_subtitle') }}</p>
+
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 @foreach($ticketTypes as $ticketType)
                     <label class="relative cursor-pointer">
@@ -47,8 +57,10 @@
                                class="sr-only peer"
                                {{ old('type') === $ticketType->value ? 'checked' : '' }}
                                {{ $ticketType->value === 'claim' && !old('type') ? 'checked' : '' }}>
-                        <div class="flex flex-col items-center gap-1 p-3 text-center transition border-2 rounded-lg border-gray-200
-                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50 hover:border-indigo-300">
+                        <div class="flex flex-col items-center gap-1.5 p-3 text-center transition-all border-2 rounded-xl
+                                    border-gray-200 text-gray-400
+                                    peer-checked:border-[#B9916D] peer-checked:bg-[#f5ede6] peer-checked:text-[#B9916D]
+                                    hover:border-[#d4b49f] hover:bg-[#faf5f0]">
                             @php
                                 $icons = [
                                     'claim'        => 'M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z',
@@ -62,22 +74,25 @@
                                 ];
                                 $iconPath = $icons[$ticketType->value] ?? $icons['other'];
                             @endphp
-                            <svg class="w-6 h-6 text-gray-500 peer-checked:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $iconPath }}"/>
                             </svg>
-                            <span class="text-xs font-medium text-gray-700">{{ $ticketType->getLabel() }}</span>
+                            <span class="text-xs font-medium">{{ $ticketType->getLabel() }}</span>
                         </div>
                     </label>
                 @endforeach
             </div>
+
             @error('type')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
             @enderror
         </div>
 
-        {{-- Subject & Description --}}
-        <div class="p-6 border-b border-gray-100 space-y-4">
-            <h2 class="mb-4 text-base font-semibold text-gray-800">{{ __('tickets.section_details') }}</h2>
+        {{-- ─── Subject & Description ───────────────────────── --}}
+        <div class="p-6 border-b border-gray-100 space-y-5">
+            <h2 class="text-sm font-semibold tracking-wide text-gray-500 uppercase">
+                {{ __('tickets.section_details') }}
+            </h2>
 
             <div>
                 <label for="subject" class="block mb-1.5 text-sm font-medium text-gray-700">
@@ -86,10 +101,11 @@
                 <input type="text" id="subject" name="subject" value="{{ old('subject') }}"
                        maxlength="200"
                        placeholder="{{ __('tickets.subject_placeholder') }}"
-                       class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500
-                              {{ $errors->has('subject') ? 'border-red-400' : 'border-gray-300' }}">
+                       class="w-full px-4 py-2.5 text-sm bg-gray-50 border rounded-xl
+                              focus:outline-none focus:ring-2 focus:ring-[#B9916D] focus:border-transparent transition
+                              {{ $errors->has('subject') ? 'border-red-400 bg-red-50' : 'border-gray-200' }}">
                 @error('subject')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -99,21 +115,25 @@
                 </label>
                 <textarea id="description" name="description" rows="5"
                           placeholder="{{ __('tickets.description_placeholder') }}"
-                          class="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500
-                                 {{ $errors->has('description') ? 'border-red-400' : 'border-gray-300' }}">{{ old('description') }}</textarea>
+                          class="w-full px-4 py-2.5 text-sm bg-gray-50 border rounded-xl resize-none
+                                 focus:outline-none focus:ring-2 focus:ring-[#B9916D] focus:border-transparent transition
+                                 {{ $errors->has('description') ? 'border-red-400 bg-red-50' : 'border-gray-200' }}">{{ old('description') }}</textarea>
                 @error('description')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
         </div>
 
-        {{-- Related Booking (optional) --}}
+        {{-- ─── Related Booking ────────────────────────────── --}}
         @if($bookings->count() > 0)
         <div class="p-6 border-b border-gray-100">
-            <h2 class="mb-1 text-base font-semibold text-gray-800">{{ __('tickets.section_booking') }}</h2>
-            <p class="mb-4 text-sm text-gray-500">{{ __('tickets.section_booking_hint') }}</p>
+            <h2 class="mb-0.5 text-sm font-semibold tracking-wide text-gray-500 uppercase">
+                {{ __('tickets.section_booking') }}
+            </h2>
+            <p class="mb-4 text-xs text-gray-400">{{ __('tickets.section_booking_hint') }}</p>
             <select name="booking_id"
-                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    class="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl
+                           focus:outline-none focus:ring-2 focus:ring-[#B9916D] focus:border-transparent transition">
                 <option value="">{{ __('tickets.no_booking') }}</option>
                 @foreach($bookings as $booking)
                     <option value="{{ $booking->id }}"
@@ -127,43 +147,46 @@
         </div>
         @endif
 
-        {{-- Attachments --}}
+        {{-- ─── Attachments ─────────────────────────────────── --}}
         <div class="p-6 border-b border-gray-100">
-            <h2 class="mb-1 text-base font-semibold text-gray-800">{{ __('tickets.section_attachments') }}</h2>
-            <p class="mb-4 text-sm text-gray-500">{{ __('tickets.attachments_hint') }}</p>
-            <div class="flex items-center justify-center w-full">
-                <label for="attachments"
-                       class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 bg-gray-50 hover:border-indigo-400 hover:bg-indigo-50 transition">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                        <p class="text-sm text-gray-500">
-                            <span class="font-semibold text-indigo-600">{{ __('tickets.upload_click') }}</span>
-                            {{ __('tickets.upload_or') }}
-                        </p>
-                        <p class="text-xs text-gray-400 mt-1">{{ __('tickets.upload_types') }}</p>
-                    </div>
-                    <input id="attachments" name="attachments[]" type="file" class="hidden" multiple
-                           accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv">
-                </label>
-            </div>
-            <div id="file-list" class="mt-3 space-y-1 text-sm text-gray-600"></div>
+            <h2 class="mb-0.5 text-sm font-semibold tracking-wide text-gray-500 uppercase">
+                {{ __('tickets.section_attachments') }}
+            </h2>
+            <p class="mb-4 text-xs text-gray-400">{{ __('tickets.attachments_hint') }}</p>
+
+            <label for="attachments"
+                   class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed rounded-xl
+                          cursor-pointer border-gray-200 bg-gray-50
+                          hover:border-[#B9916D] hover:bg-[#faf5f0] transition-colors">
+                <svg class="w-8 h-8 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <p class="text-sm text-gray-500">
+                    <span class="font-semibold text-[#B9916D]">{{ __('tickets.upload_click') }}</span>
+                    {{ __('tickets.upload_or') }}
+                </p>
+                <p class="mt-1 text-xs text-gray-400">{{ __('tickets.upload_types') }}</p>
+                <input id="attachments" name="attachments[]" type="file" class="hidden" multiple
+                       accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv">
+            </label>
+
+            <div id="file-list" class="mt-3 flex flex-col gap-1.5"></div>
+
             @error('attachments.*')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
             @enderror
         </div>
 
-        {{-- Submit --}}
-        <div class="flex items-center justify-between p-6">
+        {{-- ─── Submit ───────────────────────────────────────── --}}
+        <div class="flex items-center justify-between gap-3 p-6">
             <a href="{{ route('customer.tickets.index') }}"
-               class="px-5 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+               class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                 {{ __('tickets.btn_cancel') }}
             </a>
             <button type="submit"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-[#B9916D] rounded-xl hover:bg-[#a07d5e] transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                 </svg>
                 {{ __('tickets.btn_submit') }}
@@ -179,10 +202,12 @@ document.getElementById('attachments').addEventListener('change', function () {
     list.innerHTML = '';
     Array.from(this.files).forEach(file => {
         const item = document.createElement('div');
-        item.className = 'flex items-center gap-2 text-sm text-gray-700';
-        item.innerHTML = `<svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        item.className = 'flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg';
+        item.innerHTML = `<svg class="w-4 h-4 text-[#B9916D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-        </svg> ${file.name} <span class="text-gray-400">(${(file.size / 1024).toFixed(0)} KB)</span>`;
+        </svg>
+        <span class="truncate">${file.name}</span>
+        <span class="text-gray-400 shrink-0">(${(file.size / 1024).toFixed(0)} KB)</span>`;
         list.appendChild(item);
     });
 });

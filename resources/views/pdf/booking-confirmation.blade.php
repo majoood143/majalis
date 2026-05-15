@@ -464,7 +464,7 @@
            ========================================================================== */
         [dir="rtl"] .property-card {
             border-left: none;
-            border-right: 4px solid #0066b3;
+            border-right: 4px solid #B9916D;
             border-radius: 8px 0 0 8px;
         }
 
@@ -509,6 +509,25 @@
 
         $pdfSupportEmail = \App\Models\Setting::get('contact', 'support_email') ?? \App\Models\Setting::get('contact', 'email');
         $pdfSupportPhone = \App\Models\Setting::get('contact', 'phone');
+
+        $ownerLogoSrc = null;
+        $ownerRecord  = $booking->hall->owner->hallOwner ?? null;
+        if ($ownerRecord && $ownerRecord->logo) {
+            $logoPath = storage_path('app/public/' . $ownerRecord->logo);
+            if (file_exists($logoPath)) {
+                $ownerLogoSrc = 'data:' . mime_content_type($logoPath) . ';base64,' . base64_encode(file_get_contents($logoPath));
+            }
+        }
+
+        // QR code — points to the public guest token URL so no login is required
+        // and the token cannot be guessed or tampered with.
+        $bookingUrl = route('guest.booking.show', ['guest_token' => $booking->guest_token]);
+        $qrSrc = 'data:image/png;base64,' . base64_encode(
+            \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                ->size(160)
+                ->margin(1)
+                ->generate($bookingUrl)
+        );
     @endphp
 
     {{-- ========================================================================
@@ -517,7 +536,18 @@
     <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 2px solid #0066b3; margin-bottom: 14px;">
         <tr>
             <td width="50%" style="vertical-align: middle; padding-bottom: 8px;">
-                <div class="logo">Majalis<span>.om</span></div>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <div class="logo">Majalis<span>.om</span></div>
+                        </td>
+                        @if($ownerLogoSrc)
+                        <td style="vertical-align: middle; padding-{{ $locale === 'ar' ? 'right' : 'left' }}: 10px; border-{{ $locale === 'ar' ? 'right' : 'left' }}: 1px solid #d0d7de;">
+                            <img src="{{ $ownerLogoSrc }}" style="height: 36px; width: auto; display: block;">
+                        </td>
+                        @endif
+                    </tr>
+                </table>
             </td>
             <td width="50%" style="vertical-align: middle; padding-bottom: 8px; text-align: {{ $locale === 'ar' ? 'left' : 'right' }};">
                 <div class="confirmation-badge">{{ __('halls.booking_confirmed') }}</div><br>
@@ -686,19 +716,64 @@
     </table>
 
     {{-- ========================================================================
+        Terms & Conditions (EN + AR)
+        ======================================================================== --}}
+    @php
+        $termsRaw = $booking->hall->terms_and_conditions;
+        $termsEn = is_array($termsRaw) ? ($termsRaw['en'] ?? null) : null;
+        $termsAr = is_array($termsRaw) ? ($termsRaw['ar'] ?? null) : null;
+    @endphp
+    @if($termsEn || $termsAr)
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 14px; border: 1px solid #e4e7eb;">
+        <tr>
+            <td colspan="3" style="padding: 8px 10px; background: #f8fafc; border-bottom: 1px solid #e4e7eb;">
+                <span style="font-size: 11pt; font-weight: 500; color: #1a2b3c;">{{ __('halls.terms_and_conditions') }}</span>
+            </td>
+        </tr>
+        <tr>
+            @if($termsEn)
+            <td width="{{ $termsAr ? '49%' : '100%' }}" style="vertical-align: top; padding: 10px 12px; font-size: 7.5pt; color: #2c3e50; direction: ltr; text-align: left;">
+                <div style="font-size: 8pt; font-weight: 600; color: #B9916D; margin-bottom: 4px;">English</div>
+                <div style="line-height: 1.6;">{{ $termsEn }}</div>
+            </td>
+            @endif
+            @if($termsEn && $termsAr)
+            <td width="2%" style="border-left: 1px solid #e4e7eb;"></td>
+            @endif
+            @if($termsAr)
+            <td width="{{ $termsEn ? '49%' : '100%' }}" style="vertical-align: top; padding: 10px 12px; font-size: 7.5pt; color: #2c3e50; direction: rtl; text-align: right;">
+                <div style="font-size: 8pt; font-weight: 600; color: #B9916D; margin-bottom: 4px;">العربية</div>
+                <div style="line-height: 1.6;">{{ $termsAr }}</div>
+            </td>
+            @endif
+        </tr>
+    </table>
+    @endif
+
+    {{-- ========================================================================
         Footer
         ======================================================================== --}}
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 16px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 16px; border-top: 1px solid #d0d7de;">
         <tr>
-            <td width="60%" style="vertical-align: middle; font-size: 7pt; color: #6b7a8d; padding-top: 10px; border-top: 1px solid #d0d7de;">
-                <strong style="color: #1a2b3c;">{{ __('halls.need_help') }}</strong>
-                @if($pdfSupportEmail){{ __('halls.email') }}: {{ $pdfSupportEmail }}@endif
-                @if($pdfSupportEmail && $pdfSupportPhone) &nbsp;|&nbsp; @endif
-                @if($pdfSupportPhone){{ __('halls.phone') }}: {{ $pdfSupportPhone }}@endif
+            {{-- Contact info --}}
+            <td width="55%" style="vertical-align: middle; font-size: 7pt; color: #6b7a8d; padding-top: 10px;">
+                <div style="font-size: 12pt; font-weight: 500; color: #B9916D; margin-bottom: 4px;">https://www.majalis.om</div>
+                <strong style="color: #1a2b3c;">{{ __('halls.need_help') }}</strong><br>
+                @if($pdfSupportEmail){{ __('halls.email') }}: {{ $pdfSupportEmail }}<br>@endif
+                @if($pdfSupportPhone){{ __('halls.phone') }}: {{ $pdfSupportPhone }}<br>@endif
+                <span style="color: #a0aab4;">{{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}</span>
             </td>
-            <td width="40%" style="vertical-align: middle; text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-size: 7pt; color: #8a9cb0; padding-top: 10px; border-top: 1px solid #d0d7de;">
-                <div style="font-size: 12pt; font-weight: 500; color: #0066b3;">Majalis.om</div>
-                <div>{{ __('halls.pdf_generated') }}: {{ now()->format('d M Y, H:i') }}</div>
+
+            {{-- Spacer --}}
+            <td width="5%"></td>
+
+            {{-- QR Code --}}
+            <td width="40%" style="vertical-align: middle; text-align: center; padding-top: 8px;">
+                <div style="display: inline-block; border: 1px solid #e4e7eb; padding: 6px; background: #fff;">
+                    <img src="{{ $qrSrc }}" style="width: 80px; height: 80px; display: block;">
+                </div>
+                <div style="font-size: 7pt; color: #6b7a8d; margin-top: 4px;">{{ __('halls.scan_qr_booking') }}</div>
+                <div style="font-size: 6.5pt; color: #a0aab4; word-break: break-all; margin-top: 2px;">{{ $booking->booking_number }}</div>
             </td>
         </tr>
     </table>

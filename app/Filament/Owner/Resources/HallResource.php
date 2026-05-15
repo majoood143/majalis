@@ -49,6 +49,7 @@ use App\Filament\Owner\Resources\HallResource\Pages\ManageHallAvailability;
 use Filament\Resources\Pages\PageRegistration;
 use App\Filament\Owner\Resources\HallResource\Pages;
 use App\Filament\Owner\Resources\HallResource\RelationManagers;
+use App\Models\EventType;
 use App\Models\Hall;
 use App\Models\City;
 use App\Models\HallFeature;
@@ -542,6 +543,22 @@ class HallResource extends OwnerResource
                                             })
                                             ->columns(3)
                                             ->searchable()
+                                            ->bulkToggleable()
+                                            ->gridDirection('row'),
+                                    ]),
+
+                                Section::make(__('owner.halls.sections.event_types'))
+                                    ->description(__('owner.halls.sections.event_types_desc'))
+                                    ->schema([
+                                        CheckboxList::make('eventTypes')
+                                            ->label('')
+                                            ->relationship('eventTypes', 'name')
+                                            ->getOptionLabelFromRecordUsing(fn(EventType $record) => $record->getTranslation('name', app()->getLocale()))
+                                            ->options(fn() => EventType::where('is_active', true)
+                                                ->orderBy('sort_order')
+                                                ->get()
+                                                ->mapWithKeys(fn($et) => [$et->id => $et->getTranslation('name', app()->getLocale())]))
+                                            ->columns(3)
                                             ->bulkToggleable()
                                             ->gridDirection('row'),
                                     ]),

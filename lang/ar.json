@@ -32,5 +32,38 @@
     "All prices are in Omani Rial (OMR).": "جميع الأسعار بالريال العُماني (OMR).",
     "For any payment disputes or queries, please contact our support team.": "لأي استفسارات أو نزاعات تتعلق بالدفع، يرجى التواصل مع فريق الدعم.",
     "Thank you for your business!": "شكراً لتعاملكم معنا!",
-    "This is an automated receipt. Generated on": "هذا إيصال آلي. تاريخ الإصدار"
+    "This is an automated receipt. Generated on": "هذا إيصال آلي. تاريخ الإصدار",
+
+    "My Profile": "ملفي الشخصي",
+    "Manage your account information and settings": "إدارة معلومات حسابك وإعداداته",
+
+    "Member Since": "عضو منذ",
+    "Total Bookings": "إجمالي الحجوزات",
+    "Email Verified": "البريد الإلكتروني موثق",
+    "Verified": "موثق",
+    "Not Verified": "غير موثق",
+    "My Bookings": "حجوزاتي",
+    "Browse Halls": "تصفح القاعات",
+
+    "Profile Information": "معلومات الملف الشخصي",
+    "Full Name": "الاسم الكامل",
+    "Email Address": "البريد الإلكتروني",
+    "Phone Number": "رقم الهاتف",
+    "WhatsApp Number": "رقم الواتساب",
+    "Save Changes": "حفظ التغييرات",
+
+    "Change Password": "تغيير كلمة المرور",
+    "Current Password": "كلمة المرور الحالية",
+    "New Password": "كلمة المرور الجديدة",
+    "Confirm New Password": "تأكيد كلمة المرور الجديدة",
+    "Update Password": "تحديث كلمة المرور",
+
+    "Danger Zone": "منطقة الخطر",
+    "Once you delete your account, all of your data will be permanently removed. This action cannot be undone.": "بمجرد حذف حسابك، ستُزال جميع بياناتك بشكل دائم. لا يمكن التراجع عن هذا الإجراء.",
+    "Delete Account": "حذف الحساب",
+    "Confirm Account Deletion": "تأكيد حذف الحساب",
+    "Are you sure you want to delete your account? This action is permanent and cannot be undone.": "هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء دائم ولا يمكن التراجع عنه.",
+    "Enter your password to confirm": "أدخل كلمة المرور للتأكيد",
+    "Cancel": "إلغاء",
+    "Delete My Account": "حذف حسابي"
 }

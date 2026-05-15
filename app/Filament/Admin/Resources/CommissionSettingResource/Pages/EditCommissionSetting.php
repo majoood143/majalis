@@ -23,21 +23,21 @@ class EditCommissionSetting extends EditRecord
     {
         return [
             Action::make('toggleActive')
-                ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
+                ->label(fn() => $this->record->is_active ? __('Deactivate') : __('Activate'))
                 ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                 ->color(fn() => $this->record->is_active ? 'warning' : 'success')
                 ->requiresConfirmation()
-                ->modalHeading(fn() => $this->record->is_active ? 'Deactivate Commission' : 'Activate Commission')
+                ->modalHeading(fn() => $this->record->is_active ? __('Deactivate Commission') : __('Activate Commission'))
                 ->modalDescription(fn() => $this->record->is_active
-                    ? 'This will deactivate the commission setting. Existing bookings will not be affected.'
-                    : 'This will activate the commission setting and apply it to new bookings.')
+                    ? __('This will deactivate the commission setting. Existing bookings will not be affected.')
+                    : __('This will activate the commission setting and apply it to new bookings.'))
                 ->action(function () {
                     $this->record->is_active = !$this->record->is_active;
                     $this->record->save();
 
                     Notification::make()
-                        ->title('Status Updated')
-                        ->body('Commission setting status has been updated successfully.')
+                        ->title(__('Status Updated'))
+                        ->body(__('Commission setting status has been updated successfully.'))
                         ->success()
                         ->send();
 
@@ -48,7 +48,7 @@ class EditCommissionSetting extends EditRecord
                 }),
 
             Action::make('viewBookings')
-                ->label('View Affected Bookings')
+                ->label(__('View Affected Bookings'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('info')
                 ->visible(fn() => $this->record->hall_id !== null)
@@ -59,39 +59,39 @@ class EditCommissionSetting extends EditRecord
                 ])),
 
             Action::make('calculateImpact')
-                ->label('Calculate Financial Impact')
+                ->label(__('Calculate Financial Impact'))
                 ->icon('heroicon-o-calculator')
                 ->color('warning')
                 ->action(function () {
                     $impact = $this->calculateCommissionImpact();
 
                     Notification::make()
-                        ->title('Financial Impact Analysis')
-                        ->body("Total commission earned: {$impact['total']} OMR\nBookings affected: {$impact['count']}")
+                        ->title(__('Financial Impact Analysis'))
+                        ->body(__('Total commission earned: :total OMR\nBookings affected: :count', ['total' => $impact['total'], 'count' => $impact['count']]))
                         ->info()
                         ->persistent()
                         ->actions([
                             Action::make('viewReport')
-                                ->label('View Full Report')
+                                ->label(__('View Full Report'))
                                 ->url('#'),
                         ])
                         ->send();
                 }),
 
             Action::make('extendValidity')
-                ->label('Extend Validity')
+                ->label(__('Extend Validity'))
                 ->icon('heroicon-o-calendar-days')
                 ->color('success')
                 ->visible(fn() => $this->record->effective_to !== null)
                 ->schema([
                     DatePicker::make('new_effective_to')
-                        ->label('New End Date')
+                        ->label(__('New End Date'))
                         ->native(false)
                         ->minDate(fn() => $this->record->effective_to ?? now())
                         ->required(),
 
                     Textarea::make('reason')
-                        ->label('Reason for Extension')
+                        ->label(__('Reason for Extension'))
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
@@ -106,24 +106,24 @@ class EditCommissionSetting extends EditRecord
                         ->withProperties([
                             'old_date' => $oldDate,
                             'new_date' => $data['new_effective_to'],
-                            'reason' => $data['reason'] ?? 'No reason provided',
+                            'reason' => $data['reason'] ?? __('No reason provided'),
                         ])
                         ->log('Commission validity extended');
 
                     Notification::make()
                         ->success()
-                        ->title('Validity Extended')
-                        ->body('Commission setting validity has been extended.')
+                        ->title(__('Validity Extended'))
+                        ->body(__('Commission setting validity has been extended.'))
                         ->send();
                 }),
 
             Action::make('duplicate')
-                ->label('Duplicate')
+                ->label(__('Duplicate'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
                 ->requiresConfirmation()
-                ->modalHeading('Duplicate Commission Setting')
-                ->modalDescription('This will create a copy of this commission setting.')
+                ->modalHeading(__('Duplicate Commission Setting'))
+                ->modalDescription(__('This will create a copy of this commission setting.'))
                 ->action(function () {
                     $newCommission = $this->record->replicate();
                     $newCommission->is_active = false;
@@ -141,11 +141,11 @@ class EditCommissionSetting extends EditRecord
 
                     Notification::make()
                         ->success()
-                        ->title('Commission Setting Duplicated')
-                        ->body('The commission setting has been duplicated successfully.')
+                        ->title(__('Commission Setting Duplicated'))
+                        ->body(__('The commission setting has been duplicated successfully.'))
                         ->actions([
                             Action::make('view')
-                                ->label('Edit Duplicate')
+                                ->label(__('Edit Duplicate'))
                                 ->url(CommissionSettingResource::getUrl('edit', ['record' => $newCommission->id])),
                         ])
                         ->send();
@@ -171,8 +171,8 @@ class EditCommissionSetting extends EditRecord
                 ->successNotification(
                     Notification::make()
                         ->success()
-                        ->title('Commission Setting Deleted')
-                        ->body('The commission setting has been deleted successfully.')
+                        ->title(__('Commission Setting Deleted'))
+                        ->body(__('The commission setting has been deleted successfully.'))
                 )
                 ->after(function () {
                     // Clear cache
@@ -180,17 +180,16 @@ class EditCommissionSetting extends EditRecord
                 }),
 
             Action::make('viewHistory')
-                ->label('View History')
+                ->label(__('View History'))
                 ->icon('heroicon-o-clock')
                 ->color('gray')
                 ->modalContent(fn() => view('filament.pages.activity-log', [
-                    'activities' => activity()
-                        ->forSubject($this->record)
+                    'activities' => \Spatie\Activitylog\Models\Activity::forSubject($this->record)
                         ->latest()
                         ->get()
                 ]))
                 ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
+                ->modalCancelActionLabel(__('Close')),
         ];
     }
 
@@ -203,8 +202,8 @@ class EditCommissionSetting extends EditRecord
     {
         return Notification::make()
             ->success()
-            ->title('Commission Setting Updated')
-            ->body('The commission setting has been updated successfully.')
+            ->title(__('Commission Setting Updated'))
+            ->body(__('The commission setting has been updated successfully.'))
             ->duration(5000);
     }
 
@@ -219,8 +218,8 @@ class EditCommissionSetting extends EditRecord
         if (isset($data['hall_id']) && isset($data['owner_id'])) {
             Notification::make()
                 ->warning()
-                ->title('Scope Adjusted')
-                ->body('Both hall and owner were selected. Hall-specific commission will be saved.')
+                ->title(__('Scope Adjusted'))
+                ->body(__('Both hall and owner were selected. Hall-specific commission will be saved.'))
                 ->send();
 
             unset($data['owner_id']);
@@ -230,8 +229,8 @@ class EditCommissionSetting extends EditRecord
         if ($data['commission_type'] === 'percentage' && $data['commission_value'] > 100) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Commission Value')
-                ->body('Percentage commission cannot exceed 100%.')
+                ->title(__('Invalid Commission Value'))
+                ->body(__('Percentage commission cannot exceed 100%.'))
                 ->persistent()
                 ->send();
 
@@ -241,8 +240,8 @@ class EditCommissionSetting extends EditRecord
         if ($data['commission_value'] < 0) {
             Notification::make()
                 ->danger()
-                ->title('Invalid Commission Value')
-                ->body('Commission value cannot be negative.')
+                ->title(__('Invalid Commission Value'))
+                ->body(__('Commission value cannot be negative.'))
                 ->persistent()
                 ->send();
 
@@ -254,8 +253,8 @@ class EditCommissionSetting extends EditRecord
             if ($data['effective_from'] > $data['effective_to']) {
                 Notification::make()
                     ->danger()
-                    ->title('Invalid Date Range')
-                    ->body('Effective from date must be before effective to date.')
+                    ->title(__('Invalid Date Range'))
+                    ->body(__('Effective from date must be before effective to date.'))
                     ->persistent()
                     ->send();
 
@@ -272,7 +271,11 @@ class EditCommissionSetting extends EditRecord
 
         $record->update($data);
 
-        $changes = array_diff_assoc($data, $oldValues);
+        $normalize = fn(array $arr) => array_map(
+            fn($v) => is_array($v) ? json_encode($v) : $v,
+            $arr
+        );
+        $changes = array_diff_assoc($normalize($data), $normalize($oldValues));
 
         // Log the update
         activity()
@@ -319,12 +322,12 @@ class EditCommissionSetting extends EditRecord
     protected function getScopeType(): string
     {
         if ($this->record->hall_id) {
-            return 'Hall-Specific';
+            return __('Hall-Specific');
         } elseif ($this->record->owner_id) {
-            return 'Owner-Specific';
+            return __('Owner-Specific');
         }
 
-        return 'Global';
+        return __('Global');
     }
 
     protected function hasSignificantChange(): bool
@@ -367,7 +370,7 @@ class EditCommissionSetting extends EditRecord
     public function getTitle(): string
     {
         $scopeType = $this->getScopeType();
-        return "Edit {$scopeType} Commission";
+        return __('Edit :scopeType Commission', ['scopeType' => $scopeType]);
     }
 
     public function getSubheading(): ?string
@@ -376,7 +379,7 @@ class EditCommissionSetting extends EditRecord
         $value = $this->record->commission_type->value === 'percentage'
             ? $this->record->commission_value . '%'
             : number_format($this->record->commission_value, 3) . ' OMR';
-        $status = $this->record->is_active ? 'Active' : 'Inactive';
+        $status = $this->record->is_active ? __('Active') : __('Inactive');
 
         return "{$status} • {$type}: {$value}";
     }

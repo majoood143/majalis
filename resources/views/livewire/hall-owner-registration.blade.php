@@ -292,6 +292,65 @@
                     >
                 </div>
 
+                {{-- Logo --}}
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium mb-1.5" style="color:#2C2A2A;">
+                        {{ __('hall-owner.fields.logo') }}
+                        <span class="font-normal text-xs ms-1" style="color:#8A8A8C;">({{ __('hall-owner.registration.fields.optional') }})</span>
+                    </label>
+
+                    <label for="f-logo" class="block cursor-pointer">
+                        <div class="upload-drop border-2 border-dashed rounded-xl p-5 text-center transition-all"
+                             style="
+                                @if($errors->has('logo'))
+                                    border-color:#fca5a5; background-color:#fff5f5;
+                                @elseif(!$errors->has('logo') && $logo)
+                                    border-color:rgba(185,145,109,0.5); background-color:rgba(185,145,109,0.06);
+                                @else
+                                    border-color:#E8D5C4; background-color:#F8F5F2;
+                                @endif
+                             ">
+                            <input type="file" id="f-logo" wire:model="logo" accept=".jpg,.jpeg,.png,.webp" class="sr-only">
+
+                            @if(!$errors->has('logo') && $logo)
+                                <div class="flex flex-col items-center gap-2">
+                                    <img src="{{ $logo->temporaryUrl() }}" alt="logo preview"
+                                         class="w-20 h-20 rounded-full object-cover border-2"
+                                         style="border-color:rgba(185,145,109,0.4);">
+                                    <p class="text-sm font-medium truncate max-w-xs" style="color:#B9916D;">
+                                        {{ $logo->getClientOriginalName() }}
+                                    </p>
+                                    <p class="text-xs" style="color:#8A8A8C;">{{ __('hall-owner.registration.fields.click_to_change') }}</p>
+                                </div>
+                            @else
+                                <svg class="w-7 h-7 mx-auto mb-2" style="color:#8A8A8C;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <p class="text-sm font-medium" style="color:#2C2A2A;">{{ __('hall-owner.registration.fields.upload_or_drag') }}</p>
+                                <p class="text-xs mt-0.5" style="color:#8A8A8C;">JPG, PNG, WEBP · {{ __('hall-owner.registration.fields.max_size') }}</p>
+                            @endif
+
+                            <div wire:loading wire:target="logo" class="mt-2">
+                                <div class="inline-flex items-center gap-1.5 text-xs" style="color:#B9916D;">
+                                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                    </svg>
+                                    {{ __('hall-owner.registration.fields.uploading') }}
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    @error('logo')
+                        <p class="mt-1.5 flex items-center gap-1 text-xs" style="color:#dc2626;">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
                 <div>
                     <label for="f-cr" class="block text-sm font-medium mb-1.5" style="color:#2C2A2A;">
                         {{ __('hall-owner.fields.commercial_registration') }}

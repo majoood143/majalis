@@ -60,7 +60,7 @@ class BookingController extends BaseController
         }
 
         // Load necessary relationships
-        $hall->load(['city.region', 'owner', 'activeExtraServices']);
+        $hall->load(['city.region', 'owner', 'activeExtraServices', 'eventTypes']);
 
         $serviceFee = ServiceFeeSetting::resolveForHall($hall);
 
@@ -77,7 +77,9 @@ class BookingController extends BaseController
         }
 
 
-        return view('customer.book', compact('hall', 'serviceFee' , 'serviceFeeData'));
+        $eventTypes = $hall->eventTypes->where('is_active', true)->sortBy('sort_order');
+
+        return view('customer.book', compact('hall', 'serviceFee', 'serviceFeeData', 'eventTypes'));
     }
 
     /**

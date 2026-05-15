@@ -192,21 +192,12 @@
                                     <select id="event_type" name="event_type"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                         <option value="">{{ __('guest.form_select_event_type') }}</option>
-                                        <option value="wedding" {{ old('event_type') === 'wedding' ? 'selected' : '' }}>
-                                            {{ __('guest.event_type_wedding') }}</option>
-                                        <option value="corporate"
-                                            {{ old('event_type') === 'corporate' ? 'selected' : '' }}>
-                                            {{ __('guest.event_type_corporate') }}</option>
-                                        <option value="birthday" {{ old('event_type') === 'birthday' ? 'selected' : '' }}>
-                                            {{ __('guest.event_type_birthday') }}</option>
-                                        <option value="conference"
-                                            {{ old('event_type') === 'conference' ? 'selected' : '' }}>
-                                            {{ __('guest.event_type_conference') }}</option>
-                                        <option value="graduation"
-                                            {{ old('event_type') === 'graduation' ? 'selected' : '' }}>
-                                            {{ __('guest.event_type_graduation') }}</option>
-                                        <option value="other" {{ old('event_type') === 'other' ? 'selected' : '' }}>
-                                            {{ __('guest.event_type_other') }}</option>
+                                        @foreach ($eventTypes as $eventType)
+                                            <option value="{{ $eventType->id }}"
+                                                {{ old('event_type') == $eventType->id ? 'selected' : '' }}>
+                                                {{ $eventType->getTranslation('name', app()->getLocale()) }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
 

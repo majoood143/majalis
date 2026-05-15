@@ -519,10 +519,15 @@ class ViewBooking extends ViewRecord
                                         __('booking.time_slots.' . $state)
                                     ),
 
-                                TextEntry::make('event_type')
+                                RepeatableEntry::make('eventTypes')
                                     ->label(__('booking.labels.event_type'))
-                                    ->placeholder('-')
-                                    ->icon('heroicon-o-sparkles'),
+                                    ->schema([
+                                        TextEntry::make('name')
+                                            ->label('')
+                                            ->formatStateUsing(fn($_state, $record) => $record->getTranslation('name', app()->getLocale()))
+                                            ->badge()
+                                            ->color('primary'),
+                                    ]),
 
                                 TextEntry::make('number_of_guests')
                                     ->label(__('booking.labels.number_of_guests'))
@@ -805,7 +810,7 @@ class ViewBooking extends ViewRecord
                  * @requires   Filament 3.3, Laravel 12, PHP 8.4.12
                  */
 
-              
+
                 /**
                  * Payment Transactions Section
                  *

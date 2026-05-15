@@ -39,6 +39,7 @@ use App\Filament\Admin\Resources\BookingResource\Pages\ViewBooking;
 use App\Filament\Admin\Resources\BookingResource\Pages\EditBooking;
 use App\Filament\Admin\Resources\BookingResource\Pages;
 use App\Models\Booking;
+use App\Models\EventType;
 use App\Models\Hall;
 use App\Models\HallAvailability;
 use App\Models\Region;
@@ -207,6 +208,7 @@ class BookingResource extends Resource
                                 $set('time_slot', null);
                                 $set('hall_price', 0);
                                 $set('extra_services', []);
+                                $set('eventTypes', []);
 
                                 // Load hall capacity for validation
                                 if ($state) {
@@ -543,18 +545,27 @@ class BookingResource extends Resource
                 // Event Details Section
                 Section::make(__('booking.infolist.event_details'))
                     ->schema([
-                        Select::make('event_type')
-                            ->label(__('booking.fields.event_type.label'))
-                            ->options([
-                                'wedding' => 'Wedding',
-                                'birthday' => 'Birthday Party',
-                                'corporate' => 'Corporate Event',
-                                'conference' => 'Conference',
-                                'graduation' => 'Graduation',
-                                'engagement' => 'Engagement',
-                                'other' => 'Other',
-                            ])
-                            ->searchable(),
+                        Select::make('eventTypes')
+                            ->label(__('booking.fields.event_types.label'))
+                            ->multiple()
+                            ->relationship(
+                                name: 'eventTypes',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn($query, Get $get) => $get('hall_id')
+                                    ? $query->whereHas('halls', fn($q) => $q->where('halls.id', $get('hall_id')))
+                                            ->where('event_types.is_active', true)
+                                            ->orderBy('event_types.sort_order')
+                                    : $query->where('event_types.is_active', true)
+                                            ->orderBy('event_types.sort_order')
+                            )
+                            ->getOptionLabelFromRecordUsing(fn(EventType $record) => $record->getTranslation('name', app()->getLocale()))
+                            ->preload()
+                            ->searchable()
+                            ->live()
+                            ->helperText(fn(Get $get) => $get('hall_id')
+                                ? __('booking.fields.event_types.helper_filtered')
+                                : __('booking.fields.event_types.helper'))
+                            ->columnSpanFull(),
 
                         Textarea::make('event_details')
                             ->label(__('booking.infolist.event_details'))
@@ -593,7 +604,8 @@ class BookingResource extends Resource
                     ])->columns(2)
                     ->visible(fn($context) => $context === 'edit')
                     ->collapsible(),
-            ]);
+            ])
+            ->columns(1);
     }
 
 
@@ -1025,8 +1037,7 @@ class BookingResource extends Resource
                 // Booking status filter
                 SelectFilter::make('status')
                     ->label(__('booking.fields.status.label'))
-                    ->options(BookingStatus::options())
-                    ->multiple(),
+                    ->options(BookingStatus::options()),
 
                 // Payment status filter
                 SelectFilter::make('payment_status')
@@ -1035,8 +1046,7 @@ class BookingResource extends Resource
                         collect(PaymentStatus::cases())
                             ->mapWithKeys(fn($s) => [$s->value => $s->label()])
                             ->toArray()
-                    )
-                    ->multiple(),
+                    ),
 
                 // Time slot filter
                 SelectFilter::make('time_slot')
@@ -1045,8 +1055,7 @@ class BookingResource extends Resource
                         'morning' => __('Morning'),
                         'evening' => __('Evening'),
                         'night'   => __('Night'),
-                    ])
-                    ->multiple(),
+                    ]),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -1815,12 +1824,19 @@ class BookingResource extends Resource
                 // Event Details
                 Section::make(__('booking.infolist.event_details'))
                     ->schema([
-                        TextEntry::make('event_type')
-                            ->label('Event Type')
-                            ->badge(),
+                        RepeatableEntry::make('eventTypes')
+                            ->label(__('booking.fields.event_types.label'))
+                            ->schema([
+                                TextEntry::make('name')
+                                    ->label('')
+                                    ->formatStateUsing(fn($state, $record) => $record->getTranslation('name', app()->getLocale()))
+                                    ->badge()
+                                    ->color('primary'),
+                            ])
+                            ->columnSpanFull(),
 
                         TextEntry::make('event_details')
-                            ->label('Event Details')
+                            ->label(__('booking.infolist.event_details'))
                             ->columnSpanFull(),
                     ])
                     ->columns(2)

@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\HallResource\Pages;
 
 use Filament\Actions\ViewAction;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Actions\DeleteAction;
@@ -29,177 +30,203 @@ class EditHall extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            
             ViewAction::make()
                 ->icon('heroicon-o-eye')
                 ->color('info'),
 
-            Action::make('toggleActive')
-                ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
-                ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
-                ->color(fn() => $this->record->is_active ? 'danger' : 'success')
-                ->requiresConfirmation()
-                ->action(function () {
-                    $this->record->is_active = !$this->record->is_active;
-                    $this->record->save();
+            ActionGroup::make([
+                Action::make('toggleActive')
+                    ->label(fn() => $this->record->is_active ? 'Deactivate' : 'Activate')
+                    ->icon(fn() => $this->record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                    ->color(fn() => $this->record->is_active ? 'danger' : 'success')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $this->record->is_active = !$this->record->is_active;
+                        $this->record->save();
 
-                    Notification::make()
-                        ->success()
-                        ->title('Status Updated')
-                        ->send();
+                        Notification::make()
+                            ->success()
+                            ->title('Status Updated')
+                            ->send();
 
-                    Cache::tags(['halls', 'city_' . $this->record->city_id])->flush();
-                    $this->redirect(static::getUrl(['record' => $this->record]));
-                }),
+                        Cache::tags(['halls', 'city_' . $this->record->city_id])->flush();
+                        $this->redirect(static::getUrl(['record' => $this->record]));
+                    }),
 
-            Action::make('toggleFeatured')
-                ->label(fn() => $this->record->is_featured ? 'Unmark Featured' : 'Mark Featured')
-                ->icon('heroicon-o-star')
-                ->color(fn() => $this->record->is_featured ? 'gray' : 'warning')
-                ->requiresConfirmation()
-                ->action(function () {
-                    $this->record->is_featured = !$this->record->is_featured;
-                    $this->record->save();
+                Action::make('toggleFeatured')
+                    ->label(fn() => $this->record->is_featured ? 'Unmark Featured' : 'Mark Featured')
+                    ->icon('heroicon-o-star')
+                    ->color(fn() => $this->record->is_featured ? 'gray' : 'warning')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $this->record->is_featured = !$this->record->is_featured;
+                        $this->record->save();
 
-                    Notification::make()
-                        ->success()
-                        ->title('Featured Status Updated')
-                        ->send();
+                        Notification::make()
+                            ->success()
+                            ->title('Featured Status Updated')
+                            ->send();
 
-                    Cache::tags(['halls'])->flush();
-                    $this->redirect(static::getUrl(['record' => $this->record]));
-                }),
+                        Cache::tags(['halls'])->flush();
+                        $this->redirect(static::getUrl(['record' => $this->record]));
+                    }),
+            ])
+                ->label('Status')
+                ->icon('heroicon-o-adjustments-horizontal')
+                ->color('primary')
+                ->button(),
 
-            Action::make('viewBookings')
-                ->label('View Bookings')
-                ->icon('heroicon-o-calendar-days')
+            ActionGroup::make([
+                Action::make('viewBookings')
+                    ->label('View Bookings')
+                    ->icon('heroicon-o-calendar-days')
+                    ->color('info')
+                    ->badge(fn() => $this->record->bookings()->count())
+                    ->url(fn() => route('filament.admin.resources.bookings.index', [
+                        'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
+                    ])),
+
+                Action::make('manageAvailability')
+                    ->label('Manage Availability')
+                    ->icon('heroicon-o-calendar')
+                    ->color('info')
+                    ->url(fn() => route('filament.admin.resources.hall-availabilities.index', [
+                        'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
+                    ])),
+
+                Action::make('manageImages')
+                    ->label('Manage Images')
+                    ->icon('heroicon-o-photo')
+                    ->color('info')
+                    ->url(fn() => route('filament.admin.resources.hall-images.index', [
+                        'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
+                    ])),
+
+                Action::make('manageServices')
+                    ->label('Extra Services')
+                    ->icon('heroicon-o-gift')
+                    ->color('success')
+                    ->url(fn() => route('filament.admin.resources.extra-services.index', [
+                        'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
+                    ])),
+            ])
+                ->label('Manage')
+                ->icon('heroicon-o-squares-2x2')
                 ->color('info')
-                ->badge(fn() => $this->record->bookings()->count())
-                ->url(fn() => route('filament.admin.resources.bookings.index', [
-                    'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
-                ])),
+                ->button(),
 
-            Action::make('manageAvailability')
-                ->label('Manage Availability')
-                ->icon('heroicon-o-calendar')
-                ->color('info')
-                ->url(fn() => route('filament.admin.resources.hall-availabilities.index', [
-                    'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
-                ])),
+            ActionGroup::make([
+                Action::make('updatePricing')
+                    ->label('Update Pricing')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->color('warning')
+                    ->schema([
+                        TextInput::make('new_price')
+                            ->label('New Base Price')
+                            ->numeric()
+                            ->required()
+                            ->prefix('OMR')
+                            ->step(0.001)
+                            ->default(fn() => $this->record->price_per_slot),
 
-            Action::make('manageImages')
-                ->label('Manage Images')
-                ->icon('heroicon-o-photo')
-                ->color('info')
-                ->url(fn() => route('filament.admin.resources.hall-images.index', [
-                    'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
-                ])),
+                        Textarea::make('reason')
+                            ->label('Reason for Change')
+                            ->rows(3),
+                    ])
+                    ->action(function (array $data) {
+                        $oldPrice = $this->record->price_per_slot;
+                        $this->record->price_per_slot = $data['new_price'];
+                        $this->record->save();
 
-            Action::make('manageServices')
-                ->label('Extra Services')
-                ->icon('heroicon-o-gift')
-                ->color('success')
-                ->url(fn() => route('filament.admin.resources.extra-services.index', [
-                    'tableFilters' => ['hall_id' => ['value' => $this->record->id]]
-                ])),
+                        activity()
+                            ->performedOn($this->record)
+                            ->causedBy(Auth::user())
+                            ->withProperties([
+                                'old_price' => $oldPrice,
+                                'new_price' => $data['new_price'],
+                                'reason' => $data['reason'] ?? 'No reason provided',
+                            ])
+                            ->log('Hall price updated');
 
-            Action::make('updatePricing')
-                ->label('Update Pricing')
-                ->icon('heroicon-o-currency-dollar')
-                ->color('warning')
-                ->schema([
-                    TextInput::make('new_price')
-                        ->label('New Base Price')
-                        ->numeric()
-                        ->required()
-                        ->prefix('OMR')
-                        ->step(0.001)
-                        ->default(fn() => $this->record->price_per_slot),
+                        Notification::make()
+                            ->success()
+                            ->title('Price Updated')
+                            ->body("Price changed from {$oldPrice} to {$data['new_price']} OMR")
+                            ->send();
+                    }),
 
-                    Textarea::make('reason')
-                        ->label('Reason for Change')
-                        ->rows(3),
-                ])
-                ->action(function (array $data) {
-                    $oldPrice = $this->record->price_per_slot;
-                    $this->record->price_per_slot = $data['new_price'];
-                    $this->record->save();
+                Action::make('duplicate')
+                    ->label('Duplicate Hall')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $newHall = $this->record->replicate();
 
-                    activity()
-                        ->performedOn($this->record)
-                        ->causedBy(Auth::user())
-                        ->withProperties([
-                            'old_price' => $oldPrice,
-                            'new_price' => $data['new_price'],
-                            'reason' => $data['reason'] ?? 'No reason provided',
-                        ])
-                        ->log('Hall price updated');
+                        $name = $newHall->getTranslations('name');
+                        foreach ($name as $locale => $value) {
+                            $name[$locale] = $value . ' (Copy)';
+                        }
+                        $newHall->setTranslations('name', $name);
 
-                    Notification::make()
-                        ->success()
-                        ->title('Price Updated')
-                        ->body("Price changed from {$oldPrice} to {$data['new_price']} OMR")
-                        ->send();
-                }),
+                        $newHall->slug = $this->generateUniqueSlug($newHall->getTranslation('name', 'en'));
+                        $newHall->is_active = false;
+                        $newHall->is_featured = false;
+                        $newHall->save();
 
-            Action::make('regenerateSlug')
-                ->label('Regenerate Slug')
-                ->icon('heroicon-o-arrow-path')
+                        $newHall->features = $this->record->features;
+                        $newHall->save();
+
+                        Notification::make()
+                            ->success()
+                            ->title('Hall Duplicated')
+                            ->actions([
+                                Action::make('view')
+                                    ->label('View Duplicate')
+                                    ->url(HallResource::getUrl('edit', ['record' => $newHall->id])),
+                            ])
+                            ->send();
+                    }),
+
+                Action::make('regenerateSlug')
+                    ->label('Regenerate Slug')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $oldSlug = $this->record->slug;
+                        $newSlug = $this->generateUniqueSlug($this->record->getTranslation('name', 'en'));
+
+                        $this->record->slug = $newSlug;
+                        $this->record->save();
+
+                        Notification::make()
+                            ->success()
+                            ->title('Slug Regenerated')
+                            ->body("Updated from '{$oldSlug}' to '{$newSlug}'")
+                            ->send();
+                    }),
+
+                Action::make('viewHistory')
+                    ->label('View History')
+                    ->icon('heroicon-o-clock')
+                    ->color('gray')
+                    ->modalContent(fn() => view('filament.pages.activity-log', [
+                        'activities' => activity()
+                            ->forSubject($this->record)
+                            ->latest()
+                            ->get()
+                    ]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
+            ])
+                ->label('More')
+                ->icon('heroicon-o-ellipsis-horizontal')
                 ->color('gray')
-                ->requiresConfirmation()
-                ->action(function () {
-                    $oldSlug = $this->record->slug;
-                    $newSlug = $this->generateUniqueSlug($this->record->getTranslation('name', 'en'));
-
-                    $this->record->slug = $newSlug;
-                    $this->record->save();
-
-                    Notification::make()
-                        ->success()
-                        ->title('Slug Regenerated')
-                        ->body("Updated from '{$oldSlug}' to '{$newSlug}'")
-                        ->send();
-                }),
-
-            Action::make('duplicate')
-                ->label('Duplicate Hall')
-                ->icon('heroicon-o-document-duplicate')
-                ->color('gray')
-                ->requiresConfirmation()
-                ->action(function () {
-                    $newHall = $this->record->replicate();
-
-                    // Update name
-                    $name = $newHall->getTranslations('name');
-                    foreach ($name as $locale => $value) {
-                        $name[$locale] = $value . ' (Copy)';
-                    }
-                    $newHall->setTranslations('name', $name);
-
-                    $newHall->slug = $this->generateUniqueSlug($newHall->getTranslation('name', 'en'));
-                    $newHall->is_active = false;
-                    $newHall->is_featured = false;
-                    $newHall->save();
-
-                    // Copy features
-                    //$newHall->features()->sync($this->record->features->pluck('id'));
-                $newHall->features = $this->record->features; // ✅ Correct
-                $newHall->save();
-
-                    Notification::make()
-                        ->success()
-                        ->title('Hall Duplicated')
-                        ->actions([
-                            Action::make('view')
-                                ->label('View Duplicate')
-                                ->url(HallResource::getUrl('edit', ['record' => $newHall->id])),
-                        ])
-                        ->send();
-                }),
+                ->button(),
 
             DeleteAction::make()
                 ->before(function (DeleteAction $action) {
-                    // Check for active bookings
                     $activeBookings = $this->record->bookings()
                         ->whereIn('status', ['pending', 'confirmed'])
                         ->count();
@@ -216,7 +243,6 @@ class EditHall extends EditRecord
                     }
                 })
                 ->after(function () {
-                    // Delete images
                     if ($this->record->featured_image) {
                         Storage::disk('public')->delete($this->record->featured_image);
                     }
@@ -229,22 +255,8 @@ class EditHall extends EditRecord
 
                     Cache::tags(['halls', 'city_' . $this->record->city_id])->flush();
 
-                    // Notify all admins via database
                     $this->notifyAdmins($this->record, 'deleted');
                 }),
-
-            Action::make('viewHistory')
-                ->label('View History')
-                ->icon('heroicon-o-clock')
-                ->color('gray')
-                ->modalContent(fn() => view('filament.pages.activity-log', [
-                    'activities' => activity()
-                        ->forSubject($this->record)
-                        ->latest()
-                        ->get()
-                ]))
-                ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
         ];
     }
 

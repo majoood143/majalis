@@ -53,6 +53,7 @@ use App\Filament\Admin\Resources\HallResource\Pages\ViewHall;
 use App\Filament\Admin\Resources\HallResource\Pages\EditHall;
 use App\Filament\Admin\Resources\HallResource\Pages;
 use App\Models\City;
+use App\Models\EventType;
 use App\Models\Hall;
 use App\Models\HallFeature;
 use App\Models\User;
@@ -721,7 +722,7 @@ class HallResource extends Resource
                         ->columnSpanFull(),
                 ])
                 ->collapsible(),
-                            ])->columns(3),
+                            ])->columns(2),
 
                         // =============================================
                         // TAB 6: Features & Media
@@ -738,6 +739,17 @@ class HallResource extends Resource
                                     ->preload()
                                     ->columnSpanFull()
                                     ->helperText(__('admin.select_features_help')),
+
+                                // Accepted event types
+                                Select::make('eventTypes')
+                                    ->label(__('admin.accepted_event_types'))
+                                    ->multiple()
+                                    ->relationship('eventTypes', 'name')
+                                    ->getOptionLabelFromRecordUsing(fn(EventType $record) => $record->getTranslation('name', app()->getLocale()))
+                                    ->preload()
+                                    ->searchable()
+                                    ->columnSpanFull()
+                                    ->helperText(__('admin.accepted_event_types_help')),
 
                                 // Featured image upload
                                 FileUpload::make('featured_image')
@@ -772,6 +784,7 @@ class HallResource extends Resource
                                     ->placeholder(__('admin.video_placeholder'))
                                     ->helperText(__('admin.youtube_vimeo_link')),
                             ]),
+                            
 
                         // =============================================
                         // TAB 7: FAQ
