@@ -16,8 +16,9 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use WallaceMartinss\FilamentEvolution\Enums\StatusConnectionEnum;
-use WallaceMartinss\FilamentEvolution\Facades\Whatsapp;
 use WallaceMartinss\FilamentEvolution\Models\WhatsappInstance;
+use WallaceMartinss\FilamentEvolution\Services\EvolutionClient;
+use WallaceMartinss\FilamentEvolution\Services\WhatsappService;
 use Illuminate\Validation\ValidationException;
 
 class WhatsAppTester extends Page implements HasForms
@@ -57,8 +58,8 @@ class WhatsAppTester extends Page implements HasForms
                                 TextInput::make('number')
                                     ->label('Phone Number')
                                     ->required()
-                                    ->placeholder('5511999999999')
-                                    ->helperText('Format: Country code + area code + number (without + or spaces)')
+                                    ->placeholder('96895506880')
+                                    ->helperText('Full international format without + (e.g. 96695XXXXXXX for Saudi, 96895XXXXXX for Oman)')
                                     ->maxLength(20)
                                     ->live(),
 
@@ -186,26 +187,29 @@ class WhatsAppTester extends Page implements HasForms
                 throw ValidationException::withMessages(['number' => 'Please enter a phone number']);
             }
 
-            $instanceId = $data['instance_id'];
-            $number = $data['number'];
+            $instance = WhatsappInstance::findOrFail($data['instance_id']);
+            $number = preg_replace('/\D/', '', $data['number']);
             $type = $data['message_type'];
 
-            // Send message based on type
+            $client = app(EvolutionClient::class);
+            $service = app(WhatsappService::class);
+
+            // Send message based on type — bypass vendor formatNumber (hardcoded Brazil prefix)
             $result = match ($type) {
-                'text' => Whatsapp::sendText($instanceId, $number, $data['message']),
-                'image' => Whatsapp::sendImage($instanceId, $number, $data['media'], $data['caption'] ?? null),
-                'video' => Whatsapp::sendVideo($instanceId, $number, $data['media'], $data['caption'] ?? null),
-                'audio' => Whatsapp::sendAudio($instanceId, $number, $data['media']),
-                'document' => Whatsapp::sendDocument($instanceId, $number, $data['media'], null, $data['caption'] ?? null),
-                'location' => Whatsapp::sendLocation(
-                    $instanceId,
+                'text' => $client->sendText($instance->name, $number, $data['message']),
+                'image' => $client->sendImage($instance->name, $number, $service->getMediaContent($data['media']), $data['caption'] ?? null),
+                'video' => $client->sendVideo($instance->name, $number, $service->getMediaContent($data['media']), $data['caption'] ?? null),
+                'audio' => $client->sendAudio($instance->name, $number, $service->getMediaContent($data['media'])),
+                'document' => $client->sendDocument($instance->name, $number, $service->getMediaContent($data['media']), basename($data['media']), $data['caption'] ?? null),
+                'location' => $client->sendLocation(
+                    $instance->name,
                     $number,
                     (float) $data['latitude'],
                     (float) $data['longitude'],
                     $data['location_name'] ?? null,
                     $data['address'] ?? null
                 ),
-                'contact' => Whatsapp::sendContact($instanceId, $number, $data['contact_name'], $data['contact_number']),
+                'contact' => $client->sendContact($instance->name, $number, $data['contact_name'], preg_replace('/\D/', '', $data['contact_number'])),
                 default => throw new \Exception('Unsupported message type'),
             };
 
