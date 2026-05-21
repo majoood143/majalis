@@ -1000,6 +1000,12 @@ return [
     'whatsapp' => [
         'greeting' => 'Hello :name! This is regarding your booking #:booking with Majalis.',
         'reminder' => 'Hi :name! Just a reminder about your upcoming booking at :hall on :date. Looking forward to seeing you!',
+
+        'customer_booking_created' => "🎉 Booking Confirmed!\n\nBooking #: :booking_number\nHall: :hall_name\nDate: :date\nTime: :time_slot\nGuests: :guests\nTotal: :total OMR\n\nView your booking:\n:booking_link\n\nThank you for choosing Majalis! ✨",
+
+        'customer_booking_created_no_link' => "🎉 Booking Confirmed!\n\nBooking #: :booking_number\nHall: :hall_name\nDate: :date\nTime: :time_slot\nGuests: :guests\nTotal: :total OMR\n\nThank you for choosing Majalis! ✨",
+
+        'owner_booking_created' => "📋 New Booking Received!\n\nBooking #: :booking_number\nCustomer: :customer_name\nPhone: :customer_phone\nHall: :hall_name\nDate: :date\nTime: :time_slot\nGuests: :guests\nYour Payout: :payout OMR\n\nLog in to Majalis to manage this booking.",
     ],
 
     'invoice' => [

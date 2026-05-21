@@ -200,7 +200,8 @@
         .filter-modal {
             position: fixed;
             inset: 0;
-            z-index: 100;
+            /* must be above the sticky nav (z-index: 800) */
+            z-index: 900;
             display: flex;
             align-items: flex-end;
         }
@@ -208,10 +209,13 @@
         .filter-content {
             background: white;
             width: 100%;
-            max-height: 85vh;
+            /* stretch close to full screen height so all filters are reachable */
+            height: calc(96vh - env(safe-area-inset-top));
+            max-height: calc(108vh - env(safe-area-inset-top));
             border-radius: 24px 24px 0 0;
             display: flex;
             flex-direction: column;
+            /* clip the rounded corners without blocking inner scroll */
             overflow: hidden;
         }
 
@@ -228,8 +232,10 @@
         .filter-body {
             flex: 1;
             overflow-y: auto;
+            /* overscroll-behavior keeps page from scrolling behind the sheet */
+            overscroll-behavior: contain;
             padding: 20px;
-            padding-bottom: 100px;
+            padding-bottom: 24px;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -399,7 +405,7 @@
                         </div>
                     </div>
 
-                    
+
 
                     {{-- Time Slot --}}
                     <div class="col-span-1 md:col-span-3">
@@ -413,7 +419,7 @@
                                 {{ __('halls.select_time') }}</option>
                             @foreach ($timeSlots as $val => $lbl)
                                 <option value="{{ $val }}"
-                                    {{ request('time_slot') === $val ? 'selected' : '' }}>{{ __($lbl) }}</option>
+                                    {{ request('time_slot') === $val ? 'selected' : '' }}>{{ __('guest.time_slot_' . $val) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -568,7 +574,7 @@
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5 truncate">
                         {{ \Carbon\Carbon::parse(request('date'))->translatedFormat('l, j F Y') }}
-                        · {{ __($timeSlots[request('time_slot')] ?? '') }}
+                        · {{ request('time_slot') ? __('guest.time_slot_' . request('time_slot')) : '' }}
                         @if ($halls->count() > $availableCount && $availableCount > 0)
                             · {{ __('halls.plus_booked', ['count' => $halls->count() - $availableCount]) }}
                         @endif
@@ -890,7 +896,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <label
                                     class="flex items-center justify-center px-4 transition border-2 cursor-pointer h-14 rounded-xl"
-                                    :class="!mobileFilters.view_mode ? 'border-brand-500 bg-brand-50 text-brand-700' :
+                                    :class="!mobileFilters.view_mode ? 'border-brand-500  text-brand-700' :
                                         'border-gray-200'">
                                     <input type="radio" name="view_mode" value=""
                                         x-model="mobileFilters.view_mode" class="hidden">
@@ -899,7 +905,7 @@
                                 <label
                                     class="flex items-center justify-center px-4 transition border-2 cursor-pointer h-14 rounded-xl"
                                     :class="mobileFilters.view_mode === 'by_region' ?
-                                        'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200'">
+                                        'border-brand-500  text-brand-700' : 'border-gray-200'">
                                     <input type="radio" name="view_mode" value="by_region"
                                         x-model="mobileFilters.view_mode" class="hidden">
                                     <span class="font-medium">{{ __('halls.view_by_region') }}</span>

@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Services\WhatsappNotificationService;
 
 /**
  * NotificationService
@@ -54,6 +55,11 @@ class NotificationService
                 $booking->customer_phone,
                 "Your booking {$booking->booking_number} has been created. Hall: {$booking->hall->name}, Date: {$booking->booking_date->format('d M Y')}"
             );
+
+            // Send WhatsApp to customer and owner (bilingual AR + EN)
+            $whatsapp = app(WhatsappNotificationService::class);
+            $whatsapp->sendBookingCreatedToCustomer($booking);
+            $whatsapp->sendBookingCreatedToOwner($booking);
 
             Log::info('Booking created notifications sent', ['booking_id' => $booking->id]);
         } catch (Exception $e) {

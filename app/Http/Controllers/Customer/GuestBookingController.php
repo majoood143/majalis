@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Services\BookingPdfService;
 use App\Models\PromoCode;
 use App\Services\PromoCodeService;
+use App\Services\WhatsappNotificationService;
 
 /**
  * Guest Booking Controller
@@ -1431,6 +1432,18 @@ class GuestBookingController extends Controller
                 }
             } catch (Exception $e) {
                 Log::warning('Owner booking notification failed (non-critical)', [
+                    'booking_id' => $booking->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+
+            // ── 4. Send WhatsApp to customer and owner (bilingual AR + EN) ──────
+            try {
+                $whatsapp = app(WhatsappNotificationService::class);
+                $whatsapp->sendBookingCreatedToCustomer($booking);
+                $whatsapp->sendBookingCreatedToOwner($booking);
+            } catch (Exception $e) {
+                Log::warning('WhatsApp booking notification failed (non-critical)', [
                     'booking_id' => $booking->id,
                     'error'      => $e->getMessage(),
                 ]);

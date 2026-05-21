@@ -117,7 +117,7 @@
    SIDEBAR
    ============================================================ */
 .fi-sidebar {
-    background-color: var(--fi-sidebar-bg) !important;
+    /* background-color: var(--fi-sidebar-bg) !important; */
 }
 
 .fi-sidebar-header {

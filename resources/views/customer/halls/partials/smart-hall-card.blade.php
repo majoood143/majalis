@@ -202,7 +202,7 @@
                 {{-- Direct booking CTA with pre-filled date + slot --}}
                 <a href="{{ route('customer.halls.show', $hall->slug) }}?date={{ request('date') }}&time_slot={{ $selectedSlot }}"
                    class="block w-full text-center px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm">
-                    {{ __('halls.book') }} {{ __($timeSlots[$selectedSlot] ?? ucfirst($selectedSlot)) }}
+                    {{ __('halls.book') }} {{ __('guest.time_slot_' . $selectedSlot) }}
                     — {{ __('OMR') }} {{ number_format($slotPrices[$selectedSlot] ?? (float) ($hall->price_per_slot ?? 0), 3) }}
                 </a>
             @else

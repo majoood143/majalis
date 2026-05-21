@@ -56,7 +56,7 @@ return [
     */
     'instance' => [
         'integration' => 'WHATSAPP-BAILEYS',
-        'qrcode_expires_in' => 30, // seconds
+        'qrcode_expires_in' => 60, // seconds
         'reject_call' => false,
         'msg_call' => '',
         'groups_ignore' => false,
@@ -165,9 +165,9 @@ return [
     'logging' => [
         'enabled' => true,
         'channel' => null, // null = use default channel
-        'webhook_events' => false,
+        'webhook_events' => true,
         'webhook_errors' => true,
-        'log_payloads' => false,
+        'log_payloads' => true,
     ],
 
     /*

@@ -1166,4 +1166,12 @@ return [
     'no_bookings_found' => 'لا توجد حجوزات',
     'no_bookings_message' => 'لم تقم بأي حجوزات بعد. ابدأ باستكشاف قاعاتنا!',
     'browse_halls' => 'تصفح القاعات',
+
+    'whatsapp' => [
+        'customer_booking_created' => "🎉 تم تأكيد حجزك!\n\nرقم الحجز: :booking_number\nالقاعة: :hall_name\nالتاريخ: :date\nالوقت: :time_slot\nعدد الضيوف: :guests\nالإجمالي: :total ريال\n\nعرض حجزك:\n:booking_link\n\nشكراً لاختيارك مجالس! ✨",
+
+        'customer_booking_created_no_link' => "🎉 تم تأكيد حجزك!\n\nرقم الحجز: :booking_number\nالقاعة: :hall_name\nالتاريخ: :date\nالوقت: :time_slot\nعدد الضيوف: :guests\nالإجمالي: :total ريال\n\nشكراً لاختيارك مجالس! ✨",
+
+        'owner_booking_created' => "📋 حجز جديد!\n\nرقم الحجز: :booking_number\nالعميل: :customer_name\nالهاتف: :customer_phone\nالقاعة: :hall_name\nالتاريخ: :date\nالوقت: :time_slot\nعدد الضيوف: :guests\nمبلغك: :payout ريال\n\nسجّل دخولك على مجالس لإدارة هذا الحجز.",
+    ],
 ];
