@@ -7,7 +7,7 @@
     <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
     <title>{{ __('halls.booking_success') }} - Majalis</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css'])
 
     <style>
         * {

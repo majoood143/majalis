@@ -323,6 +323,14 @@ return [
     'phone_country_code' => '+968',
     'phone_placeholder_info' => 'e.g., 9xxxxxxx',
 
+    // CAPTCHA
+    'captcha_label'       => 'Security Check',
+    'captcha_placeholder' => 'Answer',
+    'captcha_error'       => 'Incorrect answer. Please solve the math problem and try again.',
+
+    // Phone validation
+    'phone_invalid' => 'Phone number must be a valid 8-digit Omani number (starting with 9, 7, or 2).',
+
     // Placeholder for missing translations that might be needed
     // (These might already exist in your validation messages or main lang files)
     'validation_name_required' => 'Name is required',

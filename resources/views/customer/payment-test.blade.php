@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Payment Test</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css'])
 </head>
 <body class="p-8 bg-gray-100">
     <div class="max-w-2xl p-6 mx-auto bg-white rounded-lg shadow-lg">

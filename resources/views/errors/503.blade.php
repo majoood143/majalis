@@ -7,7 +7,7 @@
     {{-- No asset() calls here — app may be fully down. Use relative paths instead. --}}
     <link rel="icon" href="/images/logo.webp" type="image/webp">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css'])
 
     <style>
         @font-face {

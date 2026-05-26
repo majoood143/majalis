@@ -438,6 +438,8 @@
                 }
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
+                script.integrity = 'sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC';
+                script.crossOrigin = 'anonymous';
                 script.onload = callback;
                 script.onerror = () => console.error('[OwnerReports] Chart.js CDN failed to load');
                 document.head.appendChild(script);

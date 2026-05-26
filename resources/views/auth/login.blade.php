@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ __('dashboard.sign_in_title') }} - Majalis Admin</title>
+    <title>{{ __('dashboard.sign_in_title') }} - Majalis</title>
 
     <style>
         @font-face { font-family: 'Tajawal'; src: url('{{ asset("fonts/Tajawal-Regular.ttf") }}') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
@@ -482,6 +482,6 @@
         </p>
     </div>
 
-    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js" defer integrity="sha384-iZD2X8o1Zdq0HR5H/7oa8W30WS4No+zWCKUPD7fHRay9I1Gf+C4F8sVmw7zec1wW" crossorigin="anonymous"></script>
 </body>
 </html>

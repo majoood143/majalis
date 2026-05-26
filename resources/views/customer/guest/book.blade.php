@@ -188,6 +188,32 @@
                         @enderror
                     </div>
 
+                    {{-- Math CAPTCHA --}}
+                    <div class="mb-6">
+                        <label for="captcha_answer" class="block mb-1 text-sm font-medium text-gray-700">
+                            {{ __('guest.captcha_label') }} <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex items-center gap-3">
+                            <span class="px-4 py-3 font-mono text-base font-semibold text-gray-800 bg-gray-100 border border-gray-300 rounded-lg select-none">
+                                {{ $captchaQuestion }} = ?
+                            </span>
+                            <input
+                                type="number"
+                                id="captcha_answer"
+                                name="captcha_answer"
+                                placeholder="{{ __('guest.captcha_placeholder') }}"
+                                class="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 @error('captcha_answer') border-red-500 @enderror"
+                                min="0"
+                                max="99"
+                                required
+                                autocomplete="off"
+                            >
+                        </div>
+                        @error('captcha_answer')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     {{-- Terms & Conditions --}}
                     <div class="mb-6 text-xs text-gray-500">
                         {{ __('guest.terms_agree') }}

@@ -8,11 +8,10 @@
     <title>{{ __('halls.book_hall') }} -
         {{ is_array($hall->name) ? $hall->name[app()->getLocale()] ?? $hall->name['en'] : $hall->name }}</title>
     <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css'])
 
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js" integrity="sha384-iZD2X8o1Zdq0HR5H/7oa8W30WS4No+zWCKUPD7fHRay9I1Gf+C4F8sVmw7zec1wW" crossorigin="anonymous"></script>
 
     <!-- Tajawal Font -->
 
@@ -107,23 +106,6 @@
         }
     </style>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#B9916D',
-                            700: '#0369a1',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         @font-face {
             font-family: 'Tajawal';

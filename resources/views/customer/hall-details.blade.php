@@ -58,8 +58,7 @@
 
         gtag('config', 'G-9K3B5QBV5Y');
     </script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css'])
 
     <!-- Tajawal Font -->
 
@@ -106,35 +105,17 @@
         }
     </style>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#B9916D',
-                            700: '#E8D5C4',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js" integrity="sha384-iZD2X8o1Zdq0HR5H/7oa8W30WS4No+zWCKUPD7fHRay9I1Gf+C4F8sVmw7zec1wW" crossorigin="anonymous"></script>
     <style>
         [x-cloak] {
             display: none !important;
         }
     </style>
     {{-- Swiper CSS --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11.2.6/swiper-bundle.min.css" integrity="sha384-9kDDKx/5+oRQIb/Ce7grsjaS0AWcNd9aPYY7ubOmUBUO3GovHz5BO0RliSAPq2S/" crossorigin="anonymous" />
 
     {{-- Leaflet CSS --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" integrity="sha384-b8ANgTJvdlAnWM5YGMpKn7Kodm+1k7NYNG9zdjTCcZcKatzYHwZ0RLdWarbJJVzU" crossorigin="anonymous" />
     <style>
         .leaflet-container { font-family: 'Tajawal', sans-serif !important; }
         .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
@@ -1530,7 +1511,7 @@
     </div>
 
     {{-- Swiper JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11.2.6/swiper-bundle.min.js" integrity="sha384-Z8zwe4UlCA9xiPVMGPhmzBsPAEVtt/gabOsU+0A8Lf67I0MjHjP+UzNYng2CtJar" crossorigin="anonymous"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1655,7 +1636,7 @@
     </script>
 
     {{-- Leaflet JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js" integrity="sha384-u5N8qJeJOO2iqNjIKTdl6KeKsEikMAmCUBPc6sC6uGpgL34aPJ4VgNhuhumedpEk" crossorigin="anonymous"></script>
 
     <script>
         // ── Copy to clipboard ───────────────────────────────────────────────────

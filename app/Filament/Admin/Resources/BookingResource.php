@@ -54,6 +54,7 @@ use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use App\Filament\Traits\HasTranslations;
 use App\Filament\Components\GuestBookingComponents;
 
@@ -238,6 +239,9 @@ class BookingResource extends Resource
                             ->required()
                             ->searchable()
                             ->preload()
+                            ->default(fn() => Auth::id())
+                            ->disabled()
+                            ->dehydrated()
                             ->columnSpan(1),
 
                         DatePicker::make('booking_date')
@@ -263,6 +267,7 @@ class BookingResource extends Resource
                                     }
                                 }
                             })
+                            ->disabledDates(fn(Get $get): array => static::getFullyBookedDates($get('hall_id')))
                             ->disabled(fn(Get $get): bool => !$get('hall_id'))
                             ->helperText(fn(Get $get) => static::getDateHelperText($get('hall_id'), $get('booking_date')))
                             ->columnSpan(1),
@@ -608,6 +613,62 @@ class BookingResource extends Resource
             ->columns(1);
     }
 
+
+    /**
+     * Returns all dates from today to the last configured availability date that have
+     * no remaining bookable slots — covering both fully-booked dates and dates with
+     * no HallAvailability record at all.
+     */
+    protected static function getFullyBookedDates($hallId): array
+    {
+        if (!$hallId) {
+            return [];
+        }
+
+        $today = now()->toDateString();
+
+        $availablePerDate = HallAvailability::where('hall_id', $hallId)
+            ->where('is_available', true)
+            ->where('date', '>=', $today)
+            ->get()
+            ->groupBy(fn($row) => $row->date->toDateString())
+            ->map(fn($slots) => $slots->pluck('time_slot')->toArray());
+
+        if ($availablePerDate->isEmpty()) {
+            return [];
+        }
+
+        $bookedPerDate = Booking::where('hall_id', $hallId)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->where('booking_date', '>=', $today)
+            ->get()
+            ->groupBy(fn($row) => $row->booking_date->toDateString())
+            ->map(fn($bookings) => $bookings->pluck('time_slot')->toArray());
+
+        // Build lookup of dates that still have at least one open slot
+        $datesWithSlots = [];
+        foreach ($availablePerDate as $date => $slots) {
+            if (!empty(array_diff($slots, $bookedPerDate->get($date, [])))) {
+                $datesWithSlots[$date] = true;
+            }
+        }
+
+        // Disable every day from today through the last configured date
+        // that is not in the "has open slots" lookup (unconfigured AND fully booked)
+        $maxDate = \Carbon\Carbon::parse($availablePerDate->keys()->max());
+        $disabled = [];
+        $current = \Carbon\Carbon::parse($today);
+
+        while ($current->lte($maxDate)) {
+            $dateStr = $current->toDateString();
+            if (!isset($datesWithSlots[$dateStr])) {
+                $disabled[] = $dateStr;
+            }
+            $current->addDay();
+        }
+
+        return $disabled;
+    }
 
     /**
      * Get available time slots from HallAvailabilities and exclude booked slots

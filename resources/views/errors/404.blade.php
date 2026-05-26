@@ -6,22 +6,7 @@
     <title>{{ app()->getLocale() === 'ar' ? '404 - الصفحة غير موجودة' : '404 - Page Not Found' }} | {{ config('app.name', 'Majalis') }}</title>
     <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            DEFAULT: '#B9916D',
-                            light:   '#E8D5C4',
-                            dark:    '#9A7355',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    @vite(['resources/css/app.css'])
 
     <style>
         @font-face {

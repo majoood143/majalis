@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Computed;
 
+
 /**
  * Admin Reports Page
  *

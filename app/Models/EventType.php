@@ -23,7 +23,7 @@ class EventType extends Model
 
     public function halls(): BelongsToMany
     {
-        return $this->belongsToMany(Hall::class);
+        return $this->belongsToMany(Hall::class, 'hall_event_type');
     }
 
     public function bookings(): BelongsToMany

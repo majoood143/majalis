@@ -393,6 +393,7 @@ return [
 
     // FAQ
     'faq_title' => 'Frequently Asked Questions',
+    'slot_available' => 'This time slot is available',
 
 
 ];

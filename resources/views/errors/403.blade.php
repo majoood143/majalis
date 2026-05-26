@@ -6,7 +6,7 @@
     <title>{{ app()->getLocale() === 'ar' ? '403 - غير مصرح' : '403 - Forbidden' }} | {{ config('app.name', 'Majalis') }}</title>
     <link rel="icon" href="{{ asset('images/logo.webp') }}" type="image/webp">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css'])
 
     <style>
         @font-face {

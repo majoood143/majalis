@@ -68,6 +68,11 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Livewire::component('language-switcher', LanguageSwitcher::class);
+        Livewire::component('muhammad-nawlo.filament-sitemap-generator.widgets.sitemap-stats-widget', \MuhammadNawlo\FilamentSitemapGenerator\Widgets\SitemapStatsWidget::class);
+        Livewire::component('muhammad-nawlo.filament-sitemap-generator.widgets.sitemap-overview-alerts-widget', \MuhammadNawlo\FilamentSitemapGenerator\Widgets\SitemapOverviewAlertsWidget::class);
+        Livewire::component('muhammad-nawlo.filament-sitemap-generator.widgets.sitemap-preview-widget', \MuhammadNawlo\FilamentSitemapGenerator\Widgets\SitemapPreviewWidget::class);
+        Livewire::component('muhammad-nawlo.filament-sitemap-generator.widgets.sitemap-recent-runs-widget', \MuhammadNawlo\FilamentSitemapGenerator\Widgets\SitemapRecentRunsWidget::class);
+        Livewire::component('muhammad-nawlo.filament-sitemap-generator.widgets.sitemap-runs-table-widget', \MuhammadNawlo\FilamentSitemapGenerator\Widgets\SitemapRunsTableWidget::class);
         Health::checks([
             OptimizedAppCheck::new(),
             DebugModeCheck::new(),

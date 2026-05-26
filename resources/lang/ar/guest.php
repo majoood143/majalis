@@ -352,6 +352,14 @@ return [
     'phone_country_code' => '+968',
     'phone_placeholder_info' => 'مثال: 9xxxxxxx',
 
+    // CAPTCHA
+    'captcha_label'       => 'التحقق الأمني',
+    'captcha_placeholder' => 'الإجابة',
+    'captcha_error'       => 'إجابة خاطئة. يرجى حل المسألة الحسابية والمحاولة مرة أخرى.',
+
+    // Phone validation
+    'phone_invalid' => 'يجب أن يكون رقم الهاتف رقماً عُمانياً مكوناً من 8 أرقام ويبدأ بـ 9 أو 7 أو 2.',
+
     // Validation messages (for reference)
     'validation_name_required' => 'الاسم مطلوب',
     'validation_email_required' => 'البريد الإلكتروني مطلوب',

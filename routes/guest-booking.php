@@ -44,9 +44,10 @@ Route::prefix('guest')->name('guest.')->group(function () {
     Route::get('/book/{hall:slug}', [GuestBookingController::class, 'create'])
         ->name('book');
 
-    // Initiate guest booking and send OTP
+    // Initiate guest booking and send OTP (max 3 per IP per 10 minutes)
     Route::post('/book/{hall:slug}/initiate', [GuestBookingController::class, 'initiate'])
-        ->name('initiate');
+        ->name('initiate')
+        ->middleware('throttle:3,10');
 
     // Show OTP verification page
     Route::get('/book/{hall:slug}/verify', [GuestBookingController::class, 'showVerifyOtp'])
@@ -56,9 +57,10 @@ Route::prefix('guest')->name('guest.')->group(function () {
     Route::post('/book/{hall:slug}/verify', [GuestBookingController::class, 'verifyOtp'])
         ->name('verify-otp.submit');
 
-    // Resend OTP code
+    // Resend OTP code (max 5 per IP per 10 minutes; controller also enforces 60s per session)
     Route::post('/book/{hall:slug}/resend-otp', [GuestBookingController::class, 'resendOtp'])
-        ->name('resend-otp');
+        ->name('resend-otp')
+        ->middleware('throttle:5,10');
 
     /*
     |--------------------------------------------------------------------------

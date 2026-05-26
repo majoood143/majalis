@@ -98,7 +98,13 @@ class GuestBookingController extends Controller
         // Load hall relationships for display
         $hall->load(['city.region', 'owner', 'activeExtraServices']);
 
-        return view('customer.guest.book', compact('hall'));
+        // Generate math CAPTCHA: store answer server-side, pass question to view
+        $a = random_int(1, 9);
+        $b = random_int(1, 9);
+        session(['captcha_answer' => $a + $b]);
+        $captchaQuestion = "$a + $b";
+
+        return view('customer.guest.book', compact('hall', 'captchaQuestion'));
     }
 
     /**
@@ -117,16 +123,28 @@ class GuestBookingController extends Controller
         $locale = request()->get('lang', session('locale', 'ar'));
         app()->setLocale($locale);
 
-        // Validate guest info
+        // Validate math CAPTCHA before any further processing
+        $captchaAnswer = (int) session('captcha_answer');
+        $captchaInput  = (int) $request->input('captcha_answer');
+        session()->forget('captcha_answer');
+
+        if (!$captchaAnswer || $captchaInput !== $captchaAnswer) {
+            return back()
+                ->with('error', __('guest.captcha_error'))
+                ->withInput();
+        }
+
+        // Validate guest info (phone: 8-digit Oman number starting with 9, 7, or 2)
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
+            'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'regex:/^[279][0-9]{7}$/'],
         ], [
-            'name.required' => __('validation.required', ['attribute' => __('Name')]),
+            'name.required'  => __('validation.required', ['attribute' => __('Name')]),
             'email.required' => __('validation.required', ['attribute' => __('Email')]),
-            'email.email' => __('validation.email', ['attribute' => __('Email')]),
+            'email.email'    => __('validation.email', ['attribute' => __('Email')]),
             'phone.required' => __('validation.required', ['attribute' => __('Phone')]),
+            'phone.regex'    => __('guest.phone_invalid'),
         ]);
 
         if ($validator->fails()) {

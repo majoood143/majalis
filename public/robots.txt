@@ -1,2 +1,80 @@
+#User-agent: *
+#Disallow:
+
+# robots.txt for Laravel Application
+
+# Allow all crawlers by default (use Disallow: / to block all)
 User-agent: *
-Disallow:
+Allow: /
+
+# Block access to sensitive Laravel directories and files
+Disallow: /app/
+Disallow: /bootstrap/
+Disallow: /config/
+Disallow: /database/
+Disallow: /resources/
+Disallow: /routes/
+Disallow: /storage/
+Disallow: /tests/
+Disallow: /vendor/
+
+# Block environment and configuration files
+Disallow: /.env
+Disallow: /.env.*
+Disallow: /artisan
+Disallow: /composer.json
+Disallow: /composer.lock
+Disallow: /package.json
+Disallow: /package-lock.json
+Disallow: /webpack.mix.js
+Disallow: /phpunit.xml
+Disallow: /server.php
+
+# Block log files
+Disallow: /storage/logs/
+Disallow: /*.log
+
+# Block cache and session directories
+Disallow: /storage/framework/cache/
+Disallow: /storage/framework/sessions/
+Disallow: /storage/framework/views/
+
+# Block backup files
+Disallow: /*.bak
+Disallow: /*.old
+Disallow: /*.orig
+Disallow: /*.sql
+Disallow: /*.sql.gz
+Disallow: /*.zip
+
+# Block admin/login pages (adjust based on your actual paths)
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /password/reset
+Disallow: /password/email
+
+# Block API documentation if public (adjust if needed)
+Disallow: /api/documentation
+
+# Block debug and profiler tools
+Disallow: /_debugbar
+Disallow: /telescope
+Disallow: /horizon
+Disallow: /pulse
+
+# Block version control directories
+Disallow: /.git/
+Disallow: /.svn/
+Disallow: /.hg/
+Disallow: /.idea/
+Disallow: /.vscode/
+
+# Block Node modules
+Disallow: /node_modules/
+
+# Crawl delay to prevent server overload (optional)
+# Crawl-delay: 5
+
+# Specify sitemap location (update with your actual sitemap URL)
+Sitemap: https://yourdomain.com/sitemap.xml

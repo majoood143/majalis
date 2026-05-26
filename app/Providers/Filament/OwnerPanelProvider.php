@@ -37,7 +37,7 @@ class OwnerPanelProvider extends PanelProvider
             ->id('owner')
             ->path('owner')
             ->viteTheme('resources/css/filament/owner/theme.css')
-            ->login()  // This enables the login page
+            ->login(\App\Filament\Owner\Pages\Auth\Login::class)
             ->colors([
                 // 'primary' => Color::generateV3Palette('#B9916D'),
                 'danger' => Color::Rose,
@@ -121,6 +121,7 @@ class OwnerPanelProvider extends PanelProvider
             */
             ->plugins([
                 FilamentShieldPlugin::make(),
+                \MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
                 FilamentFullCalendarPlugin::make()
                     // Allow clicking/dragging to select dates
                     ->selectable(true)

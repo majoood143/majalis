@@ -36,6 +36,9 @@ use JeffersonGoncalves\Filament\Gtag\GtagPlugin;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
 use WallaceMartinss\FilamentEvolution\FilamentEvolutionPlugin;
 use App\Filament\Pages\WhatsAppTester;
+use MuhammadNawlo\FilamentSitemapGenerator\FilamentSitemapGeneratorPlugin;
+use Rupadana\ApiService\ApiServicePlugin;
+
 
 
 
@@ -49,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->login()
+            ->login(\App\Filament\Admin\Pages\Auth\Login::class)
             ->profile()
             ->colors([
                 // 'primary' => Color::generateV3Palette('#B9916D'),
@@ -110,7 +113,8 @@ class AdminPanelProvider extends PanelProvider
                     ->viewWebhookLogs(),           // Show webhook logs,
                 \MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
                 //KnowledgeBasePlugin::make(),
-
+                FilamentSitemapGeneratorPlugin::make(),
+            ApiServicePlugin::make(),
 
             ])
             ->authMiddleware([

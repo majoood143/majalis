@@ -3,4 +3,32 @@
 
 @theme {
     --font-sans: 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+    --font-tajawal: 'Tajawal', system-ui, sans-serif;
+
+    /* Primary color scale (600/700 use brand brown) */
+    --color-primary-50: #f0f9ff;
+    --color-primary-100: #e0f2fe;
+    --color-primary-200: #bae6fd;
+    --color-primary-300: #7dd3fc;
+    --color-primary-400: #38bdf8;
+    --color-primary-500: #0ea5e9;
+    --color-primary-600: #B9916D;
+    --color-primary-700: #E8D5C4;
+    --color-primary-800: #075985;
+    --color-primary-900: #0c4a6e;
+
+    /* Brand color scale */
+    --color-brand: #B9916D;
+    --color-brand-light: #E8D5C4;
+    --color-brand-dark: #9A7355;
+    --color-brand-50: #ecfdf5;
+    --color-brand-100: #8A8A8C;
+    --color-brand-200: #F8F5F2;
+    --color-brand-300: #e5e7eb;
+    --color-brand-400: #E8D5C4;
+    --color-brand-500: #B9916D;
+    --color-brand-600: #B9916D;
+    --color-brand-700: #E8D5C4;
+    --color-brand-800: #065f46;
+    --color-brand-900: #064e3b;
 }
