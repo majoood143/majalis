@@ -545,6 +545,7 @@ return [
     'whatsapp_placeholder' => '+968 XXXX XXXX',
     'email_placeholder' => 'contact@hallname.com',
     'video_placeholder' => 'https://youtube.com/watch?v=...',
+    'map_link_placeholder' => 'https://maps.google.com/?q=lat,long',
 
     // Table Filters
     'city_filter' => 'المدينة',

@@ -379,11 +379,7 @@ class ViewCommissionSetting extends ViewRecord
                         ViewEntry::make('activity_log')
                             ->label('')
                             ->view('filament.infolists.components.activity-log', [
-                                'activities' => fn($record) => activity()
-                                    ->forSubject($record)
-                                    ->latest()
-                                    ->limit(10)
-                                    ->get()
+                                'activities' => fn($record) => \Spatie\Activitylog\Models\Activity::forSubject($record)->latest()->limit(10)->get()
                             ]),
                     ])
                     ->icon('heroicon-o-clock')

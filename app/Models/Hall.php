@@ -316,6 +316,12 @@ class Hall extends Model
                 $name = is_array($hall->name) ? $hall->name : json_decode($hall->name, true);
                 $hall->slug = Str::slug($name['en'] ?? $name['ar'] ?? 'hall');
             }
+
+            // Sync plain address column from address_localized
+            if (empty($hall->address) && !empty($hall->address_localized)) {
+                $localized = is_array($hall->address_localized) ? $hall->address_localized : json_decode($hall->address_localized, true);
+                $hall->address = $localized['en'] ?? $localized['ar'] ?? '';
+            }
         });
 
         // Update slug if name changes
@@ -323,6 +329,12 @@ class Hall extends Model
             if ($hall->isDirty('name') && empty($hall->slug)) {
                 $name = is_array($hall->name) ? $hall->name : json_decode($hall->name, true);
                 $hall->slug = Str::slug($name['en'] ?? $name['ar'] ?? 'hall');
+            }
+
+            // Keep plain address column in sync with address_localized
+            if ($hall->isDirty('address_localized') && !empty($hall->address_localized)) {
+                $localized = is_array($hall->address_localized) ? $hall->address_localized : json_decode($hall->address_localized, true);
+                $hall->address = $localized['en'] ?? $localized['ar'] ?? $hall->address;
             }
         });
     }

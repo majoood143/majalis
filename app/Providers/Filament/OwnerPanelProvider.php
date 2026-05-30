@@ -25,6 +25,7 @@ use App\Http\Middleware\SetUserLanguage;
 use App\Filament\Pages\EditProfile;
 use App\Filament\Owner\Resources\ExpenseResource;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
@@ -91,6 +92,12 @@ class OwnerPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn(): string => view('filament.hooks.language-switcher')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn(): string => Blade::render(
+                    '<script src="{{ asset("js/filament-session-handler.js") }}" defer></script>'
+                )
             )
             ->sidebarCollapsibleOnDesktop()
             ->maxContentWidth('full')

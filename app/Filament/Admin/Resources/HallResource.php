@@ -137,68 +137,68 @@ class HallResource extends Resource
                             ->icon('heroicon-o-information-circle')
                             ->schema([
 
-                    Select::make('region_id')
-                        ->label(__('booking.fields.region_id.label'))
-                        ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
-                        ->searchable()
-                        ->preload()
-                        ->live()
-                        // ✅ FIX: Hydrate region_id from hall relationship when editing
-                        ->afterStateHydrated(function (Select $component, ?string $state, ?Hall $record) {
-                            // Only hydrate if no state is set and we have a record with a hall
-                            if ($state === null && $record?->hall?->city?->region_id) {
-                                $component->state($record->hall->city->region_id);
-                            }
-                        })
-                        ->afterStateUpdated(function (\Filament\Schemas\Components\Utilities\Set $set) {
-                            // Reset dependent fields when region changes
-                            $set('city_id', null);
-                            $set('hall_id', null);
-                            $set('booking_date', null);
-                            $set('time_slot', null);
-                            $set('hall_price', 0);
-                        })
-                        ->helperText(__('booking.fields.region_id.helper')),
+                                Select::make('region_id')
+                                    ->label(__('booking.fields.region_id.label'))
+                                    ->options(fn() => Region::where('is_active', true)->ordered()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    // ✅ FIX: Hydrate region_id from hall relationship when editing
+                                    ->afterStateHydrated(function (Select $component, ?string $state, ?Hall $record) {
+                                        // Only hydrate if no state is set and we have a record with a hall
+                                        if ($state === null && $record?->hall?->city?->region_id) {
+                                            $component->state($record->hall->city->region_id);
+                                        }
+                                    })
+                                    ->afterStateUpdated(function (\Filament\Schemas\Components\Utilities\Set $set) {
+                                        // Reset dependent fields when region changes
+                                        $set('city_id', null);
+                                        $set('hall_id', null);
+                                        $set('booking_date', null);
+                                        $set('time_slot', null);
+                                        $set('hall_price', 0);
+                                    })
+                                    ->helperText(__('booking.fields.region_id.helper')),
 
 
-                    Select::make('city_id')
-                        ->label(__('booking.fields.city_id.label'))
-                        ->options(function (\Filament\Schemas\Components\Utilities\Get $get, ?Hall $record): Collection {
-                            $regionId = $get('region_id');
+                                Select::make('city_id')
+                                    ->label(__('booking.fields.city_id.label'))
+                                    ->options(function (\Filament\Schemas\Components\Utilities\Get $get, ?Hall $record): Collection {
+                                        $regionId = $get('region_id');
 
-                            // ✅ FIX: Fall back to record's hall region when editing
-                            if (!$regionId && $record?->hall?->city?->region_id) {
-                                $regionId = $record->hall->city->region_id;
-                            }
+                                        // ✅ FIX: Fall back to record's hall region when editing
+                                        if (!$regionId && $record?->hall?->city?->region_id) {
+                                            $regionId = $record->hall->city->region_id;
+                                        }
 
-                            return City::query()
-                                ->when(
-                                    $regionId,
-                                    fn($query) => $query->where('region_id', $regionId)
-                                )
-                                ->where('is_active', true)
-                                ->ordered()
-                                ->pluck('name', 'id');
-                        })
-                        ->searchable()
-                        ->preload()
-                        ->live()
-                        // ✅ FIX: Hydrate city_id from hall relationship when editing
-                        ->afterStateHydrated(function (Select $component, ?string $state, ?Hall $record) {
-                            // Only hydrate if no state is set and we have a record with a hall
-                            if ($state === null && $record?->hall?->city_id) {
-                                $component->state($record->hall->city_id);
-                            }
-                        })
-                        ->afterStateUpdated(function (\Filament\Schemas\Components\Utilities\Set $set) {
-                            // Reset dependent fields when city changes
-                            $set('hall_id', null);
-                            $set('booking_date', null);
-                            $set('time_slot', null);
-                            $set('hall_price', 0);
-                        })
-                        ->disabled(fn(\Filament\Schemas\Components\Utilities\Get $get, ?Hall $record): bool => !$get('region_id') && !$record?->hall_id)
-                        ->helperText(__('booking.fields.city_id.helper')),
+                                        return City::query()
+                                            ->when(
+                                                $regionId,
+                                                fn($query) => $query->where('region_id', $regionId)
+                                            )
+                                            ->where('is_active', true)
+                                            ->ordered()
+                                            ->pluck('name', 'id');
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    // ✅ FIX: Hydrate city_id from hall relationship when editing
+                                    ->afterStateHydrated(function (Select $component, ?string $state, ?Hall $record) {
+                                        // Only hydrate if no state is set and we have a record with a hall
+                                        if ($state === null && $record?->hall?->city_id) {
+                                            $component->state($record->hall->city_id);
+                                        }
+                                    })
+                                    ->afterStateUpdated(function (\Filament\Schemas\Components\Utilities\Set $set) {
+                                        // Reset dependent fields when city changes
+                                        $set('hall_id', null);
+                                        $set('booking_date', null);
+                                        $set('time_slot', null);
+                                        $set('hall_price', 0);
+                                    })
+                                    ->disabled(fn(\Filament\Schemas\Components\Utilities\Get $get, ?Hall $record): bool => !$get('region_id') && !$record?->hall_id)
+                                    ->helperText(__('booking.fields.city_id.helper')),
                                 // City selection with localized names
                                 // Forms\Components\Select::make('city_id')
                                 //     ->label(__('admin.city'))
@@ -297,41 +297,41 @@ class HallResource extends Resource
                                         'undo',
                                     ]),
 
-                    RichEditor::make('terms_and_conditions.ar')
-                        ->label(__('admin.terms_and_conditions_arabic'))
-                        ->required()
-                        ->columnSpanFull()
-                        ->toolbarButtons([
-                            'bold',
-                            'italic',
-                            'underline',
-                            'strike',
-                            'bulletList',
-                            'orderedList',
-                            'h2',
-                            'h3',
-                            'blockquote',
-                            'redo',
-                            'undo',
-                        ]),
+                                RichEditor::make('terms_and_conditions.ar')
+                                    ->label(__('admin.terms_and_conditions_arabic'))
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'underline',
+                                        'strike',
+                                        'bulletList',
+                                        'orderedList',
+                                        'h2',
+                                        'h3',
+                                        'blockquote',
+                                        'redo',
+                                        'undo',
+                                    ]),
 
-                    RichEditor::make('terms_and_conditions.en')
-                        ->label(__('admin.terms_and_conditions_english'))
-                        ->required()
-                        ->columnSpanFull()
-                        ->toolbarButtons([
-                            'bold',
-                            'italic',
-                            'underline',
-                            'strike',
-                            'bulletList',
-                            'orderedList',
-                            'h2',
-                            'h3',
-                            'blockquote',
-                            'redo',
-                            'undo',
-                        ]),
+                                RichEditor::make('terms_and_conditions.en')
+                                    ->label(__('admin.terms_and_conditions_english'))
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'underline',
+                                        'strike',
+                                        'bulletList',
+                                        'orderedList',
+                                        'h2',
+                                        'h3',
+                                        'blockquote',
+                                        'redo',
+                                        'undo',
+                                    ]),
                             ])->columns(2),
 
 
@@ -586,7 +586,7 @@ class HallResource extends Resource
                                     ->label(__('admin.google_maps_url'))
                                     ->url()
                                     ->columnSpanFull()
-                                    ->placeholder(__('admin.video_placeholder'))
+                                    ->placeholder(__('admin.map_link_placeholder'))
                                     ->helperText(__('admin.optional_google_maps')),
                             ])->columns(2),
 
@@ -657,72 +657,72 @@ class HallResource extends Resource
                                     ->maxLength(255)
                                     ->placeholder(__('admin.email_placeholder'))
                                     ->prefix('✉️'),
-                                    TextInput::make('instagram')
-                                            ->label('Instagram')
-                                            ->url()
-                                            ->placeholder('https://instagram.com/majalis')
-                                            ->prefixIcon('heroicon-o-globe-alt'),
+                                TextInput::make('instagram')
+                                    ->label('Instagram')
+                                    ->url()
+                                    ->placeholder('https://instagram.com/majalis')
+                                    ->prefixIcon('heroicon-o-globe-alt'),
 
-                                    Section::make('Function Hours')
-                ->description('Set the operating hours for functions and events')
-                ->schema([
-                    Toggle::make('is_24_hours')
-                        ->label('24 Hours Operation')
-                        ->helperText('Enable if the hall operates 24/7')
-                        ->live()
-                        ->columnSpanFull(),
+                                Section::make('Function Hours')
+                                    ->description('Set the operating hours for functions and events')
+                                    ->schema([
+                                        Toggle::make('is_24_hours')
+                                            ->label('24 Hours Operation')
+                                            ->helperText('Enable if the hall operates 24/7')
+                                            ->live()
+                                            ->columnSpanFull(),
 
-                    Repeater::make('function_hours')
-                        ->label('Weekly Schedule')
-                        ->schema([
-                            Select::make('day')
-                                ->label('Day')
-                                ->options([
-                                    'monday' => 'Monday',
-                                    'tuesday' => 'Tuesday',
-                                    'wednesday' => 'Wednesday',
-                                    'thursday' => 'Thursday',
-                                    'friday' => 'Friday',
-                                    'saturday' => 'Saturday',
-                                    'sunday' => 'Sunday',
-                                ])
-                                ->required()
-                                ->distinct()
-                                ->columnSpan(2),
+                                        Repeater::make('function_hours')
+                                            ->label('Weekly Schedule')
+                                            ->schema([
+                                                Select::make('day')
+                                                    ->label('Day')
+                                                    ->options([
+                                                        'monday' => 'Monday',
+                                                        'tuesday' => 'Tuesday',
+                                                        'wednesday' => 'Wednesday',
+                                                        'thursday' => 'Thursday',
+                                                        'friday' => 'Friday',
+                                                        'saturday' => 'Saturday',
+                                                        'sunday' => 'Sunday',
+                                                    ])
+                                                    ->required()
+                                                    ->distinct()
+                                                    ->columnSpan(2),
 
-                            Toggle::make('is_closed')
-                                ->label('Closed')
-                                ->live()
-                                ->columnSpan(1),
+                                                Toggle::make('is_closed')
+                                                    ->label('Closed')
+                                                    ->live()
+                                                    ->columnSpan(1),
 
-                            TimePicker::make('open_time')
-                                ->label('Opening Time')
-                                ->disabled(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
-                                ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
-                                ->format('H:i')
-                                ->columnSpan(2),
+                                                TimePicker::make('open_time')
+                                                    ->label('Opening Time')
+                                                    ->disabled(fn(\Filament\Schemas\Components\Utilities\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
+                                                    ->required(fn(\Filament\Schemas\Components\Utilities\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
+                                                    ->format('H:i')
+                                                    ->columnSpan(2),
 
-                            TimePicker::make('close_time')
-                                ->label('Closing Time')
-                                ->disabled(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
-                                ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
-                                ->format('H:i')
-                                ->after('open_time')
-                                ->columnSpan(2),
-                        ])
-                        ->columns(7)
-                        ->defaultItems(7)
-                        ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => !$get('is_24_hours'))
-                        ->columnSpanFull(),
+                                                TimePicker::make('close_time')
+                                                    ->label('Closing Time')
+                                                    ->disabled(fn(\Filament\Schemas\Components\Utilities\Get $get) => $get('is_closed') || $get('../../is_24_hours'))
+                                                    ->required(fn(\Filament\Schemas\Components\Utilities\Get $get) => !$get('is_closed') && !$get('../../is_24_hours'))
+                                                    ->format('H:i')
+                                                    ->after('open_time')
+                                                    ->columnSpan(2),
+                                            ])
+                                            ->columns(7)
+                                            ->defaultItems(7)
+                                            ->visible(fn(\Filament\Schemas\Components\Utilities\Get $get) => !$get('is_24_hours'))
+                                            ->columnSpanFull(),
 
-                    Textarea::make('special_hours_note')
-                        ->label('Special Hours Note')
-                        ->placeholder('e.g., "Closed on public holidays", "Extended hours during wedding season"')
-                        ->rows(2)
-                        ->columnSpanFull(),
-                ])
-                ->collapsible(),
-                            ])->columns(2),
+                                        Textarea::make('special_hours_note')
+                                            ->label('Special Hours Note')
+                                            ->placeholder('e.g., "Closed on public holidays", "Extended hours during wedding season"')
+                                            ->rows(2)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible(),
+                            ]),
 
                         // =============================================
                         // TAB 6: Features & Media
@@ -758,10 +758,6 @@ class HallResource extends Resource
                                     ->disk('public')
                                     ->directory('halls')
                                     ->columnSpanFull()
-                                    ->imageResizeMode('cover')
-                                    ->imageCropAspectRatio('16:9')
-                                    ->imageResizeTargetWidth('1920')
-                                    ->imageResizeTargetHeight('1080')
                                     ->helperText(__('admin.recommended_image_size')),
 
                                 // Gallery images
@@ -784,7 +780,7 @@ class HallResource extends Resource
                                     ->placeholder(__('admin.video_placeholder'))
                                     ->helperText(__('admin.youtube_vimeo_link')),
                             ]),
-                            
+
 
                         // =============================================
                         // TAB 7: FAQ

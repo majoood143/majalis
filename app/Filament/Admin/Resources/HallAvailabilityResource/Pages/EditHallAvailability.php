@@ -246,10 +246,7 @@ class EditHallAvailability extends EditRecord
                 ->icon('heroicon-o-clock')
                 ->color('gray')
                 ->modalContent(fn() => view('filament.pages.activity-log', [
-                    'activities' => activity()
-                        ->forSubject($this->record)
-                        ->latest()
-                        ->get()
+                    'activities' => \Spatie\Activitylog\Models\Activity::forSubject($this->record)->latest()->get()
                 ]))
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel(__('hall-availability.edit_page.close')),

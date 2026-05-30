@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\SetUserLanguage;
+use App\Http\Middleware\RemoveSensitiveHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetUserLanguage::class,
+        RemoveSensitiveHeaders::class,
         ]);
         // Register custom Authenticate middleware
         $middleware->redirectGuestsTo(function (Request $request) {
@@ -32,8 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // Check if it's a hall owner panel request
-            if ($request->is('hall-owner') || $request->is('hall-owner/*')) {
-                return route('filament.hall-owner.auth.login');
+            if ($request->is('owner') || $request->is('owner/*')) {
+                return route('filament.owner.auth.login');
             }
 
             // Default to customer login
@@ -84,9 +86,9 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->with('warning', __('auth.session_expired_login_again'));
             }
 
-            if ($request->is('hall-owner') || $request->is('hall-owner/*')) {
+            if ($request->is('owner') || $request->is('owner/*')) {
                 return redirect()
-                    ->guest(route('filament.hall-owner.auth.login'))
+                    ->guest(route('filament.owner.auth.login'))
                     ->with('warning', __('auth.session_expired_login_again'));
             }
 
@@ -102,31 +104,29 @@ return Application::configure(basePath: dirname(__DIR__))
          * Occurs when session expires and user submits a form
          */
         $exceptions->render(function (TokenMismatchException $e, Request $request) {
-            // For API requests, return JSON
-            if ($request->expectsJson()) {
+            $locale = app()->getLocale();
+
+            // Resolve the correct login URL based on the current panel path
+            if ($request->is('admin') || $request->is('admin/*')) {
+                $loginUrl = route('filament.admin.auth.login');
+            } elseif ($request->is('owner') || $request->is('owner/*')) {
+                $loginUrl = route('filament.owner.auth.login');
+            } else {
+                $loginUrl = route('login', ['lang' => $locale]);
+            }
+
+            // Livewire (SPA) and AJAX requests: return JSON so the JS handler
+            // can redirect cleanly without the browser ever rendering a 419 page.
+            if ($request->header('X-Livewire') || $request->ajax()) {
                 return response()->json([
-                    'message' => __('auth.session_expired'),
+                    'message'  => __('auth.session_expired'),
+                    'redirect' => $loginUrl,
                 ], 419);
             }
 
-            $locale = app()->getLocale();
-
-            // Determine redirect based on URL
-            if ($request->is('admin') || $request->is('admin/*')) {
-                return redirect()
-                    ->guest(route('filament.admin.auth.login'))
-                    ->with('error', __('auth.session_expired_login_again'));
-            }
-
-            if ($request->is('hall-owner') || $request->is('hall-owner/*')) {
-                return redirect()
-                    ->guest(route('filament.hall-owner.auth.login'))
-                    ->with('error', __('auth.session_expired_login_again'));
-            }
-
-            // Customer login with locale
+            // Regular full-page form submissions: redirect to login
             return redirect()
-                ->guest(route('login', ['lang' => $locale]))
+                ->guest($loginUrl)
                 ->with('error', __('auth.session_expired_login_again'));
         });
 
@@ -148,9 +148,9 @@ return Application::configure(basePath: dirname(__DIR__))
                             ->with('warning', __('auth.session_expired_login_again'));
                     }
 
-                    if ($request->is('hall-owner') || $request->is('hall-owner/*')) {
+                    if ($request->is('owner') || $request->is('owner/*')) {
                         return redirect()
-                            ->guest(route('filament.hall-owner.auth.login'))
+                            ->guest(route('filament.owner.auth.login'))
                             ->with('warning', __('auth.session_expired_login_again'));
                     }
 
