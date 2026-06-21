@@ -319,6 +319,14 @@ class EditHall extends EditRecord
             $data['whatsapp'] = preg_replace('/[^0-9+]/', '', $data['whatsapp']);
         }
 
+        // Strip virtual availability fields (not stored on halls table)
+        unset(
+            $data['availability_from_date'],
+            $data['availability_to_date'],
+            $data['availability_time_slots'],
+            $data['availability_skip_existing'],
+        );
+
         return $data;
     }
 

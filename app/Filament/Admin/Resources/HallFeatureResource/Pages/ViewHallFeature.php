@@ -114,7 +114,7 @@ class ViewHallFeature extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
+        return $schema
             ->schema([
                 Section::make('Feature Information')
                     ->schema([

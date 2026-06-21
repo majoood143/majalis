@@ -35,6 +35,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
@@ -586,7 +587,7 @@ class HallResource extends Resource
                                     ->label(__('admin.google_maps_url'))
                                     ->url()
                                     ->columnSpanFull()
-                                    ->placeholder(__('admin.map_link_placeholder'))
+                                    ->placeholder(__('admin.google_maps_url'))
                                     ->helperText(__('admin.optional_google_maps')),
                             ])->columns(2),
 
@@ -880,7 +881,6 @@ class HallResource extends Resource
                                     ->schema([
                                         DatePicker::make('availability_from_date')
                                             ->label(__('admin.availability_from_date'))
-                                            ->required()
                                             ->default(now())
                                             ->minDate(now())
                                             ->native(false)
@@ -888,12 +888,29 @@ class HallResource extends Resource
 
                                         DatePicker::make('availability_to_date')
                                             ->label(__('admin.availability_to_date'))
-                                            ->required()
                                             ->default(now()->addMonths(3))
                                             ->minDate(now())
                                             ->native(false)
                                             ->displayFormat('Y-m-d')
                                             ->afterOrEqual('availability_from_date'),
+
+                                        CheckboxList::make('availability_time_slots')
+                                            ->label(__('hall-availability.generate_availability_modal.time_slots_to_generate'))
+                                            ->options([
+                                                'morning' => __('hall-availability.time_slots_short.morning'),
+                                                'afternoon' => __('hall-availability.time_slots_short.afternoon'),
+                                                'evening' => __('hall-availability.time_slots_short.evening'),
+                                                'full_day' => __('hall-availability.time_slots_short.full_day'),
+                                            ])
+                                            ->default(['morning', 'afternoon', 'evening', 'full_day'])
+                                            ->columns(2)
+                                            ->columnSpanFull(),
+
+                                        Toggle::make('availability_skip_existing')
+                                            ->label(__('hall-availability.generate_availability_modal.skip_existing'))
+                                            ->helperText(__('hall-availability.generate_availability_modal.skip_existing_helper'))
+                                            ->default(true)
+                                            ->columnSpanFull(),
                                     ])
                                     ->columns(2)
                                     ->columnSpanFull(),

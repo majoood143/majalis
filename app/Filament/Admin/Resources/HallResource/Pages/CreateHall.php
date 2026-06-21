@@ -108,7 +108,12 @@ class CreateHall extends CreateRecord
         }
 
         // Strip virtual availability fields (not stored on halls table)
-        unset($data['availability_from_date'], $data['availability_to_date']);
+        unset(
+            $data['availability_from_date'],
+            $data['availability_to_date'],
+            $data['availability_time_slots'],
+            $data['availability_skip_existing'],
+        );
 
         // Validate pricing override format
         if (!empty($data['pricing_override'])) {
@@ -200,9 +205,11 @@ class CreateHall extends CreateRecord
         //Cache::tags(['halls', 'city_' . $hall->city_id])->flush();
 
         // Generate availability for the chosen date range
-        $fromDate = $this->data['availability_from_date'] ?? now()->toDateString();
-        $toDate   = $this->data['availability_to_date']   ?? now()->addMonths(3)->toDateString();
-        $this->generateInitialAvailability($hall, $fromDate, $toDate);
+        $fromDate   = $this->data['availability_from_date'] ?? now()->toDateString();
+        $toDate     = $this->data['availability_to_date']   ?? now()->addMonths(3)->toDateString();
+        $timeSlots  = $this->data['availability_time_slots'] ?? ['morning', 'afternoon', 'evening', 'full_day'];
+        $skipExisting = $this->data['availability_skip_existing'] ?? true;
+        $this->generateInitialAvailability($hall, $fromDate, $toDate, $timeSlots, $skipExisting);
 
         // Notify owner
         $this->notifyOwner($hall);
@@ -243,22 +250,46 @@ class CreateHall extends CreateRecord
         $notification->sendToDatabase($admins);
     }
 
-    protected function generateInitialAvailability($hall, ?string $fromDate = null, ?string $toDate = null): void
-    {
+    protected function generateInitialAvailability(
+        $hall,
+        ?string $fromDate = null,
+        ?string $toDate = null,
+        array $timeSlots = ['morning', 'afternoon', 'evening', 'full_day'],
+        bool $skipExisting = true,
+    ): void {
         $startDate = $fromDate ? Carbon::parse($fromDate) : now();
         $endDate   = $toDate   ? Carbon::parse($toDate)   : now()->addMonths(3);
         $createdCount = 0;
+        $skippedCount = 0;
+
+        if (empty($timeSlots)) {
+            $timeSlots = ['morning', 'afternoon', 'evening', 'full_day'];
+        }
 
         $currentDate = $startDate->copy();
 
         while ($currentDate->lte($endDate)) {
-            foreach (['morning', 'afternoon', 'evening', 'full_day'] as $timeSlot) {
-                HallAvailability::create([
-                    'hall_id' => $hall->id,
-                    'date' => $currentDate->toDateString(),
-                    'time_slot' => $timeSlot,
-                    'is_available' => true,
-                ]);
+            foreach ($timeSlots as $timeSlot) {
+                $exists = HallAvailability::where('hall_id', $hall->id)
+                    ->where('date', $currentDate->toDateString())
+                    ->where('time_slot', $timeSlot)
+                    ->exists();
+
+                if ($skipExisting && $exists) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                HallAvailability::updateOrCreate(
+                    [
+                        'hall_id' => $hall->id,
+                        'date' => $currentDate->toDateString(),
+                        'time_slot' => $timeSlot,
+                    ],
+                    [
+                        'is_available' => true,
+                    ]
+                );
 
                 $createdCount++;
             }
@@ -266,7 +297,7 @@ class CreateHall extends CreateRecord
             $currentDate->addDay();
         }
 
-        Log::info("Generated {$createdCount} availability slots for hall {$hall->id}");
+        Log::info("Generated {$createdCount} availability slots ({$skippedCount} skipped) for hall {$hall->id}");
     }
 
     protected function notifyOwner($hall): void
