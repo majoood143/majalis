@@ -388,6 +388,11 @@ return [
     'form_note_label' => 'ملاحظة',
     'form_advance_payment_note' => 'هذه القاعة تسمح بالدفع المقدم بنسبة',
     'form_availability_error' => 'خطأ في التحقق من التوفر',
+    'add_another_day' => 'إضافة يوم آخر (حتى 3 أيام إجمالاً)',
+    'additional_day' => 'اليوم :n',
+    'remove' => 'إزالة',
+    'select_time_slot' => 'اختر الفترة الزمنية',
+    'days' => 'أيام',
 
     // Event type additions
     'event_type_conference' => 'مؤتمر',

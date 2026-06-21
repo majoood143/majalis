@@ -165,6 +165,58 @@
                                     </div>
                                 </div>
 
+                                {{-- Additional Days (book up to 3 days total in one booking) --}}
+                                <div class="mb-5">
+                                    <template x-for="(day, index) in additionalDays" :key="index">
+                                        <div class="p-4 mb-3 border border-gray-200 rounded-lg bg-gray-50">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <span class="text-sm font-medium text-gray-700"
+                                                    x-text="'{{ __('guest.additional_day') }}'.replace(':n', index + 2)"></span>
+                                                <button type="button" @click="removeDay(index)"
+                                                    class="text-sm text-red-500 hover:text-red-700">&times;
+                                                    {{ __('guest.remove') }}</button>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <input type="date" :name="'additional_days[' + index + '][date]'"
+                                                        x-model="day.date" @change="checkAdditionalDayAvailability(index)"
+                                                        min="{{ now()->addDay()->format('Y-m-d') }}"
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                                        required>
+                                                </div>
+                                                <div>
+                                                    <select :name="'additional_days[' + index + '][time_slot]'"
+                                                        x-model="day.timeSlot"
+                                                        @change="checkAdditionalDayAvailability(index)"
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                                        required>
+                                                        <option value="">{{ __('guest.select_time_slot') }}</option>
+                                                        <option value="morning">{{ __('guest.time_slot_morning') }}</option>
+                                                        <option value="afternoon">{{ __('guest.time_slot_afternoon') }}</option>
+                                                        <option value="evening">{{ __('guest.time_slot_evening') }}</option>
+                                                        <option value="full_day">{{ __('guest.time_slot_full_day') }}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div x-show="day.availabilityMessage" class="mt-2">
+                                                <p :class="day.isAvailable ? 'text-green-600' : 'text-red-600'"
+                                                    class="flex items-center text-sm">
+                                                    <span x-show="day.isAvailable">✓</span>
+                                                    <span x-show="!day.isAvailable">✗</span>
+                                                    <span class="ms-1" x-text="day.availabilityMessage"></span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <button type="button" @click="addDay()" x-show="additionalDays.length < 2"
+                                        class="text-sm font-medium text-primary-600 hover:text-primary-700">
+                                        + {{ __('guest.add_another_day') }}
+                                    </button>
+                                </div>
+
                                 {{-- Number of Guests --}}
                                 <div class="mb-5">
                                     <label for="number_of_guests" class="block mb-1 text-sm font-medium text-gray-700">
@@ -269,7 +321,8 @@
                                 </div>
 
                                 {{-- Submit Button --}}
-                                <button type="submit" :disabled="!isAvailable || !agreeTerms || isSubmitting"
+                                <button type="submit"
+                                    :disabled="!isAvailable || !additionalDays.every(d => d.isAvailable) || !agreeTerms || isSubmitting"
                                     class="w-full px-4 py-3 font-semibold text-white transition rounded-lg bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed">
                                     <span x-show="!isSubmitting">{{ __('guest.btn_submit_booking') }}</span>
                                     <span x-show="isSubmitting">{{ __('guest.btn_processing') }}</span>
@@ -312,6 +365,16 @@
                                     <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
                                         class="inline w-6 h-6 -mt-1">
                                 </div>
+
+                                <template x-for="(day, index) in additionalDays" :key="'day-price-' + index">
+                                    <div class="flex justify-between text-gray-600">
+                                        <span
+                                            x-text="'{{ __('guest.additional_day') }}'.replace(':n', index + 2)"></span>
+                                        <span x-text="parseFloat(day.price || 0).toFixed(3)"></span>
+                                        <img src="{{ asset('images/Medium.svg') }}" alt="Omani Riyal"
+                                            class="inline w-6 h-6 -mt-1">
+                                    </div>
+                                </template>
 
                                 <template x-for="serviceId in selectedServices" :key="serviceId">
                                     <div class="flex justify-between text-gray-600">
@@ -379,6 +442,7 @@
                 return {
                     bookingDate: '{{ old('booking_date') }}',
                     timeSlot: '{{ old('time_slot') }}',
+                    additionalDays: [],
                     selectedServices: @json(old('services', [])),
                     agreeTerms: false,
                     isAvailable: false,
@@ -386,6 +450,55 @@
                     isSubmitting: false,
                     services: @json($servicesForJs),
                     hallPrice: {{ $hall->price_per_slot }},
+
+                    addDay() {
+                        if (this.additionalDays.length < 2) {
+                            this.additionalDays.push({
+                                date: '',
+                                timeSlot: '',
+                                price: 0,
+                                isAvailable: false,
+                                availabilityMessage: ''
+                            });
+                        }
+                    },
+
+                    removeDay(index) {
+                        this.additionalDays.splice(index, 1);
+                    },
+
+                    async checkAdditionalDayAvailability(index) {
+                        const day = this.additionalDays[index];
+                        if (!day.date || !day.timeSlot) {
+                            day.availabilityMessage = '';
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch('{{ route('guest.check-availability') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: JSON.stringify({
+                                    hall_id: {{ $hall->id }},
+                                    date: day.date,
+                                    time_slot: day.timeSlot
+                                })
+                            });
+
+                            const data = await response.json();
+                            day.isAvailable = data.available;
+                            day.availabilityMessage = data.message;
+                            if (data.slot_price !== undefined) {
+                                day.price = parseFloat(data.slot_price);
+                            }
+                        } catch (error) {
+                            day.isAvailable = false;
+                            day.availabilityMessage = '{{ __('guest.form_availability_error') }}' + ': ' + error.message;
+                        }
+                    },
 
                     async checkAvailability() {
                         if (!this.bookingDate || !this.timeSlot) {
@@ -431,6 +544,9 @@
 
                     calculateTotal() {
                         let total = this.hallPrice;
+                        this.additionalDays.forEach(day => {
+                            total += parseFloat(day.price || 0);
+                        });
                         this.selectedServices.forEach(id => {
                             const service = this.services.find(s => s.id == id);
                             if (service) {
@@ -441,7 +557,8 @@
                     },
 
                     handleSubmit(e) {
-                        if (!this.isAvailable || !this.agreeTerms) {
+                        const allDaysAvailable = this.additionalDays.every(day => day.isAvailable);
+                        if (!this.isAvailable || !allDaysAvailable || !this.agreeTerms) {
                             e.preventDefault();
                             return;
                         }

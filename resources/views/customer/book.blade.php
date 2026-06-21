@@ -267,6 +267,12 @@
             <template x-for="serviceId in selectedServices">
                 <input type="hidden" name="services[]" :value="serviceId">
             </template>
+            <template x-for="(day, index) in additionalDays" :key="index">
+                <span>
+                    <input type="hidden" :name="'additional_days[' + index + '][date]'" :value="day.date">
+                    <input type="hidden" :name="'additional_days[' + index + '][time_slot]'" :value="day.timeSlot">
+                </span>
+            </template>
 
             <div class="grid max-w-5xl grid-cols-1 gap-6 mx-auto lg:grid-cols-3">
 
@@ -380,6 +386,47 @@
                                     }"
                                     x-text="availabilityMessage"></span>
                             </div>
+                        </div>
+
+                        <!-- Additional Days (book up to 3 days total in one booking) -->
+                        <div class="mb-6">
+                            <template x-for="(day, index) in additionalDays" :key="index">
+                                <div class="p-4 mb-3 border-2 border-gray-200 rounded-xl bg-gray-50">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-sm font-semibold text-gray-700"
+                                            x-text="'{{ __('halls.additional_day') }}'.replace(':n', index + 2)"></span>
+                                        <button type="button" @click="removeDay(index)"
+                                            class="text-sm text-red-500 hover:text-red-700">&times;
+                                            {{ __('halls.remove') }}</button>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <input type="date" x-model="day.date"
+                                            @change="checkAdditionalDayAvailability(index)" :min="minDate"
+                                            class="w-full px-3 py-2 transition border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+
+                                        <select x-model="day.timeSlot" @change="checkAdditionalDayAvailability(index)"
+                                            class="w-full px-3 py-2 transition border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+                                            <option value="">{{ __('halls.select_time_slot') }}</option>
+                                            <option value="morning">{{ __('halls.morning') }}</option>
+                                            <option value="afternoon">{{ __('halls.afternoon') }}</option>
+                                            <option value="evening">{{ __('halls.evening') }}</option>
+                                            <option value="full_day">{{ __('halls.full_day') }}</option>
+                                        </select>
+                                    </div>
+
+                                    <div x-show="day.availabilityMessage" class="mt-2">
+                                        <span class="text-sm"
+                                            :class="day.isAvailable ? 'text-green-600' : 'text-red-600'"
+                                            x-text="day.availabilityMessage"></span>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <button type="button" @click="addDay()" x-show="additionalDays.length < 2"
+                                class="text-sm font-semibold text-primary-600 hover:text-primary-700">
+                                + {{ __('halls.add_another_day') }}
+                            </button>
                         </div>
 
                         <!-- Number of Guests -->
@@ -855,6 +902,7 @@
                     customer_phone: '{{ old('customer_phone', Auth::user()->phone ?? '') }}',
                     customer_notes: '{{ old('customer_notes') }}',
                 },
+                additionalDays: [],
                 selectedServices: [],
                 servicesTotal: 0,
                 hallPrice: 0,
@@ -942,6 +990,59 @@
                     }
                 },
 
+                addDay() {
+                    if (this.additionalDays.length < 2) {
+                        this.additionalDays.push({
+                            date: '',
+                            timeSlot: '',
+                            price: 0,
+                            isAvailable: false,
+                            availabilityMessage: ''
+                        });
+                    }
+                },
+
+                removeDay(index) {
+                    this.additionalDays.splice(index, 1);
+                    this.calculateTotal();
+                },
+
+                async checkAdditionalDayAvailability(index) {
+                    const day = this.additionalDays[index];
+                    if (!day.date || !day.timeSlot) {
+                        day.availabilityMessage = '';
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('{{ route('customer.check-availability') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                hall_id: {{ $hall->id }},
+                                booking_date: day.date,
+                                time_slot: day.timeSlot
+                            })
+                        });
+
+                        const data = await response.json();
+                        day.isAvailable = data.available;
+                        day.availabilityMessage = data.message;
+
+                        if (data.price !== null && data.price !== undefined) {
+                            day.price = parseFloat(data.price);
+                        }
+                        this.calculateTotal();
+                    } catch (error) {
+                        day.isAvailable = false;
+                        day.availabilityMessage = '{{ __('halls.checking_availability') }}';
+                    }
+                },
+
                 toggleService(serviceId, price) {
                     const index = this.selectedServices.indexOf(serviceId);
                     if (index > -1) {
@@ -955,8 +1056,11 @@
                 },
 
                 calculateTotal() {
-                    // Calculate subtotal (hall + services)
-                    this.subtotal = this.hallPrice + this.servicesTotal;
+                    // Sum of additional days' resolved prices
+                    const additionalDaysTotal = this.additionalDays.reduce((sum, day) => sum + parseFloat(day.price || 0), 0);
+
+                    // Calculate subtotal (hall + additional days + services)
+                    this.subtotal = this.hallPrice + additionalDaysTotal + this.servicesTotal;
 
                     // Calculate platform fee
                     if (this.serviceFee) {
@@ -975,10 +1079,12 @@
 
                 canProceed() {
                     if (this.currentStep === 0) {
+                        const allDaysAvailable = this.additionalDays.every(day => day.date && day.timeSlot && day.isAvailable);
                         return this.formData.booking_date &&
                             this.formData.time_slot &&
                             this.formData.number_of_guests &&
-                            this.isAvailable;
+                            this.isAvailable &&
+                            allDaysAvailable;
                     }
                     if (this.currentStep === 1) {
                         return this.formData.customer_name &&

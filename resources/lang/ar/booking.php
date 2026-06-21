@@ -166,6 +166,10 @@ return [
             'helper' => 'السعة: :min - :max ضيف',
             'helper_select_hall' => 'اختر القاعة أولاً',
         ],
+        'additional_days' => [
+            'label' => 'أيام إضافية (حجز نفس القاعة حتى 3 أيام إجمالاً)',
+            'days_suffix' => 'أيام',
+        ],
         'event_type' => [
             'label' => 'نوع المناسبة',
             'placeholder' => 'اختر نوع المناسبة',
@@ -481,6 +485,7 @@ return [
             'modal_submit' => 'نعم، إنشاء الحجز',
         ],
         'add_service' => 'إضافة خدمة',
+        'add_day' => 'إضافة يوم',
         'remove_service' => 'إزالة خدمة',
 
         'edit' => 'تعديل',
@@ -583,6 +588,7 @@ return [
 
         'slot_already_booked_title' => 'الفترة محجوزة بالفعل',
         'slot_already_booked_body' => 'هذه الفترة محجوزة بالفعل (الحجز رقم :booking_number). يرجى اختيار تاريخ أو فترة زمنية مختلفة.',
+        'days_already_booked_body' => 'يوم واحد أو أكثر من الأيام المختارة محجوز بالفعل: :dates. يرجى اختيار أيام مختلفة.',
         'guest_count_below_min_title' => 'عدد الضيوف أقل من الحد الأدنى',
         'guest_count_below_min_body' => 'الحد الأدنى للسعة هو :capacity_min ضيف. تم تعديل عدد الضيوف.',
         'guest_count_exceeds_max_title' => 'عدد الضيوف يتجاوز الحد الأقصى',
@@ -708,6 +714,7 @@ return [
         'reminder_failed_title' => 'فشل إرسال التذكير',
         'slot_already_booked_title' => 'الفترة محجوزة بالفعل',
         'slot_already_booked_body' => 'هذه الفترة محجوزة بالفعل (الحجز رقم :booking_number). يرجى اختيار تاريخ أو فترة زمنية مختلفة.',
+        'days_already_booked_body' => 'يوم واحد أو أكثر من الأيام المختارة محجوز بالفعل: :dates. يرجى اختيار أيام مختلفة.',
         'guest_count_below_min_title' => 'عدد الضيوف أقل من الحد الأدنى',
         'guest_count_below_min_body' => 'الحد الأدنى للسعة هو :capacity_min ضيف. تم تعديل عدد الضيوف.',
         'guest_count_exceeds_max_title' => 'عدد الضيوف يتجاوز الحد الأقصى',

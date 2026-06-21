@@ -598,6 +598,30 @@
     </table>
 
     {{-- ========================================================================
+        Multi-Day Breakdown (only when this booking spans more than one day —
+        the "Date"/"Time Slot" cells above show day 1; this lists every day)
+        ======================================================================== --}}
+    @if ($booking->bookingDays->count() > 1)
+        <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e4e7eb; margin-bottom: 14px;">
+            <tr>
+                <td colspan="2" style="padding: 6px 8px; background: #f5f7fa; font-size: 8pt; font-weight: 600; color: #1a2b3c;">
+                    {{ __('halls.event_date') }} — {{ $booking->bookingDays->count() }} {{ __('halls.days') }}
+                </td>
+            </tr>
+            @foreach ($booking->bookingDays as $day)
+                <tr>
+                    <td style="padding: 6px 8px; border-top: 1px solid #e4e7eb; font-size: 8.5pt;">
+                        {{ $day->date->format('d M Y') }} ({{ $day->date->format('l') }})
+                    </td>
+                    <td style="padding: 6px 8px; border-top: 1px solid #e4e7eb; font-size: 8.5pt; text-align: {{ $locale === 'ar' ? 'left' : 'right' }};">
+                        {{ __('halls.' . $day->time_slot) }}
+                    </td>
+                </tr>
+            @endforeach
+        </table>
+    @endif
+
+    {{-- ========================================================================
         Two Column: Customer Info + Price Summary
         ======================================================================== --}}
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 14px;">
@@ -634,10 +658,19 @@
             <td width="49%" style="vertical-align: top;">
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;"><tr><td style="font-size: 11pt; font-weight: 500; color: #1a2b3c; padding-bottom: 4px; border-bottom: 1px solid #d0d7de;">{{ __('halls.price_details') }}</td></tr></table>
                 <table class="price-table" width="100%">
-                    <tr>
-                        <td>{{ __('halls.hall_price') }} ({{ __('halls.' . $booking->time_slot) }})</td>
-                        <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500;">{{ number_format($booking->hall_price, 3) }} OMR</td>
-                    </tr>
+                    @if ($booking->bookingDays->count() > 1)
+                        @foreach ($booking->bookingDays as $day)
+                            <tr>
+                                <td>{{ __('halls.hall_price') }} — {{ $day->date->format('d M') }} ({{ __('halls.' . $day->time_slot) }})</td>
+                                <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500;">{{ number_format($day->price, 3) }} OMR</td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td>{{ __('halls.hall_price') }} ({{ __('halls.' . $booking->time_slot) }})</td>
+                            <td style="text-align: {{ $locale === 'ar' ? 'left' : 'right' }}; font-weight: 500;">{{ number_format($booking->hall_price, 3) }} OMR</td>
+                        </tr>
+                    @endif
                     @foreach ($booking->extraServices as $service)
                         @php
                             $svcName = $service->service_name;

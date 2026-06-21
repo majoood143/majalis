@@ -71,7 +71,12 @@ class BookingObserver
             return;
         }
 
-        $newStatus = $booking->status;
+        // Booking::confirm()/cancel()/complete() pass a BookingStatus enum case
+        // into update(); since 'status' isn't enum-cast on the model, the
+        // in-memory attribute is the enum instance, not its string value.
+        $newStatus = $booking->status instanceof \App\Enums\BookingStatus
+            ? $booking->status->value
+            : $booking->status;
 
         // Status moved to cancelled or rejected → free the slot
         if (in_array($newStatus, ['cancelled', 'rejected'], true)) {
@@ -103,46 +108,81 @@ class BookingObserver
     }
 
     /**
-     * Mark the HallAvailability slot as booked.
+     * Resolve the day/slot pairs to sync for this booking.
+     *
+     * Uses BookingDay rows when they exist (covers both ordinary single-day
+     * and multi-day bookings). Falls back to the legacy single booking_date/
+     * time_slot pair for historical bookings created before BookingDay
+     * existed, or for the brief window during creation before BookingDay
+     * rows have been inserted yet (see BookingService::createBooking()).
+     *
+     * @param Booking $booking
+     * @return array<int, array{date: string, time_slot: string}>
+     */
+    protected function resolveDays(Booking $booking): array
+    {
+        $bookingDays = $booking->bookingDays;
+
+        if ($bookingDays->isNotEmpty()) {
+            return $bookingDays->map(fn($day) => [
+                'date'      => $day->date->format('Y-m-d'),
+                'time_slot' => $day->time_slot,
+            ])->all();
+        }
+
+        return [[
+            'date'      => $booking->booking_date->format('Y-m-d'),
+            'time_slot' => $booking->time_slot,
+        ]];
+    }
+
+    /**
+     * Mark the HallAvailability slot(s) as booked.
      *
      * Uses updateOrCreate to handle the case where:
      * - An availability record exists → update it to booked
      * - No availability record exists → create one as booked
      *
-     * Also handles full_day bookings by marking all individual slots.
+     * Also handles full_day bookings by marking all individual slots, for
+     * every day in resolveDays().
+     *
+     * Public so BookingService can explicitly re-sync after inserting
+     * BookingDay rows for a multi-day booking (the 'created' event fires
+     * before those rows exist, so only day 1 is visible at that point).
      *
      * @param Booking $booking
      * @return void
      */
-    protected function markSlotAsBooked(Booking $booking): void
+    public function markSlotAsBooked(Booking $booking): void
     {
         try {
-            // Get the slots to mark based on time_slot type
-            $slotsToMark = $this->getSlotsToMark($booking->time_slot);
+            foreach ($this->resolveDays($booking) as $day) {
+                $slotsToMark = $this->getSlotsToMark($day['time_slot']);
 
-            foreach ($slotsToMark as $slot) {
-                HallAvailability::updateOrCreate(
-                    [
-                        'hall_id'   => $booking->hall_id,
-                        'date'      => $booking->booking_date->format('Y-m-d'),
-                        'time_slot' => $slot,
-                    ],
-                    [
-                        'is_available' => false,
-                        'reason'       => 'booked',
-                        'notes'        => "Booking #{$booking->booking_number}",
-                    ]
-                );
+                foreach ($slotsToMark as $slot) {
+                    HallAvailability::updateOrCreate(
+                        [
+                            'hall_id'   => $booking->hall_id,
+                            'date'      => $day['date'],
+                            'time_slot' => $slot,
+                        ],
+                        [
+                            'is_available' => false,
+                            'reason'       => 'booked',
+                            'notes'        => "Booking #{$booking->booking_number}",
+                        ]
+                    );
+                }
+
+                Log::info('HallAvailability synced: slot marked as booked', [
+                    'booking_id'     => $booking->id,
+                    'booking_number' => $booking->booking_number,
+                    'hall_id'        => $booking->hall_id,
+                    'date'           => $day['date'],
+                    'time_slot'      => $day['time_slot'],
+                    'slots_marked'   => $slotsToMark,
+                ]);
             }
-
-            Log::info('HallAvailability synced: slot marked as booked', [
-                'booking_id'     => $booking->id,
-                'booking_number' => $booking->booking_number,
-                'hall_id'        => $booking->hall_id,
-                'date'           => $booking->booking_date->format('Y-m-d'),
-                'time_slot'      => $booking->time_slot,
-                'slots_marked'   => $slotsToMark,
-            ]);
         } catch (Throwable $e) {
             // Log error but don't break the booking flow
             Log::error('Failed to sync HallAvailability on booking creation', [
@@ -153,7 +193,8 @@ class BookingObserver
     }
 
     /**
-     * Release the HallAvailability slot back to available.
+     * Release the HallAvailability slot(s) back to available, for every
+     * day in resolveDays().
      *
      * Only releases slots that are marked with reason='booked'.
      * Does NOT release manually blocked slots (maintenance, holiday, etc.).
@@ -164,29 +205,31 @@ class BookingObserver
     protected function releaseSlot(Booking $booking): void
     {
         try {
-            $slotsToRelease = $this->getSlotsToMark($booking->time_slot);
+            foreach ($this->resolveDays($booking) as $day) {
+                $slotsToRelease = $this->getSlotsToMark($day['time_slot']);
 
-            // Only release slots that were marked as 'booked'
-            // Don't accidentally unblock maintenance/holiday/etc.
-            $updated = HallAvailability::where('hall_id', $booking->hall_id)
-                ->where('date', $booking->booking_date->format('Y-m-d'))
-                ->whereIn('time_slot', $slotsToRelease)
-                ->where('reason', 'booked')
-                ->update([
-                    'is_available' => true,
-                    'reason'       => null,
-                    'notes'        => null,
-                ]);
+                // Only release slots that were marked as 'booked'
+                // Don't accidentally unblock maintenance/holiday/etc.
+                $updated = HallAvailability::where('hall_id', $booking->hall_id)
+                    ->where('date', $day['date'])
+                    ->whereIn('time_slot', $slotsToRelease)
+                    ->where('reason', 'booked')
+                    ->update([
+                        'is_available' => true,
+                        'reason'       => null,
+                        'notes'        => null,
+                    ]);
 
-            if ($updated > 0) {
-                Log::info('HallAvailability synced: slot released', [
-                    'booking_id'     => $booking->id,
-                    'booking_number' => $booking->booking_number,
-                    'hall_id'        => $booking->hall_id,
-                    'date'           => $booking->booking_date->format('Y-m-d'),
-                    'time_slot'      => $booking->time_slot,
-                    'slots_released' => $updated,
-                ]);
+                if ($updated > 0) {
+                    Log::info('HallAvailability synced: slot released', [
+                        'booking_id'     => $booking->id,
+                        'booking_number' => $booking->booking_number,
+                        'hall_id'        => $booking->hall_id,
+                        'date'           => $day['date'],
+                        'time_slot'      => $day['time_slot'],
+                        'slots_released' => $updated,
+                    ]);
+                }
             }
         } catch (Throwable $e) {
             Log::error('Failed to sync HallAvailability on booking cancellation', [

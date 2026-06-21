@@ -30,14 +30,14 @@ class WhatsappNotificationService
             return;
         }
 
-        $booking->loadMissing(['hall']);
+        $booking->loadMissing(['hall', 'bookingDays']);
 
         $hasLink     = !empty($booking->guest_token);
         $templateKey = $hasLink ? 'customer_booking_created' : 'customer_booking_created_no_link';
 
         $sharedParams = [
             'booking_number' => $booking->booking_number,
-            'date'           => $booking->booking_date->format('d M Y'),
+            'date'           => $this->formatBookingDates($booking),
             'guests'         => $booking->number_of_guests,
             'total'          => number_format((float) $booking->total_amount, 3),
         ];
@@ -48,12 +48,12 @@ class WhatsappNotificationService
 
         $enMessage = trans('booking.whatsapp.' . $templateKey, array_merge($sharedParams, [
             'hall_name' => $this->getHallName($booking, 'en'),
-            'time_slot' => $this->translateTimeSlot($booking->time_slot, 'en'),
+            'time_slot' => $this->formatBookingTimeSlots($booking, 'en'),
         ]), 'en');
 
         $arMessage = trans('booking.whatsapp.' . $templateKey, array_merge($sharedParams, [
             'hall_name' => $this->getHallName($booking, 'ar'),
-            'time_slot' => $this->translateTimeSlot($booking->time_slot, 'ar'),
+            'time_slot' => $this->formatBookingTimeSlots($booking, 'ar'),
         ]), 'ar');
 
         $this->send(
@@ -67,7 +67,7 @@ class WhatsappNotificationService
 
     public function sendBookingCreatedToOwner(Booking $booking): void
     {
-        $booking->loadMissing(['hall', 'hall.owner']);
+        $booking->loadMissing(['hall', 'hall.owner', 'bookingDays']);
 
         $ownerPhone = $booking->hall->owner->phone ?? null;
         $phone      = $this->formatPhone($ownerPhone);
@@ -87,19 +87,19 @@ class WhatsappNotificationService
             'booking_number' => $booking->booking_number,
             'customer_name'  => $booking->customer_name,
             'customer_phone' => $booking->customer_phone ?? '-',
-            'date'           => $booking->booking_date->format('d M Y'),
+            'date'           => $this->formatBookingDates($booking),
             'guests'         => $booking->number_of_guests,
             'payout'         => number_format((float) $booking->owner_payout, 3),
         ];
 
         $enMessage = trans('booking.whatsapp.owner_booking_created', array_merge($sharedParams, [
             'hall_name' => $this->getHallName($booking, 'en'),
-            'time_slot' => $this->translateTimeSlot($booking->time_slot, 'en'),
+            'time_slot' => $this->formatBookingTimeSlots($booking, 'en'),
         ]), 'en');
 
         $arMessage = trans('booking.whatsapp.owner_booking_created', array_merge($sharedParams, [
             'hall_name' => $this->getHallName($booking, 'ar'),
-            'time_slot' => $this->translateTimeSlot($booking->time_slot, 'ar'),
+            'time_slot' => $this->formatBookingTimeSlots($booking, 'ar'),
         ]), 'ar');
 
         $this->send(
@@ -195,5 +195,36 @@ class WhatsappNotificationService
         ];
 
         return $labels[$locale][$slot] ?? $slot;
+    }
+
+    /**
+     * Format the booking's date(s) for the 'date' message placeholder.
+     * Multi-day bookings list every day comma-separated; ordinary bookings
+     * keep the single-date format used today.
+     */
+    private function formatBookingDates(Booking $booking): string
+    {
+        if ($booking->bookingDays->count() > 1) {
+            return $booking->bookingDays
+                ->map(fn($day) => $day->date->format('d M Y'))
+                ->implode(', ');
+        }
+
+        return $booking->booking_date->format('d M Y');
+    }
+
+    /**
+     * Format the booking's time slot(s) for the 'time_slot' message
+     * placeholder, in the same order as formatBookingDates().
+     */
+    private function formatBookingTimeSlots(Booking $booking, string $locale): string
+    {
+        if ($booking->bookingDays->count() > 1) {
+            return $booking->bookingDays
+                ->map(fn($day) => $this->translateTimeSlot($day->time_slot, $locale))
+                ->implode(', ');
+        }
+
+        return $this->translateTimeSlot($booking->time_slot, $locale);
     }
 }

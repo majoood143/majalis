@@ -117,29 +117,49 @@
 
             <!-- Booking Details -->
             <div class="mb-6 space-y-4">
-                <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-2 text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                        {{ __('halls.event_date') }}
-                    </span>
-                    <span
-                        class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') }}</span>
-                </div>
+                @if ($booking->bookingDays->count() > 1)
+                    {{-- Multi-day booking: show each day's date + slot --}}
+                    <div class="space-y-2">
+                        <span class="flex items-center gap-2 text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            {{ __('halls.event_date') }} ({{ $booking->bookingDays->count() }} {{ __('halls.days') }})
+                        </span>
+                        @foreach ($booking->bookingDays as $day)
+                            <div class="flex items-center justify-between pl-7">
+                                <span class="text-sm text-gray-600">{{ $day->date->format('d M Y') }}</span>
+                                <span class="text-sm font-semibold text-gray-900">{{ __('halls.' . $day->time_slot) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-2 text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            {{ __('halls.event_date') }}
+                        </span>
+                        <span
+                            class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') }}</span>
+                    </div>
 
-                <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-2 text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {{ __('halls.time_slot') }}
-                    </span>
-                    <span class="font-semibold text-gray-900">{{ __('halls.' . $booking->time_slot) }}</span>
-                </div>
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-2 text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ __('halls.time_slot') }}
+                        </span>
+                        <span class="font-semibold text-gray-900">{{ __('halls.' . $booking->time_slot) }}</span>
+                    </div>
+                @endif
 
                 <div class="flex items-center justify-between">
                     <span class="flex items-center gap-2 text-gray-600">

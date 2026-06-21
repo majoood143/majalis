@@ -50,6 +50,7 @@ return [
         'hall'            => 'Hall',
         'date'            => 'Date',
         'time_slot'       => 'Time Slot',
+        'days'            => 'Days',
         'guests'          => 'Guests',
         'persons'         => 'persons',
         'event_type'      => 'Event Type',

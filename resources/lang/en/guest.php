@@ -352,6 +352,11 @@ return [
     'form_note_label' => 'Note',
     'form_advance_payment_note' => 'This hall allows advance payment of',
     'form_availability_error' => 'Error checking availability',
+    'add_another_day' => 'Add another day (up to 3 days total)',
+    'additional_day' => 'Day :n',
+    'remove' => 'Remove',
+    'select_time_slot' => 'Select a time slot',
+    'days' => 'days',
 
     // Event type additions (for conference which wasn't in your original list)
     'event_type_conference' => 'Conference',

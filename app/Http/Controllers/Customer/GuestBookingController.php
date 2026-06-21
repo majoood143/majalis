@@ -38,6 +38,8 @@ use App\Services\BookingPdfService;
 use App\Models\PromoCode;
 use App\Services\PromoCodeService;
 use App\Services\WhatsappNotificationService;
+use App\Services\BookingService;
+use App\Observers\BookingObserver;
 
 /**
  * Guest Booking Controller
@@ -461,6 +463,9 @@ class GuestBookingController extends Controller
         $validator = Validator::make($request->all(), [
             'booking_date' => ['required', 'date', 'after_or_equal:today'],
             'time_slot' => ['required', 'in:morning,afternoon,evening,full_day'],
+            'additional_days' => ['nullable', 'array', 'max:2'],
+            'additional_days.*.date' => ['required', 'date', 'after_or_equal:today'],
+            'additional_days.*.time_slot' => ['required', 'in:morning,afternoon,evening,full_day'],
             'number_of_guests' => [
                 'required',
                 'integer',
@@ -480,18 +485,30 @@ class GuestBookingController extends Controller
                 ->withInput();
         }
 
-        // Check availability
-        $isAvailable = $this->isSlotAvailable(
-            $hall,
-            $request->input('booking_date'),
-            $request->input('time_slot')
-        );
+        // Build the day-by-day breakdown: day 1 (existing fields) + up to 2 additional days.
+        $days = [
+            ['date' => $request->input('booking_date'), 'time_slot' => $request->input('time_slot')],
+        ];
+        foreach ($request->input('additional_days', []) as $additionalDay) {
+            $days[] = ['date' => $additionalDay['date'], 'time_slot' => $additionalDay['time_slot']];
+        }
 
-        if (!$isAvailable) {
+        // Reject duplicate (date, time_slot) pairs within the same request
+        $uniqueDays = collect($days)->unique(fn($day) => $day['date'] . '|' . $day['time_slot']);
+        if ($uniqueDays->count() !== count($days)) {
             return back()
-                ->with('error', __('halls.slot_not_available') !== 'halls.slot_not_available'
+                ->with('error', __('halls.duplicate_day_selection'))
+                ->withInput();
+        }
+
+        // Check availability for every selected day
+        $conflicts = app(BookingService::class)->checkAvailabilityForDays($hall->id, $days);
+        if (!empty($conflicts)) {
+            $conflictDates = implode(', ', array_column($conflicts, 'date'));
+            return back()
+                ->with('error', (__('halls.slot_not_available') !== 'halls.slot_not_available'
                     ? __('halls.slot_not_available')
-                    : 'This slot is not available.')
+                    : 'This slot is not available.') . ' (' . $conflictDates . ')')
                 ->withInput();
         }
 
@@ -501,8 +518,14 @@ class GuestBookingController extends Controller
             // Get selected services
             $selectedServiceIds = $request->input('services', []);
 
-            // Calculate hall price based on time slot
-            $hallPrice = $this->getSlotPrice($hall, $request->input('time_slot'));
+            // Calculate hall price as the sum of each day's slot price
+            $hallPrice = 0.0;
+            $dayPrices = [];
+            foreach ($days as $day) {
+                $dayPrice = $this->getSlotPrice($hall, $day['time_slot']);
+                $dayPrices[] = $dayPrice;
+                $hallPrice += $dayPrice;
+            }
 
             // Calculate services total
             $servicesPrice = 0.00;
@@ -654,9 +677,9 @@ class GuestBookingController extends Controller
                 'guest_token' => $guestToken,
                 'guest_token_expires_at' => now()->addYear(),
 
-                // Booking details
-                'booking_date' => $request->input('booking_date'),
-                'time_slot' => $request->input('time_slot'),
+                // Booking details (day 1 of the breakdown — see $days/BookingDay below)
+                'booking_date' => $days[0]['date'],
+                'time_slot' => $days[0]['time_slot'],
                 'number_of_guests' => (int) $request->input('number_of_guests'),
 
                 // Customer info
@@ -715,6 +738,25 @@ class GuestBookingController extends Controller
                         'total_price'      => (float) $service->price,  // quantity * unit_price
                     ]);
                 }
+            }
+
+            // Record the day-by-day breakdown (1 row for ordinary bookings, up to 3 for multi-day)
+            foreach ($days as $index => $day) {
+                $booking->bookingDays()->create([
+                    'hall_id'   => $hall->id,
+                    'date'      => $day['date'],
+                    'time_slot' => $day['time_slot'],
+                    'price'     => $dayPrices[$index],
+                ]);
+            }
+
+            // Re-sync HallAvailability now that all BookingDay rows exist.
+            // The 'created' event fired above (before these rows existed)
+            // already marked day 1 via BookingObserver's legacy fallback;
+            // this re-sync covers any additional days for multi-day bookings.
+            if (count($days) > 1) {
+                $booking->load('bookingDays');
+                app(BookingObserver::class)->markSlotAsBooked($booking);
             }
 
             // Update guest session
@@ -815,7 +857,7 @@ class GuestBookingController extends Controller
                 ->with('error', __('guest.booking_not_found'));
         }
 
-        $booking->load(['hall.city.region', 'extraServices', 'payment']);
+        $booking->load(['hall.city.region', 'extraServices', 'payment', 'bookingDays']);
 
         return view('customer.guest.booking-details', compact('booking'));
     }
@@ -1589,7 +1631,7 @@ class GuestBookingController extends Controller
                 ->with('error', __('guest.booking_not_found'));
         }
 
-        $booking->load(['hall.city.region', 'extraServices']);
+        $booking->load(['hall.city.region', 'extraServices', 'bookingDays']);
 
         // Check if can create account
         $canCreateAccount = $booking->canCreateAccount();
@@ -1779,32 +1821,12 @@ class GuestBookingController extends Controller
          * 3. If 'afternoon' is booked → 'afternoon' and 'full_day' are blocked
          * 4. If 'evening' is booked → 'evening' and 'full_day' are blocked
          * 5. If checking 'full_day' → blocked if ANY slot is already booked
+         *
+         * Delegates to BookingService::checkAvailability() so this also
+         * accounts for booking_days (additional days of multi-day bookings),
+         * not just bookings.booking_date/time_slot.
          */
-
-        // Base query for existing bookings on this date
-        $baseQuery = Booking::where('hall_id', $hall->id)
-            ->where('booking_date', $date)
-            ->whereIn('status', ['confirmed', 'pending']);
-
-        // If requesting full_day, check if ANY slot is already booked
-        if ($timeSlot === 'full_day') {
-            $hasAnyBooking = (clone $baseQuery)
-                ->whereIn('time_slot', ['morning', 'afternoon', 'evening', 'full_day'])
-                ->exists();
-
-            return !$hasAnyBooking;
-        }
-
-        // For individual slots (morning, afternoon, evening):
-        // Check if this specific slot OR full_day is already booked
-        $conflictingBooking = (clone $baseQuery)
-            ->where(function ($query) use ($timeSlot) {
-                $query->where('time_slot', $timeSlot)      // Same slot booked
-                      ->orWhere('time_slot', 'full_day');  // Full day booked
-            })
-            ->exists();
-
-        return !$conflictingBooking;
+        return app(BookingService::class)->checkAvailability($hall->id, $date, $timeSlot);
     }
 
     /**

@@ -102,6 +102,9 @@ class BookingController extends BaseController
         $validator = Validator::make($request->all(), [
             'booking_date' => 'required|date|after:today',
             'time_slot' => 'required|in:morning,afternoon,evening,full_day',
+            'additional_days' => 'nullable|array|max:2',
+            'additional_days.*.date' => 'required|date|after:today',
+            'additional_days.*.time_slot' => 'required|in:morning,afternoon,evening,full_day',
             'number_of_guests' => "required|integer|min:{$hall->capacity_min}|max:{$hall->capacity_max}",
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
@@ -120,15 +123,29 @@ class BookingController extends BaseController
                 ->with('error', __('halls.invalid_request'));
         }
 
+        // Build the day-by-day breakdown: day 1 (existing fields) + up to 2 additional days.
+        $days = [
+            ['date' => $request->booking_date, 'time_slot' => $request->time_slot],
+        ];
+        foreach ($request->input('additional_days', []) as $additionalDay) {
+            $days[] = ['date' => $additionalDay['date'], 'time_slot' => $additionalDay['time_slot']];
+        }
+
+        // Reject duplicate (date, time_slot) pairs within the same request
+        $uniqueDays = collect($days)->unique(fn($day) => $day['date'] . '|' . $day['time_slot']);
+        if ($uniqueDays->count() !== count($days)) {
+            return back()
+                ->with('error', __('halls.duplicate_day_selection'))
+                ->withInput();
+        }
+
         try {
-            // Check availability using the service
-            if (!$bookingService->checkAvailability(
-                $hall->id,
-                $request->booking_date,
-                $request->time_slot
-            )) {
+            // Check availability for every selected day
+            $conflicts = $bookingService->checkAvailabilityForDays($hall->id, $days);
+            if (!empty($conflicts)) {
+                $conflictDates = implode(', ', array_column($conflicts, 'date'));
                 return back()
-                    ->with('error', __('halls.date_not_available'))
+                    ->with('error', __('halls.date_not_available') . ' (' . $conflictDates . ')')
                     ->withInput();
             }
 
@@ -136,8 +153,7 @@ class BookingController extends BaseController
             $bookingData = [
                 'hall_id' => $hall->id,
                 'user_id' => Auth::id(),
-                'booking_date' => $request->booking_date,
-                'time_slot' => $request->time_slot,
+                'days' => $days,
                 'number_of_guests' => $request->number_of_guests,
                 'customer_name' => $request->customer_name,
                 'customer_email' => $request->customer_email,
@@ -221,7 +237,7 @@ class BookingController extends BaseController
         app()->setLocale($locale);
 
         // Find booking by booking_number (not booking_reference)
-        $booking = Booking::with(['hall.city.region', 'extraServices', 'user'])
+        $booking = Booking::with(['hall.city.region', 'extraServices', 'user', 'bookingDays'])
             ->where('booking_number', $bookingNumber)
             ->where('user_id', Auth::id())
             ->firstOrFail();
@@ -265,7 +281,7 @@ class BookingController extends BaseController
             abort(403, 'Unauthorized access to booking');
         }
 
-        $booking->load(['hall.city.region', 'extraServices', 'user']);
+        $booking->load(['hall.city.region', 'extraServices', 'user', 'bookingDays']);
 
         return view('customer.bookings.show', compact('booking'));
     }

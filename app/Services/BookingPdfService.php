@@ -31,7 +31,7 @@ class BookingPdfService
     {
         try {
             // Load booking with relationships
-            $booking->load(['hall.city.region', 'extraServices', 'user']);
+            $booking->load(['hall.city.region', 'extraServices', 'user', 'bookingDays']);
 
             // Ensure every booking has a guest_token so the QR code URL works
             // for both guest and authenticated-user bookings.

@@ -39,6 +39,7 @@ use App\Filament\Admin\Resources\BookingResource\Pages\ViewBooking;
 use App\Filament\Admin\Resources\BookingResource\Pages\EditBooking;
 use App\Filament\Admin\Resources\BookingResource\Pages;
 use App\Models\Booking;
+use App\Models\BookingDay;
 use App\Models\EventType;
 use App\Models\Hall;
 use App\Models\HallAvailability;
@@ -314,6 +315,62 @@ class BookingResource extends Resource
                             })
                             ->helperText(fn(Get $get) => static::getCapacityHelperText($get('hall_id')))
                             ->columnSpan(1),
+
+                        // Additional Days (book the same hall for up to 3 days in one booking)
+                        Repeater::make('additional_days')
+                            ->label(__('booking.fields.additional_days.label'))
+                            ->schema([
+                                DatePicker::make('date')
+                                    ->label(__('booking.fields.booking_date.label'))
+                                    ->required()
+                                    ->native(false)
+                                    ->minDate(now())
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set) {
+                                        $set('time_slot', null);
+                                        $set('price', 0);
+                                    })
+                                    ->columnSpan(1),
+
+                                Select::make('time_slot')
+                                    ->label(__('booking.fields.time_slot.label'))
+                                    ->options(
+                                        fn(Get $get, ?Booking $record): array => static::getAvailableTimeSlots(
+                                            $get('../../hall_id'),
+                                            $get('date'),
+                                            $record?->id
+                                        )
+                                    )
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                                        if ($state && $get('../../hall_id') && $get('date')) {
+                                            static::updateAdditionalDayPrice($set, $get('../../hall_id'), $get('date'), $state);
+                                        }
+                                        static::calculateAllTotals($set, fn($key) => $get("../../{$key}"));
+                                    })
+                                    ->disabled(fn(Get $get): bool => !$get('date'))
+                                    ->columnSpan(1),
+
+                                Hidden::make('price')->default(0),
+                            ])
+                            ->columns(2)
+                            ->maxItems(2)
+                            ->defaultItems(0)
+                            ->addActionLabel(__('booking.actions.add_day'))
+                            ->reorderable(false)
+                            ->collapsible()
+                            ->visible(fn(Get $get): bool => $get('hall_id') !== null)
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, Get $get) {
+                                static::calculateAllTotals($set, $get);
+                            })
+                            ->deleteAction(
+                                fn($action) => $action->after(function (Set $set, Get $get) {
+                                    static::calculateAllTotals($set, $get);
+                                })
+                            )
+                            ->columnSpanFull(),
                     ])->columns(2),
 
                 // Customer Information Section
@@ -645,6 +702,19 @@ class BookingResource extends Resource
             ->groupBy(fn($row) => $row->booking_date->toDateString())
             ->map(fn($bookings) => $bookings->pluck('time_slot')->toArray());
 
+        // Also account for additional days (2-3) of multi-day bookings, which only
+        // exist in booking_days and are NOT reflected in bookings.booking_date.
+        $bookedDaysPerDate = BookingDay::where('hall_id', $hallId)
+            ->where('date', '>=', $today)
+            ->whereHas('booking', fn($q) => $q->whereIn('status', ['pending', 'confirmed']))
+            ->get()
+            ->groupBy(fn($row) => $row->date->toDateString())
+            ->map(fn($days) => $days->pluck('time_slot')->toArray());
+
+        foreach ($bookedDaysPerDate as $date => $slots) {
+            $bookedPerDate[$date] = array_unique(array_merge($bookedPerDate->get($date, []), $slots));
+        }
+
         // Build lookup of dates that still have at least one open slot
         $datesWithSlots = [];
         foreach ($availablePerDate as $date => $slots) {
@@ -703,6 +773,16 @@ class BookingResource extends Resource
                 return $query->where('id', '!=', $excludeBookingId);
             })
             ->pluck('time_slot')
+            ->merge(
+                // Also covers additional days (2-3) of OTHER multi-day bookings,
+                // which only exist in booking_days, not bookings.booking_date.
+                BookingDay::where('hall_id', $hallId)
+                    ->where('date', $bookingDate)
+                    ->whereHas('booking', fn($q) => $q->whereIn('status', ['pending', 'confirmed']))
+                    ->when($excludeBookingId, fn($q, $excludeBookingId) => $q->where('booking_id', '!=', $excludeBookingId))
+                    ->pluck('time_slot')
+            )
+            ->unique()
             ->toArray();
 
         // Remove booked slots from available slots
@@ -866,6 +946,32 @@ class BookingResource extends Resource
     }
 
     /**
+     * Resolve and store the price for one row of the additional_days repeater.
+     * Mirrors updateHallPrice() but only sets the item-local 'price' field —
+     * calculateAllTotals() (called right after) folds it into the totals.
+     */
+    protected static function updateAdditionalDayPrice(Set $set, $hallId, $date, $timeSlot): void
+    {
+        if (!$hallId || !$date || !$timeSlot) {
+            return;
+        }
+
+        $availability = HallAvailability::where('hall_id', $hallId)
+            ->where('date', $date)
+            ->where('time_slot', $timeSlot)
+            ->first();
+
+        if ($availability && $availability->custom_price !== null) {
+            $price = (float) $availability->custom_price;
+        } else {
+            $hall = Hall::find($hallId);
+            $price = $hall ? $hall->getPriceForSlot($timeSlot) : 0;
+        }
+
+        $set('price', $price);
+    }
+
+    /**
      * Calculate all totals
      */
     protected static function calculateAllTotals(Set $set, $get): void
@@ -885,6 +991,7 @@ class BookingResource extends Resource
         $hallPrice = (float) ($getValue('hall_price') ?? 0);
         $hallId    = $getValue('hall_id');
         $extraServices = $getValue('extra_services') ?? [];
+        $additionalDays = $getValue('additional_days') ?? [];
 
         // Calculate services total from repeater
         $servicesPrice = 0;
@@ -896,7 +1003,17 @@ class BookingResource extends Resource
             }
         }
 
-        $subtotal = $hallPrice + $servicesPrice;
+        // Sum the resolved price of each additional day (day 2/3 of a multi-day booking)
+        $additionalDaysPrice = 0;
+        if (is_array($additionalDays)) {
+            foreach ($additionalDays as $day) {
+                if (is_array($day)) {
+                    $additionalDaysPrice += (float) ($day['price'] ?? 0);
+                }
+            }
+        }
+
+        $subtotal = $hallPrice + $additionalDaysPrice + $servicesPrice;
 
         // Recalculate commission on the full subtotal (hall + services)
         $commissionAmount = (float) ($getValue('commission_amount') ?? 0);
@@ -993,7 +1110,12 @@ class BookingResource extends Resource
                 TextColumn::make('booking_date')
                     ->label(static::columnLabel('booking_date'))
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->description(
+                        fn($record) => $record->bookingDays->count() > 1
+                            ? '📅 ' . $record->bookingDays->count() . ' ' . __('booking.fields.additional_days.days_suffix')
+                            : null
+                    ),
                 TextColumn::make('time_slot')
                     ->label(static::columnLabel('time_slot'))
                     ->badge()
@@ -1721,6 +1843,29 @@ class BookingResource extends Resource
                     ])
                     ->columns(2),
 
+                // Multi-Day Breakdown (only shown when this booking spans more than one day)
+                Section::make(__('booking.fields.additional_days.label'))
+                    ->schema([
+                        RepeatableEntry::make('bookingDays')
+                            ->label('')
+                            ->schema([
+                                TextEntry::make('date')
+                                    ->label('Date')
+                                    ->date(),
+
+                                TextEntry::make('time_slot')
+                                    ->label('Time Slot')
+                                    ->badge(),
+
+                                TextEntry::make('price')
+                                    ->label('Price')
+                                    ->money('OMR', 3),
+                            ])
+                            ->columns(3),
+                    ])
+                    ->visible(fn($record) => $record->bookingDays->count() > 1)
+                    ->collapsible(),
+
                 // Pricing Information
                 Section::make('Pricing Details')
                     ->schema([
@@ -1911,6 +2056,11 @@ class BookingResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with('bookingDays');
     }
 
     public static function getPages(): array

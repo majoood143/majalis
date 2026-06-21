@@ -9,6 +9,8 @@ use Filament\Actions\DeleteAction;
 use App\Models\Hall;
 use App\Filament\Admin\Resources\BookingResource;
 use App\Models\Booking;
+use App\Models\BookingDay;
+use App\Observers\BookingObserver;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
@@ -104,6 +106,45 @@ class EditBooking extends EditRecord
             }
         }
 
+        // Resolve the full day-by-day breakdown (day 1 + additional_days repeater) and
+        // validate none of the additional days conflict with ANOTHER booking. Stored on
+        // the instance so afterSave() can resync the booking_days table to match.
+        $this->resolvedDays = [
+            ['date' => $newBookingDate, 'time_slot' => $newTimeSlot],
+        ];
+        foreach ($data['additional_days'] ?? [] as $additionalDay) {
+            $this->resolvedDays[] = ['date' => $additionalDay['date'], 'time_slot' => $additionalDay['time_slot']];
+        }
+
+        foreach (array_slice($this->resolvedDays, 1) as $day) {
+            $conflict = Booking::where('hall_id', $newHallId)
+                ->where('booking_date', $day['date'])
+                ->where('time_slot', $day['time_slot'])
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->where('id', '!=', $this->record->id)
+                ->exists()
+                || BookingDay::where('hall_id', $newHallId)
+                    ->where('date', $day['date'])
+                    ->where('time_slot', $day['time_slot'])
+                    ->where('booking_id', '!=', $this->record->id)
+                    ->whereHas('booking', fn($q) => $q->whereIn('status', ['pending', 'confirmed']))
+                    ->exists();
+
+            if ($conflict) {
+                Notification::make()
+                    ->danger()
+                    ->title('Slot Already Booked')
+                    ->body("The additional day {$day['date']} ({$day['time_slot']}) is already booked. Cannot save with this day.")
+                    ->persistent()
+                    ->send();
+
+                $this->halt();
+            }
+        }
+
+        // additional_days isn't a column on bookings — drop it before the model update
+        unset($data['additional_days']);
+
         // ✅ NEW: Track if we need to recalculate advance payment
         $shouldRecalculateAdvance = false;
         $reasonForRecalculation = '';
@@ -180,6 +221,14 @@ class EditBooking extends EditRecord
     protected string $recalculationReason = '';
 
     /**
+     * The resolved day-by-day breakdown (day 1 + additional_days), computed in
+     * mutateFormDataBeforeSave() and applied to the booking_days table in afterSave().
+     *
+     * @var array<int, array{date: string, time_slot: string}>
+     */
+    protected array $resolvedDays = [];
+
+    /**
      * ✅ NEW: After save hook to handle advance payment recalculation
      *
      * This happens AFTER the record is saved because:
@@ -220,6 +269,45 @@ class EditBooking extends EditRecord
                     ->persistent()
                     ->send();
             }
+        }
+
+        $this->syncBookingDays();
+    }
+
+    /**
+     * Resync the booking_days table to match the saved form state, then mark
+     * every current day as booked in HallAvailability.
+     *
+     * Note: this does NOT release availability for a day that was REMOVED from
+     * the booking on edit — that mirrors an existing limitation of this page
+     * (changing the single booking_date/time_slot on edit already didn't
+     * release the old slot either, since BookingObserver only reacts to
+     * status changes, not date/slot edits). Fixing that is a separate concern.
+     */
+    protected function syncBookingDays(): void
+    {
+        if (empty($this->resolvedDays)) {
+            return;
+        }
+
+        $hall = Hall::find($this->record->hall_id);
+
+        $this->record->bookingDays()->delete();
+
+        foreach ($this->resolvedDays as $index => $day) {
+            $this->record->bookingDays()->create([
+                'hall_id'   => $this->record->hall_id,
+                'date'      => $day['date'],
+                'time_slot' => $day['time_slot'],
+                'price'     => $index === 0
+                    ? (float) $this->record->hall_price
+                    : ($hall?->getPriceForDate($day['date'], $day['time_slot']) ?? 0),
+            ]);
+        }
+
+        if (in_array($this->record->status, ['pending', 'confirmed'], true)) {
+            $this->record->load('bookingDays');
+            app(BookingObserver::class)->markSlotAsBooked($this->record);
         }
     }
 
@@ -270,6 +358,18 @@ class EditBooking extends EditRecord
                 'unit'         => $service->extraService?->unit ?? 'per_unit', // From parent ExtraService
             ];
         })->toArray();
+
+        // Populate the additional_days repeater with any days beyond day 1
+        // (day 1 is already represented by booking_date/time_slot above).
+        $data['additional_days'] = $this->record->bookingDays
+            ->skip(1)
+            ->map(fn($day) => [
+                'date'      => $day->date->format('Y-m-d'),
+                'time_slot' => $day->time_slot,
+                'price'     => (float) $day->price,
+            ])
+            ->values()
+            ->toArray();
 
         return $data;
     }

@@ -271,6 +271,20 @@ class Booking extends Model
     }
 
     /**
+     * Get the day-by-day breakdown for this booking.
+     *
+     * Ordinary single-day bookings have exactly one row; multi-day bookings
+     * have up to 3. Historical bookings created before this feature shipped
+     * have none — see BookingObserver::resolveDays() for the fallback.
+     *
+     * @return HasMany<BookingDay>
+     */
+    public function bookingDays(): HasMany
+    {
+        return $this->hasMany(BookingDay::class)->orderBy('date');
+    }
+
+    /**
      * Get the promo code applied to this booking.
      *
      * @return BelongsTo<PromoCode, Booking>

@@ -158,6 +158,10 @@ return [
             'helper' => 'Capacity: :min - :max guests',
             'helper_select_hall' => 'Select a hall first',
         ],
+        'additional_days' => [
+            'label' => 'Additional Days (book the same hall for up to 3 days total)',
+            'days_suffix' => 'days',
+        ],
         'event_type' => [
             'label' => 'Event Type',
             'placeholder' => 'Select event type',
@@ -467,6 +471,7 @@ return [
             'modal_submit' => 'Yes, Create Booking',
         ],
         'add_service' => 'Add Service',
+        'add_day' => 'Add Day',
         'remove_service' => 'Remove Service',
 
         'edit' => 'Edit',
@@ -570,6 +575,7 @@ return [
         ],
         'slot_already_booked_title' => 'Slot Already Booked',
         'slot_already_booked_body' => 'This time slot is already booked (Booking #:booking_number). Please select a different date or time slot.',
+        'days_already_booked_body' => 'One or more selected days are already booked: :dates. Please choose different days.',
         'guest_count_below_min_title' => 'Guest Count Below Minimum',
         'guest_count_below_min_body' => 'Minimum capacity is :capacity_min guests. Guest count has been adjusted.',
         'guest_count_exceeds_max_title' => 'Guest Count Exceeds Maximum',

@@ -6,6 +6,8 @@ namespace App\Filament\Admin\Resources\BookingResource\Pages;
 
 use App\Models\Hall;
 use App\Services\CommissionService;
+use App\Services\BookingService;
+use App\Observers\BookingObserver;
 use Filament\Actions\Action;
 use Exception;
 use Throwable;
@@ -71,19 +73,16 @@ class CreateBooking extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         try {
-            // Check for existing booking FIRST before generating booking number
-            $existingBooking = Booking::where('hall_id', $data['hall_id'])
-                ->where('booking_date', $data['booking_date'])
-                ->where('time_slot', $data['time_slot'])
-                ->whereIn('status', ['pending', 'confirmed'])
-                ->first();
+            // Check availability for day 1 + any additional days
+            $days = $this->resolveDaysFromFormData($data);
+            $conflicts = app(BookingService::class)->checkAvailabilityForDays($data['hall_id'], $days);
 
-            if ($existingBooking) {
+            if (!empty($conflicts)) {
                 Notification::make()
                     ->danger()
                     ->title(__('booking.notifications.slot_already_booked_title'))
-                    ->body(__('booking.notifications.slot_already_booked_body', [
-                        'booking_number' => $existingBooking->booking_number
+                    ->body(__('booking.notifications.days_already_booked_body', [
+                        'dates' => implode(', ', array_column($conflicts, 'date')),
                     ]))
                     ->persistent()
                     ->send();
@@ -127,7 +126,11 @@ class CreateBooking extends CreateRecord
             if ($hall) {
                 $hallPrice     = (float) ($data['hall_price'] ?? 0);
                 $servicesPrice = (float) ($data['services_price'] ?? 0);
-                $subtotal      = $hallPrice + $servicesPrice;
+                $additionalDaysPrice = array_sum(array_map(
+                    fn($day) => (float) ($day['price'] ?? 0),
+                    $data['additional_days'] ?? []
+                ));
+                $subtotal      = $hallPrice + $additionalDaysPrice + $servicesPrice;
 
                 $feeData = app(CommissionService::class)->calculateFees($hall, $subtotal);
 
@@ -191,15 +194,12 @@ class CreateBooking extends CreateRecord
     {
         try {
             return DB::transaction(function () use ($data) {
-                // Double-check slot availability within transaction
-                $existingBooking = Booking::where('hall_id', $data['hall_id'])
-                    ->where('booking_date', $data['booking_date'])
-                    ->where('time_slot', $data['time_slot'])
-                    ->whereIn('status', ['pending', 'confirmed'])
-                    ->lockForUpdate() // Lock the rows to prevent race conditions
-                    ->first();
+                $days = $this->resolveDaysFromFormData($data);
 
-                if ($existingBooking) {
+                // Double-check slot availability within transaction (row-locked)
+                $conflicts = app(BookingService::class)->checkAvailabilityForDays($data['hall_id'], $days);
+
+                if (!empty($conflicts)) {
                     Notification::make()
                         ->danger()
                         ->title(__('booking.notifications.slot_just_booked_title'))
@@ -210,13 +210,36 @@ class CreateBooking extends CreateRecord
                     throw new Exception(__('booking.exceptions.slot_already_booked'));
                 }
 
-                // Separate extra services for pivot table
+                // Separate extra services and additional days — neither is a column on bookings
                 $extraServices = $data['extra_services'] ?? [];
                 unset($data['extra_services']);
+                unset($data['additional_days']);
 
                 // Create booking
                 $record = static::getModel()::create($data);
 
+                // Record the day-by-day breakdown (1 row for ordinary bookings, up to 3 for multi-day)
+                $hall = Hall::find($record->hall_id);
+                foreach ($days as $index => $day) {
+                    $record->bookingDays()->create([
+                        'hall_id'   => $record->hall_id,
+                        'date'      => $day['date'],
+                        'time_slot' => $day['time_slot'],
+                        // Day 1 keeps the admin-entered/calculated hall_price; additional
+                        // days are resolved fresh from the hall's pricing (server-authoritative).
+                        'price'     => $index === 0
+                            ? (float) $record->hall_price
+                            : ($hall?->getPriceForDate($day['date'], $day['time_slot']) ?? 0),
+                    ]);
+                }
+
+                // Re-sync HallAvailability now that all BookingDay rows exist (loads day 1 +
+                // any additional days; the model's 'created' event already marked day 1 via
+                // BookingObserver's legacy fallback before these rows existed).
+                if (count($days) > 1) {
+                    $record->load('bookingDays');
+                    app(BookingObserver::class)->markSlotAsBooked($record);
+                }
 
                 if (!empty($extraServices)) {
                     foreach ($extraServices as $service) {
@@ -302,6 +325,26 @@ class CreateBooking extends CreateRecord
             // Optional: You could redirect back to the form here
             // $this->redirect($this->getResource()::getUrl('create'));
         }
+    }
+
+    /**
+     * Build the day-by-day breakdown from form data: day 1 (booking_date/time_slot)
+     * plus any rows from the additional_days repeater (max 2, enforced by the form).
+     *
+     * @param array $data Form data
+     * @return array<int, array{date: string, time_slot: string}>
+     */
+    protected function resolveDaysFromFormData(array $data): array
+    {
+        $days = [
+            ['date' => $data['booking_date'], 'time_slot' => $data['time_slot']],
+        ];
+
+        foreach ($data['additional_days'] ?? [] as $additionalDay) {
+            $days[] = ['date' => $additionalDay['date'], 'time_slot' => $additionalDay['time_slot']];
+        }
+
+        return $days;
     }
 
     /**

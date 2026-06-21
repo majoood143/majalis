@@ -65,7 +65,7 @@ class GuestBookingConfirmationNotification extends Notification
         $booking = $this->booking;
 
         // Load relationships if not loaded
-        $booking->loadMissing(['hall.city.region']);
+        $booking->loadMissing(['hall.city.region', 'bookingDays']);
 
         // Pre-compute all values as strings to prevent "Array to string conversion"
         $hallName     = $this->getHallName($booking, $locale);
@@ -107,10 +107,21 @@ class GuestBookingConfirmationNotification extends Notification
             ->line('---')
             ->line("**Booking Number:** {$bookingNumber}")
             ->line("**Hall:** {$hallName}")
-            ->line("**Location:** {$cityName}")
-            ->line("**Date:** {$bookingDate}")
-            ->line("**Time Slot:** {$timeSlot}")
-            ->line("**Guests:** {$numGuests}")
+            ->line("**Location:** {$cityName}");
+
+        // Multi-day booking: list every day; otherwise show the single date/slot line
+        if ($booking->bookingDays->count() > 1) {
+            $mail->line("**Days:**");
+            foreach ($booking->bookingDays as $day) {
+                $dayLabel = $timeSlotMap[$day->time_slot] ?? $day->time_slot;
+                $mail->line("- {$day->date->format('l, F j, Y')} — {$dayLabel}");
+            }
+        } else {
+            $mail->line("**Date:** {$bookingDate}")
+                ->line("**Time Slot:** {$timeSlot}");
+        }
+
+        $mail->line("**Guests:** {$numGuests}")
             ->line("**Total Amount:** {$totalAmount} OMR")
             ->line('---')
             ->action($viewLabel, $bookingUrl)

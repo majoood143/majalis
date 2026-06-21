@@ -143,25 +143,43 @@
                     </div>
 
                     <div class="p-6">
+                        @php
+                            $timeSlotLabels = [
+                                'morning' => __('guest.time_slot_morning'),
+                                'afternoon' => __('guest.time_slot_afternoon'),
+                                'evening' => __('guest.time_slot_evening'),
+                                'full_day' => __('guest.time_slot_full_day'),
+                            ];
+                        @endphp
+
+                        @if ($booking->bookingDays->count() > 1)
+                            {{-- Multi-day booking: show each day's date + slot --}}
+                            <div class="mb-4">
+                                <dt class="mb-2 text-sm text-gray-500">
+                                    {{ __('guest.details_label_date') }} ({{ $booking->bookingDays->count() }} {{ __('guest.days') }})
+                                </dt>
+                                @foreach ($booking->bookingDays as $day)
+                                    <dd class="flex items-center justify-between py-1 font-medium text-gray-900">
+                                        <span>{{ $day->date->translatedFormat(__('guest.date_format')) }}</span>
+                                        <span>{{ $timeSlotLabels[$day->time_slot] ?? $day->time_slot }}</span>
+                                    </dd>
+                                @endforeach
+                            </div>
+                        @endif
+
                         <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <dt class="text-sm text-gray-500">{{ __('guest.details_label_date') }}</dt>
-                                <dd class="font-medium text-gray-900">{{ $booking->booking_date->translatedFormat(__('guest.date_format')) }}</dd>
-                            </div>
-                            <div>
-                                <dt class="text-sm text-gray-500">{{ __('guest.details_label_time') }}</dt>
-                                <dd class="font-medium text-gray-900">
-                                    @php
-                                        $timeSlotLabels = [
-                                            'morning' => __('guest.time_slot_morning'),
-                                            'afternoon' => __('guest.time_slot_afternoon'),
-                                            'evening' => __('guest.time_slot_evening'),
-                                            'full_day' => __('guest.time_slot_full_day'),
-                                        ];
-                                    @endphp
-                                    {{ $timeSlotLabels[$booking->time_slot] ?? $booking->time_slot }}
-                                </dd>
-                            </div>
+                            @if ($booking->bookingDays->count() <= 1)
+                                <div>
+                                    <dt class="text-sm text-gray-500">{{ __('guest.details_label_date') }}</dt>
+                                    <dd class="font-medium text-gray-900">{{ $booking->booking_date->translatedFormat(__('guest.date_format')) }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm text-gray-500">{{ __('guest.details_label_time') }}</dt>
+                                    <dd class="font-medium text-gray-900">
+                                        {{ $timeSlotLabels[$booking->time_slot] ?? $booking->time_slot }}
+                                    </dd>
+                                </div>
+                            @endif
                             <div>
                                 <dt class="text-sm text-gray-500">{{ __('guest.details_label_guests') }}</dt>
                                 <dd class="font-medium text-gray-900">{{ $booking->number_of_guests }}</dd>

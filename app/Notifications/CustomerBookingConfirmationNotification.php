@@ -83,7 +83,7 @@ class CustomerBookingConfirmationNotification extends Notification implements Sh
         $booking = $this->booking;
 
         // Load relationships if not already loaded
-        $booking->loadMissing(['hall.city.region', 'extraServices', 'user']);
+        $booking->loadMissing(['hall.city.region', 'extraServices', 'user', 'bookingDays']);
 
         // Get localized hall name (handles Spatie Translatable JSON or plain string)
         $hallName = $this->getHallName($booking, $locale);
@@ -118,10 +118,20 @@ class CustomerBookingConfirmationNotification extends Notification implements Sh
             ->line('---')
             ->line("**" . __('emails.booking.booking_number', [], 'Booking Number') . ":** {$booking->booking_number}")
             ->line("**" . __('emails.booking.hall', [], 'Hall') . ":** {$hallName}")
-            ->line("**" . __('emails.booking.location', [], 'Location') . ":** {$cityName}")
-            ->line("**" . __('emails.booking.date', [], 'Date') . ":** {$booking->booking_date->format('l, F j, Y')}")
-            ->line("**" . __('emails.booking.time_slot', [], 'Time Slot') . ":** {$timeSlot}")
-            ->line("**" . __('emails.booking.guests', [], 'Number of Guests') . ":** {$booking->number_of_guests}")
+            ->line("**" . __('emails.booking.location', [], 'Location') . ":** {$cityName}");
+
+        // Multi-day booking: list every day; otherwise show the single date/slot line
+        if ($booking->bookingDays->count() > 1) {
+            $mail->line("**" . __('emails.booking.days', [], 'Days') . ":**");
+            foreach ($booking->bookingDays as $day) {
+                $mail->line("- {$day->date->format('l, F j, Y')} — " . $this->getTimeSlotLabel($day->time_slot));
+            }
+        } else {
+            $mail->line("**" . __('emails.booking.date', [], 'Date') . ":** {$booking->booking_date->format('l, F j, Y')}")
+                ->line("**" . __('emails.booking.time_slot', [], 'Time Slot') . ":** {$timeSlot}");
+        }
+
+        $mail->line("**" . __('emails.booking.guests', [], 'Number of Guests') . ":** {$booking->number_of_guests}")
             ->line('---')
             ->line("**{$paymentLabel}:** {$amountPaid} " . __('currency.omr', [], 'OMR'));
 

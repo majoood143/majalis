@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\BookingDay;
 use App\Models\Hall;
 use App\Models\ExtraService;
 use App\Models\ServiceFeeSetting;
 use App\Jobs\SendReviewRequest;
+use App\Observers\BookingObserver;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +51,12 @@ class BookingService
     /**
      * Check if a hall is available for a specific date and time slot.
      *
+     * Looks at both the legacy bookings.booking_date/time_slot pair (day 1
+     * of every booking, and the only record for historical bookings created
+     * before BookingDay existed) AND the booking_days table (covers
+     * additional days 2-3 of multi-day bookings, which are NOT reflected in
+     * bookings.booking_date/time_slot).
+     *
      * @param int    $hallId      The hall ID to check
      * @param string $bookingDate The date to check (Y-m-d format)
      * @param string $timeSlot    The time slot to check
@@ -56,35 +64,51 @@ class BookingService
      */
     public function checkAvailability(int $hallId, string $bookingDate, string $timeSlot): bool
     {
-        // Check for existing bookings with same date and time slot
-        $existingBooking = Booking::where('hall_id', $hallId)
-            ->where('booking_date', $bookingDate)
-            ->where('time_slot', $timeSlot)
-            ->whereIn('status', ['pending', 'confirmed', 'paid'])
-            ->exists();
+        $activeStatuses = ['pending', 'confirmed', 'paid'];
 
-        if ($existingBooking) {
+        $takenSlots = Booking::where('hall_id', $hallId)
+            ->where('booking_date', $bookingDate)
+            ->whereIn('status', $activeStatuses)
+            ->pluck('time_slot')
+            ->merge(
+                BookingDay::where('hall_id', $hallId)
+                    ->where('date', $bookingDate)
+                    ->whereHas('booking', fn($query) => $query->whereIn('status', $activeStatuses))
+                    ->pluck('time_slot')
+            )
+            ->unique();
+
+        if ($takenSlots->contains($timeSlot)) {
             return false;
         }
 
-        // If requesting full_day, check if any other slot is booked
+        // Requesting full_day → blocked if ANY slot is already taken
         if ($timeSlot === 'full_day') {
-            $anySlotBooked = Booking::where('hall_id', $hallId)
-                ->where('booking_date', $bookingDate)
-                ->whereIn('status', ['pending', 'confirmed', 'paid'])
-                ->exists();
-
-            return !$anySlotBooked;
+            return $takenSlots->isEmpty();
         }
 
-        // Check if full_day is already booked
-        $fullDayBooked = Booking::where('hall_id', $hallId)
-            ->where('booking_date', $bookingDate)
-            ->where('time_slot', 'full_day')
-            ->whereIn('status', ['pending', 'confirmed', 'paid'])
-            ->exists();
+        // Requesting an individual slot → blocked if full_day is already taken
+        return !$takenSlots->contains('full_day');
+    }
 
-        return !$fullDayBooked;
+    /**
+     * Check availability for multiple days at once (multi-day booking).
+     *
+     * @param int   $hallId The hall ID to check
+     * @param array $days   Array of ['date' => 'Y-m-d', 'time_slot' => string]
+     * @return array<int, array{date: string, time_slot: string}> The days that are NOT available (empty = all clear)
+     */
+    public function checkAvailabilityForDays(int $hallId, array $days): array
+    {
+        $conflicts = [];
+
+        foreach ($days as $day) {
+            if (!$this->checkAvailability($hallId, $day['date'], $day['time_slot'])) {
+                $conflicts[] = $day;
+            }
+        }
+
+        return $conflicts;
     }
 
     /**
@@ -114,8 +138,22 @@ class BookingService
             // Get hall details with eager loading
             $hall = Hall::findOrFail($data['hall_id']);
 
-            // Calculate hall price
-            $hallPrice = (float) $hall->price_per_slot;
+            // Days breakdown for this booking (1 day = ordinary booking, up to 3 = multi-day).
+            // Falls back to the single booking_date/time_slot pair when 'days' isn't provided,
+            // so existing callers behave exactly as before.
+            $days = $data['days'] ?? [
+                ['date' => $data['booking_date'], 'time_slot' => $data['time_slot']],
+            ];
+
+            // Calculate hall price as the sum of each day's resolved price
+            // (custom_price from HallAvailability if set, else the hall's slot price)
+            $hallPrice = 0.0;
+            $dayPrices = [];
+            foreach ($days as $day) {
+                $dayPrice = $hall->getPriceForDate($day['date'], $day['time_slot']);
+                $dayPrices[] = $dayPrice;
+                $hallPrice += $dayPrice;
+            }
 
             // Calculate services total
             $servicesPrice   = 0.0;
@@ -219,8 +257,8 @@ class BookingService
                 'booking_number'    => $bookingNumber,
                 'hall_id'           => $data['hall_id'],
                 'user_id'           => $data['user_id'],
-                'booking_date'      => $data['booking_date'],
-                'time_slot'         => $data['time_slot'],
+                'booking_date'      => $days[0]['date'],
+                'time_slot'         => $days[0]['time_slot'],
                 'number_of_guests'  => $data['number_of_guests'],
                 'customer_name'     => $data['customer_name'],
                 'customer_email'    => $data['customer_email'],
@@ -265,6 +303,25 @@ class BookingService
                         'updated_at'       => now(),
                     ]);
                 }
+            }
+
+            // Record the day-by-day breakdown (1 row for ordinary bookings, up to 3 for multi-day)
+            foreach ($days as $index => $day) {
+                $booking->bookingDays()->create([
+                    'hall_id'   => $hall->id,
+                    'date'      => $day['date'],
+                    'time_slot' => $day['time_slot'],
+                    'price'     => $dayPrices[$index],
+                ]);
+            }
+
+            // Re-sync HallAvailability now that all BookingDay rows exist.
+            // The 'created' event fired above (before these rows existed)
+            // already marked day 1 via BookingObserver's legacy fallback;
+            // this re-sync covers any additional days for multi-day bookings.
+            if (count($days) > 1) {
+                $booking->load('bookingDays');
+                app(BookingObserver::class)->markSlotAsBooked($booking);
             }
 
             DB::commit();
