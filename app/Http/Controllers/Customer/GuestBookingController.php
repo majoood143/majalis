@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use App\Models\Payment;
-use App\Services\ThawaniService;
+use App\Services\PaymentService;
 use App\Models\CommissionSetting;
 use App\Models\ServiceFeeSetting;
 use Exception;
@@ -1341,8 +1341,8 @@ class GuestBookingController extends Controller
                     ->with('error', 'Payment record not found. Please try again.');
             }
 
-            // Verify with Thawani if we have a session ID
-            $verified = true; // Default to true, Thawani callback is reliable
+            // Verify with Thawani — the success URL is public, so never mark paid without confirmation
+            $verified = false;
 
             if ($payment->transaction_id) {
                 try {
@@ -1375,19 +1375,21 @@ class GuestBookingController extends Controller
 
                     // Check if payment was actually successful
                     $paymentStatus = $verifyData['data']['payment_status'] ?? null;
-                    if ($paymentStatus !== 'paid') {
-                        Log::warning('Guest payment: Verification shows not paid', [
+                    $verified = $verifyResponse->successful()
+                        && $paymentStatus === 'paid'
+                        && app(PaymentService::class)->sessionMatchesPayment($verifyData['data'] ?? [], $payment);
+
+                    if (!$verified) {
+                        Log::warning('Guest payment: Verification failed', [
                             'payment_id' => $payment->id,
                             'payment_status' => $paymentStatus,
                         ]);
-                        $verified = false;
                     }
                 } catch (Exception $verifyError) {
                     Log::warning('Guest payment: Verification request failed', [
                         'payment_id' => $payment->id,
                         'error' => $verifyError->getMessage(),
                     ]);
-                    // Continue anyway - Thawani callback is usually reliable
                 }
             }
 

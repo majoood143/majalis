@@ -478,8 +478,9 @@ class OwnerPayout extends Model
         $year = now()->format('Y');
         $prefix = 'PO-' . $year . '-';
 
-        // Get the last payout number for this year
-        $lastPayout = self::where('payout_number', 'like', $prefix . '%')
+        // Get the last payout number for this year (soft-deleted rows still own their number)
+        $lastPayout = self::withTrashed()
+            ->where('payout_number', 'like', $prefix . '%')
             ->orderByDesc('id')
             ->first();
 

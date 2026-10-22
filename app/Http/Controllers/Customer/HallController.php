@@ -34,6 +34,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class HallController extends Controller
 {
@@ -82,10 +83,10 @@ class HallController extends Controller
         $suggestions    = [];
         $availableCount = 0;
 
-        // ── Get filter options (always needed) ──
-        $regions   = Region::where('is_active', true)->orderBy('order')->get();
-        $features  = HallFeature::where('is_active', true)->orderBy('order')->get();
-        $hallTypes = HallType::where('is_active', true)->orderBy('sort_order')->get();
+        // ── Get filter options (always needed; cached briefly, they rarely change) ──
+        $regions   = Cache::remember('halls.filters.regions', 300, fn() => Region::where('is_active', true)->orderBy('order')->get());
+        $features  = Cache::remember('halls.filters.features', 300, fn() => HallFeature::where('is_active', true)->orderBy('order')->get());
+        $hallTypes = Cache::remember('halls.filters.types', 300, fn() => HallType::where('is_active', true)->orderBy('sort_order')->get());
         $timeSlots = AvailabilityService::TIME_SLOTS;
 
         // ── Get cities (filtered by region if selected) ──
@@ -96,7 +97,7 @@ class HallController extends Controller
                 ->orderBy('order')
                 ->get();
         } else {
-            $cities = City::where('is_active', true)->orderBy('order')->get();
+            $cities = Cache::remember('halls.filters.cities', 300, fn() => City::where('is_active', true)->orderBy('order')->get());
         }
 
         // ══════════════════════════════════════════════════════════
@@ -219,11 +220,18 @@ class HallController extends Controller
             ])->values();
 
         // ── Stats (preserve existing functionality) ──
-        $stats = [
-            'min_price' => Hall::where('is_active', true)->min('price_per_slot'),
-            'max_price' => Hall::where('is_active', true)->max('price_per_slot'),
-            'avg_price' => Hall::where('is_active', true)->avg('price_per_slot'),
-        ];
+        $stats = Cache::remember('halls.price_stats', 300, function () {
+            $row = Hall::where('is_active', true)
+                ->selectRaw('MIN(price_per_slot) as min_price, MAX(price_per_slot) as max_price, AVG(price_per_slot) as avg_price')
+                ->toBase()
+                ->first();
+
+            return [
+                'min_price' => $row->min_price,
+                'max_price' => $row->max_price,
+                'avg_price' => $row->avg_price,
+            ];
+        });
 
         // ── Halls grouped by region (preserve existing functionality) ──
         $hallsByRegion = $halls->groupBy(fn(Hall $h) => $h->city?->region_id);

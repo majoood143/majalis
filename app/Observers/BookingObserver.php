@@ -79,13 +79,16 @@ class BookingObserver
             : $booking->status;
 
         // Status moved to cancelled or rejected → free the slot
-        if (in_array($newStatus, ['cancelled', 'rejected'], true)) {
+        if (in_array($newStatus, ['cancelled', 'rejected', 'refunded'], true)) {
+            $booking->bookingDays()->update(['slot_lock' => null]);
             $this->releaseSlot($booking);
             return;
         }
 
         // Status moved to confirmed or paid → ensure slot is marked booked
         if (in_array($newStatus, ['confirmed', 'paid'], true)) {
+            // Re-claims the days in the unique key; throws if another booking took them meanwhile
+            $booking->bookingDays()->update(['slot_lock' => 1]);
             $this->markSlotAsBooked($booking);
             return;
         }
@@ -104,6 +107,7 @@ class BookingObserver
      */
     public function deleted(Booking $booking): void
     {
+        $booking->bookingDays()->update(['slot_lock' => null]);
         $this->releaseSlot($booking);
     }
 

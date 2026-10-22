@@ -371,7 +371,9 @@ class Ticket extends Model
         $date = now()->format('Ymd');
 
         // Get the last ticket created today
-        $lastTicket = static::whereDate('created_at', today())
+        // Soft-deleted tickets still own their number (unique index)
+        $lastTicket = static::withTrashed()
+            ->whereDate('created_at', today())
             ->latest('id')
             ->first();
 

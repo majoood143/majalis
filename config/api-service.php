@@ -16,7 +16,9 @@ return [
         ],
     ],
     'route' => [
-        'panel_prefix' => true,
+        // false: App\Filament\Api\ApiService adds a literal panel prefix (/api/admin, /api/owner)
+        // because both panels have resources with the same slugs.
+        'panel_prefix' => false,
         'use_resource_middlewares' => false,
     ],
     'tenancy' => [
@@ -28,7 +30,7 @@ return [
         'password' => 'required',
     ],
     'login-middleware' => [
-        // Add any additional middleware you want to apply to the login route
+        'throttle:6,1',
     ],
     'logout-middleware' => [
         'auth:sanctum',

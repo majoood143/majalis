@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use Throwable;
 use App\Models\Booking;
+use App\Models\Review;
 use App\Mail\ReviewRequestMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -98,12 +99,7 @@ class SendReviewRequest implements ShouldQueue
      */
     protected function generateReviewToken(): string
     {
-        return hash('sha256', implode('|', [
-            $this->booking->id,
-            $this->booking->booking_number,
-            $this->booking->customer_email,
-            config('app.key'),
-        ]));
+        return Review::generateToken($this->booking);
     }
 
     public function failed(Throwable $exception): void

@@ -148,12 +148,7 @@ class ReviewController extends Controller
         }
 
         // Verify token
-        $expected = hash('sha256', implode('|', [
-            $booking->id,
-            $booking->booking_number,
-            $booking->customer_email,
-            config('app.key'),
-        ]));
+        $expected = Review::generateToken($booking);
 
         if (!hash_equals($expected, (string) $token)) {
             return [null, __('review.messages.invalid_token')];

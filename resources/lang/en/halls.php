@@ -399,6 +399,6 @@ return [
     // FAQ
     'faq_title' => 'Frequently Asked Questions',
     'slot_available' => 'This time slot is available',
-
+    'payment_not_allowed' => 'This booking can\'t be paid online right now.',
 
 ];

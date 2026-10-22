@@ -681,7 +681,7 @@
                                 ? $hall->description[app()->getLocale()] ?? ($hall->description['en'] ?? '')
                                 : $hall->description;
                         @endphp
-                        {!! $description !!}
+                        {!! str((string) $description)->sanitizeHtml() !!}
                     </div>
                 </div>
 
@@ -930,7 +930,7 @@
                         <div x-show="open" x-transition class="px-6 pb-6">
                             <div class="p-4 border border-gray-100 rounded-xl bg-gray-50">
                                 <div class="leading-relaxed prose-sm prose text-gray-700 max-w-none">
-                                    {!! $terms !!}
+                                    {!! str((string) $terms)->sanitizeHtml() !!}
                                 </div>
                             </div>
                         </div>
@@ -963,7 +963,7 @@
                                                 : $service->description;
                                         @endphp
                                         @if ($serviceDesc)
-                                            <div class="text-sm text-gray-600">{!! $serviceDesc !!}</div>
+                                            <div class="text-sm text-gray-600">{!! str((string) $serviceDesc)->sanitizeHtml() !!}</div>
                                         @endif
                                     </div>
                                     <div

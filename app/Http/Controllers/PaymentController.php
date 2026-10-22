@@ -193,7 +193,7 @@ class PaymentController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json(['error' => $e->getMessage()], 400);
+            return response()->json(['error' => 'Webhook processing failed'], 400);
         }
     }
 }

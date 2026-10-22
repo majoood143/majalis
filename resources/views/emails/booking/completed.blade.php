@@ -82,7 +82,7 @@
         <p style="color: #78350f; margin: 0 0 20px 0; font-size: 14px;">
             {{ __('emails.booking.completed.review_desc') }}
         </p>
-        <a href="{{ route('booking.review', $booking->id) }}" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white !important;">
+        <a href="{{ route('reviews.submit', ['booking' => $booking->id, 'token' => \App\Models\Review::generateToken($booking)]) }}" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white !important;">
             {{ __('emails.booking.completed.leave_review') }}
         </a>
     </div>

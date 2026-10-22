@@ -128,6 +128,8 @@ class OwnerPanelProvider extends PanelProvider
             */
             ->plugins([
                 FilamentShieldPlugin::make(),
+                // Owner APIs under /api/owner/* (tokens are managed in the Admin panel)
+                \App\Filament\Api\ApiServicePlugin::make(),
                 \MarcoGermani87\FilamentCaptcha\FilamentCaptcha::make(),
                 FilamentFullCalendarPlugin::make()
                     // Allow clicking/dragging to select dates

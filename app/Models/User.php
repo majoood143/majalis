@@ -10,11 +10,13 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -53,6 +55,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      * Use Laravel's core traits for factory, notifications, and soft deletes
      */
     use HasFactory, Notifiable, SoftDeletes;
+
+    /**
+     * Sanctum personal access tokens (mobile app / API clients)
+     */
+    use HasApiTokens;
 
     /**
      * HasRoles trait from Spatie Permission package
@@ -231,6 +238,26 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the mobile devices registered for push notifications.
+     *
+     * @return HasMany
+     */
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+
+    /**
+     * Get the halls this user saved as favourites (mobile app).
+     *
+     * @return BelongsToMany
+     */
+    public function favoriteHalls(): BelongsToMany
+    {
+        return $this->belongsToMany(Hall::class, 'favorite_halls')->withTimestamps();
     }
 
     /**

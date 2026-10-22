@@ -610,7 +610,7 @@ class BookingController extends BaseController
         $paymentService = app(PaymentService::class);
 
         // Ensure user owns this booking (skip for guest bookings)
-        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+        if ((int) $booking->user_id !== (int) Auth::id()) {
             abort(403, 'Unauthorized access to booking');
         }
 
@@ -700,7 +700,7 @@ class BookingController extends BaseController
         ]);
 
         // Ensure user owns this booking (skip for guest bookings)
-        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+        if ((int) $booking->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -916,7 +916,7 @@ class BookingController extends BaseController
         ]);
 
         // Ensure user owns this booking (skip for guest bookings)
-        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+        if ((int) $booking->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -1075,7 +1075,7 @@ class BookingController extends BaseController
         app()->setLocale($locale);
 
         // Ensure user owns this booking (skip for guest bookings)
-        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+        if ((int) $booking->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -1099,7 +1099,7 @@ class BookingController extends BaseController
         app()->setLocale($locale);
 
         // Ensure user owns this booking (skip for guest bookings)
-        if ($booking->user_id && $booking->user_id !== Auth::id()) {
+        if ((int) $booking->user_id !== (int) Auth::id()) {
             abort(403);
         }
 

@@ -4,25 +4,21 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
 use App\Enums\BookingStatus;
-use App\Enums\PaymentStatus;
 use App\Jobs\SendBookingNotification;
+use App\Models\Traits\HasGuestBooking;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Traits\HasRoles;
-use App\Models\Traits\HasGuestBooking;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
-
 
 /**
  * Booking Model
@@ -69,7 +65,6 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
- *
  * @property-read Hall $hall
  * @property-read User $user
  * @property-read Collection<Payment> $payments
@@ -78,9 +73,9 @@ use Spatie\Activitylog\Support\LogOptions;
 class Booking extends Model
 {
     use HasFactory;
-    use SoftDeletes;
     use HasGuestBooking;
     use LogsActivity;
+    use SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -159,7 +154,7 @@ class Booking extends Model
         'commission_amount' => 'decimal:2',
         'commission_value' => 'decimal:2',
         'owner_payout' => 'decimal:2',
-        'promo_code_id'  => 'integer',
+        'promo_code_id' => 'integer',
         'discount_amount' => 'decimal:2',
         'advance_amount' => 'decimal:3',
         'balance_due' => 'decimal:3',
@@ -199,13 +194,13 @@ class Booking extends Model
 
     /**
      * Generate a unique booking number.
-     *
-     * @return string
      */
     public static function generateBookingNumber(): string
     {
         $year = date('Y');
-        $lastBooking = self::whereYear('created_at', $year)
+        // Soft-deleted bookings still own their number (unique index)
+        $lastBooking = self::withTrashed()
+            ->whereYear('created_at', $year)
             ->orderBy('id', 'desc')
             ->first();
 
@@ -320,8 +315,6 @@ class Booking extends Model
 
     /**
      * Check if the booking is pending.
-     *
-     * @return bool
      */
     public function isPending(): bool
     {
@@ -330,8 +323,6 @@ class Booking extends Model
 
     /**
      * Check if the booking is confirmed.
-     *
-     * @return bool
      */
     public function isConfirmed(): bool
     {
@@ -340,8 +331,6 @@ class Booking extends Model
 
     /**
      * Check if the booking is completed.
-     *
-     * @return bool
      */
     public function isCompleted(): bool
     {
@@ -350,8 +339,6 @@ class Booking extends Model
 
     /**
      * Check if the booking is cancelled.
-     *
-     * @return bool
      */
     public function isCancelled(): bool
     {
@@ -360,8 +347,6 @@ class Booking extends Model
 
     /**
      * Check if payment is complete.
-     *
-     * @return bool
      */
     public function isPaid(): bool
     {
@@ -370,8 +355,6 @@ class Booking extends Model
 
     /**
      * Check if the booking is upcoming (future date).
-     *
-     * @return bool
      */
     public function isUpcoming(): bool
     {
@@ -380,24 +363,20 @@ class Booking extends Model
 
     /**
      * Check if the booking is past.
-     *
-     * @return bool
      */
     public function isPast(): bool
     {
-        return $this->booking_date->isPast() && !$this->booking_date->isToday();
+        return $this->booking_date->isPast() && ! $this->booking_date->isToday();
     }
 
     public function getDaysUntilBooking(): int
     {
-        //return now()->diffInDays($this->booking_date, false);
+        // return now()->diffInDays($this->booking_date, false);
         return (int) now()->diffInDays($this->booking_date, false);
     }
 
     /**
      * Check if balance payment is due (for advance payment bookings).
-     *
-     * @return bool
      */
     public function hasBalanceDue(): bool
     {
@@ -408,8 +387,6 @@ class Booking extends Model
 
     /**
      * Get the formatted time slot label.
-     *
-     * @return string
      */
     public function getTimeSlotLabelAttribute(): string
     {
@@ -424,8 +401,6 @@ class Booking extends Model
 
     /**
      * Get the formatted status label.
-     *
-     * @return string
      */
     public function getStatusLabelAttribute(): string
     {
@@ -440,8 +415,6 @@ class Booking extends Model
 
     /**
      * Get the status color for UI.
-     *
-     * @return string
      */
     public function getStatusColorAttribute(): string
     {
@@ -460,8 +433,7 @@ class Booking extends Model
     /**
      * Scope to filter bookings by status.
      *
-     * @param Builder $query
-     * @param string $status
+     * @param  Builder  $query
      * @return Builder
      */
     public function scopeStatus($query, string $status)
@@ -472,7 +444,7 @@ class Booking extends Model
     /**
      * Scope to filter upcoming bookings.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      * @return Builder
      */
     public function scopeUpcoming($query)
@@ -484,7 +456,7 @@ class Booking extends Model
     /**
      * Scope to filter past bookings.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      * @return Builder
      */
     public function scopePast($query)
@@ -495,8 +467,7 @@ class Booking extends Model
     /**
      * Scope to filter bookings for a specific hall.
      *
-     * @param Builder $query
-     * @param int $hallId
+     * @param  Builder  $query
      * @return Builder
      */
     public function scopeForHall($query, int $hallId)
@@ -507,19 +478,18 @@ class Booking extends Model
     /**
      * Scope to filter bookings for halls owned by a specific owner.
      *
-     * @param Builder $query
-     * @param int $ownerId
+     * @param  Builder  $query
      * @return Builder
      */
     public function scopeForOwner($query, int $ownerId)
     {
-        return $query->whereHas('hall', fn($q) => $q->where('owner_id', $ownerId));
+        return $query->whereHas('hall', fn ($q) => $q->where('owner_id', $ownerId));
     }
 
     /**
      * Scope to filter bookings with balance due.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      * @return Builder
      */
     public function scopeWithBalanceDue($query)
@@ -575,8 +545,6 @@ class Booking extends Model
      *
      * Call this method when creating a booking for a hall that requires advance.
      * Ensures hall relationship is loaded and handles null cases safely.
-     *
-     * @return void
      */
     // public function calculateAdvancePayment(): void
     // {
@@ -629,32 +597,31 @@ class Booking extends Model
      *
      * Call this when creating a booking for a hall that requires advance.
      * Ensures hall relationship is loaded and handles null cases safely.
-     *
-     * @return void
      */
     public function calculateAdvancePayment(): void
     {
         // Load hall relationship if not already loaded
-        if (!$this->relationLoaded('hall')) {
+        if (! $this->relationLoaded('hall')) {
             $this->load('hall');
         }
 
         // Safety check: if no hall or hall doesn't require advance payment
         if (
-            !$this->hall
-            || !method_exists($this->hall, 'requiresAdvancePayment')
-            || !$this->hall->requiresAdvancePayment()
+            ! $this->hall
+            || ! method_exists($this->hall, 'requiresAdvancePayment')
+            || ! $this->hall->requiresAdvancePayment()
         ) {
-            $this->payment_type   = 'full';
+            $this->payment_type = 'full';
             $this->advance_amount = null;
-            $this->balance_due    = null;
+            $this->balance_due = null;
+
             return;
         }
 
         // ✅ FIX: Get subtotal (hall + services, BEFORE platform fee)
         // Previously used: $totalAmount = (float) ($this->subtotal ?? $this->total_amount ?? 0);
         // That mixed subtotal/total and excluded platform fee from advance
-        $subtotal    = (float) ($this->subtotal ?? 0);
+        $subtotal = (float) ($this->subtotal ?? 0);
         $totalAmount = (float) ($this->total_amount ?? $subtotal);
         $platformFee = (float) ($this->platform_fee ?? 0);
 
@@ -685,7 +652,7 @@ class Booking extends Model
         // The platform only processes the advance payment online; the balance_due is
         // paid directly (cash/bank) to the hall owner with no platform commission.
         // base_advance = advance without the platform service fee
-        $commissionType  = (string) ($this->commission_type ?? '');
+        $commissionType = (string) ($this->commission_type ?? '');
         $commissionValue = (float) ($this->commission_value ?? 0);
 
         $commissionOnAdvance = 0.0;
@@ -698,12 +665,11 @@ class Booking extends Model
         $ownerPayoutFromAdvance = round(max(0.0, $baseAdvance - $commissionOnAdvance), 3);
 
         // Assign to model properties (single round-trip through cast system)
-        $this->advance_amount    = round($advanceAmount, 3);
-        $this->balance_due       = round($balanceDue, 3);
+        $this->advance_amount = round($advanceAmount, 3);
+        $this->balance_due = round($balanceDue, 3);
         $this->commission_amount = $commissionOnAdvance;
-        $this->owner_payout      = $ownerPayoutFromAdvance;
+        $this->owner_payout = $ownerPayoutFromAdvance;
     }
-
 
     // Action Methods
     public function confirm(): void
@@ -721,17 +687,17 @@ class Booking extends Model
      * Records the cancellation reason and timestamp.
      * Calculates refund amount based on cancellation policy if applicable.
      *
-     * @param string|null $reason The reason for cancellation
-     * @return void
+     * @param  string|null  $reason  The reason for cancellation
      */
     public function cancel(?string $reason = null): void
     {
         // Calculate refund amount if booking was paid
         $refundAmount = null;
 
-        if ($this->isPaid()) {
+        // 'partial' = only the advance was paid online; the balance (paid to the hall) is not refunded here.
+        if ($this->isPaid() || $this->payment_status === 'partial') {
             // Load hall relationship if not already loaded for cancellation policy
-            if (!$this->relationLoaded('hall')) {
+            if (! $this->relationLoaded('hall')) {
                 $this->load('hall');
             }
 
@@ -739,9 +705,12 @@ class Booking extends Model
             // Default to full refund if no cancellation policy exists
             $cancellationFeePercentage = (float) ($this->hall?->cancellation_fee_percentage ?? 0);
             $totalAmount = (float) ($this->total_amount ?? 0);
+            $paidOnline = $this->payment_status === 'partial'
+                ? (float) ($this->advance_amount ?? 0)
+                : $totalAmount;
 
             $cancellationFee = ($totalAmount * $cancellationFeePercentage) / 100;
-            $refundAmount = $totalAmount - $cancellationFee;
+            $refundAmount = max(0.0, $paidOnline - $cancellationFee);
         }
 
         $this->update([
@@ -758,8 +727,6 @@ class Booking extends Model
      * Transitions booking status from 'confirmed' to 'completed'.
      * Sets the completed_at timestamp.
      * Should only be called after the event date has passed.
-     *
-     * @return void
      */
     public function complete(): void
     {
@@ -788,6 +755,7 @@ class Booking extends Model
     public function isInPrimaryReviewWindow(): bool
     {
         $days = $this->daysSinceEvent();
+
         return $days >= 0 && $days <= 7;
     }
 
@@ -797,6 +765,7 @@ class Booking extends Model
     public function isInGracePeriodReviewWindow(): bool
     {
         $days = $this->daysSinceEvent();
+
         return $days > 7 && $days <= 14;
     }
 

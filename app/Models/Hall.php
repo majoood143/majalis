@@ -794,12 +794,14 @@ class Hall extends Model
     }
 
     /**
-     * Get average rating
+     * Get average rating (approved reviews only).
+     *
+     * Reads the stored column kept current by updateAverageRating() instead of
+     * querying reviews on every access.
      */
-    public function getAverageRatingAttribute(): ?float
+    public function getAverageRatingAttribute($value): ?float
     {
-        $avg = $this->reviews()->avg('rating');
-        return $avg ? round($avg, 1) : null;
+        return (float) $value > 0 ? round((float) $value, 1) : null;
     }
 
     public function hallTypes(): BelongsToMany

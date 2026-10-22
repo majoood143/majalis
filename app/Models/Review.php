@@ -116,7 +116,7 @@ class Review extends Model
         });
 
         static::updated(function ($review) {
-            if ($review->isDirty('is_approved') || $review->isDirty('rating')) {
+            if ($review->wasChanged('is_approved') || $review->wasChanged('rating')) {
                 $review->hall->updateAverageRating();
             }
         });
@@ -148,7 +148,7 @@ class Review extends Model
         $this->update(['is_approved' => true]);
     }
 
-    public function reject(string $reason = null): void
+    public function reject(?string $reason = null): void
     {
         $this->update([
             'is_approved' => false,

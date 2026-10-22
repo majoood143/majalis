@@ -55,7 +55,8 @@ Route::prefix('guest')->name('guest.')->group(function () {
 
     // Verify OTP code
     Route::post('/book/{hall:slug}/verify', [GuestBookingController::class, 'verifyOtp'])
-        ->name('verify-otp.submit');
+        ->name('verify-otp.submit')
+        ->middleware('throttle:10,10');
 
     // Resend OTP code (max 5 per IP per 10 minutes; controller also enforces 60s per session)
     Route::post('/book/{hall:slug}/resend-otp', [GuestBookingController::class, 'resendOtp'])
@@ -141,6 +142,7 @@ Route::prefix('guest')->name('guest.')->group(function () {
 
     // Check hall availability (public - no auth required)
     Route::post('/check-availability', [GuestBookingController::class, 'checkAvailability'])
-        ->name('check-availability');
+        ->name('check-availability')
+        ->middleware('throttle:60,1');
 
 });

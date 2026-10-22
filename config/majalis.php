@@ -3,6 +3,9 @@
 return [
     'currency' => env('CURRENCY', 'OMR'),
 
+    // Deep-link scheme of the mobile app (app.json "scheme"); payment returns go to {scheme}://payment/result
+    'app_scheme' => env('MOBILE_APP_SCHEME', 'majalis'),
+
     'commission' => [
         'type' => env('COMMISSION_TYPE', 'percentage'),
         'value' => env('COMMISSION_VALUE', 10),

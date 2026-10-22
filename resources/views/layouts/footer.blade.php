@@ -1,3 +1,93 @@
+<section class="py-10 mt-12 bg-brand-200">
+    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <h2 class="mb-8 text-2xl font-bold text-center text-gray-800">
+            {{ app()->getLocale() === 'ar' ? 'لماذا تحجز مع مجالس؟' : 'Why Book With Majalis?' }}
+        </h2>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Secure Checkout -->
+            <div class="flex flex-col items-center p-6 text-center bg-white shadow-sm rounded-2xl">
+                <div class="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-brand-200">
+                    <svg class="w-7 h-7 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                </div>
+                <h3 class="mb-1 font-semibold text-gray-800">
+                    {{ app()->getLocale() === 'ar' ? 'دفع آمن' : 'Secure Checkout' }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                    {{ app()->getLocale() === 'ar' ? 'دفع سريع ومحمي بالكامل' : 'Fast & fully protected payment' }}
+                </p>
+            </div>
+
+            <!-- Instant Confirmation -->
+            <div class="flex flex-col items-center p-6 text-center bg-white shadow-sm rounded-2xl">
+                <div class="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-brand-200">
+                    <svg class="w-7 h-7 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="mb-1 font-semibold text-gray-800">
+                    {{ app()->getLocale() === 'ar' ? 'تأكيد فوري' : 'Instant Confirmation' }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                    {{ app()->getLocale() === 'ar' ? 'خيارات ضمان استرجاع المبلغ' : 'Refund guarantee options' }}
+                </p>
+            </div>
+
+            <!-- Verified Halls -->
+            <div class="flex flex-col items-center p-6 text-center bg-white shadow-sm rounded-2xl">
+                <div class="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-brand-200">
+                    <svg class="w-7 h-7 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l2.25 2.25 6-6.75M12 2.25l7.5 3v6c0 4.5-3 8.25-7.5 10.5-4.5-2.25-7.5-6-7.5-10.5v-6l7.5-3z" />
+                    </svg>
+                </div>
+                <h3 class="mb-1 font-semibold text-gray-800">
+                    {{ app()->getLocale() === 'ar' ? 'قاعات موثقة' : 'Verified Halls' }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                    {{ app()->getLocale() === 'ar' ? 'قاعات معتمدة في عُمان' : 'Trusted venues across Oman' }}
+                </p>
+            </div>
+
+            <!-- 24/7 Support -->
+            <div class="flex flex-col items-center p-6 text-center bg-white shadow-sm rounded-2xl">
+                <div class="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-brand-200">
+                    <svg class="w-7 h-7 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 11.25a8.25 8.25 0 1116.5 0v5.25a2.25 2.25 0 01-2.25 2.25h-1.5a.75.75 0 01-.75-.75v-4.5a.75.75 0 01.75-.75h1.5m-13.5 0h1.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-1.5A2.25 2.25 0 013 16.5v-5.25z" />
+                    </svg>
+                </div>
+                <h3 class="mb-1 font-semibold text-gray-800">
+                    {{ app()->getLocale() === 'ar' ? 'دعم على مدار الساعة' : '24/7 Customer Service' }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                    {{ app()->getLocale() === 'ar' ? 'فريق دعم موثوق بعد الحجز' : 'Reliable after-sales support' }}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center gap-4 mt-8 sm:flex-row">
+            <span class="font-medium text-gray-700">
+                {{ app()->getLocale() === 'ar' ? 'اختر طريقة الدفع المناسبة لك' : 'You choose how to pay' }}
+            </span>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center justify-center px-2 py-1 bg-white rounded-lg shadow-sm" style="min-width:52px; height:32px;">
+                    <img src="{{ asset('images/payment/visa.svg') }}" class="w-auto h-5" alt="Visa">
+                </div>
+                <div class="flex items-center justify-center px-2 py-1 bg-white rounded-lg shadow-sm" style="min-width:52px; height:32px;">
+                    <img src="{{ asset('images/payment/mastercard.svg') }}" class="w-auto h-5" alt="Mastercard">
+                </div>
+                <div class="flex items-center justify-center px-2 py-1 bg-white rounded-lg shadow-sm" style="min-width:52px; height:32px;">
+                    <img src="{{ asset('images/payment/thawani.svg') }}" class="w-auto h-5" alt="Thawani">
+                </div>
+                <div class="flex items-center justify-center px-2 py-1 bg-white rounded-lg shadow-sm" style="min-width:52px; height:32px;">
+                    <img src="{{ asset('images/payment/maal.svg') }}" class="w-auto h-5" alt="Maal">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <footer class="py-8 mt-12 text-white bg-gray-800">
     <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 md:grid-cols-3">

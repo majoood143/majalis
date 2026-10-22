@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\EnsureApiPanelAccess;
+use App\Http\Middleware\EnsureApiUserIsActive;
+use App\Http\Middleware\SetApiLocale;
 use App\Http\Middleware\SetUserLanguage;
 use App\Http\Middleware\RemoveSensitiveHeaders;
 use Illuminate\Foundation\Application;
@@ -15,14 +19,24 @@ use Illuminate\Http\Request;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetUserLanguage::class,
-        RemoveSensitiveHeaders::class,
+            RemoveSensitiveHeaders::class,
+            AddSecurityHeaders::class,
         ]);
+
+        // Middleware used by the panel APIs (rupadana/filament-api-service)
+        $middleware->alias([
+            'api.locale' => SetApiLocale::class,
+            'api.panel' => EnsureApiPanelAccess::class,
+            'api.active' => EnsureApiUserIsActive::class,
+        ]);
+
         // Register custom Authenticate middleware
         $middleware->redirectGuestsTo(function (Request $request) {
             // Get current locale
@@ -54,7 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 if ($user->hasRole('hall_owner')) {
-                    return route('filament.hall-owner.pages.dashboard');
+                    return route('filament.owner.pages.dashboard');
                 }
             }
 
@@ -64,12 +78,21 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
+        // API clients (mobile app) always get JSON errors, even without an Accept header
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson()
+        );
+
         /**
          * Handle Authentication Exceptions (401 Unauthorized)
          *
          * Redirects unauthenticated users to the appropriate login page
          */
         $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => __('Unauthenticated.')], 401);
+            }
+
             // For API requests, return JSON
             if ($request->expectsJson()) {
                 return response()->json([
@@ -137,6 +160,12 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $exceptions->render(function (HttpException $e, Request $request) {
             if ($e->getStatusCode() === 403) {
+                if ($request->is('api/*')) {
+                    return response()->json([
+                        'message' => $e->getMessage() ?: __('auth.forbidden'),
+                    ], 403);
+                }
+
                 // If user is not authenticated, treat as session expiration
                 if (!auth()->check()) {
                     $locale = app()->getLocale();

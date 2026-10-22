@@ -94,6 +94,9 @@ class PromoCodeService
     public function recordUsage(PromoCode $promoCode, Booking $booking): void
     {
         DB::transaction(function () use ($promoCode, $booking) {
+            // Serialize concurrent payment callbacks for the same code
+            PromoCode::whereKey($promoCode->id)->lockForUpdate()->first();
+
             // Guard: don't double-count if already recorded
             $alreadyRecorded = PromoCodeUsage::where('promo_code_id', $promoCode->id)
                 ->where('booking_id', $booking->id)

@@ -41,8 +41,10 @@ return [
         // ],
     ],
 
+    // Must stay enabled: the package registers its command on every-minute cron
+    // when auto-generation is off, so this pins it to a sane frequency.
     'schedule' => [
-        'enabled' => false,
+        'enabled' => true,
         'frequency' => 'daily',
     ],
 
